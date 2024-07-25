@@ -1,0 +1,6 @@
+displayName = Fargo's Souls Mod
+author = Fargowilta, Terry N. Muse and Javyz
+version = 1.6.10.6
+homepage = https://discord.gg/Rgen4Vv
+modReferences = Fargowiltas@3.2.1, Luminance@1.0.3
+sortAfter = Fargowiltas, Luminance
