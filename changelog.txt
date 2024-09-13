@@ -1,0 +1,3 @@
+NEW UPDATE - V {ModVersion}
+
+Updated Chinese localization
