@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Unused stuff
+_003C_003Ez__ReadOnlyArray`1.cs.old
