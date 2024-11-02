@@ -1,86 +1,92 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Souls.ShellHideBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.Souls;
-using FargowiltasSouls.Core.ModPlayers;
+﻿using FargowiltasSouls.Content.Projectiles.Souls;
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Souls
 {
-  public class ShellHideBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class ShellHideBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.buffNoSave[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Shell Hide");
+            // Description.SetDefault("Projectiles are being blocked");
+            Main.debuff[Type] = true;
+            Main.buffNoSave[Type] = true;
+            BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "缩壳");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "阻挡抛射物,但受到双倍接触伤害");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      FargoSoulsPlayer modPlayer = player.FargoSouls();
-      player.noKnockback = true;
-      player.endurance = 0.9f;
-      player.thorns *= 10f;
-      modPlayer.ShellHide = true;
-      float distance = 48f;
-      if (player.ownedProjectileCounts[ModContent.ProjectileType<TurtleShield>()] < 1)
-        Projectile.NewProjectile(player.GetSource_Buff(buffIndex), ((Entity) player).Center, Vector2.Zero, ModContent.ProjectileType<TurtleShield>(), 0, 0.0f, ((Entity) player).whoAmI, 0.0f, 0.0f, 0.0f);
-      if (modPlayer.TurtleCounter > 80)
-        ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (x =>
+        public override void Update(Player player, ref int buffIndex)
         {
-          if (((Entity) x).active && x.hostile && x.damage > 0 && (double) Vector2.Distance(((Entity) x).Center, ((Entity) player).Center) <= (double) distance)
-          {
-            bool? nullable = ProjectileLoader.CanDamage(x);
-            bool flag = false;
-            if (!(nullable.GetValueOrDefault() == flag & nullable.HasValue) && ProjectileLoader.CanHitPlayer(x, player))
-              return FargoSoulsUtil.CanDeleteProjectile(x);
-          }
-          return false;
-        })).ToList<Projectile>().ForEach((Action<Projectile>) (x =>
-        {
-          int index1 = Dust.NewDust(new Vector2(((Entity) x).position.X, ((Entity) x).position.Y + 2f), ((Entity) x).width, ((Entity) x).height + 5, 228, ((Entity) x).velocity.X * 0.2f, ((Entity) x).velocity.Y * 0.2f, 100, new Color(), 2f);
-          Main.dust[index1].noGravity = true;
-          int index2 = Dust.NewDust(new Vector2(((Entity) x).position.X, ((Entity) x).position.Y + 2f), ((Entity) x).width, ((Entity) x).height + 5, 228, ((Entity) x).velocity.X * 0.2f, ((Entity) x).velocity.Y * 0.2f, 100, new Color(), 2f);
-          Main.dust[index2].noGravity = true;
-          Projectile projectile = x;
-          ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, -1f);
-          if ((double) ((Entity) x).Center.X > (double) ((Entity) player).Center.X)
-          {
-            ((Entity) x).direction = 1;
-            x.spriteDirection = 1;
-          }
-          else
-          {
-            ((Entity) x).direction = -1;
-            x.spriteDirection = -1;
-          }
-          x.hostile = false;
-          x.friendly = true;
-          --modPlayer.TurtleShellHP;
-        }));
-      if (modPlayer.TurtleShellHP > 0)
-        return;
-      player.AddBuff(ModContent.BuffType<BrokenShellBuff>(), 1800, true, false);
-      modPlayer.TurtleShellHP = 19;
-      for (int index3 = 0; index3 < 30; ++index3)
-      {
-        Vector2 vector2_1 = Vector2.op_Addition(Utils.RotatedBy(Vector2.op_Multiply(Vector2.UnitY, 5f), (double) (index3 - 14) * 6.2831854820251465 / 30.0, new Vector2()), ((Entity) Main.LocalPlayer).Center);
-        Vector2 vector2_2 = Vector2.op_Subtraction(vector2_1, ((Entity) Main.LocalPlayer).Center);
-        int index4 = Dust.NewDust(Vector2.op_Addition(vector2_1, vector2_2), 0, 0, 273, 0.0f, 0.0f, 0, new Color(), 2f);
-        Main.dust[index4].noGravity = true;
-        Main.dust[index4].velocity = vector2_2;
-      }
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            player.noKnockback = true;
+            player.endurance = .9f;
+            player.thorns *= 10;
+
+            modPlayer.ShellHide = true;
+
+            float distance = 3f * 16;
+
+            if (player.ownedProjectileCounts[ModContent.ProjectileType<TurtleShield>()] < 1)
+            {
+                Projectile.NewProjectile(player.GetSource_Buff(buffIndex), player.Center, Vector2.Zero, ModContent.ProjectileType<TurtleShield>(), 0, 0, player.whoAmI);
+            }
+
+            if (modPlayer.TurtleCounter > 80)
+            {
+                Main.projectile.Where(x => x.active && x.hostile && x.damage > 0 && Vector2.Distance(x.Center, player.Center) <= distance && ProjectileLoader.CanDamage(x) != false && ProjectileLoader.CanHitPlayer(x, player) && FargoSoulsUtil.CanDeleteProjectile(x)).ToList().ForEach(x =>
+                {
+                    int dustId = Dust.NewDust(new Vector2(x.position.X, x.position.Y + 2f), x.width, x.height + 5, DustID.GoldFlame, x.velocity.X * 0.2f, x.velocity.Y * 0.2f, 100,
+                        default, 2f);
+                    Main.dust[dustId].noGravity = true;
+                    int dustId3 = Dust.NewDust(new Vector2(x.position.X, x.position.Y + 2f), x.width, x.height + 5, DustID.GoldFlame, x.velocity.X * 0.2f, x.velocity.Y * 0.2f, 100,
+                        default, 2f);
+                    Main.dust[dustId3].noGravity = true;
+
+                    // Turn around
+                    x.velocity *= -1f;
+
+                    // Flip sprite
+                    if (x.Center.X > player.Center.X)
+                    {
+                        x.direction = 1;
+                        x.spriteDirection = 1;
+                    }
+                    else
+                    {
+                        x.direction = -1;
+                        x.spriteDirection = -1;
+                    }
+
+                    x.hostile = false;
+                    x.friendly = true;
+
+                    modPlayer.TurtleShellHP--;
+                });
+            }
+
+            if (modPlayer.TurtleShellHP <= 0)
+            {
+                player.AddBuff(ModContent.BuffType<BrokenShellBuff>(), 1800);
+                modPlayer.TurtleShellHP = 19;
+
+                //some funny dust
+                const int max = 30;
+                for (int i = 0; i < max; i++)
+                {
+                    Vector2 vector6 = Vector2.UnitY * 5f;
+                    vector6 = vector6.RotatedBy((i - (max / 2 - 1)) * 6.28318548f / max) + Main.LocalPlayer.Center;
+                    Vector2 vector7 = vector6 - Main.LocalPlayer.Center;
+                    int d = Dust.NewDust(vector6 + vector7, 0, 0, DustID.GreenBlood, 0f, 0f, 0, default, 2f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity = vector7;
+                }
+            }
+        }
     }
-  }
 }

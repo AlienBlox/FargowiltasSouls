@@ -1,45 +1,55 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.SlimeBallHoming
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class SlimeBallHoming : SlimeBall
-  {
-    private int bounce;
-
-    public virtual string Texture => "FargowiltasSouls/Content/Projectiles/BossWeapons/SlimeBall";
-
-    public override void SetDefaults()
+    public class SlimeBallHoming : SlimeBall
     {
-      base.SetDefaults();
-      this.Projectile.penetrate = 2;
-    }
+        public override string Texture => "FargowiltasSouls/Content/Projectiles/BossWeapons/SlimeBall";
 
-    public override void AI()
-    {
-      base.AI();
-      if (this.bounce == 0)
-        this.bounce = this.Projectile.timeLeft - Main.rand.Next(150);
-      if (this.Projectile.timeLeft != this.bounce)
-        return;
-      this.bounce = 0;
-      if (this.Projectile.owner != Main.myPlayer)
-        return;
-      ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, Main.MouseWorld), ((Vector2) ref ((Entity) this.Projectile).velocity).Length());
-      this.Projectile.netUpdate = true;
-    }
+        int bounce;
 
-    public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      base.OnHitNPC(target, hit, damageDone);
-      target.immune[this.Projectile.owner] = 9;
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+            Projectile.penetrate = -1;
+            Projectile.timeLeft = 30;
+        }
+
+        public override void AI()
+        {
+            if (Main.rand.NextBool(5))
+            {
+                int dust = Dust.NewDust(Projectile.Center, Projectile.width, Projectile.height, DustID.BlueTorch, Projectile.velocity.X * 0.2f,
+                    Projectile.velocity.Y * 0.2f, 100, default, 2f);
+                Main.dust[dust].noGravity = true;
+            }
+
+            float fade = 14f;
+            if (Projectile.timeLeft < fade)
+                Projectile.Opacity -= (1f / fade);
+        }
+
+        public override void OnKill(int timeleft)
+        {
+            /*
+            for (int i = 0; i < 20; i++)
+            {
+                int num469 = Dust.NewDust(Projectile.Center, Projectile.width, Projectile.height, DustID.BlueTorch, -Projectile.velocity.X * 0.2f,
+                    -Projectile.velocity.Y * 0.2f, 100, default, 2f);
+                Main.dust[num469].noGravity = true;
+                Main.dust[num469].velocity *= 2f;
+                num469 = Dust.NewDust(Projectile.Center, Projectile.width, Projectile.height, DustID.BlueTorch, -Projectile.velocity.X * 0.2f,
+                    -Projectile.velocity.Y * 0.2f, 100);
+                Main.dust[num469].velocity *= 2f;
+            }
+            */
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            base.OnHitNPC(target, hit, damageDone);
+            target.immune[Projectile.owner] = 9;
+        }
     }
-  }
 }

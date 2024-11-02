@@ -1,47 +1,42 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Misc.UniversalCollapse
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles;
+﻿using FargowiltasSouls.Content.Projectiles;
 using Terraria;
-using Terraria.Audio;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Misc
 {
-  public class UniversalCollapse : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class UniversalCollapse : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 99;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 99;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 10;
-      ((Entity) this.Item).height = 32;
-      this.Item.maxStack = 99;
-      this.Item.consumable = true;
-      this.Item.useStyle = 1;
-      this.Item.expert = true;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item1);
-      this.Item.useAnimation = 20;
-      this.Item.useTime = 20;
-      this.Item.value = Item.buyPrice(0, 0, 3, 0);
-      this.Item.noUseGraphic = true;
-      this.Item.noMelee = true;
-      this.Item.shoot = ModContent.ProjectileType<UniversalCollapseProj>();
-      this.Item.shootSpeed = 5f;
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 10;
+            Item.height = 32;
+            Item.maxStack = 99;
+            Item.consumable = true;
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.expert = true;
+            Item.UseSound = SoundID.Item1;
+            Item.useAnimation = 20;
+            Item.useTime = 20;
+            Item.value = Item.buyPrice(0, 0, 3);
+            Item.noUseGraphic = true;
+            Item.noMelee = true;
+            Item.shoot = ModContent.ProjectileType<UniversalCollapseProj>();
+            Item.shootSpeed = 5f;
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.ItemType<GalacticReformer>(), 100).AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet")).Register();
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ModContent.ItemType<GalacticReformer>(), 100)
+            .AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"))
+
+            .Register();
+        }
     }
-  }
 }

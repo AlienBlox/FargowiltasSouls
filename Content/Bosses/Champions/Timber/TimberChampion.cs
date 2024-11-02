@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Timber.TimberChampion
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Items.Accessories.Forces;
 using FargowiltasSouls.Content.Items.Placables.Relics;
 using FargowiltasSouls.Core.Globals;
@@ -13,683 +7,772 @@ using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Terraria;
 using Terraria.Audio;
-using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.GameContent.Bestiary;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Timber
 {
-  [AutoloadBossHead]
-  public class TimberChampion : ModNPC
-  {
-    private const float BaseWalkSpeed = 4f;
-    private bool drawTrail;
-
-    public virtual void SetStaticDefaults()
+    [AutoloadBossHead]
+    public class TimberChampion : ModNPC
     {
-      Main.npcFrameCount[this.NPC.type] = 8;
-      NPCID.Sets.TrailCacheLength[this.NPC.type] = 6;
-      NPCID.Sets.TrailingMode[this.NPC.type] = 1;
-      NPCID.Sets.MPAllowedEnemies[this.Type] = true;
-      NPCID.Sets.BossBestiaryPriority.Add(this.NPC.type);
-      NPC npc = this.NPC;
-      List<int> debuffs = new List<int>();
-      CollectionsMarshal.SetCount<int>(debuffs, 6);
-      Span<int> span = CollectionsMarshal.AsSpan<int>(debuffs);
-      int num1 = 0;
-      span[num1] = 31;
-      int num2 = num1 + 1;
-      span[num2] = 46;
-      int num3 = num2 + 1;
-      span[num3] = 24;
-      int num4 = num3 + 1;
-      span[num4] = 68;
-      int num5 = num4 + 1;
-      span[num5] = ModContent.BuffType<LethargicBuff>();
-      int num6 = num5 + 1;
-      span[num6] = ModContent.BuffType<ClippedWingsBuff>();
-      int num7 = num6 + 1;
-      npc.AddDebuffImmunities(debuffs);
-      Dictionary<int, NPCID.Sets.NPCBestiaryDrawModifiers> bestiaryDrawOffset = NPCID.Sets.NPCBestiaryDrawOffset;
-      int type = this.NPC.type;
-      NPCID.Sets.NPCBestiaryDrawModifiers bestiaryDrawModifiers1;
-      // ISSUE: explicit constructor call
-      ((NPCID.Sets.NPCBestiaryDrawModifiers) ref bestiaryDrawModifiers1).\u002Ector();
-      bestiaryDrawModifiers1.Position = new Vector2(64f, 144f);
-      bestiaryDrawModifiers1.PortraitPositionXOverride = new float?(16f);
-      bestiaryDrawModifiers1.PortraitPositionYOverride = new float?(112f);
-      NPCID.Sets.NPCBestiaryDrawModifiers bestiaryDrawModifiers2 = bestiaryDrawModifiers1;
-      bestiaryDrawOffset.Add(type, bestiaryDrawModifiers2);
-    }
+        private const float BaseWalkSpeed = 4f;
 
-    public virtual void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
-    {
-      bestiaryEntry.Info.AddRange((IEnumerable<IBestiaryInfoElement>) new \u003C\u003Ez__ReadOnlyArray<IBestiaryInfoElement>(new IBestiaryInfoElement[2]
-      {
-        (IBestiaryInfoElement) BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.Surface,
-        (IBestiaryInfoElement) new FlavorTextBestiaryInfoElement("Mods.FargowiltasSouls.Bestiary.TimberChampion")
-      }));
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.NPC).width = 120;
-      ((Entity) this.NPC).height = 234;
-      this.NPC.damage = 110;
-      this.NPC.defense = 50;
-      this.NPC.lifeMax = 240000;
-      this.NPC.HitSound = new SoundStyle?(SoundID.NPCHit7);
-      this.NPC.DeathSound = new SoundStyle?(SoundID.NPCDeath1);
-      this.NPC.noGravity = false;
-      this.NPC.noTileCollide = false;
-      this.NPC.knockBackResist = 0.0f;
-      this.NPC.lavaImmune = true;
-      this.NPC.aiStyle = -1;
-      this.NPC.value = (float) Item.buyPrice(1, 0, 0, 0);
-      this.NPC.boss = true;
-      Mod mod;
-      this.Music = Terraria.ModLoader.ModLoader.TryGetMod("FargowiltasMusic", ref mod) ? MusicLoader.GetMusicSlot(mod, "Assets/Music/Champions") : 81;
-      this.SceneEffectPriority = (SceneEffectPriority) 6;
-    }
-
-    public virtual void ApplyDifficultyAndPlayerScaling(
-      int numPlayers,
-      float balance,
-      float bossAdjustment)
-    {
-      this.NPC.lifeMax = (int) ((double) this.NPC.lifeMax * (double) balance);
-    }
-
-    public virtual bool CanHitPlayer(Player target, ref int CooldownSlot)
-    {
-      CooldownSlot = 1;
-      return true;
-    }
-
-    private static int JumpTreshold => !WorldSavingSystem.MasochistModeReal ? 60 : 30;
-
-    public virtual void AI()
-    {
-      if ((double) this.NPC.localAI[3] == 0.0)
-      {
-        this.NPC.TargetClosest(false);
-        this.NPC.localAI[3] = 1f;
-      }
-      this.drawTrail = false;
-      EModeGlobalNPC.championBoss = ((Entity) this.NPC).whoAmI;
-      Player player = Main.player[this.NPC.target];
-      ((Entity) this.NPC).direction = this.NPC.spriteDirection = (double) ((Entity) this.NPC).position.X < (double) ((Entity) player).position.X ? 1 : -1;
-      switch (this.NPC.ai[0])
-      {
-        case -2f:
-          this.TileCollision((double) ((Entity) player).Center.Y > (double) ((Entity) this.NPC).Bottom.Y, (double) Math.Abs(((Entity) player).Center.X - ((Entity) this.NPC).Center.X) < (double) (((Entity) this.NPC).width / 2) && (double) ((Entity) this.NPC).Bottom.Y < (double) ((Entity) player).Center.Y);
-          break;
-        case -1f:
-          this.Movement(((Entity) player).Center);
-          break;
-        case 0.0f:
-        case 4f:
-        case 8f:
-          this.NPC.noTileCollide = false;
-          this.NPC.noGravity = false;
-          float num1 = WorldSavingSystem.EternityMode ? 60f : 90f;
-          float num2 = WorldSavingSystem.EternityMode ? 0.8f : 0.4f;
-          if ((double) ++this.NPC.ai[1] == (double) TimberChampion.JumpTreshold)
-          {
-            this.NPC.TargetClosest(true);
-            if (WorldSavingSystem.MasochistModeReal)
-            {
-              if ((double) this.NPC.localAI[1] == 0.0 && (double) this.NPC.life < (double) this.NPC.lifeMax * 0.6600000262260437)
-              {
-                this.NPC.localAI[1] = 1f;
-                if (FargoSoulsUtil.HostCheck)
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<TimberPalmTree>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, 0.0f, 0.0f);
-              }
-              if ((double) this.NPC.localAI[2] == 0.0 && (double) this.NPC.life < (double) this.NPC.lifeMax * 0.33000001311302185)
-              {
-                this.NPC.localAI[2] = 1f;
-                if (FargoSoulsUtil.HostCheck)
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<TimberPalmTree>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, 0.0f, 0.0f);
-              }
-            }
-            Vector2 vector2 = Vector2.op_Subtraction(((Entity) player).Top, ((Entity) this.NPC).Bottom);
-            vector2.X += WorldSavingSystem.MasochistModeReal ? ((Entity) player).velocity.X * num1 : (float) (420 * Math.Sign(vector2.X));
-            vector2.X /= num1;
-            vector2.Y = (float) ((double) vector2.Y / (double) num1 - 0.5 * (double) num2 * (double) num1);
-            ((Entity) this.NPC).velocity = vector2;
-            this.NPC.noTileCollide = true;
-            this.NPC.noGravity = true;
-            this.NPC.netUpdate = true;
-            if (FargoSoulsUtil.HostCheck)
-            {
-              int num3 = WorldSavingSystem.MasochistModeReal ? FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage) : 0;
-              Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, 683, num3, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-            }
-            SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            for (int index1 = -2; index1 <= 2; ++index1)
-            {
-              Vector2 center = ((Entity) this.NPC).Center;
-              int num4 = ((Entity) this.NPC).width / 5;
-              center.X += (float) (num4 * index1) + Utils.NextFloat(Main.rand, (float) -num4, (float) num4);
-              center.Y += Utils.NextFloat(Main.rand, (float) (((Entity) this.NPC).height / 2));
-              for (int index2 = 0; index2 < 30; ++index2)
-              {
-                int index3 = Dust.NewDust(center, 32, 32, 31, 0.0f, 0.0f, 100, new Color(), 3f);
-                Dust dust = Main.dust[index3];
-                dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
-              }
-              for (int index4 = 0; index4 < 20; ++index4)
-              {
-                int index5 = Dust.NewDust(center, 32, 32, 6, 0.0f, 0.0f, 100, new Color(), 3.5f);
-                Main.dust[index5].noGravity = true;
-                Dust dust1 = Main.dust[index5];
-                dust1.velocity = Vector2.op_Multiply(dust1.velocity, 7f);
-                int index6 = Dust.NewDust(center, 32, 32, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-                Dust dust2 = Main.dust[index6];
-                dust2.velocity = Vector2.op_Multiply(dust2.velocity, 3f);
-              }
-              float num5 = 0.5f;
-              for (int index7 = 0; index7 < 4; ++index7)
-              {
-                int index8 = Gore.NewGore(((Entity) this.NPC).GetSource_FromThis((string) null), center, new Vector2(), Main.rand.Next(61, 64), 1f);
-                Gore gore = Main.gore[index8];
-                gore.velocity = Vector2.op_Multiply(gore.velocity, num5);
-                ++Main.gore[index8].velocity.X;
-                ++Main.gore[index8].velocity.Y;
-              }
-            }
-            if (!WorldSavingSystem.EternityMode || !FargoSoulsUtil.HostCheck)
-              break;
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Subtraction(((Entity) this.NPC).Bottom, Vector2.op_Multiply(65f, Vector2.UnitY)), Vector2.Zero, ModContent.ProjectileType<TimberJumpMark>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, (float) ((Entity) this.NPC).width, 0.0f);
-            break;
-          }
-          if ((double) this.NPC.ai[1] > (double) TimberChampion.JumpTreshold)
-          {
-            this.NPC.noTileCollide = true;
-            this.NPC.noGravity = true;
-            ((Entity) this.NPC).velocity.Y += num2;
-            this.drawTrail = true;
-            if ((double) this.NPC.ai[1] <= (double) TimberChampion.JumpTreshold + (double) num1)
-              break;
-            this.NPC.TargetClosest(true);
-            this.NPC.ai[1] = (float) (TimberChampion.JumpTreshold - 1);
-            this.NPC.netUpdate = true;
-            if ((double) --this.NPC.ai[2] > 0.0)
-              break;
-            ++this.NPC.ai[0];
-            this.NPC.ai[1] = 0.0f;
-            this.NPC.ai[2] = 0.0f;
-            this.NPC.ai[3] = 0.0f;
-            goto case -2f;
-          }
-          else
-          {
-            if ((double) Math.Abs(((Entity) this.NPC).velocity.X) > (double) Math.Abs(((Entity) this.NPC).velocity.Y))
-              ((Entity) this.NPC).velocity.X = Math.Abs(((Entity) this.NPC).velocity.Y) * (float) Math.Sign(((Entity) this.NPC).velocity.X);
-            ((Entity) this.NPC).velocity.X *= 0.99f;
-            if ((double) this.NPC.ai[0] != 0.0 && (!((Entity) player).active || player.dead || (double) Vector2.Distance(((Entity) this.NPC).Center, ((Entity) player).Center) > 3000.0))
-            {
-              this.NPC.TargetClosest(true);
-              if (this.NPC.timeLeft > 30)
-                this.NPC.timeLeft = 30;
-              this.NPC.noTileCollide = true;
-              this.NPC.noGravity = true;
-              ++((Entity) this.NPC).velocity.Y;
-              this.NPC.ai[1] = 0.0f;
-              break;
-            }
-            this.NPC.timeLeft = 600;
-            goto case -2f;
-          }
-        case 1f:
-          if ((double) ++this.NPC.ai[2] > 35.0)
-          {
-            this.NPC.ai[2] = 0.0f;
-            ++this.NPC.ai[3];
-            float num6 = 60f;
-            Vector2 vector2 = Vector2.op_Subtraction(((Entity) player).Center, ((Entity) this.NPC).Center);
-            vector2.X /= num6;
-            vector2.Y = (float) ((double) vector2.Y / (double) num6 - 0.10000000149011612 * (double) num6);
-            for (int index = 0; index < 15; ++index)
-              Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Addition(vector2, Vector2.op_Multiply(Utils.NextVector2Square(Main.rand, -0.5f, 0.5f), 3f)), ModContent.ProjectileType<TimberAcorn>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage, 0.8f), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-          }
-          this.NPC.localAI[0] = 0.0f;
-          if (WorldSavingSystem.EternityMode && (double) this.NPC.ai[3] == 2.0)
-          {
-            if ((double) this.NPC.ai[2] == 0.0)
-              SoundEngine.PlaySound(ref SoundID.Item36, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            ((Entity) this.NPC).velocity.X *= 0.9f;
-            this.NPC.localAI[0] = 1f;
-            if (!WorldSavingSystem.MasochistModeReal)
-            {
-              this.NPC.ai[1] -= 0.4f;
-              this.NPC.ai[2] -= 0.4f;
-            }
-            if ((double) this.NPC.ai[2] > 30.0)
-            {
-              this.NPC.ai[2] = -1000f;
-              ++this.NPC.ai[3];
-              ((Entity) this.NPC).velocity.Y -= 12f;
-              SoundEngine.PlaySound(ref SoundID.Item36, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-              float num7 = 45f;
-              Vector2 vector2 = Vector2.op_Addition(Vector2.op_Subtraction(((Entity) player).Center, ((Entity) this.NPC).Center), Vector2.op_Multiply(((Entity) player).velocity, 15f));
-              vector2.X /= num7;
-              vector2.Y = (float) ((double) vector2.Y / (double) num7 - 0.10000000149011612 * (double) num7);
-              for (int index = 0; index < 30; ++index)
-                Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Addition(vector2, Vector2.op_Multiply(Utils.NextVector2Square(Main.rand, -0.5f, 0.5f), 4.5f)), ModContent.ProjectileType<TimberAcorn>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-            }
-          }
-          if ((double) ++this.NPC.ai[1] > 120.0)
-          {
-            ++this.NPC.ai[0];
-            this.NPC.ai[1] = 0.0f;
-            this.NPC.ai[2] = 0.0f;
-            this.NPC.ai[3] = 0.0f;
-            this.NPC.netUpdate = true;
-            this.NPC.TargetClosest(true);
-            goto case -1f;
-          }
-          else
-            goto case -1f;
-        case 2f:
-        case 6f:
-          if ((double) this.NPC.ai[3] == 0.0)
-          {
-            this.NPC.ai[3] = 1f;
-            this.NPC.ai[2] = 4f;
-            goto case 0.0f;
-          }
-          else
-            goto case 0.0f;
-        case 3f:
-        case 7f:
-          if ((double) this.NPC.ai[1] == 0.0)
-          {
-            for (int arm = -1; arm <= 1; arm += 2)
-            {
-              Vector2 armPos = this.GetArmPos(arm);
-              SoundEngine.PlaySound(ref SoundID.Item11, new Vector2?(armPos), (SoundUpdateCallback) null);
-              for (int index9 = 0; index9 < 20; ++index9)
-              {
-                int index10 = Dust.NewDust(armPos, 0, 0, 51, 0.0f, 0.0f, 0, new Color(), 3f);
-                Main.dust[index10].noGravity = true;
-                Dust dust = Main.dust[index10];
-                dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
-                Main.dust[index10].velocity.X += (float) ((Entity) this.NPC).direction * Utils.NextFloat(Main.rand, 6f, 24f);
-              }
-            }
-          }
-          if (WorldSavingSystem.EternityMode)
-          {
-            if ((double) ++this.NPC.ai[2] > 60.0)
-            {
-              this.NPC.ai[2] = 40f;
-              this.NPC.ai[3] = (double) this.NPC.ai[3] == 1.0 ? -1f : 1f;
-              Vector2 armPos = this.GetArmPos((int) this.NPC.ai[3]);
-              Vector2 vector2 = Vector2.op_Multiply(16f, ((Entity) player).DirectionFrom(armPos));
-              SoundEngine.PlaySound(ref SoundID.Item11, new Vector2?(armPos), (SoundUpdateCallback) null);
-              for (int index = -3; index <= 3; ++index)
-              {
-                if (FargoSoulsUtil.HostCheck)
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), armPos, Utils.RotatedBy(vector2, (double) MathHelper.ToRadians(60f) / 3.0 * (double) index, new Vector2()), ModContent.ProjectileType<TimberSnowball>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 1f, 0.0f, 0.0f);
-              }
-            }
-          }
-          else if ((double) ++this.NPC.ai[2] > 5.0)
-          {
-            this.NPC.ai[2] = 0.0f;
-            if (FargoSoulsUtil.HostCheck && (double) this.NPC.ai[1] > 30.0 && (double) this.NPC.ai[1] < 120.0)
-            {
-              Vector2 vector2;
-              vector2.X = Utils.NextFloat(Main.rand, 0.0f, (float) (((Entity) this.NPC).width / 2)) * (float) ((Entity) this.NPC).direction;
-              vector2.Y = 16f;
-              Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, vector2), Vector2.op_Multiply(Vector2.UnitY, -12f), ModContent.ProjectileType<TimberSnowball>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-            }
-          }
-          if ((double) ++this.NPC.ai[1] > 150.0)
-          {
-            ++this.NPC.ai[0];
-            this.NPC.ai[1] = 0.0f;
-            this.NPC.ai[2] = 0.0f;
-            this.NPC.ai[3] = 0.0f;
-            this.NPC.netUpdate = true;
-            this.NPC.TargetClosest(true);
-            goto case -1f;
-          }
-          else
-            goto case -1f;
-        case 5f:
-          if ((double) ++this.NPC.ai[2] > 6.0)
-          {
-            this.NPC.ai[2] = 0.0f;
-            FargoSoulsUtil.NewNPCEasy(((Entity) this.NPC).GetSource_FromAI((string) null), ((Entity) this.NPC).Center, ModContent.NPCType<LesserSquirrel>(), velocity: new Vector2(Utils.NextFloat(Main.rand, -10f, 10f), Utils.NextFloat(Main.rand, -20f, -10f)));
-          }
-          if ((double) ++this.NPC.ai[1] > 180.0)
-          {
-            ++this.NPC.ai[0];
-            this.NPC.ai[1] = 0.0f;
-            this.NPC.ai[2] = 0.0f;
-            this.NPC.netUpdate = true;
-            this.NPC.TargetClosest(true);
-            goto case -1f;
-          }
-          else
-            goto case -1f;
-        case 9f:
-          ((Entity) this.NPC).velocity.X *= 0.9f;
-          this.NPC.localAI[0] = 0.0f;
-          if ((double) ++this.NPC.ai[1] > 60.0)
-          {
-            ++this.NPC.ai[0];
-            this.NPC.ai[1] = 0.0f;
-            this.NPC.netUpdate = true;
-            goto case -2f;
-          }
-          else
-            goto case -2f;
-        case 10f:
-          if ((double) this.NPC.ai[1] == 0.0)
-          {
-            this.NPC.ai[3] = (float) Math.Sign(((Entity) player).Center.X - ((Entity) this.NPC).Center.X);
-            ((Entity) this.NPC).direction = this.NPC.spriteDirection = (int) this.NPC.ai[3];
-            this.NPC.netUpdate = true;
-            SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            for (int arm = -1; arm <= 1; arm += 2)
-            {
-              Vector2 armPos = this.GetArmPos(arm);
-              Vector2 vector2 = Vector2.op_Multiply(15f, ((Entity) player).DirectionFrom(armPos));
-              if (FargoSoulsUtil.HostCheck)
-                Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), armPos, vector2, ModContent.ProjectileType<TimberHook>(), 0, 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, 90f, 0.0f);
-            }
-          }
-          if ((double) ++this.NPC.ai[1] > 180.0 || !((IEnumerable<Projectile>) Main.projectile).Any<Projectile>((Func<Projectile, bool>) (p => ((Entity) p).active && p.type == ModContent.ProjectileType<TimberHook>() && (double) p.ai[0] == (double) ((Entity) this.NPC).whoAmI)))
-          {
-            if ((double) ++this.NPC.ai[2] > 3.0)
-            {
-              ++this.NPC.ai[0];
-              this.NPC.ai[2] = 0.0f;
-            }
-            this.NPC.ai[1] = 0.0f;
-            this.NPC.ai[3] = 0.0f;
-            this.NPC.localAI[0] = 0.0f;
-            this.NPC.netUpdate = true;
-          }
-          this.drawTrail = true;
-          if ((double) this.NPC.localAI[0] == 0.0)
-          {
-            ((Entity) this.NPC).direction = this.NPC.spriteDirection = (int) this.NPC.ai[3];
-            goto case -2f;
-          }
-          else
-          {
-            ((Entity) this.NPC).direction = this.NPC.spriteDirection = (int) this.NPC.localAI[0];
-            break;
-          }
-        case 11f:
-          if ((double) ++this.NPC.ai[1] > 120.0)
-          {
-            ++this.NPC.ai[0];
-            this.NPC.ai[1] = 0.0f;
-            goto case -1f;
-          }
-          else
-            goto case -1f;
-        default:
-          this.NPC.ai[0] = 0.0f;
-          goto case 0.0f;
-      }
-    }
-
-    private void TileCollision(bool fallthrough = false, bool dropDown = false)
-    {
-      bool flag1 = false;
-      for (int x = (int) ((Entity) this.NPC).position.X; (double) x <= (double) ((Entity) this.NPC).position.X + (double) ((Entity) this.NPC).width; x += 16)
-      {
-        Tile tileSafely = Framing.GetTileSafely(new Vector2((float) x, ((Entity) this.NPC).Bottom.Y));
-        if (((Tile) ref tileSafely).TileType == (ushort) 19)
+        public override void SetStaticDefaults()
         {
-          flag1 = true;
-          break;
-        }
-      }
-      bool flag2 = Collision.SolidCollision(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height);
-      if (dropDown)
-        ((Entity) this.NPC).velocity.Y += 0.5f;
-      else if (flag2 || flag1 && !fallthrough)
-      {
-        if ((double) ((Entity) this.NPC).velocity.Y > 0.0)
-          ((Entity) this.NPC).velocity.Y = 0.0f;
-        if ((double) ((Entity) this.NPC).velocity.Y > -0.20000000298023224)
-          ((Entity) this.NPC).velocity.Y -= 0.025f;
-        else
-          ((Entity) this.NPC).velocity.Y -= 0.2f;
-        if ((double) ((Entity) this.NPC).velocity.Y < -4.0)
-          ((Entity) this.NPC).velocity.Y = -4f;
-      }
-      else
-      {
-        if ((double) ((Entity) this.NPC).velocity.Y < 0.0)
-          ((Entity) this.NPC).velocity.Y = 0.0f;
-        if ((double) ((Entity) this.NPC).velocity.Y < 0.10000000149011612)
-          ((Entity) this.NPC).velocity.Y += 0.025f;
-        else
-          ((Entity) this.NPC).velocity.Y += 0.5f;
-      }
-      if ((double) ((Entity) this.NPC).velocity.Y <= 10.0)
-        return;
-      ((Entity) this.NPC).velocity.Y = 10f;
-    }
+            // DisplayName.SetDefault("Champion of Timber");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "木英灵");
+            Main.npcFrameCount[NPC.type] = 8;
+            NPCID.Sets.TrailCacheLength[NPC.type] = 6;
+            NPCID.Sets.TrailingMode[NPC.type] = 1;
+            NPCID.Sets.MPAllowedEnemies[Type] = true;
+            NPCID.Sets.BossBestiaryPriority.Add(NPC.type);
 
-    private void Movement(Vector2 target)
-    {
-      ((Entity) this.NPC).direction = this.NPC.spriteDirection = (double) ((Entity) this.NPC).Center.X < (double) target.X ? 1 : -1;
-      if ((double) Math.Abs(target.X - ((Entity) this.NPC).Center.X) < (double) (((Entity) this.NPC).width / 2))
-      {
-        ((Entity) this.NPC).velocity.X *= 0.9f;
-        if ((double) Math.Abs(((Entity) this.NPC).velocity.X) < 0.10000000149011612)
-          ((Entity) this.NPC).velocity.X = 0.0f;
-      }
-      else
-      {
-        float num1 = 4f;
-        if (WorldSavingSystem.MasochistModeReal)
-          num1 *= 2f;
-        int num2 = 30;
-        if (((Entity) this.NPC).direction > 0)
-          ((Entity) this.NPC).velocity.X = (((Entity) this.NPC).velocity.X * (float) num2 + num1) / (float) (num2 + 1);
-        else
-          ((Entity) this.NPC).velocity.X = (((Entity) this.NPC).velocity.X * (float) num2 - num1) / (float) (num2 + 1);
-      }
-      this.TileCollision((double) target.Y > (double) ((Entity) this.NPC).Bottom.Y, (double) Math.Abs(target.X - ((Entity) this.NPC).Center.X) < (double) (((Entity) this.NPC).width / 2) && (double) ((Entity) this.NPC).Bottom.Y < (double) target.Y);
-    }
+            NPC.AddDebuffImmunities(
+            [
+                BuffID.Confused,
+                BuffID.Chilled,
+                BuffID.OnFire,
+                BuffID.Suffocation,
+                ModContent.BuffType<LethargicBuff>(),
+                ModContent.BuffType<ClippedWingsBuff>()
+            ]);
 
-    private Vector2 GetArmPos(int arm)
-    {
-      Vector2 vector2;
-      // ISSUE: explicit constructor call
-      ((Vector2) ref vector2).\u002Ector((float) (47.0 + 19.0 * (double) arm), 28f);
-      vector2.X *= (float) ((Entity) this.NPC).direction;
-      return Vector2.op_Addition(((Entity) this.NPC).Center, vector2);
-    }
-
-    public virtual void FindFrame(int frameHeight)
-    {
-      switch ((int) this.NPC.ai[0])
-      {
-        case 0:
-        case 2:
-        case 4:
-        case 6:
-        case 8:
-          if (!this.NPC.IsABestiaryIconDummy)
-          {
-            if ((double) this.NPC.ai[1] <= (double) TimberChampion.JumpTreshold)
+            NPCID.Sets.NPCBestiaryDrawOffset.Add(NPC.type, new NPCID.Sets.NPCBestiaryDrawModifiers()
             {
-              this.NPC.frame.Y = frameHeight * 6;
-              return;
+                Position = new Vector2(16 * 4, 16 * 9),
+                PortraitPositionXOverride = 16,
+                PortraitPositionYOverride = 16 * 7
+            });
+        }
+
+        public override void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
+        {
+            bestiaryEntry.Info.AddRange([
+                BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.Surface,
+                new FlavorTextBestiaryInfoElement("Mods.FargowiltasSouls.Bestiary.TimberChampion")
+            ]);
+        }
+
+        public override void SetDefaults()
+        {
+            NPC.width = 120;
+            NPC.height = 234;
+            NPC.damage = 110;
+            NPC.defense = 50;
+            NPC.lifeMax = 240000;
+            NPC.HitSound = SoundID.NPCHit7;
+            NPC.DeathSound = SoundID.NPCDeath1;
+            NPC.noGravity = false;
+            NPC.noTileCollide = false;
+            NPC.knockBackResist = 0f;
+            NPC.lavaImmune = true;
+            NPC.aiStyle = -1;
+            NPC.value = Item.buyPrice(4);
+            NPC.boss = true;
+
+            Music = ModLoader.TryGetMod("FargowiltasMusic", out Mod musicMod)
+                ? MusicLoader.GetMusicSlot(musicMod, "Assets/Music/Champions") : MusicID.OtherworldlyBoss1;
+            SceneEffectPriority = SceneEffectPriority.BossLow;
+        }
+
+        public override void ApplyDifficultyAndPlayerScaling(int numPlayers, float balance, float bossAdjustment)
+        {
+            //NPC.damage = (int)(NPC.damage * 0.5f);
+            NPC.lifeMax = (int)(NPC.lifeMax * balance);
+        }
+
+        public override bool CanHitPlayer(Player target, ref int CooldownSlot)
+        {
+            CooldownSlot = 1;
+            return true;
+        }
+
+        static int JumpTreshold => WorldSavingSystem.MasochistModeReal ? 30 : 60;
+
+        bool drawTrail;
+
+        public override void AI()
+        {
+            if (NPC.localAI[3] == 0)
+            {
+                NPC.TargetClosest(false);
+                NPC.localAI[3] = 1;
             }
-            this.NPC.frame.Y = frameHeight * 7;
-            return;
-          }
-          break;
-        case 1:
-          if ((double) this.NPC.localAI[0] == 1.0)
-          {
-            this.NPC.frame.Y = frameHeight * 6;
-            return;
-          }
-          break;
-        case 9:
-          this.NPC.frame.Y = frameHeight * 6;
-          return;
-        case 10:
-          if ((double) this.NPC.localAI[0] != 0.0)
-          {
-            this.NPC.frame.Y = frameHeight * 7;
-            return;
-          }
-          break;
-      }
-      this.NPC.frameCounter += 0.25 * (double) Math.Abs(((Entity) this.NPC).velocity.X);
-      if (this.NPC.frameCounter > 2.5)
-      {
-        this.NPC.frameCounter = 0.0;
-        this.NPC.frame.Y += frameHeight;
-      }
-      if (this.NPC.frame.Y >= frameHeight * 6)
-        this.NPC.frame.Y = 0;
-      if ((double) ((Entity) this.NPC).velocity.X == 0.0)
-        this.NPC.frame.Y = frameHeight;
-      if ((double) ((Entity) this.NPC).velocity.Y <= 4.0)
-        return;
-      this.NPC.frame.Y = frameHeight * 7;
-    }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(ModContent.BuffType<GuiltyBuff>(), 600, true, false);
-    }
+            drawTrail = false;
 
-    private static bool spawnPhase2 => Main.expertMode;
+            EModeGlobalNPC.championBoss = NPC.whoAmI;
 
-    public virtual void HitEffect(NPC.HitInfo hit)
-    {
-      if (this.NPC.life > 0)
-        return;
-      for (int index = 3; index <= 10; ++index)
-      {
-        Vector2 vector2_1 = Vector2.op_Addition(((Entity) this.NPC).position, new Vector2(Utils.NextFloat(Main.rand, (float) ((Entity) this.NPC).width), Utils.NextFloat(Main.rand, (float) ((Entity) this.NPC).height)));
-        if (!Main.dedServ)
-        {
-          IEntitySource sourceFromThis = ((Entity) this.NPC).GetSource_FromThis((string) null);
-          Vector2 vector2_2 = vector2_1;
-          Vector2 velocity = ((Entity) this.NPC).velocity;
-          string name = ((ModType) this).Mod.Name;
-          DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(10, 1);
-          interpolatedStringHandler.AppendLiteral("TimberGore");
-          interpolatedStringHandler.AppendFormatted<int>(index);
-          string stringAndClear = interpolatedStringHandler.ToStringAndClear();
-          int type = ModContent.Find<ModGore>(name, stringAndClear).Type;
-          double scale = (double) this.NPC.scale;
-          Gore.NewGore(sourceFromThis, vector2_2, velocity, type, (float) scale);
+            Player player = Main.player[NPC.target];
+            NPC.direction = NPC.spriteDirection = NPC.position.X < player.position.X ? 1 : -1;
+
+            switch ((int)NPC.ai[0])
+            {
+                case -2: //collision
+                    TileCollision(player.Center.Y > NPC.Bottom.Y, Math.Abs(player.Center.X - NPC.Center.X) < NPC.width / 2 && NPC.Bottom.Y < player.Center.Y);
+                    break;
+
+                case -1: //mourning wood movement
+                    Movement(player.Center);
+                    break;
+
+                case 0: //jump at player
+                    {
+                        NPC.noTileCollide = false;
+                        NPC.noGravity = false;
+
+                        float time = WorldSavingSystem.EternityMode ? 60 : 90;
+                        float gravity = WorldSavingSystem.EternityMode ? 0.8f : 0.4f;
+
+                        if (++NPC.ai[1] == JumpTreshold)
+                        {
+                            NPC.TargetClosest();
+
+                            if (WorldSavingSystem.MasochistModeReal)
+                            {
+                                if (NPC.localAI[1] == 0 && NPC.life < NPC.lifeMax * .66f) //spawn palm tree supports
+                                {
+                                    NPC.localAI[1] = 1;
+                                    if (FargoSoulsUtil.HostCheck)
+                                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<TimberPalmTree>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, NPC.whoAmI);
+                                }
+
+                                if (NPC.localAI[2] == 0 && NPC.life < NPC.lifeMax * .33f) //spawn palm tree supports
+                                {
+                                    NPC.localAI[2] = 1;
+                                    if (FargoSoulsUtil.HostCheck)
+                                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<TimberPalmTree>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, NPC.whoAmI);
+                                }
+                            }
+
+                            Vector2 distance = player.Top - NPC.Bottom;
+                            distance.X += WorldSavingSystem.MasochistModeReal ? player.velocity.X * time : 420 * Math.Sign(distance.X);
+
+                            distance.X /= time;
+                            distance.Y = distance.Y / time - 0.5f * gravity * time;
+                            NPC.velocity = distance;
+
+                            NPC.noTileCollide = true;
+                            NPC.noGravity = true;
+                            NPC.netUpdate = true;
+
+                            if (FargoSoulsUtil.HostCheck) //ogre smash jump
+                            {
+                                int dam = WorldSavingSystem.MasochistModeReal ? FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage) : 0;
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ProjectileID.DD2OgreSmash, dam, 0, Main.myPlayer);
+                            }
+
+                            SoundEngine.PlaySound(SoundID.Item14, NPC.Center);
+
+                            //visual explosions
+                            for (int k = -2; k <= 2; k++)
+                            {
+                                Vector2 dustPos = NPC.Center;
+                                int width = NPC.width / 5;
+                                dustPos.X += width * k + Main.rand.NextFloat(-width, width);
+                                dustPos.Y += Main.rand.NextFloat(NPC.height / 2);
+
+                                for (int i = 0; i < 30; i++)
+                                {
+                                    int dust = Dust.NewDust(dustPos, 32, 32, DustID.Smoke, 0f, 0f, 100, default, 3f);
+                                    Main.dust[dust].velocity *= 1.4f;
+                                }
+
+                                for (int i = 0; i < 20; i++)
+                                {
+                                    int dust = Dust.NewDust(dustPos, 32, 32, DustID.Torch, 0f, 0f, 100, default, 3.5f);
+                                    Main.dust[dust].noGravity = true;
+                                    Main.dust[dust].velocity *= 7f;
+                                    dust = Dust.NewDust(dustPos, 32, 32, DustID.Torch, 0f, 0f, 100, default, 1.5f);
+                                    Main.dust[dust].velocity *= 3f;
+                                }
+
+                                float scaleFactor9 = 0.5f;
+                                for (int j = 0; j < 4; j++)
+                                {
+                                    int gore = Gore.NewGore(NPC.GetSource_FromThis(), dustPos, default, Main.rand.Next(61, 64));
+                                    Main.gore[gore].velocity *= scaleFactor9;
+                                    Main.gore[gore].velocity.X += 1f;
+                                    Main.gore[gore].velocity.Y += 1f;
+                                }
+                            }
+
+                            //chain blast jump
+                            if (WorldSavingSystem.EternityMode)
+                            {
+                                if (FargoSoulsUtil.HostCheck)
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Bottom - 65 * Vector2.UnitY, Vector2.Zero, ModContent.ProjectileType<TimberJumpMark>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, NPC.whoAmI, NPC.width);
+                            }
+                        }
+                        else if (NPC.ai[1] > JumpTreshold)
+                        {
+                            NPC.noTileCollide = true;
+                            NPC.noGravity = true;
+                            NPC.velocity.Y += gravity;
+                            drawTrail = true;
+
+                            if (NPC.ai[1] > JumpTreshold + time)
+                            {
+                                NPC.TargetClosest();
+                                NPC.ai[1] = JumpTreshold - 1;
+                                NPC.netUpdate = true;
+
+                                if (--NPC.ai[2] <= 0)
+                                {
+                                    NPC.ai[0]++;
+                                    NPC.ai[1] = 0;
+                                    NPC.ai[2] = 0;
+                                    NPC.ai[3] = 0;
+                                    goto case -2; //ensures no tile clipping after
+                                }
+                            }
+                        }
+                        else //pre jump
+                        {
+                            if (Math.Abs(NPC.velocity.X) > Math.Abs(NPC.velocity.Y))
+                                NPC.velocity.X = Math.Abs(NPC.velocity.Y) * Math.Sign(NPC.velocity.X);
+
+                            NPC.velocity.X *= 0.99f;
+
+                            if (NPC.ai[0] != 0 && (!player.active || player.dead || Vector2.Distance(NPC.Center, player.Center) > 3000f))
+                            {
+                                NPC.TargetClosest();
+                                if (NPC.timeLeft > 30)
+                                    NPC.timeLeft = 30;
+
+                                NPC.noTileCollide = true;
+                                NPC.noGravity = true;
+                                NPC.velocity.Y += 1f;
+
+                                NPC.ai[1] = 0; //prevent proceeding to next steps of ai while despawning
+                                return;
+                            }
+                            else
+                            {
+                                NPC.timeLeft = 600;
+                            }
+
+                            goto case -2;
+                        }
+                    }
+                    break;
+
+                case 1: //acorn sprays
+                    if (++NPC.ai[2] > 35)
+                    {
+                        NPC.ai[2] = 0;
+                        NPC.ai[3]++;
+                        const float gravity = 0.2f;
+                        float time = 60f;
+                        Vector2 distance = player.Center - NPC.Center;// + player.velocity * 30f;
+                        distance.X /= time;
+                        distance.Y = distance.Y / time - 0.5f * gravity * time;
+                        for (int i = 0; i < 15; i++)
+                        {
+                            Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, distance + Main.rand.NextVector2Square(-0.5f, 0.5f) * 3,
+                                ModContent.ProjectileType<TimberAcorn>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 0.8f), 0f, Main.myPlayer);
+                        }
+                    }
+
+                    NPC.localAI[0] = 0;
+
+                    if (WorldSavingSystem.EternityMode && NPC.ai[3] == 2)
+                    {
+                        if (NPC.ai[2] == 0) //shotgun
+                            SoundEngine.PlaySound(SoundID.Item36, NPC.Center);
+
+                        NPC.velocity.X *= 0.9f;
+
+                        NPC.localAI[0] = 1;
+
+                        if (!WorldSavingSystem.MasochistModeReal)
+                        {
+                            NPC.ai[1] -= 0.4f;
+                            NPC.ai[2] -= 0.4f;
+                        }
+
+                        if (NPC.ai[2] > 30)
+                        {
+                            NPC.ai[2] = -1000;
+                            NPC.ai[3]++;
+
+                            NPC.velocity.Y -= 12f;
+
+                            SoundEngine.PlaySound(SoundID.Item36, NPC.Center);
+
+                            const float gravity = 0.2f;
+                            float time = 45f;
+                            Vector2 distance = player.Center - NPC.Center + player.velocity * 15f;
+                            distance.X /= time;
+                            distance.Y = distance.Y / time - 0.5f * gravity * time;
+                            for (int i = 0; i < 30; i++)
+                            {
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, distance + Main.rand.NextVector2Square(-0.5f, 0.5f) * 4.5f,
+                                    ModContent.ProjectileType<TimberAcorn>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                            }
+                        }
+                    }
+
+                    if (++NPC.ai[1] > 120)
+                    {
+                        NPC.ai[0]++;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.netUpdate = true;
+                        NPC.TargetClosest();
+                    }
+                    goto case -1;
+
+                case 2:
+                    if (NPC.ai[3] == 0) //flags to repeat jumps
+                    {
+                        NPC.ai[3] = 1;
+                        NPC.ai[2] = 4;
+                    }
+                    goto case 0;
+
+                case 3: //snowball barrage
+                    if (NPC.ai[1] == 0) //telegraph
+                    {
+                        for (int i = -1; i <= 1; i += 2)
+                        {
+                            Vector2 pos = GetArmPos(i);
+
+                            SoundEngine.PlaySound(SoundID.Item11, pos);
+
+                            for (int j = 0; j < 20; j++)
+                            {
+                                int d = Dust.NewDust(pos, 0, 0, DustID.SnowBlock, Scale: 3f);
+                                Main.dust[d].noGravity = true;
+                                Main.dust[d].velocity *= 4f;
+                                Main.dust[d].velocity.X += NPC.direction * Main.rand.NextFloat(6f, 24f);
+                            }
+                        }
+                    }
+
+                    if (WorldSavingSystem.EternityMode)
+                    {
+                        if (++NPC.ai[2] > 60) //spread shot of snowballs
+                        {
+                            NPC.ai[2] = 40;
+
+                            NPC.ai[3] = NPC.ai[3] == 1 ? -1 : 1;
+
+                            Vector2 spawnPos = GetArmPos((int)NPC.ai[3]);
+                            Vector2 vel = 16f * player.DirectionFrom(spawnPos);
+
+                            SoundEngine.PlaySound(SoundID.Item11, spawnPos);
+
+                            const int max = 3;
+                            for (int i = -max; i <= max; i++)
+                            {
+                                if (FargoSoulsUtil.HostCheck)
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), spawnPos, vel.RotatedBy(MathHelper.ToRadians(60) / max * i), ModContent.ProjectileType<TimberSnowball>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 1f);
+                            }
+                        }
+                    }
+                    else if (++NPC.ai[2] > 5) //straight aim
+                    {
+                        NPC.ai[2] = 0;
+                        if (FargoSoulsUtil.HostCheck && NPC.ai[1] > 30 && NPC.ai[1] < 120)
+                        {
+                            Vector2 offset;
+                            offset.X = Main.rand.NextFloat(0, NPC.width / 2) * NPC.direction;
+                            offset.Y = 16;
+                            Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + offset,
+                                Vector2.UnitY * -12f, ModContent.ProjectileType<TimberSnowball>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                        }
+                    }
+
+                    if (++NPC.ai[1] > 150)
+                    {
+                        NPC.ai[0]++;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.netUpdate = true;
+                        NPC.TargetClosest();
+                    }
+                    goto case -1;
+
+                case 4:
+                    goto case 0;
+
+                case 5: //spray squirrels
+                    if (++NPC.ai[2] > 6)
+                    {
+                        NPC.ai[2] = 0;
+                        FargoSoulsUtil.NewNPCEasy(NPC.GetSource_FromAI(), NPC.Center, ModContent.NPCType<LesserSquirrel>(),
+                            velocity: new Vector2(Main.rand.NextFloat(-10, 10), Main.rand.NextFloat(-20, -10)));
+                    }
+
+                    if (++NPC.ai[1] > 180)
+                    {
+                        NPC.ai[0]++;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.netUpdate = true;
+                        NPC.TargetClosest();
+                    }
+                    goto case -1;
+
+                case 6:
+                    goto case 2;
+
+                case 7:
+                    goto case 3;
+
+                case 8:
+                    goto case 0;
+
+                case 9: //prepare to hook
+                    NPC.velocity.X *= 0.9f;
+                    NPC.localAI[0] = 0; //out here for mp sync
+
+                    if (++NPC.ai[1] > 60)
+                    {
+                        NPC.ai[0]++;
+                        NPC.ai[1] = 0;
+                        NPC.netUpdate = true;
+                    }
+                    goto case -2;
+
+                case 10: //grappling hook
+                    if (NPC.ai[1] == 0)
+                    {
+                        NPC.ai[3] = Math.Sign(player.Center.X - NPC.Center.X);
+                        NPC.direction = NPC.spriteDirection = (int)NPC.ai[3]; //make sure this is correct before spawning chains
+                        NPC.netUpdate = true;
+
+                        SoundEngine.PlaySound(SoundID.Item92, NPC.Center);
+
+                        for (int i = -1; i <= 1; i += 2)
+                        {
+                            Vector2 spawnPos = GetArmPos(i);
+                            Vector2 vel = 15f * player.DirectionFrom(spawnPos);
+                            const float ai1 = 30f * 3;
+                            if (FargoSoulsUtil.HostCheck)
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), spawnPos, vel, ModContent.ProjectileType<TimberHook>(), 0, 0f, Main.myPlayer, NPC.whoAmI, ai1);
+                        }
+                    }
+
+                    if (++NPC.ai[1] > 180 || !Main.projectile.Any(p => p.active && p.type == ModContent.ProjectileType<TimberHook>() && p.ai[0] == NPC.whoAmI))
+                    {
+                        if (++NPC.ai[2] > 3)
+                        {
+                            NPC.ai[0]++;
+                            NPC.ai[2] = 0;
+                        }
+                        NPC.ai[1] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.localAI[0] = 0;
+                        NPC.netUpdate = true;
+                    }
+
+                    drawTrail = true;
+
+                    //do collision until pulled
+                    if (NPC.localAI[0] == 0)
+                    {
+                        NPC.direction = NPC.spriteDirection = (int)NPC.ai[3];
+                        goto case -2;
+                    }
+                    else
+                    {
+                        NPC.direction = NPC.spriteDirection = (int)NPC.localAI[0];
+                    }
+                    break;
+
+                case 11: //walk back in range, reduces despawn issue
+                    if (++NPC.ai[1] > 120)
+                    {
+                        NPC.ai[0]++;
+                        NPC.ai[1] = 0;
+                    }
+                    goto case -1;
+
+                //NOTE: make sure the grapple and the walk afterwards is the final attack!
+                //this is so it uses the ai0=0 jump, which cant despawn
+
+                default:
+                    NPC.ai[0] = 0;
+                    goto case 0;
+            }
         }
-      }
-      FargoSoulsUtil.GrossVanillaDodgeDust((Entity) this.NPC);
-      for (int index = 0; index < 6; ++index)
-        this.ExplodeDust(Vector2.op_Addition(((Entity) this.NPC).position, new Vector2((float) Main.rand.Next(((Entity) this.NPC).width), (float) Main.rand.Next(((Entity) this.NPC).height))));
-    }
 
-    private void ExplodeDust(Vector2 center)
-    {
-      SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(center), (SoundUpdateCallback) null);
-      Vector2 vector2 = Vector2.op_Subtraction(center, Vector2.op_Division(new Vector2(32f, 32f), 2f));
-      for (int index1 = 0; index1 < 20; ++index1)
-      {
-        int index2 = Dust.NewDust(vector2, 32, 32, 31, 0.0f, 0.0f, 100, new Color(), 3f);
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
-      }
-      for (int index3 = 0; index3 < 15; ++index3)
-      {
-        int index4 = Dust.NewDust(vector2, 32, 32, 6, 0.0f, 0.0f, 100, new Color(), 3.5f);
-        Main.dust[index4].noGravity = true;
-        Dust dust1 = Main.dust[index4];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 7f);
-        int index5 = Dust.NewDust(vector2, 32, 32, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-        Dust dust2 = Main.dust[index5];
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 3f);
-      }
-      float num = 0.5f;
-      for (int index6 = 0; index6 < 3; ++index6)
-      {
-        int index7 = Gore.NewGore(((Entity) this.NPC).GetSource_FromThis((string) null), center, new Vector2(), Main.rand.Next(61, 64), 1f);
-        Gore gore = Main.gore[index7];
-        gore.velocity = Vector2.op_Multiply(gore.velocity, num);
-        ++Main.gore[index7].velocity.X;
-        ++Main.gore[index7].velocity.Y;
-      }
-    }
-
-    public virtual void BossLoot(ref string name, ref int potionType) => potionType = 3544;
-
-    public virtual bool PreKill()
-    {
-      if (!TimberChampion.spawnPhase2)
-        return base.PreKill();
-      this.NPC.value = 0.0f;
-      FargoSoulsUtil.NewNPCEasy(((Entity) this.NPC).GetSource_FromAI((string) null), ((Entity) this.NPC).Center, ModContent.NPCType<TimberChampionHead>(), ((Entity) this.NPC).whoAmI, target: this.NPC.target, velocity: new Vector2());
-      return false;
-    }
-
-    public virtual void OnKill()
-    {
-      NPC.SetEventFlagCleared(ref WorldSavingSystem.DownedBoss[0], -1);
-    }
-
-    public virtual void ModifyNPCLoot(NPCLoot npcLoot)
-    {
-      ((NPCLoot) ref npcLoot).Add((IItemDropRule) new ChampionEnchDropRule(BaseForce.EnchantsIn<TimberForce>()));
-      ((NPCLoot) ref npcLoot).Add(ItemDropRule.MasterModeCommonDrop(ModContent.ItemType<TimberChampionRelic>()));
-    }
-
-    public virtual void BossHeadSpriteEffects(ref SpriteEffects spriteEffects)
-    {
-      // ISSUE: cast to a reference type
-      // ISSUE: explicit reference operation
-      ^(int&) ref spriteEffects = ((Entity) this.NPC).direction < 0 ? 0 : 1;
-    }
-
-    public virtual bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
-    {
-      Texture2D texture2D = TextureAssets.Npc[this.NPC.type].Value;
-      Rectangle frame = this.NPC.frame;
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(frame), 2f);
-      Color alpha = this.NPC.GetAlpha(drawColor);
-      SpriteEffects spriteEffects = this.NPC.spriteDirection < 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      if (this.drawTrail)
-      {
-        for (int index = 0; index < NPCID.Sets.TrailCacheLength[this.NPC.type]; ++index)
+        private void TileCollision(bool fallthrough = false, bool dropDown = false)
         {
-          Color color = Color.op_Multiply(Color.op_Multiply(alpha, 0.33f), (float) (NPCID.Sets.TrailCacheLength[this.NPC.type] - index) / (float) NPCID.Sets.TrailCacheLength[this.NPC.type]);
-          Vector2 oldPo = this.NPC.oldPos[index];
-          float rotation = this.NPC.rotation;
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.NPC).Size, 2f)), screenPos), new Vector2(0.0f, this.NPC.gfxOffY + 2f)), new Rectangle?(frame), color, rotation, vector2, this.NPC.scale, spriteEffects, 0.0f);
+            bool onPlatforms = false;
+            for (int i = (int)NPC.position.X; i <= NPC.position.X + NPC.width; i += 16)
+            {
+                if (Framing.GetTileSafely(new Vector2(i, NPC.Bottom.Y)).TileType == TileID.Platforms)
+                {
+                    onPlatforms = true;
+                    break;
+                }
+            }
+
+            bool onCollision = Collision.SolidCollision(NPC.position, NPC.width, NPC.height);
+
+            if (dropDown)
+            {
+                NPC.velocity.Y += 0.5f;
+            }
+            else if (onCollision || onPlatforms && !fallthrough)
+            {
+                if (NPC.velocity.Y > 0f)
+                    NPC.velocity.Y = 0f;
+
+                if (NPC.velocity.Y > -0.2f)
+                    NPC.velocity.Y -= 0.025f;
+                else
+                    NPC.velocity.Y -= 0.2f;
+
+                if (NPC.velocity.Y < -4f)
+                    NPC.velocity.Y = -4f;
+            }
+            else
+            {
+                if (NPC.velocity.Y < 0f)
+                    NPC.velocity.Y = 0f;
+
+                if (NPC.velocity.Y < 0.1f)
+                    NPC.velocity.Y += 0.025f;
+                else
+                    NPC.velocity.Y += 0.5f;
+            }
+
+            if (NPC.velocity.Y > 10f)
+                NPC.velocity.Y = 10f;
         }
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.NPC).Center, screenPos), new Vector2(0.0f, this.NPC.gfxOffY + 2f)), new Rectangle?(frame), this.NPC.GetAlpha(drawColor), this.NPC.rotation, vector2, this.NPC.scale, spriteEffects, 0.0f);
-      return false;
+
+        private void Movement(Vector2 target)
+        {
+            NPC.direction = NPC.spriteDirection = NPC.Center.X < target.X ? 1 : -1;
+
+            if (Math.Abs(target.X - NPC.Center.X) < NPC.width / 2)
+            {
+                NPC.velocity.X *= 0.9f;
+                if (Math.Abs(NPC.velocity.X) < 0.1f)
+                    NPC.velocity.X = 0f;
+            }
+            else
+            {
+                float maxwalkSpeed = BaseWalkSpeed;
+                if (WorldSavingSystem.MasochistModeReal)
+                    maxwalkSpeed *= 2;
+
+                int walkModifier = 30;
+
+                if (NPC.direction > 0)
+                    NPC.velocity.X = (NPC.velocity.X * walkModifier + maxwalkSpeed) / (walkModifier + 1);
+                else
+                    NPC.velocity.X = (NPC.velocity.X * walkModifier - maxwalkSpeed) / (walkModifier + 1);
+            }
+
+            TileCollision(target.Y > NPC.Bottom.Y, Math.Abs(target.X - NPC.Center.X) < NPC.width / 2 && NPC.Bottom.Y < target.Y);
+        }
+
+        private Vector2 GetArmPos(int arm)
+        {
+            const float midpoint = 47;
+            const float xOffset = 19;
+
+            Vector2 offset = new(midpoint + xOffset * arm, 28);
+
+            offset.X *= NPC.direction;
+
+            return NPC.Center + offset;
+        }
+
+        public override void FindFrame(int frameHeight)
+        {
+            switch ((int)NPC.ai[0])
+            {
+                case 0:
+                    if (NPC.IsABestiaryIconDummy) //do walk animation in bestiary
+                        goto default;
+
+                    if (NPC.ai[1] <= JumpTreshold)
+                        NPC.frame.Y = frameHeight * 6; //crouching for jump
+                    else
+                        NPC.frame.Y = frameHeight * 7; //jumping
+                    break;
+
+                case 1:
+                    if (NPC.localAI[0] == 1)
+                    {
+                        NPC.frame.Y = frameHeight * 6; //crouching
+                        break;
+                    }
+                    goto default;
+
+                case 2:
+                case 4:
+                case 6:
+                case 8:
+                    goto case 0;
+
+                case 9:
+                    NPC.frame.Y = frameHeight * 6; //crouching
+                    break;
+
+                case 10:
+                    if (NPC.localAI[0] == 0)
+                        goto default;
+
+                    NPC.frame.Y = frameHeight * 7;
+                    break;
+
+                default:
+                    {
+                        NPC.frameCounter += 1f / BaseWalkSpeed * Math.Abs(NPC.velocity.X);
+
+                        if (NPC.frameCounter > 2.5f) //walking animation
+                        {
+                            NPC.frameCounter = 0;
+                            NPC.frame.Y += frameHeight;
+                        }
+
+                        if (NPC.frame.Y >= frameHeight * 6)
+                            NPC.frame.Y = 0;
+
+                        if (NPC.velocity.X == 0)
+                            NPC.frame.Y = frameHeight; //stationary sprite if standing still
+
+                        if (NPC.velocity.Y > 4)
+                            NPC.frame.Y = frameHeight * 7; //jumping
+                    }
+                    break;
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
+        {
+            if (WorldSavingSystem.EternityMode)
+                target.AddBuff(ModContent.BuffType<GuiltyBuff>(), 600);
+        }
+
+        static bool spawnPhase2 => Main.expertMode;
+
+        public override void HitEffect(NPC.HitInfo hit)
+        {
+            if (NPC.life <= 0)
+            {
+                for (int i = 3; i <= 10; i++)
+                {
+                    Vector2 pos = NPC.position + new Vector2(Main.rand.NextFloat(NPC.width), Main.rand.NextFloat(NPC.height));
+                    if (!Main.dedServ)
+                        Gore.NewGore(NPC.GetSource_FromThis(), pos, NPC.velocity, ModContent.Find<ModGore>(Mod.Name, $"TimberGore{i}").Type, NPC.scale);
+                }
+
+                FargoSoulsUtil.GrossVanillaDodgeDust(NPC);
+
+                for (int i = 0; i < 6; i++)
+                    ExplodeDust(NPC.position + new Vector2(Main.rand.Next(NPC.width), Main.rand.Next(NPC.height)));
+            }
+        }
+
+        private void ExplodeDust(Vector2 center)
+        {
+            SoundEngine.PlaySound(SoundID.Item14, center);
+
+            const int width = 32;
+            const int height = 32;
+
+            Vector2 pos = center - new Vector2(width, height) / 2f;
+
+            for (int i = 0; i < 20; i++)
+            {
+                int dust = Dust.NewDust(pos, width, height, DustID.Smoke, 0f, 0f, 100, default, 3f);
+                Main.dust[dust].velocity *= 1.4f;
+            }
+
+            for (int i = 0; i < 15; i++)
+            {
+                int dust = Dust.NewDust(pos, width, height, DustID.Torch, 0f, 0f, 100, default, 3.5f);
+                Main.dust[dust].noGravity = true;
+                Main.dust[dust].velocity *= 7f;
+
+                dust = Dust.NewDust(pos, width, height, DustID.Torch, 0f, 0f, 100, default, 1.5f);
+                Main.dust[dust].velocity *= 3f;
+            }
+
+            float scaleFactor9 = 0.5f;
+            for (int j = 0; j < 3; j++)
+            {
+                int gore = Gore.NewGore(NPC.GetSource_FromThis(), center, default, Main.rand.Next(61, 64));
+                Main.gore[gore].velocity *= scaleFactor9;
+                Main.gore[gore].velocity.X += 1f;
+                Main.gore[gore].velocity.Y += 1f;
+            }
+        }
+
+        public override void BossLoot(ref string name, ref int potionType)
+        {
+            potionType = ItemID.SuperHealingPotion;
+        }
+
+        public override bool PreKill()
+        {
+            if (spawnPhase2)
+            {
+                NPC.value = 0;
+                FargoSoulsUtil.NewNPCEasy(NPC.GetSource_FromAI(), NPC.Center, ModContent.NPCType<TimberChampionHead>(), NPC.whoAmI, target: NPC.target);
+                return false;
+            }
+
+            return base.PreKill();
+        }
+
+        public override void OnKill()
+        {
+            NPC.SetEventFlagCleared(ref WorldSavingSystem.DownedBoss[(int)WorldSavingSystem.Downed.TimberChampion], -1);
+        }
+
+        public override void ModifyNPCLoot(NPCLoot npcLoot)
+        {
+            npcLoot.Add(new ChampionEnchDropRule(BaseForce.EnchantsIn<TimberForce>()));
+
+            npcLoot.Add(ItemDropRule.MasterModeCommonDrop(ModContent.ItemType<TimberChampionRelic>()));
+        }
+
+        public override void BossHeadSpriteEffects(ref SpriteEffects spriteEffects)
+        {
+            spriteEffects = NPC.direction < 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+        }
+
+        public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Npc[NPC.type].Value;
+            Rectangle rectangle = NPC.frame;//new Rectangle(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = drawColor;
+            color26 = NPC.GetAlpha(color26);
+
+            SpriteEffects effects = NPC.spriteDirection < 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            if (drawTrail)
+            {
+                for (int i = 0; i < NPCID.Sets.TrailCacheLength[NPC.type]; i++)
+                {
+                    Color color27 = color26 * 0.33f;
+                    color27 *= (float)(NPCID.Sets.TrailCacheLength[NPC.type] - i) / NPCID.Sets.TrailCacheLength[NPC.type];
+                    Vector2 value4 = NPC.oldPos[i];
+                    float num165 = NPC.rotation; //NPC.oldRot[i];
+                    Main.EntitySpriteDraw(texture2D13, value4 + NPC.Size / 2f - screenPos + new Vector2(0, NPC.gfxOffY + 2), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, NPC.scale, effects, 0);
+                }
+            }
+
+            Main.EntitySpriteDraw(texture2D13, NPC.Center - screenPos + new Vector2(0f, NPC.gfxOffY + 2), new Microsoft.Xna.Framework.Rectangle?(rectangle), NPC.GetAlpha(drawColor), NPC.rotation, origin2, NPC.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

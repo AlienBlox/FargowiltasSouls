@@ -1,35 +1,33 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Minions.ProbesBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.Minions;
+﻿using FargowiltasSouls.Content.Projectiles.Minions;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Minions
 {
-  public class ProbesBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class ProbesBuff : ModBuff
     {
-      Main.buffNoTimeDisplay[this.Type] = true;
-      Main.buffNoSave[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Probes");
+            // Description.SetDefault("The probes will protect you");
+            Main.buffNoTimeDisplay[Type] = true;
+            Main.buffNoSave[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "探测器");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "探测器将会保护你");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().Probes = true;
-      if (((Entity) player).whoAmI != Main.myPlayer)
-        return;
-      if (player.ownedProjectileCounts[ModContent.ProjectileType<Probe1>()] < 1)
-        FargoSoulsUtil.NewSummonProjectile(player.GetSource_Buff(buffIndex), ((Entity) player).Center, Vector2.Zero, ModContent.ProjectileType<Probe1>(), 35, 9f, ((Entity) player).whoAmI);
-      if (player.ownedProjectileCounts[ModContent.ProjectileType<Probe2>()] >= 1)
-        return;
-      FargoSoulsUtil.NewSummonProjectile(player.GetSource_Buff(buffIndex), ((Entity) player).Center, Vector2.Zero, ModContent.ProjectileType<Probe2>(), 35, 9f, ((Entity) player).whoAmI, ai1: -1f);
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.FargoSouls().Probes = true;
+            if (player.whoAmI == Main.myPlayer)
+            {
+                const int damage = 35;
+                if (player.ownedProjectileCounts[ModContent.ProjectileType<Probe1>()] < 1)
+                    FargoSoulsUtil.NewSummonProjectile(player.GetSource_Buff(buffIndex), player.Center, Vector2.Zero, ModContent.ProjectileType<Probe1>(), damage, 9f, player.whoAmI);
+                if (player.ownedProjectileCounts[ModContent.ProjectileType<Probe2>()] < 1)
+                    FargoSoulsUtil.NewSummonProjectile(player.GetSource_Buff(buffIndex), player.Center, Vector2.Zero, ModContent.ProjectileType<Probe2>(), damage, 9f, player.whoAmI, 0f, -1f);
+            }
+        }
     }
-  }
 }

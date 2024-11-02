@@ -1,33 +1,51 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Cavern.Ghost
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
+using System.Linq;
 using Terraria;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Cavern
 {
-  public class Ghost : EModeNPCBehaviour
-  {
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(316);
-
-    public override void OnFirstTick(NPC npc)
+    public class Ghost : EModeNPCBehaviour
     {
-      base.OnFirstTick(npc);
-      if (!Utils.NextBool(Main.rand, 5) || !npc.FargoSouls().CanHordeSplit)
-        return;
-      EModeGlobalNPC.Horde(npc, 3);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Ghost);
+        public override void SetDefaults(NPC npc)
+        {
+            npc.knockBackResist = 0f;
+            if (Main.hardMode)
+                npc.lifeMax = (int)(npc.lifeMax * 1.25f);
+        }
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      EModeGlobalNPC.Aura(npc, 100f, 23, dustid: 20, color: new Color());
+            if (Main.rand.NextBool(5) && npc.FargoSouls().CanHordeSplit)
+                EModeGlobalNPC.Horde(npc, 3);
+        }
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            EModeGlobalNPC.Aura(npc, 100, BuffID.Cursed, false, 20);
+            npc.dontTakeDamage = false;
+            if (npc.HasPlayerTarget && Main.player[npc.target].Alive() && Main.player[npc.target].direction != Main.player[npc.target].HorizontalDirectionTo(npc.Center))
+            {
+                npc.dontTakeDamage = true;
+                npc.velocity *= 0f;
+                npc.Opacity = MathHelper.Lerp(npc.Opacity, 0.4f, 0.05f);
+            }
+            else
+            {
+                npc.Opacity = MathHelper.Lerp(npc.Opacity, 1f, 0.05f);
+                npc.position += npc.velocity * 1f;
+            }
+        }
+        public override void ModifyHitByAnything(NPC npc, Player player, ref NPC.HitModifiers modifiers)
+        {
+            if (Main.rand.NextBool(3))
+                modifiers.SetMaxDamage(1);
+        }
     }
-  }
 }

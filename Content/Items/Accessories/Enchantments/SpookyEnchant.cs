@@ -1,37 +1,59 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.SpookyEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.AccessoryEffectSystem;
+﻿using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class SpookyEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(100, 78, 116);
-
-    public override void SetDefaults()
+    public class SpookyEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 7;
-      this.Item.value = 250000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<SpookyEffect>(this.Item);
-    }
+        public override Color nameColor => new(100, 78, 116);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(1832, 1).AddIngredient(1833, 1).AddIngredient(1834, 1).AddIngredient(3098, 1).AddIngredient(1327, 1).AddIngredient(1802, 1).AddTile(125).Register();
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Lime;
+            Item.value = 250000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<SpookyEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ItemID.SpookyHelmet)
+            .AddIngredient(ItemID.SpookyBreastplate)
+            .AddIngredient(ItemID.SpookyLeggings)
+            .AddIngredient(ItemID.ButchersChainsaw)
+            .AddIngredient(ItemID.DeathSickle)
+            .AddIngredient(ItemID.RavenStaff)
+
+            //psycho knife
+            //eoc yoyo
+            //dark harvest
+            //.AddIngredient(ItemID.CursedSapling);
+            //.AddIngredient(ItemID.EyeSpring);
+
+            .AddTile(TileID.CrystalBall)
+            .Register();
+        }
     }
-  }
+    public class SpookyEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<ShadowHeader>();
+        public override int ToggleItemType => ModContent.ItemType<SpookyEnchant>();
+        public override bool ExtraAttackEffect => true;
+    }
 }

@@ -1,45 +1,49 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Cavern.Salamander
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Terraria;
-using Terraria.ModLoader;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Cavern
 {
-  public class Salamander : EModeNPCBehaviour
-  {
-    public bool WasHit;
-
-    public override NPCMatcher CreateMatcher()
+    public class Salamander : EModeNPCBehaviour
     {
-      return new NPCMatcher().MatchTypeRange(498, 499, 500, 501, 502, 503, 504, 505, 506);
-    }
+        public bool WasHit;
 
-    public virtual void SetDefaults(NPC npc)
-    {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(npc);
-      npc.Opacity /= 5f;
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.Salamander,
+            NPCID.Salamander2,
+            NPCID.Salamander3,
+            NPCID.Salamander4,
+            NPCID.Salamander5,
+            NPCID.Salamander6,
+            NPCID.Salamander7,
+            NPCID.Salamander8,
+            NPCID.Salamander9
+        );
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(20, 300, true, false);
-    }
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
 
-    public override void OnHitByAnything(NPC npc, Player player, NPC.HitInfo hit, int damageDone)
-    {
-      base.OnHitByAnything(npc, player, hit, damageDone);
-      if (this.WasHit)
-        return;
-      this.WasHit = true;
-      npc.Opacity *= 5f;
+            npc.Opacity /= 5;
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(BuffID.Poisoned, 300);
+        }
+
+        public override void OnHitByAnything(NPC npc, Player player, NPC.HitInfo hit, int damageDone)
+        {
+            base.OnHitByAnything(npc, player, hit, damageDone);
+
+            if (!WasHit)
+            {
+                WasHit = true;
+                npc.Opacity *= 5;
+            }
+        }
     }
-  }
 }

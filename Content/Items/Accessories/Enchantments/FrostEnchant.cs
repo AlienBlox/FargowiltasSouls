@@ -1,39 +1,67 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.FrostEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Items.Accessories.Forces;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class FrostEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(122, 189, 185);
-
-    public override void SetDefaults()
+    public class FrostEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 5;
-      this.Item.value = 150000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<FrostEffect>(this.Item);
-      player.AddEffect<SnowEffect>(this.Item);
-    }
+        public override Color nameColor => new(122, 189, 185);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(684, 1).AddIngredient(685, 1).AddIngredient(686, 1).AddIngredient(ModContent.ItemType<SnowEnchant>(), 1).AddIngredient(676, 1).AddIngredient(726, 1).AddTile(125).Register();
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Pink;
+            Item.value = 150000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<FrostEffect>(Item);
+            player.AddEffect<SnowEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ItemID.FrostHelmet)
+            .AddIngredient(ItemID.FrostBreastplate)
+            .AddIngredient(ItemID.FrostLeggings)
+            .AddIngredient(ModContent.ItemType<SnowEnchant>())
+            .AddIngredient(ItemID.Frostbrand)
+            .AddIngredient(ItemID.FrostStaff)
+            //frost staff
+            //coolwhip
+            //.AddIngredient(ItemID.BlizzardStaff);
+            //.AddIngredient(ItemID.ToySled);
+            //.AddIngredient(ItemID.BabyGrinchMischiefWhistle);
+
+            .AddTile(TileID.CrystalBall)
+            .Register();
+
+        }
     }
-  }
+    public class FrostEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => null;
+        public override int ToggleItemType => ModContent.ItemType<FrostEnchant>();
+        public override void OnHitNPCEither(Player player, NPC target, NPC.HitInfo hitInfo, DamageClass damageClass, int baseDamage, Projectile projectile, Item item)
+        {
+            if (player.HasEffect<NatureEffect>())
+            {
+                target.AddBuff(BuffID.Frostburn, 60);
+                target.AddBuff(BuffID.Frostburn2, 60);
+            }
+        }
+    }
 }

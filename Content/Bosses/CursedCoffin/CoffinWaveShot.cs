@@ -1,112 +1,116 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.CursedCoffin.CoffinWaveShot
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Assets.ExtraTextures;
+﻿using FargowiltasSouls.Assets.ExtraTextures;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.CursedCoffin
 {
-  public class CoffinWaveShot : ModProjectile, IPixelatedPrimitiveRenderer
-  {
-    private static readonly Color GlowColor = new Color(224, 196, 252, 0);
-
-    public virtual void SetStaticDefaults()
+    public class CoffinWaveShot : ModProjectile, IPixelatedPrimitiveRenderer
     {
-      ProjectileID.Sets.TrailCacheLength[this.Type] = 10;
-      ProjectileID.Sets.TrailingMode[this.Type] = 2;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Banished Baron Scrap");
+            ProjectileID.Sets.TrailCacheLength[Type] = 8;
+            ProjectileID.Sets.TrailingMode[Type] = 2;
+        }
+        public override void SetDefaults()
+        {
+            Projectile.width = 18;
+            Projectile.height = 18;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = true;
+            Projectile.ignoreWater = true;
+            Projectile.scale = 1f;
+            Projectile.light = 1;
+            Projectile.timeLeft = 60 * 3;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 18;
-      ((Entity) this.Projectile).height = 18;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.scale = 1f;
-      this.Projectile.light = 1f;
-      this.Projectile.timeLeft = 180;
-    }
+        public override void AI()
+        {
+            if (Projectile.localAI[0] < 12)
+            {
+                Projectile.localAI[0]++;
+                Projectile.scale = MathHelper.Lerp(0, 1, Projectile.localAI[0] / 12);
+            }
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] < 12.0)
-      {
-        ++this.Projectile.localAI[0];
-        this.Projectile.scale = MathHelper.Lerp(0.0f, 1f, this.Projectile.localAI[0] / 12f);
-      }
-      ProjectileID.Sets.TrailCacheLength[this.Type] = 8;
-      ((Entity) this.Projectile).velocity = Utils.RotatedBy(((Entity) this.Projectile).velocity, (double) (1.57079637f * ((double) this.Projectile.ai[0] == 0.0 ? 0.06f : 0.03f) * MathF.Sin((float) (6.2831854820251465 * ((double) this.Projectile.ai[1] / 50.0)))), new Vector2());
-      float num = WorldSavingSystem.MasochistModeReal ? 1.02f : 1.016f;
-      if ((double) ((Vector2) ref ((Entity) this.Projectile).velocity).Length() < 15.0)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, num);
-      }
-      ++this.Projectile.ai[1];
-    }
+            float rotStr = Projectile.ai[0] == 0 ? 0.06f : 0.03f;
+            float rot = MathHelper.PiOver2 * rotStr * MathF.Sin(MathF.Tau * (Projectile.ai[1] / 50f));
+            Projectile.velocity = Projectile.velocity.RotatedBy(rot);
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 240, true, false);
-    }
+            float accel = WorldSavingSystem.MasochistModeReal ? 1.012f : 1.008f;
+            if (Projectile.velocity.Length() < 11f)
+                Projectile.velocity *= accel;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Vector2 vector2_2 = Vector2.op_Division(Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), (float) (texture2D.Width - ((Entity) this.Projectile).width)), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_2), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
-    }
+            Projectile.ai[1]++;
+        }
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 60 * 4);
+        }
+        private static readonly Color GlowColor = new(224, 196, 252, 0);
+        public override bool PreDraw(ref Color lightColor)
+        {
+            //draw projectile
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Vector2 drawOffset = Projectile.rotation.ToRotationVector2() * (texture2D13.Width - Projectile.width) / 2;
 
-    public float WidthFunction(float completionRatio)
-    {
-      return MathHelper.SmoothStep((float) ((double) this.Projectile.scale * (double) ((Entity) this.Projectile).width * 1.25), 0.0f, completionRatio);
-    }
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+            /*
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = GlowColor;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + drawOffset + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+            */
 
-    public static Color ColorFunction(float completionRatio)
-    {
-      Color color1 = Color.Lerp(Color.Lerp(Color.MediumPurple, Color.DeepPink, 0.5f), CoffinWaveShot.GlowColor, 0.5f);
-      Color glowColor = CoffinWaveShot.GlowColor;
-      ((Color) ref glowColor).A = (byte) 100;
-      Color color2 = Color.op_Multiply(glowColor, 0.5f);
-      double num = (double) completionRatio;
-      return Color.Lerp(color1, color2, (float) num);
-    }
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
 
-    public void RenderPixelatedPrimitives(SpriteBatch spriteBatch)
-    {
-      ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.BlobTrail");
-      FargosTextureRegistry.FadedStreak.Value.SetTexture1();
-      // ISSUE: method pointer
-      // ISSUE: reference to a compiler-generated field
-      // ISSUE: reference to a compiler-generated field
-      // ISSUE: method pointer
-      // ISSUE: method pointer
-      PrimitiveRenderer.RenderTrail((IEnumerable<Vector2>) this.Projectile.oldPos, new PrimitiveSettings(new PrimitiveSettings.VertexWidthFunction((object) this, __methodptr(WidthFunction)), CoffinWaveShot.\u003C\u003EO.\u003C0\u003E__ColorFunction ?? (CoffinWaveShot.\u003C\u003EO.\u003C0\u003E__ColorFunction = new PrimitiveSettings.VertexColorFunction((object) null, __methodptr(ColorFunction))), new PrimitiveSettings.VertexOffsetFunction((object) this, __methodptr(\u003CRenderPixelatedPrimitives\u003Eb__8_0)), true, true, shader, new int?(), new int?(), false, new (Vector2, Vector2)?()), new int?(44));
+
+            return false;
+        }
+        public override void OnKill(int timeLeft)
+        {
+            for (int index1 = 0; index1 < 40; ++index1)
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.ShadowbeamStaff, Main.rand.NextFloat(-3, 3), Main.rand.NextFloat(-3, 3));
+                Main.dust[index2].noGravity = true;
+                Dust dust1 = Main.dust[index2];
+                dust1.velocity *= 3f;
+            }
+        }
+        public float WidthFunction(float completionRatio)
+        {
+            float baseWidth = Projectile.scale * Projectile.width * 1.25f;
+            return MathHelper.SmoothStep(baseWidth, 0f, completionRatio);
+        }
+
+        public static Color ColorFunction(float completionRatio)
+        {
+            return Color.Lerp(Color.Lerp(Color.Lerp(Color.MediumPurple, Color.DeepPink, 0.5f), GlowColor, 0.5f), GlowColor with { A = 100 } * 0.5f, completionRatio);
+            //return Color.Lerp(GlowColor, Color.Transparent, completionRatio) * 0.7f;
+        }
+
+
+        public void RenderPixelatedPrimitives(SpriteBatch spriteBatch)
+        {
+            ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.BlobTrail");
+            FargoSoulsUtil.SetTexture1(FargosTextureRegistry.FadedStreak.Value);
+            PrimitiveRenderer.RenderTrail(Projectile.oldPos, new(WidthFunction, ColorFunction, _ => Projectile.Size * 0.5f, Pixelate: true, Shader: shader), 44);
+        }
     }
-  }
 }

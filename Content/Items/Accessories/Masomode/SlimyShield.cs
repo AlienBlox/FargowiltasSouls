@@ -1,42 +1,56 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.SlimyShield
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.AccessoryEffectSystem;
+﻿using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  [AutoloadEquip]
-  public class SlimyShield : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    [AutoloadEquip(EquipType.Shield)]
+    public class SlimyShield : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 1;
-      this.Item.value = Item.sellPrice(0, 1, 0, 0);
-      this.Item.defense = 2;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[137] = true;
-      player.AddEffect<SlimeFallEffect>(this.Item);
-      player.FargoSouls().SlimyShieldItem = this.Item;
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Blue;
+            Item.value = Item.sellPrice(0, 1);
+            Item.defense = 2;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[BuffID.Slimed] = true;
+
+            player.AddEffect<SlimeFallEffect>(Item);
+
+            if (player.AddEffect<SlimyShieldEffect>(Item))
+                player.FargoSouls().SlimyShieldItem = Item;
+        }
     }
-  }
+    public class SlimeFallEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupremeFairyHeader>();
+        public override int ToggleItemType => ModContent.ItemType<SlimyShield>();
+        public override bool MutantsPresenceAffects => true;
+
+        public override void PostUpdateEquips(Player player)
+        {
+            player.maxFallSpeed *= 1.5f;
+        }
+    }
+    public class SlimyShieldEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupremeFairyHeader>();
+        public override int ToggleItemType => ModContent.ItemType<SlimyShield>();
+        public override bool ExtraAttackEffect => true;
+    }
 }

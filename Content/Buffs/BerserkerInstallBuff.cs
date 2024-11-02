@@ -1,62 +1,63 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.BerserkerInstallBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Content.Items.Accessories.Masomode;
+using FargowiltasSouls.Core.AccessoryEffectSystem;
 using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs
 {
-  public class BerserkerInstallBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class BerserkerInstallBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.buffNoSave[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Berserker Install");
+            // Description.SetDefault("'Get them! Berserker!'");
+            Main.debuff[Type] = true;
+            Main.buffNoSave[Type] = true;
+            Terraria.ID.BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
+        }
 
-    public static void DebuffPlayerStats(Player player)
-    {
-      player.endurance -= 0.3f;
-      Player player1 = player;
-      player1.statDefense = Player.DefenseStat.op_Subtraction(player1.statDefense, 30);
-    }
+        public static void DebuffPlayerStats(Player player)
+        {
+            player.endurance -= 0.30f;
+            player.statDefense -= 30;
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      BerserkerInstallBuff.DebuffPlayerStats(player);
-      player.FargoSouls().Berserked = true;
-      player.FargoSouls().AttackSpeed += 0.5f;
-      ref StatModifier local = ref player.GetDamage(DamageClass.Generic);
-      local = StatModifier.op_Addition(local, 0.2f);
-      player.GetCritChance(DamageClass.Generic) += 20f;
-      player.moveSpeed += 0.2f;
-      player.hasMagiluminescence = true;
-      player.noKnockback = true;
-      if (!player.controlLeft && !player.controlRight)
-      {
-        if ((double) ((Entity) player).velocity.X > 0.0)
-          player.controlRight = true;
-        else if ((double) ((Entity) player).velocity.X < 0.0)
-          player.controlLeft = true;
-        else if (((Entity) player).direction > 0)
-          player.controlRight = true;
-        else
-          player.controlLeft = true;
-      }
-      if (player.buffTime[buffIndex] > 2)
-        player.FargoSouls().NoMomentum = true;
-      if (player.buffTime[buffIndex] != 2)
-        return;
-      int num = 120;
-      player.AddBuff(ModContent.BuffType<BerserkerInstallCDBuff>(), num, true, false);
-      player.AddBuff(ModContent.BuffType<StunnedBuff>(), num, true, false);
+        public override void Update(Player player, ref int buffIndex)
+        {
+            DebuffPlayerStats(player);
+
+            player.FargoSouls().Berserked = true;
+
+            player.FargoSouls().AttackSpeed += 0.50f;
+            player.GetDamage(DamageClass.Generic) += 0.20f;
+            player.GetCritChance(DamageClass.Generic) += 20;
+            player.moveSpeed += 0.20f;
+
+            player.hasMagiluminescence = true;
+            player.noKnockback = true;
+
+            if (!player.controlLeft && !player.controlRight)
+            {
+                if (player.velocity.X > 0)
+                    player.controlRight = true;
+                else if (player.velocity.X < 0)
+                    player.controlLeft = true;
+                else if (player.direction > 0)
+                    player.controlRight = true;
+                else
+                    player.controlLeft = true;
+            }
+
+            if (player.buffTime[buffIndex] > 2)
+                player.FargoSouls().NoMomentum = true;
+
+            if (player.buffTime[buffIndex] == 2)
+            {
+                int stunDuration = 120; //2sec
+                player.AddBuff(ModContent.BuffType<BerserkerInstallCDBuff>(), 60 * 10);
+                player.AddBuff(ModContent.BuffType<StunnedBuff>(), stunDuration);
+            }
+        }
     }
-  }
 }

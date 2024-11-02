@@ -1,68 +1,77 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.SwarmDrops.NukeFishron
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Materials;
+﻿using FargowiltasSouls.Content.Items.Materials;
 using FargowiltasSouls.Content.Items.Weapons.BossDrops;
 using FargowiltasSouls.Content.Projectiles.BossWeapons;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.SwarmDrops
 {
-  public class NukeFishron : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class NukeFishron : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+            // DisplayName.SetDefault("Nuke Fishron");
+            // Tooltip.SetDefault("Uses rockets for ammo\n'The highly weaponized remains of a defeated foe...'");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "核子猪鲨");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "'高度武器化的遗骸...'");
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 634;
-      this.Item.DamageType = DamageClass.Ranged;
-      ((Entity) this.Item).width = 24;
-      ((Entity) this.Item).height = 24;
-      this.Item.useTime = 40;
-      this.Item.useAnimation = 40;
-      this.Item.useStyle = 5;
-      this.Item.noMelee = true;
-      this.Item.knockBack = 7.7f;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item62);
-      this.Item.useAmmo = AmmoID.Rocket;
-      this.Item.value = Item.sellPrice(0, 15, 0, 0);
-      this.Item.rare = 11;
-      this.Item.autoReuse = true;
-      this.Item.shoot = ModContent.ProjectileType<FishNuke>();
-      this.Item.shootSpeed = 7f;
-    }
+        public override void SetDefaults()
+        {
+            Item.damage = 634;
+            Item.DamageType = DamageClass.Ranged;
+            Item.width = 24;
+            Item.height = 24;
+            Item.useTime = 40;
+            Item.useAnimation = 40;
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.noMelee = true;
+            Item.knockBack = 7.7f;
+            Item.UseSound = SoundID.Item62;
+            Item.useAmmo = AmmoID.Rocket;
+            Item.value = Item.sellPrice(0, 15);
+            Item.rare = ItemRarityID.Purple;
+            Item.autoReuse = true;
+            Item.shoot = ModContent.ProjectileType<FishNuke>();
+            Item.shootSpeed = 7f;
+        }
 
-    public virtual Vector2? HoldoutOffset() => new Vector2?(new Vector2(-12f, 0.0f));
+        /*public override void SafeModifyTooltips(List<TooltipLine> list)
+        {
+            foreach (TooltipLine line2 in list)
+            {
+                if (line2.mod == "Terraria" && line2.Name == "ItemName")
+                {
+                    line2.overrideColor = new Color(Main.DiscoR, 51, 255 - (int)(Main.DiscoR * 0.4));
+                }
+            }
+        }*/
 
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      Projectile.NewProjectile((IEntitySource) source, position, velocity, this.Item.shoot, damage, knockback, ((Entity) player).whoAmI, -1f, 0.0f, 0.0f);
-      return false;
-    }
+        //make them hold it different
+        public override Vector2? HoldoutOffset()
+        {
+            return new Vector2(-12, 0);
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.ItemType<FishStick>(), 1).AddIngredient(ModContent.ItemType<AbomEnergy>(), 10).AddIngredient(ModContent.Find<ModItem>("Fargowiltas", "EnergizerFish"), 1).AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet")).Register();
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            Projectile.NewProjectile(source, position, velocity, Item.shoot, damage, knockback, player.whoAmI, -1f, 0);
+            return false;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ModContent.ItemType<FishStick>())
+            .AddIngredient(ModContent.ItemType<AbomEnergy>(), 10)
+            .AddIngredient(ModContent.Find<ModItem>("Fargowiltas", "EnergizerFish"))
+            .AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"))
+
+            .Register();
+        }
     }
-  }
 }

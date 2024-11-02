@@ -1,31 +1,28 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Consumables.MutantsDiscountCard
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Terraria;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Consumables
 {
-  public class MutantsDiscountCard : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetDefaults()
+    public class MutantsDiscountCard : SoulsItem
     {
-      this.Item.DefaultToFood(20, 20, 207, 28800, false, 17);
-      this.Item.rare = 4;
-      this.Item.value = Item.sellPrice(0, 1, 0, 0);
-    }
+        public override bool Eternity => true;
 
-    public virtual bool CanUseItem(Player player) => !player.FargoSouls().MutantsDiscountCard;
+        public override void SetDefaults()
+        {
+            Item.DefaultToFood(20, 20, BuffID.WellFed3, 60 * 60 * 8); // Yes, this is intentional.
+            Item.rare = ItemRarityID.LightRed;
+            Item.value = Item.sellPrice(0, 1);
+        }
 
-    public virtual bool? UseItem(Player player)
-    {
-      player.FargoSouls().MutantsDiscountCard = true;
-      return new bool?(true);
+        public override bool CanUseItem(Player player)
+        {
+            return !player.FargoSouls().MutantsDiscountCard;
+        }
+
+        public override bool? UseItem(Player player)
+        {
+            player.FargoSouls().MutantsDiscountCard = true;
+            return true;
+        }
     }
-  }
 }

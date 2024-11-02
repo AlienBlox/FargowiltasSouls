@@ -1,105 +1,107 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.HiveSentry
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class HiveSentry : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class HiveSentry : ModProjectile
     {
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 40;
-      ((Entity) this.Projectile).height = 42;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.tileCollide = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.sentry = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft = 7200;
-      this.Projectile.sentry = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-    }
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      ((Entity) this.Projectile).velocity.Y = ((Entity) this.Projectile).velocity.Y + 0.2f;
-      if ((double) ((Entity) this.Projectile).velocity.Y > 16.0)
-        ((Entity) this.Projectile).velocity.Y = 16f;
-      ++this.Projectile.ai[1];
-      if ((double) this.Projectile.ai[1] < 120.0)
-        return;
-      float num1 = 2000f;
-      int index1 = -1;
-      for (int index2 = 0; index2 < 200; ++index2)
-      {
-        float num2 = Vector2.Distance(((Entity) this.Projectile).Center, ((Entity) Main.npc[index2]).Center);
-        if ((double) num2 < (double) num1 && (double) num2 < 300.0 && Main.npc[index2].CanBeChasedBy((object) this.Projectile, false))
+        public override void SetStaticDefaults()
         {
-          index1 = index2;
-          num1 = num2;
         }
-      }
-      if (index1 != -1)
-      {
-        NPC npc = Main.npc[index1];
-        for (int index3 = 0; index3 < 10; ++index3)
-        {
-          int index4 = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, new Vector2((float) Main.rand.Next(-10, 10), (float) Main.rand.Next(-10, 10)), player.beeType(), player.beeDamage(this.Projectile.damage), player.beeKB(0.0f), this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-          Main.projectile[index4].DamageType = DamageClass.Summon;
-        }
-        for (int index5 = 0; index5 < 20; ++index5)
-        {
-          int index6 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 147, (float) (-(double) ((Entity) this.Projectile).velocity.X * 0.20000000298023224), (float) (-(double) ((Entity) this.Projectile).velocity.Y * 0.20000000298023224), 100, new Color(), 2f);
-          Main.dust[index6].noGravity = true;
-          Dust dust1 = Main.dust[index6];
-          dust1.velocity = Vector2.op_Multiply(dust1.velocity, 2f);
-          int index7 = Dust.NewDust(new Vector2(((Entity) this.Projectile).Center.X, ((Entity) this.Projectile).Center.Y), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 59, (float) (-(double) ((Entity) this.Projectile).velocity.X * 0.20000000298023224), (float) (-(double) ((Entity) this.Projectile).velocity.Y * 0.20000000298023224), 100, new Color(), 1f);
-          Dust dust2 = Main.dust[index7];
-          dust2.velocity = Vector2.op_Multiply(dust2.velocity, 2f);
-        }
-      }
-      this.Projectile.ai[1] = 0.0f;
-      float num3 = Vector2.Distance(((Entity) Main.player[this.Projectile.owner]).Center, ((Entity) this.Projectile).Center);
-      if ((double) num3 > 2000.0)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if ((double) num3 >= 20.0)
-          return;
-        Main.player[this.Projectile.owner].AddBuff(48, 300, true, false);
-      }
-    }
 
-    public virtual bool TileCollideStyle(
-      ref int width,
-      ref int height,
-      ref bool fallThrough,
-      ref Vector2 hitboxCenterFrac)
-    {
-      fallThrough = false;
-      return true;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 40;
+            Projectile.height = 42;
+            Projectile.aiStyle = -1;
+            Projectile.tileCollide = true;
+            Projectile.ignoreWater = true;
+            Projectile.sentry = true;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft = Projectile.SentryLifeTime;
+            Projectile.sentry = true;
+            Projectile.DamageType = DamageClass.Summon;
+        }
 
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      Projectile projectile = this.Projectile;
-      ((Entity) projectile).position = Vector2.op_Addition(((Entity) projectile).position, ((Entity) this.Projectile).velocity);
-      ((Entity) this.Projectile).velocity = Vector2.Zero;
-      return false;
+        public override void AI()
+        {
+            Player owner = Main.player[Projectile.owner];
+
+            Projectile.velocity.Y = Projectile.velocity.Y + 0.2f;
+            if (Projectile.velocity.Y > 16f)
+            {
+                Projectile.velocity.Y = 16f;
+            }
+            Projectile.ai[1] += 1f;
+
+            if (Projectile.ai[1] >= 120)
+            {
+                float num = 2000f;
+                int npcIndex = -1;
+
+                for (int i = 0; i < 200; i++)
+                {
+                    float dist = Vector2.Distance(Projectile.Center, Main.npc[i].Center);
+
+                    if (dist < num && dist < 300 && Main.npc[i].CanBeChasedBy(Projectile, false))
+                    {
+                        npcIndex = i;
+                        num = dist;
+                    }
+                }
+
+                if (npcIndex != -1)
+                {
+                    NPC target = Main.npc[npcIndex];
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, new Vector2(Main.rand.Next(-10, 10), Main.rand.Next(-10, 10)), owner.beeType(), owner.beeDamage(Projectile.damage), owner.beeKB(0f), Projectile.owner);
+                        if (p.IsWithinBounds(Main.maxProjectiles))
+                        {
+                            Main.projectile[p].DamageType = DamageClass.Summon;
+                            Main.projectile[p].extraUpdates += 1;
+                        }
+                    }
+                    for (int i = 0; i < 20; i++)
+                    {
+                        int dust = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.t_Honey, -Projectile.velocity.X * 0.2f,
+                        -Projectile.velocity.Y * 0.2f, 100, default(Color), 2f);
+                        Main.dust[dust].noGravity = true;
+                        Main.dust[dust].velocity *= 2f;
+                        dust = Dust.NewDust(new Vector2(Projectile.Center.X, Projectile.Center.Y), Projectile.width, Projectile.height, DustID.BlueTorch, -Projectile.velocity.X * 0.2f,
+                        -Projectile.velocity.Y * 0.2f, 100);
+                        Main.dust[dust].velocity *= 2f;
+                    }
+                }
+                Projectile.ai[1] = 0f;
+                float distance = Vector2.Distance(Main.player[Projectile.owner].Center, Projectile.Center);
+
+                //kill if too far away
+                if (distance > 2000)
+                {
+                    Projectile.Kill();
+                }
+                else if (distance < 20)
+                {
+                    Main.player[Projectile.owner].AddBuff(BuffID.Honey, 300);
+                }
+            }
+        }
+
+        public override bool TileCollideStyle(ref int width, ref int height, ref bool fallThrough, ref Vector2 hitboxCenterFrac)
+        {
+            fallThrough = false;
+            return true;
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            Projectile.position += Projectile.velocity;
+            Projectile.velocity = Vector2.Zero;
+            return false;
+        }
     }
-  }
 }

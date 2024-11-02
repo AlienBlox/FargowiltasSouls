@@ -1,113 +1,118 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.DanielTheRobot.ROB
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.DanielTheRobot
 {
-  public class ROB : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class ROB : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 7;
-      Main.projPet[this.Projectile.type] = true;
-    }
-
-    public virtual void SetDefaults()
-    {
-      this.Projectile.netImportant = true;
-      ((Entity) this.Projectile).width = 40;
-      ((Entity) this.Projectile).height = 60;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft *= 5;
-      this.Projectile.aiStyle = 26;
-    }
-
-    public virtual bool PreAI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      PatreonPlayer modPlayer = player.GetModPlayer<PatreonPlayer>();
-      if (!((Entity) player).active || player.dead || player.ghost)
-        modPlayer.ROB = false;
-      if (modPlayer.ROB)
-        this.Projectile.timeLeft = 2;
-      this.HandleAnimation();
-      return true;
-    }
-
-    private void HandleAnimation()
-    {
-      int num1 = 0;
-      int num2 = 0;
-      int num3 = 5;
-      if ((double) this.Projectile.ai[0] != 1.0)
-        goto label_2;
-label_1:
-      num1 = 4;
-      num2 = 6;
-      goto label_7;
-label_2:
-      if ((double) ((Entity) this.Projectile).velocity.Y > 0.0)
-        num1 = num2 = 1;
-      else if ((double) ((Entity) this.Projectile).velocity.Y >= 0.0)
-      {
-        if ((double) ((Entity) this.Projectile).velocity.X != 0.0)
+        public override void SetStaticDefaults()
         {
-          num1 = 2;
-          num2 = 3;
+            Main.projFrames[Projectile.type] = 7;
+            Main.projPet[Projectile.type] = true;
         }
-      }
-      else
-        goto label_1;
-label_7:
-      if (this.Projectile.frame < num1 || this.Projectile.frame > num2)
-        this.Projectile.frame = num1;
-      if (++this.Projectile.frameCounter <= num3)
-        return;
-      this.Projectile.frameCounter = 0;
-      if (++this.Projectile.frame <= num2)
-        return;
-      this.Projectile.frame = num1;
-    }
 
-    private Asset<Texture2D> EyebrowAsset
-    {
-      get => ModContent.Request<Texture2D>(this.Texture + "_Eyebrows", (AssetRequestMode) 2);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.netImportant = true;
+            Projectile.width = 40;
+            Projectile.height = 60;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft *= 5;
+            Projectile.aiStyle = ProjAIStyleID.Pet;
+        }
 
-    private Asset<Texture2D> GlowAsset
-    {
-      get => ModContent.Request<Texture2D>(this.Texture + "Glow", (AssetRequestMode) 2);
-    }
+        //public override bool MinionContactDamage() => true;
+        public override bool PreAI()
+        {
+            Player player = Main.player[Projectile.owner];
+            PatreonPlayer modPlayer = player.GetModPlayer<PatreonPlayer>();
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Vector2 vector2_2 = Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitY, 10f), this.Projectile.scale);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 1 : (SpriteEffects) 0;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_2), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      if (Luminance.Common.Utilities.Utilities.AnyBosses())
-        Main.EntitySpriteDraw(Asset<Texture2D>.op_Explicit(this.EyebrowAsset), Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_2), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      Main.EntitySpriteDraw(Asset<Texture2D>.op_Explicit(this.GlowAsset), Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_2), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.White, this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+            if (!player.active || player.dead || player.ghost)
+            {
+                modPlayer.ROB = false;
+            }
+
+            if (modPlayer.ROB)
+            {
+                Projectile.timeLeft = 2;
+            }
+            HandleAnimation();
+            return true;
+        }
+        private void HandleAnimation()
+        {
+            int startFrame = 0;
+            int endFrame = 0;
+            int animFrames = 5;
+            switch (Projectile.ai[0])
+            {
+                case 1: //flying to player
+                    {
+                        startFrame = 4;
+                        endFrame = 6;
+                    }
+                    break;
+                default: //not flying to player
+                    {
+                        if (Projectile.velocity.Y > 0) //falling
+                        {
+                            startFrame = endFrame = 1;
+                        }
+                        else if (Projectile.velocity.Y < 0) //going upwards
+                        {
+                            goto case 1;
+                        }
+                        else //not in air
+                        {
+                            if (Projectile.velocity.X != 0) //walking
+                            {
+                                startFrame = 2;
+                                endFrame = 3;
+                            }
+                            //if not moving, frame is 0 as default
+                        }
+                    }
+                    break;
+            }
+            if (Projectile.frame < startFrame || Projectile.frame > endFrame)
+            {
+                Projectile.frame = startFrame;
+            }
+            if (++Projectile.frameCounter > animFrames)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame > endFrame)
+                    Projectile.frame = startFrame;
+            }
+        }
+        private Asset<Texture2D> EyebrowAsset => ModContent.Request<Texture2D>(Texture + "_Eyebrows");
+        private Asset<Texture2D> GlowAsset => ModContent.Request<Texture2D>(Texture + "Glow");
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Vector2 drawOffset = Vector2.UnitY * 10 * Projectile.scale;
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+
+            if (LumUtils.AnyBosses())
+            {
+                Main.EntitySpriteDraw((Texture2D)EyebrowAsset, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            }
+            Main.EntitySpriteDraw((Texture2D)GlowAsset, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Rectangle?(rectangle), Color.White, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

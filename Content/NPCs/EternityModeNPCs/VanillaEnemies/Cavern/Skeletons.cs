@@ -1,79 +1,71 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Cavern.Skeletons
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Cavern
 {
-  public class Skeletons : EModeNPCBehaviour
-  {
-    public override NPCMatcher CreateMatcher()
+    public class Skeletons : EModeNPCBehaviour
     {
-      return new NPCMatcher().MatchTypeRange(21, 201, 202, 203, 322, 323, 324, 449, 450, 451, 452);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.Skeleton,
+            NPCID.HeadacheSkeleton,
+            NPCID.MisassembledSkeleton,
+            NPCID.PantlessSkeleton,
+            NPCID.SkeletonTopHat,
+            NPCID.SkeletonAstonaut,
+            NPCID.SkeletonAlien,
+            NPCID.BoneThrowingSkeleton,
+            NPCID.BoneThrowingSkeleton2,
+            NPCID.BoneThrowingSkeleton3,
+            NPCID.BoneThrowingSkeleton4
+        );
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      switch (npc.type)
-      {
-        case 21:
-          if (!Utils.NextBool(Main.rand, 5))
-            break;
-          npc.Transform(449);
-          break;
-        case 201:
-          if (!Utils.NextBool(Main.rand, 5))
-            break;
-          npc.Transform(450);
-          break;
-        case 202:
-          if (!Utils.NextBool(Main.rand, 5))
-            break;
-          npc.Transform(451);
-          break;
-        case 203:
-          if (!Utils.NextBool(Main.rand, 5))
-            break;
-          npc.Transform(452);
-          break;
-      }
-    }
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
 
-    public virtual bool CheckDead(NPC npc)
-    {
-      if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.skeleBoss, 35))
-        return base.CheckDead(npc);
-      npc.life = 0;
-      npc.HitEffect(0, 10.0, new bool?());
-      return false;
-    }
+            switch (npc.type)
+            {
+                case NPCID.Skeleton: if (Main.rand.NextBool(5)) npc.Transform(NPCID.BoneThrowingSkeleton); break;
+                case NPCID.HeadacheSkeleton: if (Main.rand.NextBool(5)) npc.Transform(NPCID.BoneThrowingSkeleton2); break;
+                case NPCID.MisassembledSkeleton: if (Main.rand.NextBool(5)) npc.Transform(NPCID.BoneThrowingSkeleton3); break;
+                case NPCID.PantlessSkeleton: if (Main.rand.NextBool(5)) npc.Transform(NPCID.BoneThrowingSkeleton4); break;
+                default: break;
+            }
+        }
 
-    public virtual void OnKill(NPC npc)
-    {
-      base.OnKill(npc);
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      for (int index = 0; index < 10; ++index)
-      {
-        Vector2 vector2;
-        // ISSUE: explicit constructor call
-        ((Vector2) ref vector2).\u002Ector((float) Main.rand.Next(-50, 51), (float) Main.rand.Next(-100, 1));
-        ((Vector2) ref vector2).Normalize();
-        vector2 = Vector2.op_Multiply(vector2, Utils.NextFloat(Main.rand, 3f, 6f));
-        vector2.Y -= Math.Abs(vector2.X) * 0.2f;
-        vector2.Y -= 3f;
-        if (FargoSoulsUtil.HostCheck)
-          Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, vector2, 471, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      }
+        public override bool CheckDead(NPC npc)
+        {
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.skeleBoss, NPCID.SkeletronHead))
+            {
+                npc.life = 0;
+                npc.HitEffect();
+                return false;
+            }
+
+            return base.CheckDead(npc);
+        }
+
+        public override void OnKill(NPC npc)
+        {
+            base.OnKill(npc);
+
+            if (FargoSoulsUtil.HostCheck)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    Vector2 speed = new(Main.rand.Next(-50, 51), Main.rand.Next(-100, 1));
+                    speed.Normalize();
+                    speed *= Main.rand.NextFloat(3f, 6f);
+                    speed.Y -= Math.Abs(speed.X) * 0.2f;
+                    speed.Y -= 3f;
+                    if (FargoSoulsUtil.HostCheck)
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, speed, ProjectileID.SkeletonBone, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer);
+                }
+            }
+        }
     }
-  }
 }

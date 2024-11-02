@@ -1,37 +1,83 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.PumpkinEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Projectiles.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class PumpkinEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(227, 101, 28);
-
-    public override void SetDefaults()
+    public class PumpkinEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 1;
-      this.Item.value = 20000;
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
+
+        public override Color nameColor => new(227, 101, 28);
+
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Blue;
+            Item.value = 20000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<PumpkinEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddIngredient(ItemID.PumpkinHelmet)
+                .AddIngredient(ItemID.PumpkinBreastplate)
+                .AddIngredient(ItemID.PumpkinLeggings)
+                .AddIngredient(ItemID.MolotovCocktail, 50)
+                .AddIngredient(ItemID.Sickle)
+                .AddIngredient(ItemID.PumpkinPie)
+
+            .AddTile(TileID.DemonAltar)
+            .Register();
+        }
     }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
+    public class PumpkinEffect : AccessoryEffect
     {
-      player.AddEffect<PumpkinEffect>(this.Item);
+        public override Header ToggleHeader => Header.GetHeader<LifeHeader>();
+        public override int ToggleItemType => ModContent.ItemType<PumpkinEnchant>();
+
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if ((player.controlLeft || player.controlRight) && !modPlayer.IsStandingStill && player.whoAmI == Main.myPlayer)
+            {
+                if (modPlayer.PumpkinSpawnCD <= 0 && player.ownedProjectileCounts[ModContent.ProjectileType<GrowingPumpkin>()] < 10)
+                {
+                    int x = (int)player.Center.X / 16;
+                    int y = (int)(player.position.Y + player.height - 1f) / 16;
+
+                    //Main.tile[x, y] ??= new Tile();
+
+                    if (!Main.tile[x, y].HasTile && Main.tile[x, y].LiquidType == 0 && Main.tile[x, y + 1] != null && (WorldGen.SolidTile(x, y + 1) || Main.tile[x, y + 1].TileType == TileID.Platforms)
+                        || modPlayer.ForceEffect<PumpkinEnchant>())
+                    {
+                        Projectile.NewProjectile(player.GetSource_Accessory(player.EffectItem<PumpkinEffect>()), player.Center, Vector2.Zero, ModContent.ProjectileType<GrowingPumpkin>(), 0, 0, player.whoAmI);
+                        modPlayer.PumpkinSpawnCD = LumUtils.SecondsToFrames(7.5f);
+                    }
+                }
+            }
+
+            if (modPlayer.PumpkinSpawnCD > 0)
+            {
+                modPlayer.PumpkinSpawnCD--;
+            }
+        }
     }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(1731, 1).AddIngredient(1732, 1).AddIngredient(1733, 1).AddIngredient(2590, 50).AddIngredient(1786, 1).AddIngredient(1787, 1).AddTile(26).Register();
-    }
-  }
 }

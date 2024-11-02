@@ -1,74 +1,162 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.OpticLaser
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class OpticLaser : ModProjectile
-  {
-    public int targetID = -1;
-    public int searchTimer = 3;
-
-    public virtual string Texture => "Terraria/Images/Projectile_100";
-
-    public virtual void SetStaticDefaults()
+    public class OpticLaser : ModProjectile
     {
-      ProjectileID.Sets.MinionShot[this.Projectile.type] = true;
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
+        public override string Texture => "Terraria/Images/Projectile_100";
+
+        public int targetID = -1;
+        public int searchTimer = 3;
+
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Death Laser");
+            ProjectileID.Sets.MinionShot[Projectile.type] = true;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+        }
+
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(targetID);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            targetID = reader.ReadInt32();
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.DeathLaser);
+            AIType = ProjectileID.DeathLaser;
+            Projectile.hostile = false;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.tileCollide = false;
+            Projectile.penetrate = -1;
+            Projectile.ignoreWater = true;
+            Projectile.timeLeft = 120 * (Projectile.extraUpdates + 1);
+
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 10;
+        }
+
+        /*public override void AI()
+        {
+            if (Projectile.timeLeft < 60 * (Projectile.extraUpdates + 1)) //stop homing
+                return;
+
+            if (targetID == -1) //no target atm
+            {
+                if (searchTimer == 0) //search every few ticks
+                {
+                    searchTimer = 6;
+
+                    int possibleTarget = -1;
+                    float closestDistance = 500f;
+
+                    for (int i = 0; i < 200; i++)
+                    {
+                        NPC npc = Main.npc[i];
+
+                        if (npc.active && npc.chaseable && npc.lifeMax > 5 && !npc.dontTakeDamage && !npc.friendly && !npc.immortal)
+                        {
+                            float distance = Vector2.Distance(Projectile.Center, npc.Center);
+
+                            if (closestDistance > distance)
+                            {
+                                closestDistance = distance;
+                                possibleTarget = i;
+                            }
+                        }
+                    }
+
+                    if (possibleTarget != -1)
+                    {
+                        targetID = possibleTarget;
+                        Projectile.netUpdate = true;
+                    }
+                }
+                searchTimer--;
+            }
+            else //currently have target
+            {
+                NPC npc = Main.npc[targetID];
+
+                if (npc.active && npc.chaseable && !npc.dontTakeDamage && npc.immune[Projectile.owner] == 0) //target is still valid
+                {
+                    Vector2 distance = npc.Center - Projectile.Center;
+                    double angle = distance.ToRotation() - Projectile.velocity.ToRotation();
+                    if (angle > Math.PI)
+                        angle -= 2.0 * Math.PI;
+                    if (angle < -Math.PI)
+                        angle += 2.0 * Math.PI;
+
+                    if (Projectile.ai[0] == -1)
+                    {
+                        if (Math.Abs(angle) > Math.PI * 0.75)
+                        {
+                            Projectile.velocity = Projectile.velocity.RotatedBy(angle * 0.07);
+                        }
+                        else
+                        {
+                            float range = distance.Length();
+                            float difference = 12.7f / range;
+                            distance *= difference;
+                            distance /= 7f;
+                            Projectile.velocity += distance;
+                            if (range > 70f)
+                            {
+                                Projectile.velocity *= 0.977f;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Projectile.velocity = Projectile.velocity.RotatedBy(angle * 0.1);
+                    }
+                }
+                else //target lost, reset
+                {
+                    targetID = -1;
+                    searchTimer = 0;
+                    Projectile.netUpdate = true;
+                }
+            }
+        }*/
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.immune[Projectile.owner] = 8;
+            target.AddBuff(BuffID.Ichor, 600);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = SpriteEffects.None;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-
-    public virtual void SendExtraAI(BinaryWriter writer) => writer.Write(this.targetID);
-
-    public virtual void ReceiveExtraAI(BinaryReader reader) => this.targetID = reader.ReadInt32();
-
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(100);
-      this.AIType = 100;
-      this.Projectile.hostile = false;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.tileCollide = false;
-      this.Projectile.penetrate = -1;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.timeLeft = 120 * (this.Projectile.extraUpdates + 1);
-    }
-
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.immune[this.Projectile.owner] = 8;
-      target.AddBuff(69, 600, false);
-    }
-
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = (SpriteEffects) 0;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
-    }
-  }
 }

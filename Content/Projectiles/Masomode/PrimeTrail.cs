@@ -1,120 +1,132 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.PrimeTrail
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Bosses.VanillaEternity;
+﻿using FargowiltasSouls.Content.Bosses.VanillaEternity;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class PrimeTrail : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class PrimeTrail : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 20;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 16;
-      ((Entity) this.Projectile).height = 16;
-      this.Projectile.tileCollide = false;
-      this.Projectile.timeLeft = 600;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.scale = 0.8f;
-      this.Projectile.hide = true;
-    }
-
-    public virtual void DrawBehind(
-      int index,
-      List<int> behindNPCsAndTiles,
-      List<int> behindNPCs,
-      List<int> behindProjectiles,
-      List<int> overPlayers,
-      List<int> overWiresUI)
-    {
-      behindNPCs.Add(index);
-    }
-
-    public virtual void AI()
-    {
-      bool flag = false;
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0], 128, 131, 129, 130);
-      if (npc != null)
-      {
-        ((Entity) this.Projectile).Center = ((Entity) npc).Center;
-        if ((double) this.Projectile.ai[1] == 0.0)
+        public override void SetStaticDefaults()
         {
-          if (!npc.GetGlobalNPC<PrimeLimb>().IsSwipeLimb || (double) npc.ai[2] < 140.0)
-            flag = true;
+            // DisplayName.SetDefault("Trail");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 20;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-        else if ((double) this.Projectile.ai[1] == 1.0)
-        {
-          if (npc.GetGlobalNPC<PrimeLimb>().IsSwipeLimb || (double) Main.npc[(int) npc.ai[1]].ai[1] != 1.0 && (double) Main.npc[(int) npc.ai[1]].ai[1] != 2.0)
-            flag = true;
-        }
-        else if ((double) this.Projectile.ai[1] == 2.0 && (npc.GetGlobalNPC<PrimeLimb>().IsSwipeLimb || (double) Main.npc[(int) npc.ai[1]].ai[1] == 1.0 || (double) Main.npc[(int) npc.ai[1]].ai[1] == 2.0))
-          flag = true;
-      }
-      else
-        flag = true;
-      if (flag)
-      {
-        this.Projectile.alpha += 8;
-        if (this.Projectile.alpha <= (int) byte.MaxValue)
-          return;
-        this.Projectile.alpha = (int) byte.MaxValue;
-        this.Projectile.Kill();
-      }
-      else
-      {
-        this.Projectile.alpha -= (double) this.Projectile.ai[1] == 0.0 ? 16 : 8;
-        if (this.Projectile.alpha >= 0)
-          return;
-        this.Projectile.alpha = 0;
-      }
-    }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      float num1 = (double) this.Projectile.ai[1] != 1.0 ? ((double) this.Projectile.ai[1] != 2.0 ? 0.25f : 0.5f) : 0.1f;
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      for (float index1 = 0.0f; (double) index1 < (double) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index1 += num1)
-      {
-        int index2 = (int) index1 - 1;
-        if (index2 >= 0)
+        public override void SetDefaults()
         {
-          Color color;
-          if ((double) this.Projectile.ai[1] == 1.0)
-            color = Color.op_Multiply(Color.Red, 0.7f);
-          else if ((double) this.Projectile.ai[1] == 2.0)
-          {
-            color = Color.op_Multiply(new Color(51, (int) byte.MaxValue, 191, 210), 0.75f);
-          }
-          else
-          {
-            // ISSUE: explicit constructor call
-            ((Color) ref color).\u002Ector((int) byte.MaxValue, (int) byte.MaxValue, 75, 210);
-          }
-          color = Color.op_Multiply(color, 0.3f * this.Projectile.Opacity);
-          color = Color.op_Multiply(color, ((float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index1) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-          float num2 = this.Projectile.scale * (((float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index1) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-          Vector2 vector2 = Vector2.op_Addition(Vector2.Lerp(this.Projectile.oldPos[(int) index1], this.Projectile.oldPos[index2], (float) (1.0 - (double) index1 % 1.0)), Vector2.op_Division(((Entity) this.Projectile).Size, 2f));
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(vector2, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(), color, this.Projectile.rotation, Vector2.op_Division(Utils.Size(texture2D), 2f), num2, (SpriteEffects) 0, 0.0f);
+            Projectile.width = 16;
+            Projectile.height = 16;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = 600;
+            Projectile.alpha = 255;
+            Projectile.aiStyle = -1;
+            Projectile.scale = 0.8f;
+            Projectile.hide = true;
         }
-      }
-      return false;
+
+        public override void DrawBehind(int index, List<int> behindNPCsAndTiles, List<int> behindNPCs, List<int> behindProjectiles, List<int> overPlayers, List<int> overWiresUI)
+        {
+            behindNPCs.Add(index);
+        }
+
+        public override void AI()
+        {
+            bool fade = false;
+
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[0], NPCID.PrimeCannon, NPCID.PrimeLaser, NPCID.PrimeSaw, NPCID.PrimeVice);
+            if (npc != null)
+            {
+                Projectile.Center = npc.Center;
+                if (Projectile.ai[1] == 0) //swipe limb
+                {
+                    if (!npc.GetGlobalNPC<PrimeLimb>().IsSwipeLimb || npc.ai[2] < 140)
+                        fade = true;
+                }
+                else if (Projectile.ai[1] == 1) //attack limb while spinning
+                {
+                    if (npc.GetGlobalNPC<PrimeLimb>().IsSwipeLimb || Main.npc[(int)npc.ai[1]].ai[1] != 1 && Main.npc[(int)npc.ai[1]].ai[1] != 2)
+                        fade = true;
+                }
+                else if (Projectile.ai[1] == 2) //attack limb doing attacks
+                {
+                    if (npc.GetGlobalNPC<PrimeLimb>().IsSwipeLimb || Main.npc[(int)npc.ai[1]].ai[1] == 1 || Main.npc[(int)npc.ai[1]].ai[1] == 2)
+                        fade = true;
+                }
+            }
+            else
+            {
+                fade = true;
+            }
+
+            if (fade)
+            {
+                Projectile.alpha += 8;
+                if (Projectile.alpha > 255)
+                {
+                    Projectile.alpha = 255;
+                    Projectile.Kill();
+                }
+            }
+            else
+            {
+                Projectile.alpha -= Projectile.ai[1] == 0 ? 16 : 8;
+                if (Projectile.alpha < 0)
+                    Projectile.alpha = 0;
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            float increment;
+            if (Projectile.ai[1] == 1f)
+                increment = 0.1f;
+            else if (Projectile.ai[1] == 2f)
+                increment = 0.5f;
+            else
+                increment = 0.25f;
+
+            Texture2D glow = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+
+            for (float i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += increment)
+            {
+                int max0 = (int)i - 1;
+                if (max0 < 0)
+                    continue;
+
+                Color color27;
+                if (Projectile.ai[1] == 1)
+                    color27 = Color.Red * 0.7f; // red //new Color(191, 51, 255, 210); //purple
+                else if (Projectile.ai[1] == 2)
+                    color27 = new Color(51, 255, 191, 210) * 0.75f; //teal
+                else
+                    color27 = new Color(255, 255, 75, 210); //yellow
+
+                color27 *= 0.3f * Projectile.Opacity;
+                color27 *= (ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                float scale = Projectile.scale;
+                scale *= (ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 center = Vector2.Lerp(Projectile.oldPos[(int)i], Projectile.oldPos[max0], 1 - i % 1);
+
+                center += Projectile.Size / 2;
+
+                Main.EntitySpriteDraw(
+                    glow,
+                    center - Main.screenPosition + new Vector2(0, Projectile.gfxOffY),
+                    null,
+                    color27,
+                    Projectile.rotation,
+                    glow.Size() / 2,
+                    scale,
+                    SpriteEffects.None,
+                    0);
+            }
+
+            return false;
+        }
     }
-  }
 }

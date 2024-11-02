@@ -1,66 +1,68 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Timber.TimberJumpMark
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Systems;
+﻿using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Timber
 {
-  public class TimberJumpMark : ModProjectile
-  {
-    public virtual string Texture => FargoSoulsUtil.EmptyTexture;
-
-    public virtual void SetStaticDefaults()
+    public class TimberJumpMark : ModProjectile
     {
-    }
+        public override string Texture => FargoSoulsUtil.EmptyTexture;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 2;
-      ((Entity) this.Projectile).height = 2;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.tileCollide = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.penetrate = -1;
-    }
-
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public virtual void AI()
-    {
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0], ModContent.NPCType<TimberChampion>());
-      if (npc == null)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if ((double) ++this.Projectile.localAI[0] <= 4.0)
-          return;
-        this.Projectile.localAI[0] = 0.0f;
-        for (int index = -1; index <= 1; index += 2)
+        public override void SetStaticDefaults()
         {
-          Vector2 vector2 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(this.Projectile.ai[1] * this.Projectile.localAI[1] * (float) index, Vector2.UnitX));
-          SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(vector2), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Projectile projectile = Projectile.NewProjectileDirect(((Entity) npc).GetSource_FromThis((string) null), vector2, Vector2.Zero, 696, this.Projectile.damage, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-            projectile.friendly = false;
-            projectile.hostile = true;
-          }
+            // DisplayName.SetDefault("Timber Explosion");
         }
-        if ((double) ++this.Projectile.localAI[1] <= (WorldSavingSystem.MasochistModeReal ? 18.0 : 6.0))
-          return;
-        this.Projectile.Kill();
-      }
+
+        public override void SetDefaults()
+        {
+            Projectile.width = 2;
+            Projectile.height = 2;
+            Projectile.aiStyle = -1;
+            Projectile.tileCollide = true;
+            Projectile.ignoreWater = true;
+            Projectile.penetrate = -1;
+        }
+
+        public override bool? CanDamage()
+        {
+            return false;
+        }
+
+        public override void AI()
+        {
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[0], ModContent.NPCType<TimberChampion>());
+            if (npc == null)
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            if (++Projectile.localAI[0] > 4)
+            {
+                Projectile.localAI[0] = 0;
+
+                for (int i = -1; i <= 1; i += 2)
+                {
+                    Vector2 spawnPos = Projectile.Center + Projectile.ai[1] * Projectile.localAI[1] * i * Vector2.UnitX;
+
+                    SoundEngine.PlaySound(SoundID.Item14, spawnPos);
+
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Projectile p = Projectile.NewProjectileDirect(npc.GetSource_FromThis(), spawnPos, Vector2.Zero, ProjectileID.DD2ExplosiveTrapT3Explosion, Projectile.damage, 0f, Main.myPlayer);
+                        p.friendly = false;
+                        p.hostile = true;
+                    }
+
+                }
+
+                int max = WorldSavingSystem.MasochistModeReal ? 18 : 6;
+                if (++Projectile.localAI[1] > max)
+                    Projectile.Kill();
+            }
+        }
     }
-  }
 }

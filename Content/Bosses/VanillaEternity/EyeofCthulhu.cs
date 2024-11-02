@@ -1,13 +1,8 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.VanillaEternity.EyeofCthulhu
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Common.Utilities;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Projectiles;
 using FargowiltasSouls.Content.Projectiles.Masomode;
+using FargowiltasSouls.Core;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using FargowiltasSouls.Core.Systems;
@@ -17,500 +12,669 @@ using System.IO;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.VanillaEternity
 {
-  public class EyeofCthulhu : EModeNPCBehaviour
-  {
-    public int AITimer;
-    public int ScytheSpawnTimer;
-    public int FinalPhaseDashCD;
-    public int FinalPhaseDashStageDuration;
-    public int FinalPhaseAttackCounter;
-    public bool IsInFinalPhase;
-    public bool FinalPhaseBerserkDashesComplete;
-    public bool FinalPhaseDashHorizSpeedSet;
-    public bool DroppedSummon;
-    public bool ScytheRingIsOnCD;
-    public int TeleportDirection;
-    private Vector2 targetCenter = Vector2.Zero;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(4);
-
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    public class EyeofCthulhu : EModeNPCBehaviour
     {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.AITimer);
-      binaryWriter.Write7BitEncodedInt(this.ScytheSpawnTimer);
-      binaryWriter.Write7BitEncodedInt(this.FinalPhaseDashCD);
-      binaryWriter.Write7BitEncodedInt(this.FinalPhaseDashStageDuration);
-      binaryWriter.Write7BitEncodedInt(this.FinalPhaseAttackCounter);
-      binaryWriter.Write7BitEncodedInt(this.TeleportDirection);
-      bitWriter.WriteBit(this.IsInFinalPhase);
-      bitWriter.WriteBit(this.FinalPhaseBerserkDashesComplete);
-      bitWriter.WriteBit(this.FinalPhaseDashHorizSpeedSet);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.EyeofCthulhu);
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.AITimer = binaryReader.Read7BitEncodedInt();
-      this.ScytheSpawnTimer = binaryReader.Read7BitEncodedInt();
-      this.FinalPhaseDashCD = binaryReader.Read7BitEncodedInt();
-      this.FinalPhaseDashStageDuration = binaryReader.Read7BitEncodedInt();
-      this.FinalPhaseAttackCounter = binaryReader.Read7BitEncodedInt();
-      this.TeleportDirection = binaryReader.Read7BitEncodedInt();
-      this.IsInFinalPhase = bitReader.ReadBit();
-      this.FinalPhaseBerserkDashesComplete = bitReader.ReadBit();
-      this.FinalPhaseDashHorizSpeedSet = bitReader.ReadBit();
-    }
+        public bool recolor = SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
 
-    public override bool SafePreAI(NPC npc)
-    {
-      ref float local1 = ref npc.ai[0];
-      ref float local2 = ref npc.ai[1];
-      ref float local3 = ref npc.ai[2];
-      EModeGlobalNPC.eyeBoss = ((Entity) npc).whoAmI;
-      if (WorldSavingSystem.SwarmActive)
-        return true;
-      npc.dontTakeDamage = npc.alpha > 50;
-      if (npc.dontTakeDamage)
-        Lighting.AddLight(((Entity) npc).Center, 0.75f, 1.35f, 1.5f);
-      if (this.ScytheSpawnTimer > 0)
-      {
-        if (this.ScytheSpawnTimer % (this.IsInFinalPhase ? 2 : 6) == 0 && FargoSoulsUtil.HostCheck)
+        public int AITimer;
+        public int ScytheSpawnTimer;
+        public int FinalPhaseDashCD;
+        public int FinalPhaseDashStageDuration;
+        public int FinalPhaseAttackCounter;
+
+        public bool IsInFinalPhase;
+        public bool FinalPhaseBerserkDashesComplete;
+        public bool FinalPhaseDashHorizSpeedSet;
+
+        public bool DroppedSummon;
+        public bool ScytheRingIsOnCD;
+
+        public int TeleportDirection = 0;
+
+        Vector2 targetCenter = Vector2.Zero;
+
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
         {
-          if (this.IsInFinalPhase && !WorldSavingSystem.MasochistModeReal)
-          {
-            int index = Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<BloodScythe>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 1f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-            if (index != Main.maxProjectiles)
-              Main.projectile[index].timeLeft = 75;
-          }
-          else
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Normalize(((Entity) npc).velocity), ModContent.ProjectileType<BloodScythe>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 1f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(AITimer);
+            binaryWriter.Write7BitEncodedInt(ScytheSpawnTimer);
+            binaryWriter.Write7BitEncodedInt(FinalPhaseDashCD);
+            binaryWriter.Write7BitEncodedInt(FinalPhaseDashStageDuration);
+            binaryWriter.Write7BitEncodedInt(FinalPhaseAttackCounter);
+            binaryWriter.Write7BitEncodedInt(TeleportDirection);
+
+            bitWriter.WriteBit(IsInFinalPhase);
+            bitWriter.WriteBit(FinalPhaseBerserkDashesComplete);
+            bitWriter.WriteBit(FinalPhaseDashHorizSpeedSet);
         }
-        --this.ScytheSpawnTimer;
-      }
-      if ((double) local1 == 0.0)
-      {
-        float num = 0.15f;
-        if (npc.HasValidTarget)
-          num = MathHelper.Lerp(0.15f, 0.5f, Math.Clamp(((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center) / 1000f, 0.0f, 1f));
-        NPC npc1 = npc;
-        ((Entity) npc1).position = Vector2.op_Addition(((Entity) npc1).position, Vector2.op_Multiply(((Entity) npc).velocity, num));
-        if ((double) local2 == 2.0)
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
         {
-          NPC npc2 = npc;
-          ((Entity) npc2).position = Vector2.op_Addition(((Entity) npc2).position, Vector2.op_Multiply(npc.ai[3] * 0.3f, ((Entity) npc).velocity));
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            AITimer = binaryReader.Read7BitEncodedInt();
+            ScytheSpawnTimer = binaryReader.Read7BitEncodedInt();
+            FinalPhaseDashCD = binaryReader.Read7BitEncodedInt();
+            FinalPhaseDashStageDuration = binaryReader.Read7BitEncodedInt();
+            FinalPhaseAttackCounter = binaryReader.Read7BitEncodedInt();
+            TeleportDirection = binaryReader.Read7BitEncodedInt();
+
+            IsInFinalPhase = bitReader.ReadBit();
+            FinalPhaseBerserkDashesComplete = bitReader.ReadBit();
+            FinalPhaseDashHorizSpeedSet = bitReader.ReadBit();
+
+
         }
-      }
-      if (((double) local1 == 0.0 || (double) local1 == 3.0) && (double) local2 == 2.0 && !this.IsInFinalPhase)
-      {
-        float num = (double) local1 == 0.0 ? 0.25f : 0.5f;
-        NPC npc3 = npc;
-        ((Entity) npc3).position = Vector2.op_Addition(((Entity) npc3).position, Vector2.op_Multiply(npc.ai[3] * num, ((Entity) npc).velocity));
-      }
-      if ((double) local1 == 0.0 && (double) local2 == 2.0 && npc.HasValidTarget && WorldSavingSystem.MasochistModeReal)
-      {
-        float num1 = ((Vector2) ref ((Entity) npc).velocity).Length();
-        float num2 = 0.25f;
-        NPC npc4 = npc;
-        ((Entity) npc4).velocity = Vector2.op_Addition(((Entity) npc4).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center), num2));
-        ((Entity) npc).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) npc).velocity), num1);
-      }
-      if ((double) local1 == 0.0 && (double) local2 == 2.0 && (double) local3 == 0.0)
-        this.ScytheSpawnTimer = 30;
-      if ((double) local2 == 3.0 && !this.IsInFinalPhase)
-      {
-        if (WorldSavingSystem.MasochistModeReal)
+
+        public override bool SafePreAI(NPC npc)
         {
-          this.ScytheSpawnTimer = 30;
-          SpawnServants();
-        }
-        if (!this.ScytheRingIsOnCD)
-        {
-          this.ScytheRingIsOnCD = true;
-          if (FargoSoulsUtil.HostCheck)
-            FargoSoulsUtil.XWay(8, ((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, ModContent.ProjectileType<BloodScythe>(), 1.5f, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f);
-        }
-      }
-      else
-        this.ScytheRingIsOnCD = false;
-      if (npc.life < npc.lifeMax / 2)
-      {
-        if (this.IsInFinalPhase)
-        {
-          if (npc.HasValidTarget && (!Main.dayTime || Main.zenithWorld || Main.remixWorld))
-          {
-            if (npc.timeLeft < 300)
-              npc.timeLeft = 300;
-          }
-          else
-          {
-            npc.TargetClosest(false);
-            ((Entity) npc).velocity.X *= 0.98f;
-            ((Entity) npc).velocity.Y -= (double) ((Entity) npc).velocity.Y > 0.0 ? 1f : 0.25f;
-            if (npc.timeLeft > 30)
-              npc.timeLeft = 30;
-            this.AITimer = 90;
-            this.FinalPhaseDashCD = 0;
-            this.FinalPhaseBerserkDashesComplete = true;
-            this.FinalPhaseDashHorizSpeedSet = false;
-            this.FinalPhaseAttackCounter = 0;
-            npc.alpha = 0;
-            if ((double) npc.rotation > 3.1415927410125732)
-              npc.rotation -= 6.28318548f;
-            if ((double) npc.rotation < -3.1415927410125732)
-              npc.rotation += 6.28318548f;
-            float num = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center)) - 1.57079637f;
-            if ((double) num > 3.1415927410125732)
-              num -= 6.28318548f;
-            if ((double) num < -3.1415927410125732)
-              num += 6.28318548f;
-            npc.rotation = MathHelper.Lerp(npc.rotation, num, 0.07f);
-          }
-          if (++this.AITimer == 1)
-          {
-            if (FargoSoulsUtil.HostCheck)
+            ref float ai_Phase = ref npc.ai[0];
+            ref float ai_AttackState = ref npc.ai[1];
+            ref float ai_Timer = ref npc.ai[2];
+            EModeGlobalNPC.eyeBoss = npc.whoAmI;
+
+            void SpawnServants()
             {
-              ((Entity) npc).Center = ((Entity) Main.player[npc.target]).Center;
-              ((Entity) npc).position.X += Utils.NextBool(Main.rand) ? -600f : 600f;
-              ((Entity) npc).position.Y += Utils.NextBool(Main.rand) ? -400f : 400f;
-              if (WorldSavingSystem.MasochistModeReal)
-                ((Entity) npc).position.X += (float) Main.rand.Next(-100, 100);
-              npc.TargetClosest(false);
-              npc.netUpdate = true;
-              EModeNPCBehaviour.NetSync(npc);
-              this.AITimer = 40;
-              if (npc.HasValidTarget)
-                Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<SpectralEoC>(), 0, 0.0f, Main.myPlayer, (float) (this.AITimer + 20), (float) npc.target, 0.0f);
+                if (npc.life <= npc.lifeMax * 0.65 && NPC.CountNPCS(NPCID.ServantofCthulhu) < 9 && FargoSoulsUtil.HostCheck)
+                {
+                    Vector2 vel = new(3, 3);
+                    for (int i = 0; i < 4; i++)
+                    {
+                        int n = NPC.NewNPC(npc.GetSource_FromAI(), (int)npc.Center.X, (int)npc.Center.Y, NPCID.ServantofCthulhu);
+                        if (n != Main.maxNPCs)
+                        {
+                            Main.npc[n].velocity = vel.RotatedBy(Math.PI / 2 * i);
+                            if (Main.netMode == NetmodeID.Server)
+                                NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n);
+                        }
+                    }
+                }
             }
-            this.targetCenter = !npc.HasValidTarget ? ((Entity) npc).Center : ((Entity) Main.player[npc.target]).Center;
-          }
-          else if (this.AITimer < 90)
-          {
-            npc.alpha -= WorldSavingSystem.MasochistModeReal ? 30 : 25;
-            if (npc.alpha < 0)
+
+            //npc.dontTakeDamage = npc.alpha > 50;
+            if (npc.alpha > 50)
+                Lighting.AddLight(npc.Center, 0.75f, 1.35f, 1.5f);
+
+            if (ScytheSpawnTimer > 0)
             {
-              npc.alpha = 0;
-              if (WorldSavingSystem.MasochistModeReal && this.AITimer < 90)
-                this.AITimer = 90;
+                if (ScytheSpawnTimer % (IsInFinalPhase ? 2 : 6) == 0 && FargoSoulsUtil.HostCheck)
+                {
+                    if (IsInFinalPhase && !WorldSavingSystem.MasochistModeReal)
+                    {
+                        int p = Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<BloodScythe>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 1f, Main.myPlayer);
+                        if (p != Main.maxProjectiles)
+                            Main.projectile[p].timeLeft = 75;
+                    }
+                    else
+                    {
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Normalize(npc.velocity), ModContent.ProjectileType<BloodScythe>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 1f, Main.myPlayer);
+                    }
+                }
+                ScytheSpawnTimer--;
             }
-            if ((double) npc.rotation > 3.1415927410125732)
-              npc.rotation -= 6.28318548f;
-            if ((double) npc.rotation < -3.1415927410125732)
-              npc.rotation += 6.28318548f;
-            float num = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, this.targetCenter)) - 1.57079637f;
-            if ((double) num > 3.1415927410125732)
-              num -= 6.28318548f;
-            if ((double) num < -3.1415927410125732)
-              num += 6.28318548f;
-            npc.rotation = MathHelper.Lerp(npc.rotation, num, 0.3f);
-            for (int index1 = 0; index1 < 3; ++index1)
+
+            if (ai_Phase == 0f) //p1
             {
-              int index2 = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 229, 0.0f, 0.0f, 0, new Color(), 1.5f);
-              Main.dust[index2].noGravity = true;
-              Main.dust[index2].noLight = true;
-              Dust dust = Main.dust[index2];
-              dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
+                //Faster speed, even faster when far
+                float modifier = 0.15f;
+                if (npc.HasValidTarget)
+                    modifier = MathHelper.Lerp(0.15f, 0.5f, Math.Clamp(npc.Distance(Main.player[npc.target].Center) / 1000f, 0, 1));
+                npc.position += npc.velocity * modifier;
+
+                //Faster consecutive dashes
+                if (ai_AttackState == 2f)
+                    npc.position += npc.ai[3] * 0.3f * npc.velocity;
             }
-            Vector2 targetCenter = this.targetCenter;
-            targetCenter.X += (double) ((Entity) npc).Center.X < (double) targetCenter.X ? -600f : 600f;
-            targetCenter.Y += (double) ((Entity) npc).Center.Y < (double) targetCenter.Y ? -400f : 400f;
-            ((Entity) npc).velocity = Vector2.Zero;
-          }
-          else if (!this.FinalPhaseBerserkDashesComplete)
-          {
-            this.AITimer = 90;
-            if (++this.FinalPhaseDashCD == 1)
+            if ((ai_Phase == 0f || ai_Phase == 3f) && ai_AttackState == 2f && !IsInFinalPhase) // Faster consecutive dashes in p1 and p2
             {
-              SoundEngine.PlaySound(ref SoundID.ForceRoarPitched, new Vector2?(this.targetCenter), (SoundUpdateCallback) null);
-              if (!this.FinalPhaseDashHorizSpeedSet)
-              {
-                this.FinalPhaseDashHorizSpeedSet = true;
-                ((Entity) npc).velocity.X = (double) ((Entity) npc).Center.X < (double) this.targetCenter.X ? 18f : -18f;
-              }
-              ((Entity) npc).velocity.Y = (double) ((Entity) npc).Center.Y < (double) this.targetCenter.Y ? 40f : -40f;
-              this.ScytheSpawnTimer = 30;
-              if (FargoSoulsUtil.HostCheck)
-                FargoSoulsUtil.XWay(8, ((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, ModContent.ProjectileType<BloodScythe>(), 1f, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f);
-              npc.netUpdate = true;
+                float modifier = ai_Phase == 0 ? 0.25f : 0.5f; // more increase in p2
+                npc.position += npc.ai[3] * modifier * npc.velocity;
             }
-            else if (this.FinalPhaseDashCD > 20)
-              this.FinalPhaseDashCD = 0;
-            if ((double) ++this.FinalPhaseDashStageDuration > 105.0)
+
+
+            if (ai_Phase == 0f && ai_AttackState == 2f && npc.HasValidTarget && WorldSavingSystem.MasochistModeReal) // Dashes curve in phase 1 done
             {
-              this.ScytheSpawnTimer = 0;
-              this.FinalPhaseDashStageDuration = 0;
-              this.FinalPhaseBerserkDashesComplete = true;
-              if (!WorldSavingSystem.MasochistModeReal)
-                ++this.FinalPhaseAttackCounter;
-              NPC npc5 = npc;
-              ((Entity) npc5).velocity = Vector2.op_Multiply(((Entity) npc5).velocity, 0.75f);
-              npc.netUpdate = true;
+                float speed = npc.velocity.Length();
+                float modifier = 0.25f;
+                npc.velocity += npc.SafeDirectionTo(Main.player[npc.target].Center) * modifier;
+                npc.velocity = Vector2.Normalize(npc.velocity) * speed;
             }
-            npc.rotation = Utils.ToRotation(((Entity) npc).velocity) - 1.57079637f;
-            if ((double) npc.rotation > 3.1415927410125732)
-              npc.rotation -= 6.28318548f;
-            if ((double) npc.rotation < -3.1415927410125732)
-              npc.rotation += 6.28318548f;
-          }
-          else
-          {
-            bool flag1 = this.FinalPhaseAttackCounter >= 3;
-            int num3 = 180;
-            if (flag1)
-              num3 += 240;
-            if (flag1 && this.AITimer < 330)
+
+            if (ai_Phase == 0f && ai_AttackState == 2f && ai_Timer == 0f)
             {
-              if (this.AITimer == 91)
-                ((Entity) npc).velocity = Vector2.op_Multiply(Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center), ((Vector2) ref ((Entity) npc).velocity).Length()), 0.75f);
-              ((Entity) npc).velocity.X *= 0.98f;
-              if ((double) Math.Abs(((Entity) npc).Center.X - ((Entity) Main.player[npc.target]).Center.X) < 300.0)
-                ((Entity) npc).velocity.X *= 0.9f;
-              bool flag2 = Collision.SolidCollision(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height);
-              if (!flag2 && (double) ((Entity) npc).Bottom.X > 0.0 && (double) ((Entity) npc).Bottom.X < (double) (Main.maxTilesX * 16) && (double) ((Entity) npc).Bottom.Y > 0.0 && (double) ((Entity) npc).Bottom.Y < (double) (Main.maxTilesY * 16))
-              {
-                Tile tileSafely = Framing.GetTileSafely(((Entity) npc).Bottom);
-                if (Tile.op_Inequality(tileSafely, (ArgumentException) null) && ((Tile) ref tileSafely).HasUnactuatedTile)
-                  flag2 = Main.tileSolid[(int) ((Tile) ref tileSafely).TileType];
-              }
-              if (flag2)
-              {
-                ((Entity) npc).velocity.X *= 0.95f;
-                ((Entity) npc).velocity.Y -= 0.3f;
-                if ((double) ((Entity) npc).velocity.Y > 0.0)
-                  ((Entity) npc).velocity.Y = 0.0f;
-                if ((double) Math.Abs(((Entity) npc).velocity.Y) > 24.0)
-                  ((Entity) npc).velocity.Y = (float) (24 * Math.Sign(((Entity) npc).velocity.Y));
-              }
-              else
-              {
-                ((Entity) npc).velocity.Y += 0.3f;
-                if ((double) ((Entity) npc).velocity.Y < 0.0)
-                  ((Entity) npc).velocity.Y += 0.6f;
-                if ((double) ((Entity) npc).velocity.Y > 15.0)
-                  ((Entity) npc).velocity.Y = 15f;
-              }
+                ScytheSpawnTimer = 30;
+
+            }
+
+            if (ai_AttackState == 3f && !IsInFinalPhase) //during dashes in phase 2
+            {
+                if (WorldSavingSystem.MasochistModeReal)
+                {
+                    ScytheSpawnTimer = 30;
+                    SpawnServants();
+                }
+
+                if (!ScytheRingIsOnCD)
+                {
+                    ScytheRingIsOnCD = true;
+                    if (FargoSoulsUtil.HostCheck)
+                        FargoSoulsUtil.XWay(8, npc.GetSource_FromThis(), npc.Center, ModContent.ProjectileType<BloodScythe>(), 1.5f, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0);
+                }
             }
             else
             {
-              npc.alpha += WorldSavingSystem.MasochistModeReal ? 16 : 4;
-              if (npc.alpha > (int) byte.MaxValue)
-              {
-                npc.alpha = (int) byte.MaxValue;
-                if (WorldSavingSystem.MasochistModeReal && this.AITimer < num3)
-                  this.AITimer = num3;
-              }
-              if (flag1)
-              {
-                ((Entity) npc).velocity.Y -= 0.15f;
-                if ((double) ((Entity) npc).velocity.Y > 0.0)
-                  ((Entity) npc).velocity.Y = 0.0f;
-                if ((double) Math.Abs(((Entity) npc).velocity.Y) > 24.0)
-                  ((Entity) npc).velocity.Y = (float) (24 * Math.Sign(((Entity) npc).velocity.Y));
-              }
-              else
-              {
-                NPC npc6 = npc;
-                ((Entity) npc6).velocity = Vector2.op_Multiply(((Entity) npc6).velocity, 0.98f);
-              }
+                ScytheRingIsOnCD = false; //hacky fix for scythe spam during p2 transition
             }
-            float num4 = MathHelper.WrapAngle(Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center)) - 1.57079637f);
-            npc.rotation = MathHelper.WrapAngle(MathHelper.Lerp(npc.rotation, num4, 0.07f));
-            if (npc.alpha > 0)
+
+            if (npc.life < npc.lifeMax / 2)
             {
-              for (int index3 = 0; index3 < 3; ++index3)
-              {
-                int index4 = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 229, 0.0f, 0.0f, 0, new Color(), 1.5f);
-                Main.dust[index4].noGravity = true;
-                Main.dust[index4].noLight = true;
-                Dust dust = Main.dust[index4];
-                dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
-              }
-            }
-            if (this.AITimer > num3)
-            {
-              this.AITimer = 0;
-              this.FinalPhaseDashCD = 0;
-              this.FinalPhaseBerserkDashesComplete = false;
-              this.FinalPhaseDashHorizSpeedSet = false;
-              if (flag1)
-                this.FinalPhaseAttackCounter = 0;
-              ((Entity) npc).velocity = Vector2.Zero;
-              npc.netUpdate = true;
-            }
-          }
-          if (npc.netUpdate)
-          {
-            if (Main.netMode == 2)
-            {
-              NetMessage.SendData(23, -1, -1, (NetworkText) null, ((Entity) npc).whoAmI, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-              EModeNPCBehaviour.NetSync(npc);
-            }
-            npc.netUpdate = false;
-          }
-          return false;
-        }
-        if (!this.IsInFinalPhase && (double) npc.life <= (double) npc.lifeMax * 0.1)
-        {
-          NPC npc7 = npc;
-          ((Entity) npc7).velocity = Vector2.op_Multiply(((Entity) npc7).velocity, 0.98f);
-          npc.alpha += 4;
-          for (int index5 = 0; index5 < 3; ++index5)
-          {
-            int index6 = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 229, 0.0f, 0.0f, 0, new Color(), 1.5f);
-            Main.dust[index6].noGravity = true;
-            Main.dust[index6].noLight = true;
-            Dust dust = Main.dust[index6];
-            dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
-          }
-          if (npc.alpha > (int) byte.MaxValue)
-          {
-            npc.alpha = (int) byte.MaxValue;
-            this.IsInFinalPhase = true;
-            SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(npc.HasValidTarget ? ((Entity) Main.player[npc.target]).Center : ((Entity) npc).Center), (SoundUpdateCallback) null);
-            if (FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0.0f, Main.myPlayer, (float) ((Entity) npc).whoAmI, (float) npc.type, 0.0f);
-          }
-          return false;
-        }
-        if ((double) local1 == 3.0 && ((double) local2 == 0.0 || (double) local2 == 5.0))
-        {
-          if ((double) local3 < 2.0)
-          {
-            --local3;
-            npc.alpha += 4;
-            for (int index7 = 0; index7 < 3; ++index7)
-            {
-              int index8 = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 229, 0.0f, 0.0f, 0, new Color(), 1.5f);
-              Main.dust[index8].noGravity = true;
-              Main.dust[index8].noLight = true;
-              Dust dust = Main.dust[index8];
-              dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
-            }
-            if (npc.alpha > (int) byte.MaxValue)
-            {
-              npc.alpha = (int) byte.MaxValue;
-              if (FargoSoulsUtil.HostCheck && npc.HasPlayerTarget)
-              {
-                local3 = 60f;
-                local2 = 5f;
-                Vector2 vector2 = Vector2.op_Subtraction(((Entity) Main.player[npc.target]).Center, ((Entity) npc).Center);
-                if ((double) vector2.X == 0.0)
-                  vector2.X = 1f;
-                if ((double) Math.Abs(vector2.X) > 1200.0)
-                  vector2.X = (float) (1200 * Math.Sign(vector2.X));
-                else if ((double) Math.Abs(vector2.X) < 1100.0)
-                  vector2.X = (float) (1100 * Math.Sign(vector2.X));
-                if (this.TeleportDirection == 0)
-                  this.TeleportDirection = Math.Sign(vector2.X);
-                else
-                  this.TeleportDirection *= -1;
-                vector2.X = Math.Abs(vector2.X) * (float) this.TeleportDirection;
-                if ((double) vector2.Y > 0.0)
-                  vector2.Y *= -1f;
-                if ((double) Math.Abs(vector2.Y) > 300.0)
-                  vector2.Y = (float) (300 * Math.Sign(vector2.Y));
-                if ((double) Math.Abs(vector2.Y) < 150.0)
-                  vector2.Y = (float) (150 * Math.Sign(vector2.Y));
-                vector2.X += Utils.NextFloat(Main.rand, -50f, 50f);
-                vector2.Y += Utils.NextFloat(Main.rand, -200f, 200f);
-                ((Entity) npc).Center = Vector2.op_Addition(((Entity) Main.player[npc.target]).Center, vector2);
-                npc.netUpdate = true;
-              }
-            }
-          }
-          else
-          {
-            npc.alpha -= 2;
-            if (Math.Abs(npc.alpha - 215) <= 2)
-              SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-            if (npc.alpha < 215 && npc.alpha > 182 && npc.HasValidTarget)
-              ((Entity) npc).velocity = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center), 50f);
-            if (npc.alpha < 215 && npc.alpha > 90 && npc.alpha % 20 <= 2 && FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Normalize(((Entity) npc).velocity), ModContent.ProjectileType<BloodScythe>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 1f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-            if (npc.alpha < 215 && npc.alpha > 30)
-            {
-              float num5 = ((Vector2) ref ((Entity) npc).velocity).Length();
-              float num6 = 1f;
-              NPC npc8 = npc;
-              ((Entity) npc8).velocity = Vector2.op_Addition(((Entity) npc8).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center), num6));
-              ((Entity) npc).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) npc).velocity), num5);
-            }
-            if (npc.alpha < 0)
-            {
-              npc.alpha = 0;
+                if (IsInFinalPhase) //final phase
+                {
+                    const float speedModifier = 0.3f;
+
+                    if (npc.HasValidTarget && (!Main.dayTime || Main.zenithWorld || Main.remixWorld))
+                    {
+                        if (npc.timeLeft < 300)
+                            npc.timeLeft = 300;
+                    }
+                    else //despawn and retarget
+                    {
+                        npc.TargetClosest(false);
+                        npc.velocity.X *= 0.98f;
+                        npc.velocity.Y -= npc.velocity.Y > 0 ? 1f : 0.25f;
+
+                        if (npc.timeLeft > 30)
+                            npc.timeLeft = 30;
+
+                        AITimer = 90;
+                        FinalPhaseDashCD = 0;
+                        FinalPhaseBerserkDashesComplete = true;
+                        FinalPhaseDashHorizSpeedSet = false;
+                        FinalPhaseAttackCounter = 0;
+
+                        npc.alpha = 0;
+
+                        const float PI = (float)Math.PI;
+                        if (npc.rotation > PI)
+                            npc.rotation -= 2 * PI;
+                        if (npc.rotation < -PI)
+                            npc.rotation += 2 * PI;
+
+                        float targetRotation = npc.SafeDirectionTo(Main.player[npc.target].Center).ToRotation() - PI / 2;
+                        if (targetRotation > PI)
+                            targetRotation -= 2 * PI;
+                        if (targetRotation < -PI)
+                            targetRotation += 2 * PI;
+                        npc.rotation = MathHelper.Lerp(npc.rotation, targetRotation, 0.07f);
+                    }
+
+                    if (++AITimer == 1) //teleport to random position
+                    {
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            npc.Center = Main.player[npc.target].Center;
+                            npc.position.X += Main.rand.NextBool() ? -600 : 600;
+                            npc.position.Y += Main.rand.NextBool() ? -400 : 400;
+
+                            if (WorldSavingSystem.MasochistModeReal)
+                                npc.position.X += Main.rand.Next(-100, 100); //1.6.1 change: random offset
+
+                            npc.TargetClosest(false);
+                            npc.netUpdate = true;
+                            NetSync(npc);
+
+                            AITimer = 40; //1.6.1 change: skip most of windup
+
+                            if (npc.HasValidTarget) //1.6.1 change: telegraph with spectral EoC clone
+                                Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<SpectralEoC>(), 0, 0, Main.myPlayer, AITimer + 20, npc.target);
+                        }
+
+                        if (npc.HasValidTarget)
+                            targetCenter = Main.player[npc.target].Center;
+                        else
+                            targetCenter = npc.Center;
+                    }
+                    else if (AITimer < 90) //fade in
+                    {
+
+                        npc.alpha -= WorldSavingSystem.MasochistModeReal ? 30 : 25;
+                        if (npc.alpha < 0)
+                        {
+                            npc.alpha = 0;
+                        }
+
+                        const float PI = (float)Math.PI;
+                        if (npc.rotation > PI)
+                            npc.rotation -= 2 * PI;
+                        if (npc.rotation < -PI)
+                            npc.rotation += 2 * PI;
+
+                        float targetRotation = npc.SafeDirectionTo(targetCenter).ToRotation() - PI / 2;
+                        if (targetRotation > PI)
+                            targetRotation -= 2 * PI;
+                        if (targetRotation < -PI)
+                            targetRotation += 2 * PI;
+                        npc.rotation = MathHelper.Lerp(npc.rotation, targetRotation, 0.3f);
+
+                        for (int i = 0; i < 3; i++)
+                        {
+                            int d = Dust.NewDust(npc.position, npc.width, npc.height, recolor? DustID.Vortex : DustID.BloodWater, 0f, 0f, 0, default, 1.5f);
+                            Main.dust[d].noGravity = true;
+                            Main.dust[d].noLight = true;
+                            Main.dust[d].velocity *= 4f;
+                        }
+
+                        Vector2 target = targetCenter;
+                        target.X += npc.Center.X < target.X ? -600 : 600;
+                        target.Y += npc.Center.Y < target.Y ? -400 : 400;
+
+                        /*
+                        if (npc.Center.X < target.X)
+                        {
+                            npc.velocity.X += speedModifier;
+                            if (npc.velocity.X < 0)
+                                npc.velocity.X += speedModifier * 2;
+                        }
+                        else
+                        {
+                            npc.velocity.X -= speedModifier;
+                            if (npc.velocity.X > 0)
+                                npc.velocity.X -= speedModifier * 2;
+                        }
+                        if (npc.Center.Y < target.Y)
+                        {
+                            npc.velocity.Y += speedModifier;
+                            if (npc.velocity.Y < 0)
+                                npc.velocity.Y += speedModifier * 2;
+                        }
+                        else
+                        {
+                            npc.velocity.Y -= speedModifier;
+                            if (npc.velocity.Y > 0)
+                                npc.velocity.Y -= speedModifier * 2;
+                        }
+                        if (Math.Abs(npc.velocity.X) > 24)
+                            npc.velocity.X = 24 * Math.Sign(npc.velocity.X);
+                        if (Math.Abs(npc.velocity.Y) > 24)
+                            npc.velocity.Y = 24 * Math.Sign(npc.velocity.Y);
+                        */
+                        npc.velocity = Vector2.Zero;
+                    }
+                    else if (!FinalPhaseBerserkDashesComplete) //berserk dashing phase
+                    {
+                        AITimer = 90;
+
+                        const float xSpeed = 18f;
+                        const float ySpeed = 40f;
+
+                        if (++FinalPhaseDashCD == 1)
+                        {
+                            SoundEngine.PlaySound(SoundID.ForceRoarPitched, targetCenter);
+
+                            if (!FinalPhaseDashHorizSpeedSet) //only set this on the first dash of each set
+                            {
+                                FinalPhaseDashHorizSpeedSet = true;
+                                npc.velocity.X = npc.Center.X < targetCenter.X ? xSpeed : -xSpeed;
+                            }
+
+                            npc.velocity.Y = npc.Center.Y < targetCenter.Y ? ySpeed : -ySpeed; //alternate this every dash
+
+                            ScytheSpawnTimer = 30;
+                            //if (WorldSavingSystem.MasochistModeReal)
+                            //    SpawnServants();
+                            if (FargoSoulsUtil.HostCheck)
+                                FargoSoulsUtil.XWay(8, npc.GetSource_FromThis(), npc.Center, ModContent.ProjectileType<BloodScythe>(), 1f, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0);
+
+                            npc.netUpdate = true;
+                        }
+                        else if (FinalPhaseDashCD > 20)
+                        {
+                            FinalPhaseDashCD = 0;
+                        }
+
+
+                        if (++FinalPhaseDashStageDuration > 600 * 3 / xSpeed + 5) //proceed
+                        {
+                            ScytheSpawnTimer = 0;
+                            FinalPhaseDashStageDuration = 0;
+                            FinalPhaseBerserkDashesComplete = true;
+                            if (!WorldSavingSystem.MasochistModeReal)
+                                FinalPhaseAttackCounter++;
+                            npc.velocity *= 0.75f;
+                            npc.netUpdate = true;
+                        }
+
+                        const float PI = (float)Math.PI;
+                        npc.rotation = npc.velocity.ToRotation() - PI / 2;
+                        if (npc.rotation > PI)
+                            npc.rotation -= 2 * PI;
+                        if (npc.rotation < -PI)
+                            npc.rotation += 2 * PI;
+                    }
+                    else
+                    {
+                        bool mustRest = FinalPhaseAttackCounter >= 3;
+
+                        const int restingTime = 240;
+
+                        int threshold = 180;
+                        if (mustRest)
+                            threshold += restingTime;
+
+                        if (mustRest && AITimer < restingTime + 90)
+                        {
+                            if (AITimer == 91)
+                                npc.velocity = npc.SafeDirectionTo(Main.player[npc.target].Center) * npc.velocity.Length() * 0.75f;
+
+                            npc.velocity.X *= 0.98f;
+                            if (Math.Abs(npc.Center.X - Main.player[npc.target].Center.X) < 300)
+                                npc.velocity.X *= 0.9f;
+
+                            bool floatUp = Collision.SolidCollision(npc.position, npc.width, npc.height);
+                            if (!floatUp && npc.Bottom.X > 0 && npc.Bottom.X < Main.maxTilesX * 16 && npc.Bottom.Y > 0 && npc.Bottom.Y < Main.maxTilesY * 16)
+                            {
+                                Tile tile = Framing.GetTileSafely(npc.Bottom);
+                                if (tile != null && tile.HasUnactuatedTile)
+                                    floatUp = Main.tileSolid[tile.TileType];
+                            }
+
+                            if (floatUp)
+                            {
+                                npc.velocity.X *= 0.95f;
+
+                                npc.velocity.Y -= speedModifier;
+                                if (npc.velocity.Y > 0)
+                                    npc.velocity.Y = 0;
+                                if (Math.Abs(npc.velocity.Y) > 24)
+                                    npc.velocity.Y = 24 * Math.Sign(npc.velocity.Y);
+                            }
+                            else
+                            {
+                                npc.velocity.Y += speedModifier;
+                                if (npc.velocity.Y < 0)
+                                    npc.velocity.Y += speedModifier * 2;
+                                if (npc.velocity.Y > 15)
+                                    npc.velocity.Y = 15;
+                            }
+                        }
+                        else
+                        {
+                            npc.alpha += WorldSavingSystem.MasochistModeReal ? 16 : 4;
+                            if (npc.alpha > 255)
+                            {
+                                npc.alpha = 255;
+                                if (WorldSavingSystem.MasochistModeReal && AITimer < threshold)
+                                    AITimer = threshold;
+                            }
+
+                            if (mustRest)
+                            {
+                                npc.velocity.Y -= speedModifier * 0.5f;
+                                if (npc.velocity.Y > 0)
+                                    npc.velocity.Y = 0;
+                                if (Math.Abs(npc.velocity.Y) > 24)
+                                    npc.velocity.Y = 24 * Math.Sign(npc.velocity.Y);
+                            }
+                            else
+                            {
+                                npc.velocity *= 0.98f;
+                            }
+                        }
+
+                        const float PI = (float)Math.PI;
+                        float targetRotation = MathHelper.WrapAngle(npc.SafeDirectionTo(Main.player[npc.target].Center).ToRotation() - PI / 2);
+                        npc.rotation = MathHelper.WrapAngle(MathHelper.Lerp(npc.rotation, targetRotation, 0.07f));
+
+                        if (npc.alpha > 0)
+                        {
+                            for (int i = 0; i < 3; i++)
+                            {
+                                int d = Dust.NewDust(npc.position, npc.width, npc.height, recolor ? DustID.Vortex : DustID.BloodWater, 0f, 0f, 0, default, 1.5f);
+                                Main.dust[d].noGravity = true;
+                                Main.dust[d].noLight = true;
+                                Main.dust[d].velocity *= 4f;
+                            }
+                        }
+
+                        if (AITimer > threshold) //reset
+                        {
+                            AITimer = 0;
+                            FinalPhaseDashCD = 0;
+                            FinalPhaseBerserkDashesComplete = false;
+                            FinalPhaseDashHorizSpeedSet = false;
+                            if (mustRest)
+                                FinalPhaseAttackCounter = 0;
+                            npc.velocity = Vector2.Zero;
+                            npc.netUpdate = true;
+                        }
+                    }
+
+                    if (npc.netUpdate)
+                    {
+                        if (Main.netMode == NetmodeID.Server)
+                        {
+                            NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, npc.whoAmI);
+                            NetSync(npc);
+                        }
+                        npc.netUpdate = false;
+                    }
+                    return false;
+                }
+                else if (!IsInFinalPhase && npc.life <= npc.lifeMax * 0.1) //go into final phase
+                {
+                    npc.velocity *= 0.98f;
+                    npc.alpha += 4;
+                    for (int i = 0; i < 3; i++)
+                    {
+                        int d = Dust.NewDust(npc.position, npc.width, npc.height, recolor ? DustID.Vortex : DustID.BloodWater, 0f, 0f, 0, default, 1.5f);
+                        Main.dust[d].noGravity = true;
+                        Main.dust[d].noLight = true;
+                        Main.dust[d].velocity *= 4f;
+                    }
+                    if (npc.alpha > 255)
+                    {
+                        npc.alpha = 255;
+                        IsInFinalPhase = true;
+
+                        SoundEngine.PlaySound(SoundID.Roar, npc.HasValidTarget ? Main.player[npc.target].Center : npc.Center);
+
+                        if (FargoSoulsUtil.HostCheck)
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, npc.whoAmI, npc.type);
+                    }
+                    return false;
+                }
+                else if (ai_Phase == 3 && (ai_AttackState == 0 || ai_AttackState == 5))
+                {
+                    if (ai_Timer < 2)
+                    {
+                        ai_Timer--;
+                        npc.alpha += 4;
+                        for (int i = 0; i < 3; i++)
+                        {
+                            int d = Dust.NewDust(npc.position, npc.width, npc.height, recolor ? DustID.Vortex : DustID.BloodWater, 0f, 0f, 0, default, 1.5f);
+                            Main.dust[d].noGravity = true;
+                            Main.dust[d].noLight = true;
+                            Main.dust[d].velocity *= 4f;
+                        }
+                        if (npc.alpha > 255)
+                        {
+                            npc.alpha = 255;
+                            if (FargoSoulsUtil.HostCheck && npc.HasPlayerTarget)
+                            {
+                                ai_Timer = 60;
+                                ai_AttackState = 5f;
+
+                                Vector2 distance = Main.player[npc.target].Center - npc.Center;
+                                if (distance.X == 0) //never zero side
+                                    distance.X = 1;
+                                const int Xmax = 1200; //1.6.1 note: was 1200 before
+                                const int Xmin = 1100; //1.6.1 note: was 600 before
+                                if (Math.Abs(distance.X) > Xmax)
+                                    distance.X = Xmax * Math.Sign(distance.X);
+                                else if (Math.Abs(distance.X) < Xmin)
+                                    distance.X = Xmin * Math.Sign(distance.X);
+
+                                if (TeleportDirection == 0)
+                                    TeleportDirection = Math.Sign(distance.X); //first dash picks side towards player
+                                else
+                                    TeleportDirection *= -1; //switch side
+
+                                distance.X = Math.Abs(distance.X) * TeleportDirection;
+
+                                if (distance.Y > 0) //ensure to teleport above
+                                    distance.Y *= -1;
+
+                                const int Ymax = 300; // 1.6.1 note: was 450 before
+                                const int Ymin = 150; // 1.6.1 note: was 150 before
+                                if (Math.Abs(distance.Y) > Ymax)
+                                    distance.Y = Ymax * Math.Sign(distance.Y);
+                                if (Math.Abs(distance.Y) < Ymin)
+                                    distance.Y = Ymin * Math.Sign(distance.Y);
+
+                                distance.X += Main.rand.NextFloat(-50, 50);
+                                distance.Y += Main.rand.NextFloat(-200, 200); //randomness otherwise pattern basically becomes static
+
+                                npc.Center = Main.player[npc.target].Center + distance;
+
+                                npc.netUpdate = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        const int aDif = 2;
+                        npc.alpha -= aDif;
+                        const int delay = 30;
+                        if (Math.Abs(npc.alpha - (245 - delay)) <= aDif)
+                        {
+                            SoundEngine.PlaySound(SoundID.Roar, npc.Center);
+
+                        }
+                        if (npc.alpha < 245 - delay && npc.alpha > 212 - delay) //latter value calibrates dash distance, basically
+                        {
+                            if (npc.HasValidTarget)
+                                npc.velocity = npc.SafeDirectionTo(Main.player[npc.target].Center) * 50;
+
+
+                        }
+                        if (npc.alpha < 245 - delay && npc.alpha > 120 - delay) //scythes
+                        {
+                            if (npc.alpha % (aDif * 10) <= aDif && FargoSoulsUtil.HostCheck)
+                            {
+                                Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Normalize(npc.velocity), ModContent.ProjectileType<BloodScythe>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 1f, Main.myPlayer);
+                            }
+                        }
+                        if (npc.alpha < 245 - delay && npc.alpha > 30) //curve towards player
+                        {
+                            float speed = npc.velocity.Length();
+                            float modifier = 1f;
+                            npc.velocity += npc.SafeDirectionTo(Main.player[npc.target].Center) * modifier;
+                            npc.velocity = Vector2.Normalize(npc.velocity) * speed;
+
+
+                        }
+                        if (npc.alpha < 0)
+                        {
+                            npc.alpha = 0;
+                        }
+                        else
+                        {
+                            ai_Timer--;
+                            npc.position -= npc.velocity / 2;
+                            for (int i = 0; i < 3; i++)
+                            {
+                                int d = Dust.NewDust(npc.position, npc.width, npc.height, recolor ? DustID.Vortex : DustID.BloodWater, 0f, 0f, 0, default, 1.5f);
+                                Main.dust[d].noGravity = true;
+                                Main.dust[d].noLight = true;
+                                Main.dust[d].velocity *= 4f;
+                            }
+                        }
+                    }
+                }
+
+                /*if (++Timer > 600)
+                {
+                    Timer = 0;
+                    if (npc.HasValidTarget)
+                    {
+                        Player player = Main.player[npc.target];
+                        SoundEngine.PlaySound(SoundID.Item9104, player.Center);
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            Vector2 spawnPos = player.Center;
+                            int direction;
+                            if (player.velocity.X == 0f)
+                                direction = player.direction;
+                            else
+                                direction = Math.Sign(player.velocity.X);
+                            spawnPos.X += 600 * direction;
+                            spawnPos.Y -= 600;
+                            Vector2 speed = Vector2.UnitY;
+                            for (int i = 0; i < 30; i++)
+                            {
+                                Projectile.NewProjectile(npc.GetSource_FromThis(), spawnPos, speed, ModContent.ProjectileType<BloodScythe>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 1f, Main.myPlayer);
+                                spawnPos.X += 72 * direction;
+                                speed.Y += 0.15f;
+                            }
+                        }
+                    }
+                }*/
             }
             else
             {
-              --local3;
-              NPC npc9 = npc;
-              ((Entity) npc9).position = Vector2.op_Subtraction(((Entity) npc9).position, Vector2.op_Division(((Entity) npc).velocity, 2f));
-              for (int index9 = 0; index9 < 3; ++index9)
-              {
-                int index10 = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 229, 0.0f, 0.0f, 0, new Color(), 1.5f);
-                Main.dust[index10].noGravity = true;
-                Main.dust[index10].noLight = true;
-                Dust dust = Main.dust[index10];
-                dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
-              }
+                npc.alpha = 0;
             }
-          }
-        }
-      }
-      else
-      {
-        npc.alpha = 0;
-        npc.dontTakeDamage = false;
-      }
-      EModeUtils.DropSummon(npc, "SuspiciousEye", NPC.downedBoss1, ref this.DroppedSummon);
-      return true;
 
-      void SpawnServants()
-      {
-        if ((double) npc.life > (double) npc.lifeMax * 0.65 || NPC.CountNPCS(5) >= 9 || !FargoSoulsUtil.HostCheck)
-          return;
-        Vector2 vector2;
-        // ISSUE: explicit constructor call
-        ((Vector2) ref vector2).\u002Ector(3f, 3f);
-        for (int index1 = 0; index1 < 4; ++index1)
+            // Drop summon
+            EModeUtils.DropSummon(npc, "SuspiciousEye", NPC.downedBoss1, ref DroppedSummon);
+
+            return true;
+        }
+
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
         {
-          int index2 = NPC.NewNPC(((Entity) npc).GetSource_FromAI((string) null), (int) ((Entity) npc).Center.X, (int) ((Entity) npc).Center.Y, 5, 0, 0.0f, 0.0f, 0.0f, 0.0f, (int) byte.MaxValue);
-          if (index2 != Main.maxNPCs)
-          {
-            ((Entity) Main.npc[index2]).velocity = Utils.RotatedBy(vector2, Math.PI / 2.0 * (double) index1, new Vector2());
-            if (Main.netMode == 2)
-              NetMessage.SendData(23, -1, -1, (NetworkText) null, index2, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-          }
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            if (WorldSavingSystem.MasochistModeReal)
+            {
+                target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300);
+                target.AddBuff(BuffID.Bleeding, 600);
+                target.AddBuff(BuffID.Obstructed, 15);
+            }
+
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 120);
+            target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 300);
         }
-      }
-    }
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      if (WorldSavingSystem.MasochistModeReal)
-      {
-        target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300, true, false);
-        target.AddBuff(30, 600, true, false);
-        target.AddBuff(163, 15, true, false);
-      }
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 120, true, false);
-      target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 300, true, false);
-    }
+        public override void LoadSprites(NPC npc, bool recolor)
+        {
+            base.LoadSprites(npc, recolor);
 
-    public override void LoadSprites(NPC npc, bool recolor)
-    {
-      base.LoadSprites(npc, recolor);
-      EModeNPCBehaviour.LoadNPCSprite(recolor, npc.type);
-      EModeNPCBehaviour.LoadBossHeadSprite(recolor, 0);
-      EModeNPCBehaviour.LoadBossHeadSprite(recolor, 1);
-      EModeNPCBehaviour.LoadGoreRange(recolor, 6, 10);
+            LoadNPCSprite(recolor, npc.type);
+            LoadBossHeadSprite(recolor, 0);
+            LoadBossHeadSprite(recolor, 1);
+            LoadGoreRange(recolor, 6, 10);
+        }
     }
-  }
+    /*
+    public class Servants : EModeNPCBehaviour
+    {
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.ServantofCthulhu);
+
+        public override void OnSpawn(NPC npc, IEntitySource source)
+        {
+            base.OnSpawn(npc, source);
+            npc.life = npc.lifeMax = 6;
+        }
+    }
+    */
 }

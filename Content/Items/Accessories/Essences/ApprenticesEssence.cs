@@ -1,33 +1,42 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Essences.ApprenticesEssence
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Essences
 {
-  public class ApprenticesEssence : BaseEssence
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color((int) byte.MaxValue, 83, (int) byte.MaxValue);
-
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
+    public class ApprenticesEssence : BaseEssence
     {
-      ref StatModifier local = ref player.GetDamage(DamageClass.Magic);
-      local = StatModifier.op_Addition(local, 0.18f);
-      player.GetCritChance(DamageClass.Magic) += 5f;
-      player.statManaMax2 += 50;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(5147, 1).AddIngredient(4347, 1).AddRecipeGroup("FargowiltasSouls:VilethornOrCrimsonRod", 1).AddIngredient(5118, 1).AddIngredient(165, 1).AddIngredient(218, 1).AddIngredient(272, 1).AddIngredient(489, 1).AddIngredient(1225, 5).AddTile(114).Register();
+        public override Color nameColor => new(255, 83, 255);
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.GetDamage(DamageClass.Magic) += 0.18f;
+            player.GetCritChance(DamageClass.Magic) += 8;
+            player.statManaMax2 += 50;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddIngredient(ItemID.WandofFrosting)
+                .AddIngredient(ItemID.ZapinatorGray)
+                .AddRecipeGroup("FargowiltasSouls:VilethornOrCrimsonRod")
+                .AddIngredient(ItemID.WeatherPain)
+                .AddIngredient(ItemID.WaterBolt)
+                .AddIngredient(ItemID.Flamelash)
+                .AddIngredient(ItemID.DemonScythe)
+                .AddIngredient(ItemID.SorcererEmblem)
+                .AddIngredient(ItemID.HallowedBar, 5)
+
+                .AddTile(TileID.TinkerersWorkbench)
+                .Register();
+
+        }
     }
-  }
 }

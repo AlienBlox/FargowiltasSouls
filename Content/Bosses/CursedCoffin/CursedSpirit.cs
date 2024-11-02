@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.CursedCoffin.CursedSpirit
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Boss;
+﻿using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
@@ -12,539 +6,667 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.Graphics.Shaders;
-using Terraria.ID;
-using Terraria.Localization;
+using FargowiltasSouls.Content.WorldGeneration;
+using System.Linq;
 using Terraria.ModLoader;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.CursedCoffin
 {
-  public class CursedSpirit : ModNPC
-  {
-    private int Frame;
-    public static readonly Color GlowColor = new Color(224, 196, 252, 0);
-    public int BiteTimer;
-    public int BittenPlayer;
-    private readonly List<float> SlowChargeStates;
-
-    public virtual bool IsLoadingEnabled(Mod mod) => false;
-
-    public ref float Owner => ref this.NPC.ai[0];
-
-    public ref float Timer => ref this.NPC.ai[1];
-
-    public ref float State => ref this.NPC.ai[2];
-
-    public ref float AI3 => ref this.NPC.ai[3];
-
-    public ref float StartupFadein => ref this.NPC.localAI[0];
-
-    public virtual void SetStaticDefaults()
+    //[AutoloadBossHead]
+    public class CursedSpirit : ModNPC
     {
-      Main.npcFrameCount[this.NPC.type] = 9;
-      NPCID.Sets.TrailCacheLength[this.NPC.type] = 20;
-      NPCID.Sets.TrailingMode[this.NPC.type] = 2;
-      NPCID.Sets.MPAllowedEnemies[this.Type] = true;
-      NPCID.Sets.CantTakeLunchMoney[this.Type] = true;
-      Luminance.Common.Utilities.Utilities.ExcludeFromBestiary((ModNPC) this);
-      NPC npc = this.NPC;
-      List<int> debuffs = new List<int>();
-      CollectionsMarshal.SetCount<int>(debuffs, 5);
-      Span<int> span = CollectionsMarshal.AsSpan<int>(debuffs);
-      int num1 = 0;
-      span[num1] = 31;
-      int num2 = num1 + 1;
-      span[num2] = 46;
-      int num3 = num2 + 1;
-      span[num3] = 68;
-      int num4 = num3 + 1;
-      span[num4] = ModContent.BuffType<LethargicBuff>();
-      int num5 = num4 + 1;
-      span[num5] = ModContent.BuffType<ClippedWingsBuff>();
-      int num6 = num5 + 1;
-      npc.AddDebuffImmunities(debuffs);
-    }
+        //TODO: re-enable boss checklist compat, localizationhelper addSpawnInfo
+        public override bool IsLoadingEnabled(Mod mod) => CursedCoffin.Enabled;
 
-    public virtual void SetDefaults()
-    {
-      this.NPC.aiStyle = -1;
-      this.NPC.lifeMax = 2222;
-      this.NPC.defense = 10;
-      this.NPC.damage = 35;
-      this.NPC.knockBackResist = 0.0f;
-      ((Entity) this.NPC).width = 110;
-      ((Entity) this.NPC).height = 110;
-      this.NPC.lavaImmune = true;
-      this.NPC.noGravity = true;
-      this.NPC.noTileCollide = true;
-      this.NPC.HitSound = new SoundStyle?(SoundID.NPCHit54);
-      this.NPC.DeathSound = new SoundStyle?(SoundID.NPCDeath52);
-      this.NPC.hide = true;
-      this.NPC.value = (float) Item.buyPrice(0, 0, 0, 0);
-      this.NPC.Opacity = 0.0f;
-    }
+        #region Variables
 
-    public virtual void ApplyDifficultyAndPlayerScaling(
-      int numPlayers,
-      float balance,
-      float bossAdjustment)
-    {
-      this.NPC.lifeMax = (int) ((double) this.NPC.lifeMax * (double) balance);
-    }
 
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.NPC.localAI[0]);
-      writer.Write(this.NPC.localAI[1]);
-      writer.Write(this.NPC.localAI[2]);
-      writer.Write(this.NPC.localAI[3]);
-      writer.Write7BitEncodedInt(this.BiteTimer);
-      writer.Write7BitEncodedInt(this.BittenPlayer);
-    }
+        private int Frame = 0;
 
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.NPC.localAI[0] = reader.ReadSingle();
-      this.NPC.localAI[1] = reader.ReadSingle();
-      this.NPC.localAI[2] = reader.ReadSingle();
-      this.NPC.localAI[3] = reader.ReadSingle();
-      this.BiteTimer = reader.Read7BitEncodedInt();
-      this.BittenPlayer = reader.Read7BitEncodedInt();
-    }
+        //NPC.ai[] overrides
+        public ref float Owner => ref NPC.ai[0];
+        public ref float Timer => ref NPC.ai[1];
+        public ref float State => ref NPC.ai[2];
+        public ref float AI3 => ref NPC.ai[3];
 
-    public virtual void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
-    {
-      if (!this.SlowChargeStates.Contains(this.State))
-        return;
-      target.longInvince = true;
-    }
+        public ref float StartupFadein => ref NPC.localAI[0];
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
-    {
-      if (!this.SlowChargeStates.Contains(this.State) || target.HasBuff<GrabbedBuff>())
-        return;
-      target.buffImmune[ModContent.BuffType<CoffinTossBuff>()] = true;
-      this.BittenPlayer = ((Entity) target).whoAmI;
-      this.BiteTimer = 360;
-      if (Main.netMode == 2)
-        NetMessage.SendData(23, -1, -1, (NetworkText) null, ((Entity) this.NPC).whoAmI, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-      NPC npc = FargoSoulsUtil.NPCExists(this.Owner, ModContent.NPCType<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>());
-      if (!npc.TypeAlive<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>())
-        return;
-      Luminance.Common.Utilities.Utilities.As<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>(npc).ForceGrabPunish = 1f;
-      npc.netUpdate = true;
-      if (Main.netMode != 2)
-        return;
-      NetMessage.SendData(23, -1, -1, (NetworkText) null, ((Entity) npc).whoAmI, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-    }
+        public static readonly Color GlowColor = new(224, 196, 252, 0);
 
-    public virtual bool CanHitPlayer(Player target, ref int cooldownSlot)
-    {
-      return (double) this.NPC.Opacity >= 1.0 && this.Collides(((Entity) target).position, ((Entity) target).Size);
-    }
+        public int BiteTimer;
+        public int BittenPlayer = -1;
 
-    public virtual bool CanHitNPC(NPC target)
-    {
-      return this.Collides(((Entity) target).position, ((Entity) target).Size);
-    }
+        public bool RotateToVelocity = true;
 
-    public bool Collides(Vector2 boxPos, Vector2 boxDim)
-    {
-      Vector2 size = ((Entity) this.NPC).Size;
-      Vector2 vector2 = Vector2.op_Addition(((Entity) this.NPC).position, Vector2.op_Multiply(0.5f, new Vector2((float) ((Entity) this.NPC).width, (float) ((Entity) this.NPC).height)));
-      float num1 = 0.0f;
-      float num2 = 0.0f;
-      if ((double) boxPos.X > (double) vector2.X)
-        num1 = boxPos.X - vector2.X;
-      else if ((double) boxPos.X + (double) boxDim.X < (double) vector2.X)
-        num1 = boxPos.X + boxDim.X - vector2.X;
-      if ((double) boxPos.Y > (double) vector2.Y)
-        num2 = boxPos.Y - vector2.Y;
-      else if ((double) boxPos.Y + (double) boxDim.Y < (double) vector2.Y)
-        num2 = boxPos.Y + boxDim.Y - vector2.Y;
-      float num3 = size.X / 2f;
-      float num4 = size.Y / 2f;
-      return (double) num1 * (double) num1 / ((double) num3 * (double) num3) + (double) num2 * (double) num2 / ((double) num4 * (double) num4) < 1.0;
-    }
+        Vector2 LockVector1 = new();
 
-    public virtual bool CheckActive() => false;
-
-    public virtual void OnKill()
-    {
-      NPC npc = FargoSoulsUtil.NPCExists(this.Owner, ModContent.NPCType<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>());
-      if (!npc.TypeAlive<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>() || !FargoSoulsUtil.HostCheck)
-        return;
-      npc.StrikeInstantKill();
-    }
-
-    public virtual void AI()
-    {
-      NPC npc1 = FargoSoulsUtil.NPCExists(this.Owner, ModContent.NPCType<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>());
-      if (!npc1.TypeAlive<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>())
-      {
-        this.NPC.StrikeInstantKill();
-      }
-      else
-      {
-        if ((double) this.StartupFadein < 10.0)
+        #endregion
+        #region Standard
+        public override void SetStaticDefaults()
         {
-          ++this.StartupFadein;
-          this.NPC.Opacity = 0.0f;
+            Main.npcFrameCount[NPC.type] = 9;
+            NPCID.Sets.TrailCacheLength[NPC.type] = 20;
+            NPCID.Sets.TrailingMode[NPC.type] = 3;
+            NPCID.Sets.MPAllowedEnemies[Type] = true;
+
+            NPCID.Sets.CantTakeLunchMoney[Type] = true;
+            this.ExcludeFromBestiary();
+            NPC.AddDebuffImmunities(
+            [
+                BuffID.Confused,
+                BuffID.Chilled,
+                BuffID.Suffocation,
+                ModContent.BuffType<LethargicBuff>(),
+                ModContent.BuffType<ClippedWingsBuff>()
+            ]);
         }
-        else if ((double) this.StartupFadein == 10.0)
+        public override void SetDefaults()
         {
-          this.NPC.Opacity = 1f;
-          ++this.StartupFadein;
+            NPC.aiStyle = -1;
+            NPC.lifeMax = CursedCoffin.BaseHP;
+            NPC.defense = 10;
+            NPC.damage = 35;
+            NPC.knockBackResist = 0f;
+            NPC.width = 110;
+            NPC.height = 110;
+            //NPC.boss = true;
+            NPC.lavaImmune = true;
+            NPC.noGravity = true;
+            NPC.noTileCollide = true;
+            NPC.HitSound = SoundID.NPCHit54 with { Volume = 1.5f };
+            NPC.DeathSound = SoundID.NPCDeath52;
+
+            NPC.hide = true;
+
+            NPC.value = Item.buyPrice(0, 0);
+            NPC.Opacity = 0;
+
         }
-        this.NPC.lifeMax = npc1.lifeMax = Math.Min(this.NPC.lifeMax, npc1.lifeMax);
-        this.NPC.life = npc1.life = Math.Min(this.NPC.life, npc1.life);
-        this.NPC.rotation = Utils.ToRotation(((Entity) this.NPC).velocity) + 1.57079637f;
-        this.NPC.dontTakeDamage = (double) this.NPC.scale < 0.5;
-        if (!npc1.target.IsWithinBounds((int) byte.MaxValue))
-          return;
-        Player player1 = Main.player[npc1.target];
-        if (player1 == null || !player1.Alive())
-          return;
-        FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin cursedCoffin = Luminance.Common.Utilities.Utilities.As<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>(npc1);
-        if (this.BittenPlayer != -1)
+
+        public override void ApplyDifficultyAndPlayerScaling(int numPlayers, float balance, float bossAdjustment)
         {
-          Player player2 = Main.player[this.BittenPlayer];
-          if (this.BiteTimer > 0 && ((Entity) player2).active && !player2.ghost && !player2.dead && ((double) ((Entity) this.NPC).Distance(((Entity) player2).Center) < 160.0 || ((Entity) player2).whoAmI != Main.myPlayer) && player2.FargoSouls().MashCounter < 20)
-          {
-            player2.AddBuff(ModContent.BuffType<GrabbedBuff>(), 2, true, false);
-            NPC npc2 = this.NPC;
-            ((Entity) npc2).velocity = Vector2.op_Multiply(((Entity) npc2).velocity, 0.92f);
-            ((Entity) player2).velocity = Vector2.Zero;
-            ((Entity) player2).Center = Vector2.Lerp(((Entity) player2).Center, ((Entity) this.NPC).Center, 0.1f);
-          }
-          else
-          {
-            this.BittenPlayer = -1;
-            this.BiteTimer = -90;
-            ((Entity) this.NPC).velocity = Vector2.op_Multiply(Vector2.op_UnaryNegation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player2).Center)), 50f);
-            this.NPC.netUpdate = true;
-            if (Main.netMode != 2)
-              return;
-            NetMessage.SendData(23, -1, -1, (NetworkText) null, ((Entity) this.NPC).whoAmI, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-          }
+            NPC.lifeMax = (int)(NPC.lifeMax * balance);
         }
-        else
+
+        public override void SendExtraAI(BinaryWriter writer)
         {
-          if (cursedCoffin.StateMachine.CurrentState == null)
-            return;
-          bool flag = (double) cursedCoffin.StateMachine.CurrentState.Identifier != (double) this.State;
-          FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin.BehaviorStates identifier = cursedCoffin.StateMachine.CurrentState.Identifier;
-          switch (identifier)
-          {
-            case FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin.BehaviorStates.StunPunish:
-              if (flag)
-              {
-                this.Timer = 0.0f;
-                this.AI3 = 0.0f;
-              }
-              this.Movement(Vector2.op_Addition(((Entity) player1).Center, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo(((Entity) player1).Center, ((Entity) this.NPC).Center), 300f)), 0.1f, 10f, decel: 0.08f, slowdown: 20f);
-              break;
-            case FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin.BehaviorStates.HoveringForSlam:
-              if (flag)
-              {
-                this.Timer = 0.0f;
-                this.AI3 = 0.0f;
-              }
-              this.Artillery(npc1);
-              break;
-            case FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin.BehaviorStates.SlamWShockwave:
-              if (flag)
-              {
-                this.Timer = 0.0f;
-                this.AI3 = 0.0f;
-              }
-              this.SlamSupport(npc1);
-              break;
-            default:
-              if (!this.SlowChargeStates.Contains((float) cursedCoffin.StateMachine.CurrentState.Identifier))
-              {
-                if (identifier == FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin.BehaviorStates.PhaseTransition)
+            writer.Write(NPC.localAI[0]);
+            writer.Write(NPC.localAI[1]);
+            writer.Write(NPC.localAI[2]);
+            writer.Write(NPC.localAI[3]);
+            writer.Write7BitEncodedInt(BiteTimer);
+            writer.Write7BitEncodedInt(BittenPlayer);
+            writer.WriteVector2(LockVector1);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            NPC.localAI[0] = reader.ReadSingle();
+            NPC.localAI[1] = reader.ReadSingle();
+            NPC.localAI[2] = reader.ReadSingle();
+            NPC.localAI[3] = reader.ReadSingle();
+            BiteTimer = reader.Read7BitEncodedInt();
+            BittenPlayer = reader.Read7BitEncodedInt();
+            LockVector1 = reader.ReadVector2();
+        }
+        public override void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
+        {
+            if (SlowChargeStates.Contains(State))
+                target.longInvince = true;
+        }
+        public override void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
+        {
+            if (SlowChargeStates.Contains(State))
+            {
+                if (target.HasBuff<GrabbedBuff>())
+                    return;
+                target.buffImmune[ModContent.BuffType<CoffinTossBuff>()] = true;
+
+                BittenPlayer = target.whoAmI;
+                BiteTimer = 360;
+
+                NPC owner = FargoSoulsUtil.NPCExists(Owner, ModContent.NPCType<CursedCoffin>());
+                if (owner.TypeAlive<CursedCoffin>())
                 {
-                  ((Entity) this.NPC).Center = ((Entity) npc1).Center;
-                  this.NPC.scale = 0.2f;
-                  break;
+                    // Forces Coffin to enter grab punish state
+                    owner.As<CursedCoffin>().ForceGrabPunish = 1;
+                    owner.netUpdate = true;
                 }
-                break;
-              }
-              if (flag)
-              {
-                this.Timer = 0.0f;
-                this.AI3 = 0.0f;
-              }
-              this.SlowCharges(npc1);
-              break;
-          }
-          this.State = (float) cursedCoffin.StateMachine.CurrentState.Identifier;
-        }
-      }
-    }
 
-    private void SlamSupport(NPC owner)
-    {
-      FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin cursedCoffin = Luminance.Common.Utilities.Utilities.As<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>(owner);
-      Player player = Main.player[owner.target];
-      if ((double) this.AI3 == 0.0)
-      {
-        if ((double) cursedCoffin.Timer < 0.0 || (double) ((Entity) owner).velocity.Y == 0.0)
-          this.AI3 = 1f;
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) owner).Center), Math.Min(Math.Max(20f, ((Vector2) ref ((Entity) owner).velocity).Length()), ((Entity) this.NPC).Distance(((Entity) owner).Center))), 0.2f);
-        this.LerpOpacity(0.15f);
-        this.LerpScale(0.4f);
-      }
-      else if ((double) this.AI3 == 1.0)
-      {
-        if ((double) ((Entity) this.NPC).Distance(((Entity) owner).Center) > 50.0)
+                if (Main.netMode != NetmodeID.SinglePlayer)
+                {
+                    // remember that this is target client side; we sync to server
+                    var netMessage = Mod.GetPacket();
+                    netMessage.Write((byte)FargowiltasSouls.PacketID.SyncCursedSpiritGrab);
+                    netMessage.Write((byte)NPC.whoAmI);
+                    netMessage.Write((byte)BittenPlayer);
+                    netMessage.Write(BiteTimer);
+                    netMessage.Send();
+                }
+            }
+        }
+        public override bool CanHitPlayer(Player target, ref int cooldownSlot)
         {
-          for (int index = 0; index < 20; ++index)
-            Dust.NewDust(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height, 27, Utils.NextFloat(Main.rand, -3f, 3f), Utils.NextFloat(Main.rand, -3f, 3f), 0, new Color(), 1f);
-          ((Entity) this.NPC).Center = ((Entity) owner).Center;
-          this.NPC.netUpdate = true;
+            if (NPC.Opacity < 1)
+                return false;
+            if (target.HasBuff<GrabbedBuff>())
+                return false;
+            Vector2 boxPos = target.position;
+            Vector2 boxDim = target.Size;
+            return Collides(boxPos, boxDim);
         }
-        this.LerpOpacity(1f, 0.4f);
-        this.LerpScale(1f, 0.4f);
-        this.AI3 = 2f;
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Vector2.UnitY, 7f);
-        SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin.SoulShotSFX, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        if (!FargoSoulsUtil.HostCheck)
-          return;
-        int num = WorldSavingSystem.EternityMode ? (WorldSavingSystem.MasochistModeReal ? 3 : 2) : 1;
-        for (int index = -num; index <= num; ++index)
+        public override bool CanHitNPC(NPC target)
         {
-          if (index != 0)
-          {
-            Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedBy(Vector2.UnitY, (double) index * 6.2831854820251465 * (0.046999998390674591 + (double) Utils.NextFloat(Main.rand, 0.02f)), new Vector2()), (float) (6 + Math.Abs(index)));
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Bottom, ((Entity) this.NPC).velocity), vector2, ModContent.ProjectileType<CoffinDarkSouls>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 1f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, -0.135f, 0.0f);
-          }
+            Vector2 boxPos = target.position;
+            Vector2 boxDim = target.Size;
+            return Collides(boxPos, boxDim);
         }
-      }
-      else
-      {
-        if ((double) cursedCoffin.Timer > 0.0)
-          this.AI3 = 0.0f;
-        NPC npc = this.NPC;
-        ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.97f);
-        this.LerpOpacity(1f, 0.4f);
-        this.LerpScale(1f, 0.4f);
-      }
-    }
-
-    private void SlowCharges(NPC owner)
-    {
-      this.LerpOpacity(1f, 0.4f);
-      this.LerpScale(1f, 0.4f);
-      Player player = Main.player[owner.target];
-      if ((double) this.Timer <= 1.0)
-      {
-        this.AI3 = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center)) + Utils.NextFloat(Main.rand, -0.9424779f, 0.9424779f);
-        this.NPC.netUpdate = true;
-      }
-      else if ((double) this.Timer < 80.0)
-      {
-        Vector2 vector2 = Vector2.Lerp(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) player, ((Entity) this.NPC).Center), Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) owner, ((Entity) player).Center), this.Timer / 140f);
-        this.Movement(Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(vector2, 300f)), 0.2f, lowspeed: 10f, decel: 0.1f, slowdown: 20f);
-      }
-      else if ((double) this.Timer < 90.0)
-      {
-        NPC npc = this.NPC;
-        ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.94f);
-      }
-      else
-      {
-        SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin.SpiritDroneSFX, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) player).Center, ((Entity) this.NPC).Center);
-        float num1 = 6.5f;
-        if (!WorldSavingSystem.EternityMode)
-          num1 /= 2f;
-        else if (!WorldSavingSystem.MasochistModeReal)
-          num1 /= 1.1f;
-        float num2 = 10f;
-        ((Vector2) ref vector2_1).Normalize();
-        Vector2 vector2_2 = Vector2.op_Multiply(vector2_1, num1);
-        ((Entity) this.NPC).velocity = Vector2.op_Division(Vector2.op_Addition(Vector2.op_Multiply(((Entity) this.NPC).velocity, num2 - 1f), vector2_2), num2);
-        if (Vector2.op_Equality(((Entity) this.NPC).velocity, Vector2.Zero))
+        public bool Collides(Vector2 boxPos, Vector2 boxDim)
         {
-          ((Entity) this.NPC).velocity.X = -0.15f;
-          ((Entity) this.NPC).velocity.Y = -0.05f;
+            //circular hitbox-inator
+            Vector2 ellipseDim = NPC.Size;
+            Vector2 ellipseCenter = NPC.position + 0.5f * new Vector2(NPC.width, NPC.height);
+
+            float x = 0f; //ellipse center
+            float y = 0f; //ellipse center
+            if (boxPos.X > ellipseCenter.X)
+            {
+                x = boxPos.X - ellipseCenter.X; //left corner
+            }
+            else if (boxPos.X + boxDim.X < ellipseCenter.X)
+            {
+                x = boxPos.X + boxDim.X - ellipseCenter.X; //right corner
+            }
+            if (boxPos.Y > ellipseCenter.Y)
+            {
+                y = boxPos.Y - ellipseCenter.Y; //top corner
+            }
+            else if (boxPos.Y + boxDim.Y < ellipseCenter.Y)
+            {
+                y = boxPos.Y + boxDim.Y - ellipseCenter.Y; //bottom corner
+            }
+            float a = ellipseDim.X / 2f;
+            float b = ellipseDim.Y / 2f;
+
+            return x * x / (a * a) + y * y / (b * b) < 1; //point collision detection
         }
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() > 6.5)
+
+        #endregion
+        readonly List<float> SlowChargeStates =
+        [
+            (float)CursedCoffin.BehaviorStates.PhaseTransition,
+            (float)CursedCoffin.BehaviorStates.WavyShotCircle,
+            (float)CursedCoffin.BehaviorStates.WavyShotSlam,
+            (float)CursedCoffin.BehaviorStates.RandomStuff,
+            (float)CursedCoffin.BehaviorStates.GrabbyHands
+        ];
+        public override bool CheckActive() => false;
+        public override void OnKill()
         {
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.97f);
+            NPC owner = FargoSoulsUtil.NPCExists(Owner, ModContent.NPCType<CursedCoffin>());
+            if (!owner.TypeAlive<CursedCoffin>())
+            {
+                return;
+            }
+            if (FargoSoulsUtil.HostCheck)
+                owner.StrikeInstantKill();
         }
-        if ((double) this.Timer <= 130.0 && !WorldSavingSystem.MasochistModeReal)
+        #region AI
+        public override void AI()
         {
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, this.Timer / 130f);
-        }
-      }
-      ++this.Timer;
-    }
+            NPC owner = FargoSoulsUtil.NPCExists(Owner, ModContent.NPCType<CursedCoffin>());
+            if (!owner.TypeAlive<CursedCoffin>())
+            {
+                NPC.StrikeInstantKill();
+                return;
+            }
 
-    private void Artillery(NPC owner)
-    {
-      if ((double) this.NPC.Opacity > 0.89999997615814209)
-        this.NPC.Opacity = 0.9f;
-      this.LerpOpacity(0.4f);
-      this.LerpScale(0.6f);
-      Vector2 pos = Vector2.op_Subtraction(((Entity) owner).Center, Vector2.op_Multiply(Vector2.UnitY, (float) ((Entity) owner).height));
-      this.Movement(pos, 0.1f, Math.Max(25f, ((Vector2) ref ((Entity) owner).velocity).Length()), ((Vector2) ref ((Entity) owner).velocity).Length(), 0.08f, 20f);
-      if ((double) ((Entity) this.NPC).Distance(pos) >= (double) ((Entity) owner).height * 0.75)
-        return;
-      if ((double) this.Timer % 20.0 == 19.0)
-      {
-        SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin.SoulShotSFX, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        if (FargoSoulsUtil.HostCheck)
+            if (StartupFadein < 10)
+            {
+                StartupFadein++;
+                NPC.Opacity = 0;
+            }
+            else if (StartupFadein == 10)
+            {
+                NPC.Opacity = 1;
+                StartupFadein++;
+            }
+
+            // share healthbar
+            NPC.lifeMax = owner.lifeMax = Math.Min(NPC.lifeMax, owner.lifeMax);
+            NPC.life = owner.life = Math.Min(NPC.life, owner.life);
+
+            RotateToVelocity = true;
+            NPC.dontTakeDamage = NPC.scale < 0.5f;
+            NPC.noTileCollide = true;
+
+            if (!(owner.target.IsWithinBounds(Main.maxPlayers) && Main.player[owner.target] is Player player && player.Alive()))
+                return;
+            CursedCoffin coffin = owner.As<CursedCoffin>();
+
+            /*
+            if (coffin.AttackCounter < 3 && !coffin.Enraged)
+            {
+                NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(owner.Center) * Math.Min(Math.Max(20, owner.velocity.Length()), NPC.Distance(owner.Center)), 0.2f);
+                LerpOpacity(0.15f);
+                LerpScale(0.4f);
+                if (NPC.Distance(owner.Center) < NPC.width / 2)
+                    NPC.active = false;
+                return;
+            }
+            */
+
+            if (BittenPlayer != -1)
+            {
+                // being held
+                Player victim = Main.player[BittenPlayer];
+                if (BiteTimer > 0 && victim.active && !victim.ghost && !victim.dead
+                    && (NPC.Distance(victim.Center) < 160)
+                    && victim.FargoSouls().MashCounter < 20)
+                {
+                    victim.AddBuff(ModContent.BuffType<GrabbedBuff>(), 2);
+                    NPC.velocity *= 0.2f;
+                    victim.velocity = Vector2.Zero;
+                    victim.Center = Vector2.Lerp(victim.Center, NPC.Center, 0.1f);
+                }
+                else // escaped
+                {
+                    BittenPlayer = -1;
+                    BiteTimer = -90; //cooldown
+
+                    // dash away otherwise it's bullshit
+                    NPC.velocity = -NPC.SafeDirectionTo(victim.Center) * 12;
+                    victim.immune = true;
+                    victim.immuneTime = Math.Max(victim.immuneTime, 30);
+                    victim.hurtCooldowns[0] = Math.Max(victim.hurtCooldowns[0], 30);
+                    victim.hurtCooldowns[1] = Math.Max(victim.hurtCooldowns[1], 30);
+
+                    NPC.netUpdate = true;
+                    Timer = 0;
+                    AI3 = 0;
+
+                    if (Main.netMode == NetmodeID.Server)
+                        NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, NPC.whoAmI);
+
+                    if (Main.netMode != NetmodeID.SinglePlayer)
+                    {
+                        var netMessage = Mod.GetPacket();
+                        netMessage.Write((byte)FargowiltasSouls.PacketID.SyncCursedSpiritRelease);
+                        netMessage.Write((byte)NPC.whoAmI);
+                        netMessage.Write((byte)victim.whoAmI);
+                        netMessage.Send();
+                    }
+                }
+                return;
+            }
+
+            if (!coffin.StateMachine.StateStack.Any())
+                return;
+
+            bool newState = (float)coffin.StateMachine.CurrentState.Identifier != State;
+
+            switch (coffin.StateMachine.CurrentState.Identifier)
+            {
+                case CursedCoffin.BehaviorStates.StunPunish:
+                    if (newState)
+                    {
+                        Timer = 0;
+                        AI3 = 0;
+                    }
+                    Movement(player.Center + player.Center.SafeDirectionTo(NPC.Center) * 300, 0.1f, 10, 5, 0.08f, 20);
+                    break;
+                case CursedCoffin.BehaviorStates.HoveringForSlam:
+                    if (newState)
+                    {
+                        Timer = 0;
+                        AI3 = 0;
+                    }
+                    Artillery(owner);
+                    break;
+                case CursedCoffin.BehaviorStates.SlamWShockwave:
+                    if (newState)
+                    {
+                        Timer = 0;
+                        AI3 = 0;
+                    }
+                    SlamSupport(owner);
+                    break;
+                    /*
+                case CursedCoffin.StateEnum.GrabbyHands:
+                    {
+                        Timer = 0;
+                        AI3 = 0;
+                    }
+                    GrabbyHands(owner);
+                    break;
+                    */
+                case var _ when SlowChargeStates.Contains((float)coffin.StateMachine.CurrentState.Identifier):
+                    if (!SlowChargeStates.Contains(State))
+                    {
+                        Timer = 0;
+                        AI3 = 0;
+                    }
+                    SlowCharges(owner, coffin.StateMachine.CurrentState.Identifier);
+                    break;
+                case CursedCoffin.BehaviorStates.PhaseTransition:
+                    {
+                        NPC.Center = owner.Center;
+                        NPC.scale = 0.2f;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            State = (float)coffin.StateMachine.CurrentState.Identifier;
+            if (RotateToVelocity)
+                NPC.rotation = NPC.velocity.ToRotation() + MathHelper.PiOver2;
+        }
+        void SlamSupport(NPC owner)
         {
-          Vector2 vector2 = Vector2.op_Multiply(Vector2.op_UnaryNegation(Utils.RotatedBy(Vector2.UnitY, 0.8796459436416626 * Math.Sin(6.2831854820251465 * ((double) this.Timer + (double) Main.rand.Next(20)) / 53.0), new Vector2())), 4f);
-          Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, vector2, ModContent.ProjectileType<CoffinDarkSouls>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 1f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, 0.18f, 0.0f);
+            CursedCoffin coffin = owner.As<CursedCoffin>();
+            Player player = Main.player[owner.target];
+
+            if (AI3 == 0) //falling
+            {
+                if (coffin.Timer < 0 || owner.velocity.Y == 0)
+                    AI3 = 1;
+                NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(owner.Center) * Math.Min(Math.Max(20, owner.velocity.Length()), NPC.Distance(owner.Center)), 0.2f);
+                LerpOpacity(0.15f);
+                LerpScale(0.4f);
+            }
+            else if (AI3 == 1) //do slam
+            {
+                if (NPC.Distance(owner.Center) > 50) // teleport
+                {
+                    for (int i = 0; i < 20; i++)
+                    {
+                        Dust.NewDust(NPC.position, NPC.width, NPC.height, DustID.Shadowflame, Main.rand.NextFloat(-3, 3), Main.rand.NextFloat(-3, 3));
+                    }
+                    //SoundEngine.PlaySound(poof, NPC.Center);
+                    NPC.Center = owner.Center;
+                    NPC.netUpdate = true;
+                }
+                LerpOpacity(1f, 0.4f);
+                LerpScale(1f, 0.4f);
+                AI3 = 2;
+                NPC.velocity = Vector2.UnitY * 1;
+
+                SoundEngine.PlaySound(CursedCoffin.SoulShotSFX, NPC.Center);
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    int cap = WorldSavingSystem.MasochistModeReal ? 3 : 2;
+                    for (int i = -cap; i <= cap; i++)
+                    {
+                        if (i == 0)
+                            continue;
+                        if (!WorldSavingSystem.EternityMode && (i == 1 || i == -1))
+                            continue;
+                        Vector2 vel = Vector2.UnitY.RotatedBy(i * MathF.Tau * (0.041f + Main.rand.NextFloat(-0.02f, 0.01f))) * (6 + Math.Abs(i));
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Bottom + NPC.velocity, vel, ModContent.ProjectileType<CoffinDarkSouls>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.damage), 1f, Main.myPlayer, NPC.whoAmI, -0.135f);
+                        // ghost projs, neg grav
+                    }
+                }
+            }
+            else
+            {
+                if (coffin.Timer > 3)
+                    AI3 = 0;
+                NPC.velocity *= 0.97f;
+                LerpOpacity(1f, 0.4f);
+                LerpScale(1f, 0.4f);
+                //Movement(player.Center + player.Center.SafeDirectionTo(NPC.Center) * 300, 0.1f, 10, 5, 0.08f, 20);
+            }
         }
-      }
-      ++this.Timer;
-    }
+        void SlowCharges(NPC owner, CursedCoffin.BehaviorStates state)
+        {
+            
+            
 
-    private void GrabbyHands(NPC owner)
-    {
-      FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin cursedCoffin = Luminance.Common.Utilities.Utilities.As<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>(owner);
-      Player player = Main.player[owner.target];
-      if ((double) cursedCoffin.Timer < 40.0)
-      {
-        Vector2 vector2 = Vector2.op_Subtraction(Vector2.op_Multiply(Vector2.op_UnaryNegation(Vector2.UnitY), 300f), Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, (float) Math.Sign(((Entity) owner).Center.X - ((Entity) player).Center.X)), 200f));
-        this.Movement(Vector2.op_Addition(((Entity) player).Center, vector2), 0.1f, 10f, decel: 0.08f, slowdown: 20f);
-      }
-      else
-      {
-        NPC npc = this.NPC;
-        ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.97f);
-      }
-      if ((double) cursedCoffin.Timer < 40.0)
-      {
-        this.LerpOpacity(0.15f);
-        this.LerpScale(0.4f);
-      }
-      else
-      {
-        this.LerpOpacity(1f, 0.3f);
-        this.LerpScale(1f, 0.3f);
-      }
-      if ((double) cursedCoffin.Timer != 40.0 || !FargoSoulsUtil.HostCheck)
-        return;
-      Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation + 1.57079637f), 4f), ModContent.ProjectileType<CoffinHand>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage, 0.1f), 1f, Main.myPlayer, (float) ((Entity) owner).whoAmI, 1f, 1f);
-    }
+            if (Timer < 80)
+            {
+                LerpScale(0.8f, 0.4f);
+                LerpOpacity(0.5f, 0.4f);
+            }
+            else
+            {
+                LerpScale(1f, 0.4f);
+                LerpOpacity(1f, 0.4f);
+            }
+                
 
-    private void Movement(
-      Vector2 pos,
-      float accel = 0.03f,
-      float maxSpeed = 20f,
-      float lowspeed = 5f,
-      float decel = 0.03f,
-      float slowdown = 30f)
-    {
-      if ((double) ((Entity) this.NPC).Distance(pos) > (double) slowdown)
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Utils.SafeNormalize(Vector2.op_Subtraction(pos, ((Entity) this.NPC).Center), Vector2.Zero), maxSpeed), accel);
-      else
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Utils.SafeNormalize(Vector2.op_Subtraction(pos, ((Entity) this.NPC).Center), Vector2.Zero), lowspeed), decel);
-    }
+            Player player = Main.player[owner.target];
+            if (Timer <= 1)
+            {
+                AI3 = NPC.SafeDirectionTo(player.Center).ToRotation() + Main.rand.NextFloat(-MathHelper.PiOver2 * 0.6f, MathHelper.PiOver2 * 0.6f);
+                NPC.netUpdate = true;
+                // Get the corner with the biggest difference in angle to player (to make npc avoid player on course to the corner)
+                static float CrossProduct(Vector2 v1, Vector2 v2) => (v1.X * v2.Y) - (v1.Y * v2.X); // Ordering by cross product gives the biggest undirected angle difference between two vectors
+                List<Vector2> corners = CoffinArena.TopArenaCorners(NPC);
+                CursedCoffin coffin = owner.As<CursedCoffin>();
+                if (coffin.StateMachine.StateStack.Any() && coffin.StateMachine.CurrentState.Identifier == CursedCoffin.BehaviorStates.WavyShotSlam)
+                    LockVector1 = corners.OrderByDescending(x => x.Distance(player.Center)).First();
+                else
+                    LockVector1 = corners.OrderByDescending(x => Math.Abs(CrossProduct(NPC.DirectionTo(x), NPC.DirectionTo(player.Center)))).First();
+            }
+            else if (Timer < 80)
+            {
+                //Vector2 dir = Vector2.Lerp(player.DirectionTo(NPC.Center), owner.DirectionTo(player.Center), Timer / 140);
+                //Vector2 desiredPos = CursedCoffin.ClampWithinArena(player.Center + dir * 300, NPC);
+                Movement(LockVector1, 0.2f, 20, 10, 0.1f, 20);
+                
+                NPC.rotation = MathHelper.Lerp(NPC.rotation, NPC.DirectionTo(player.Center).ToRotation() + MathHelper.PiOver2, 0.1f);
+                RotateToVelocity = false;
+            }
+            else if (Timer < 90)
+            {
+                NPC.velocity = Vector2.Lerp(Vector2.Zero, NPC.DirectionTo(player.Center) * 3, 0.2f);
+            }
+            else //if (Timer < 240) edit: no longer loops, just continues charging
+            {
+                SoundEngine.PlaySound(CursedCoffin.SpiritDroneSFX, NPC.Center);
 
-    private void LerpOpacity(float target, float speed = 0.15f)
-    {
-      this.NPC.Opacity = (float) Utils.Lerp((double) this.NPC.Opacity, (double) target, (double) speed);
-    }
+                if (state != CursedCoffin.BehaviorStates.RandomStuff) // Charges
+                {
+                    if (Timer > 110)
+                        NPC.noTileCollide = false;
 
-    private void LerpScale(float target, float speed = 0.15f)
-    {
-      this.NPC.scale = (float) Utils.Lerp((double) this.NPC.scale, (double) target, (double) speed);
-    }
+                    if (Timer > 180 || (Timer > 110 && Collision.SolidTiles(NPC.position + NPC.velocity, NPC.width, NPC.height)))
+                    {
+                        Timer = 0;
+                        return;
+                    }
+                    if (NPC.velocity.LengthSquared() < 10 * 10)
+                    {
+                        NPC.velocity += Utils.SafeNormalize(NPC.velocity, Vector2.Zero) * 0.5f;
+                    }
+                    NPC.velocity = NPC.velocity.ClampLength(0, 10);
+                }
+                else // Slow crawling
+                {
+                    Vector2 vectorToIdlePosition = player.Center - NPC.Center;
+                    float speed = 6.5f;
+                    if (!WorldSavingSystem.EternityMode)
+                        speed /= 2;
+                    else if (!WorldSavingSystem.MasochistModeReal)
+                        speed /= 1.1f;
+                    float inertia = 20f;
+                    vectorToIdlePosition.Normalize();
+                    vectorToIdlePosition *= speed;
+                    NPC.velocity = (NPC.velocity * (inertia - 1f) + vectorToIdlePosition) / inertia;
+                    if (NPC.velocity == Vector2.Zero)
+                    {
+                        NPC.velocity.X = -0.15f;
+                        NPC.velocity.Y = -0.05f;
+                    }
+                    if (NPC.velocity.Length() > 6.5f)
+                        NPC.velocity *= 0.97f;
+                }
+            }
+            Timer++;
+        }
+        void Artillery(NPC owner)
+        {
+            if (NPC.Opacity > 0.9f)
+                NPC.Opacity = 0.9f;
+            LerpOpacity(0.4f);
+            LerpScale(0.6f);
+            Vector2 desiredPos = owner.Center - Vector2.UnitY * owner.height;
+            Movement(desiredPos, 0.1f, Math.Max(25, owner.velocity.Length()), owner.velocity.Length(), 0.08f, 20);
+            if (NPC.Distance(desiredPos) < owner.height * 0.75f)
+            {
+                const int shotTime = 20;
+                if (Timer % shotTime == shotTime - 1)
+                {
+                    SoundEngine.PlaySound(CursedCoffin.SoulShotSFX, NPC.Center);
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 vel = -Vector2.UnitY.RotatedBy(MathF.Tau * 0.14f * Math.Sin(MathF.Tau * (Timer + Main.rand.Next(20)) / 53)) * 4;
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, vel, ModContent.ProjectileType<CoffinDarkSouls>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 1f, Main.myPlayer, NPC.whoAmI, 0.18f);
+                    }
+                }
+                Timer++;
+            }
+        }
+        void GrabbyHands(NPC owner)
+        {
+            CursedCoffin coffin = owner.As<CursedCoffin>();
+            Player player = Main.player[owner.target];
 
-    public virtual void HitEffect(NPC.HitInfo hit)
-    {
-    }
+            if (coffin.Timer < 40)
+            {
+                Vector2 offset = -Vector2.UnitY * 300 - Vector2.UnitX * Math.Sign(owner.Center.X - player.Center.X) * 200;
+                Vector2 desiredPos = player.Center + offset;
+                Movement(desiredPos, 0.1f, 10, 5, 0.08f, 20);
+            }
+            else
+            {
+                NPC.velocity *= 0.97f;
+            }
 
-    public virtual bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
-    {
-      Texture2D texture2D1 = TextureAssets.Npc[this.NPC.type].Value;
-      Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) this.NPC).Center, screenPos);
-      SpriteEffects spriteEffects1 = ((Entity) this.NPC).direction == 1 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      int num = NPCID.Sets.TrailCacheLength[this.NPC.type];
-      if ((double) this.NPC.scale > 0.5)
-        num /= 2;
-      for (int index = 0; index < num; ++index)
-      {
-        Vector2 oldPo = this.NPC.oldPos[index];
-        DrawData drawData;
-        // ISSUE: explicit constructor call
-        ((DrawData) ref drawData).\u002Ector(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.NPC).Size, 2f)), screenPos), new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(this.NPC.frame), Color.op_Multiply(this.NPC.GetAlpha(drawColor), 0.5f / (float) index), this.NPC.rotation, Vector2.op_Division(((Entity) this.NPC).Size, 2f), this.NPC.scale, spriteEffects1, 0.0f);
-        GameShaders.Misc["LCWingShader"].UseColor(Color.Blue).UseSecondaryColor(Color.Black);
-        GameShaders.Misc["LCWingShader"].Apply(new DrawData?(drawData));
-        ((DrawData) ref drawData).Draw(spriteBatch);
-      }
-      SpriteBatch spriteBatch1 = spriteBatch;
-      Vector2 vector2_2 = Vector2.op_Division(((Entity) this.NPC).Size, 2f);
-      Texture2D texture2D2 = texture2D1;
-      Vector2 vector2_3 = vector2_1;
-      Rectangle? nullable = new Rectangle?(this.NPC.frame);
-      Color alpha = this.NPC.GetAlpha(drawColor);
-      double rotation = (double) this.NPC.rotation;
-      Vector2 vector2_4 = vector2_2;
-      double scale = (double) this.NPC.scale;
-      SpriteEffects spriteEffects2 = spriteEffects1;
-      spriteBatch1.Draw(texture2D2, vector2_3, nullable, alpha, (float) rotation, vector2_4, (float) scale, spriteEffects2, 0.0f);
-      return false;
-    }
+            if (coffin.Timer < 40)
+            {
+                LerpOpacity(0.15f);
+                LerpScale(0.4f);
+            }
+            else
+            {
+                LerpOpacity(1f, 0.3f);
+                LerpScale(1f, 0.3f);
+            }
 
-    public virtual void DrawBehind(int index)
-    {
-      if (!this.NPC.hide)
-        return;
-      Main.instance.DrawCacheNPCsBehindNonSolidTiles.Add(index);
-    }
+            if (coffin.Timer == 40)
+            {
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, (NPC.rotation + MathHelper.PiOver2).ToRotationVector2() * 4, ModContent.ProjectileType<CoffinHand>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 0.1f), 1f, Main.myPlayer, owner.whoAmI, 1, 1);
+                    //Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, (NPC.rotation - MathHelper.PiOver2).ToRotationVector2() * 4, ModContent.ProjectileType<CoffinHand>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 0.1f), 1f, Main.myPlayer, owner.whoAmI, 1, -1);
+                }
+            }
 
-    public virtual void FindFrame(int frameHeight)
-    {
-      if (++this.NPC.frameCounter > 4.0)
-      {
-        if (++this.Frame >= Main.npcFrameCount[this.Type] - 1)
-          this.Frame = 0;
-        this.NPC.frameCounter = 0.0;
-      }
-      this.NPC.spriteDirection = ((Entity) this.NPC).direction;
-      this.NPC.frame.Y = frameHeight * this.Frame;
-      this.NPC.frame.Width = 120;
-      if (this.SlowChargeStates.Contains(this.State))
-        this.NPC.frame.X = 120;
-      else
-        this.NPC.frame.X = 0;
-    }
+        }
+        void Movement(Vector2 pos, float accel = 0.03f, float maxSpeed = 20, float lowspeed = 5, float decel = 0.03f, float slowdown = 30)
+        {
+            if (NPC.Distance(pos) > slowdown)
+            {
+                NPC.velocity = Vector2.Lerp(NPC.velocity, (pos - NPC.Center).SafeNormalize(Vector2.Zero) * maxSpeed, accel);
+            }
+            else
+            {
+                NPC.velocity = Vector2.Lerp(NPC.velocity, (pos - NPC.Center).SafeNormalize(Vector2.Zero) * lowspeed, decel);
+            }
+        }
+        void LerpOpacity(float target, float speed = 0.15f) => NPC.Opacity = (float)Utils.Lerp(NPC.Opacity, target, speed);
+        void LerpScale(float target, float speed = 0.15f) => NPC.scale = (float)Utils.Lerp(NPC.scale, target, speed);
+        #endregion
+        #region Overrides
+        public override void HitEffect(NPC.HitInfo hit)
+        {
+            //TODO: gore
+            /*
+            if (NPC.life <= 0)
+            {
+                for (int i = 1; i <= 4; i++)
+                {
+                    Vector2 pos = NPC.position + new Vector2(Main.rand.NextFloat(NPC.width), Main.rand.NextFloat(NPC.height));
+                    if (!Main.dedServ)
+                        Gore.NewGore(NPC.GetSource_FromThis(), pos, NPC.velocity, ModContent.Find<ModGore>(Mod.Name, $"BaronGore{i}").Type, NPC.scale);
+                }
+            }
+            */
+        }
+        public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
+        {
+            Texture2D bodytexture = Terraria.GameContent.TextureAssets.Npc[NPC.type].Value;
+            Vector2 drawPos = NPC.Center - screenPos;
+            SpriteEffects spriteEffects = NPC.direction == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
 
-    public CursedSpirit()
-    {
-      List<float> floatList = new List<float>();
-      CollectionsMarshal.SetCount<float>(floatList, 5);
-      Span<float> span = CollectionsMarshal.AsSpan<float>(floatList);
-      int num1 = 0;
-      span[num1] = 1f;
-      int num2 = num1 + 1;
-      span[num2] = 6f;
-      int num3 = num2 + 1;
-      span[num3] = 7f;
-      int num4 = num3 + 1;
-      span[num4] = 9f;
-      int num5 = num4 + 1;
-      span[num5] = 8f;
-      int num6 = num5 + 1;
-      this.SlowChargeStates = floatList;
-      // ISSUE: explicit constructor call
-      base.\u002Ector();
+            Color glowColor = CursedCoffin.GlowColor;
+
+            int trailLength = NPCID.Sets.TrailCacheLength[NPC.type];
+            if (NPC.scale < 0.5f)
+                trailLength /= 2;
+
+            for (int i = 0; i < trailLength; i++)
+            {
+                Vector2 oldPos = NPC.oldPos[i];
+
+                DrawData oldGlow = new(bodytexture, oldPos + NPC.Size / 2f - screenPos + new Vector2(0, NPC.gfxOffY), NPC.frame, NPC.GetAlpha(glowColor * (0.8f / i)), NPC.oldRot[i], NPC.Size / 2, NPC.scale, spriteEffects, 0);
+                GameShaders.Misc["LCWingShader"].UseColor(Color.Blue).UseSecondaryColor(Color.Black);
+                GameShaders.Misc["LCWingShader"].Apply(oldGlow);
+                oldGlow.Draw(spriteBatch);
+            }
+            for (int j = 0; j < 12; j++)
+            {
+                float spinOffset = (Main.GameUpdateCount * 0.001f * j) % 12;
+                float magnitude = 1f + ((j % 5) * 2f * MathF.Sin(Main.GameUpdateCount * MathHelper.TwoPi / (10 + ((j - 6f) * 28f))));
+                Vector2 afterimageOffset = (MathHelper.TwoPi * (j + spinOffset) / 12f).ToRotationVector2() * magnitude * NPC.scale;
+
+                spriteBatch.Draw(bodytexture, drawPos + afterimageOffset, NPC.frame, NPC.GetAlpha(glowColor * NPC.Opacity), NPC.rotation, NPC.Size / 2, NPC.scale, spriteEffects, 0f);
+            }
+            /*
+            for (int j = 0; j < 12; j++)
+            {
+                float spinOffset = 0;// Main.GameUpdateCount * 0.001f * j;
+                float magnitude = 12;
+                Vector2 afterimageOffset = (MathHelper.TwoPi * (j + spinOffset) / 12f).ToRotationVector2() * magnitude * NPC.scale;
+               
+                spriteBatch.Draw(bodytexture, drawPos + afterimageOffset, NPC.frame, glowColor, NPC.rotation, NPC.Size / 2, NPC.scale, spriteEffects, 0f);
+            }
+            */
+            spriteBatch.Draw(bodytexture, drawPos, NPC.frame, NPC.GetAlpha(drawColor), NPC.rotation, NPC.Size / 2, NPC.scale, spriteEffects, 0f);
+            return false;
+        }
+        public override void DrawBehind(int index)
+        {
+            if (NPC.hide)
+            {
+                Main.instance.DrawCacheNPCsBehindNonSolidTiles.Add(index);
+            }
+        }
+
+        public override void FindFrame(int frameHeight)
+        {
+            if (++NPC.frameCounter > 4)
+            {
+                if (++Frame >= Main.npcFrameCount[Type] - 1)
+                    Frame = 0;
+                NPC.frameCounter = 0;
+            }
+            NPC.spriteDirection = NPC.direction;
+            NPC.frame.Y = frameHeight * Frame;
+            NPC.frame.Width = 120;
+
+            if (SlowChargeStates.Contains(State))
+                NPC.frame.X = 120;
+            else
+                NPC.frame.X = 0;
+        }
+
+        #endregion
     }
-  }
 }

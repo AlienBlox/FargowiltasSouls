@@ -1,45 +1,111 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.RainEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Buffs.Souls;
+using FargowiltasSouls.Content.Items.Accessories.Forces;
+using FargowiltasSouls.Content.Projectiles.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class RainEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color((int) byte.MaxValue, 236, 0);
-
-    public override void SetDefaults()
+    public class RainEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 1;
-      this.Item.value = 150000;
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
+
+        public override Color nameColor => new(255, 236, 0);
+
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Blue;
+            Item.value = 150000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            AddEffects(player, Item);
+        }
+        public static void AddEffects(Player player, Item item)
+        {
+            player.buffImmune[BuffID.Wet] = true;
+            player.AddEffect<RainUmbrellaEffect>(item);
+            player.AddEffect<RainInnerTubeEffect>(item);
+            player.AddEffect<RainWetEffect>(item);
+            player.AddEffect<LightningImmunity>(item);
+        }
+        public override void UpdateVanity(Player player)
+        {
+            player.AddEffect<LightningImmunity>(Item);
+        }
+        public override void UpdateInventory(Player player)
+        {
+            player.AddEffect<LightningImmunity>(Item);
+        }
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ItemID.RainHat)
+            .AddIngredient(ItemID.RainCoat)
+            .AddIngredient(ItemID.UmbrellaHat)
+            .AddIngredient(ItemID.FloatingTube) //inner tube
+            .AddIngredient(ItemID.Umbrella)
+            .AddIngredient(ItemID.WaterGun)
+
+            .AddTile(TileID.DemonAltar)
+            .Register();
+        }
+    }
+    public class RainUmbrellaEffect : AccessoryEffect
+    {
+        public override int ToggleItemType => ModContent.ItemType<RainEnchant>();
+        public override Header ToggleHeader => Header.GetHeader<NatureHeader>();
+        public override bool MinionEffect => true;
+        public override void PostUpdateEquips(Player player)
+        {
+            if (!player.HasBuff(ModContent.BuffType<RainCDBuff>()))
+            {
+                player.FargoSouls().AddMinion(EffectItem(player), true, ModContent.ProjectileType<RainUmbrella>(), 0, 0);
+                if (!player.controlDown && player.HasEffect<RainFeatherfallEffect>() && !player.HasEffect<NatureEffect>())
+                {
+                    player.slowFall = true;
+                }
+            }
+        }
+    }
+    public class RainFeatherfallEffect : AccessoryEffect
+    {
+        public override int ToggleItemType => ModContent.ItemType<RainEnchant>();
+        public override Header ToggleHeader => Header.GetHeader<NatureHeader>();
     }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
+    public class RainWetEffect : AccessoryEffect
     {
-      RainEnchant.AddEffects(player, this.Item);
+        public override Header ToggleHeader => null;
+        public override void OnHitNPCEither(Player player, NPC target, NPC.HitInfo hitInfo, DamageClass damageClass, int baseDamage, Projectile projectile, Item item)
+        {
+            target.AddBuff(BuffID.Wet, 180);
+        }
     }
-
-    public static void AddEffects(Player player, Item item)
+    public class RainInnerTubeEffect : AccessoryEffect
     {
-      player.buffImmune[103] = true;
-      player.AddEffect<RainUmbrellaEffect>(item);
-      player.AddEffect<RainInnerTubeEffect>(item);
-      player.AddEffect<RainWetEffect>(item);
+        public override Header ToggleHeader => Header.GetHeader<NatureHeader>();
+        public override int ToggleItemType => ModContent.ItemType<RainEnchant>();
+        public override void PostUpdateEquips(Player player)
+        {
+            player.hasFloatingTube = true;
+            player.canFloatInWater = true;
+        }
     }
-
-    public virtual void AddRecipes()
+    public class LightningImmunity : AccessoryEffect
     {
-      this.CreateRecipe(1).AddIngredient(1135, 1).AddIngredient(1136, 1).AddIngredient(1243, 1).AddIngredient(4404, 1).AddIngredient(946, 1).AddIngredient(2272, 1).AddTile(26).Register();
+        public override Header ToggleHeader => null;
     }
-  }
 }

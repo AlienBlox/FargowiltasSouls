@@ -1,38 +1,79 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.LeadEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Buffs.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class LeadEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(67, 69, 88);
-
-    public override void SetDefaults()
+    public class LeadEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 1;
-      this.Item.value = 20000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<LeadEffect>(this.Item);
-      player.AddEffect<LeadPoisonEffect>(this.Item);
-    }
+        public override Color nameColor => new(67, 69, 88);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(690, 1).AddIngredient(691, 1).AddIngredient(692, 1).AddIngredient(3495, 1).AddIngredient(1099, 100).AddIngredient(4293, 1).AddTile(26).Register();
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Blue;
+            Item.value = 20000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<LeadEffect>(Item);
+            player.AddEffect<LeadPoisonEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddIngredient(ItemID.LeadHelmet)
+                .AddIngredient(ItemID.LeadChainmail)
+                .AddIngredient(ItemID.LeadGreaves)
+                .AddIngredient(ItemID.LeadShortsword)
+                .AddIngredient(ItemID.GrayPaint, 100)
+                .AddIngredient(ItemID.Peach)
+
+            .AddTile(TileID.DemonAltar)
+            .Register();
+        }
     }
-  }
+    public class LeadEffect : AccessoryEffect
+    {
+
+        public override Header ToggleHeader => null;
+
+        public static void ProcessLeadEffectLifeRegen(Player player)
+        {
+            if (player.HasEffect<LeadEffect>())
+            {
+                if (player.FargoSouls().ForceEffect<LeadEnchant>())
+                {
+                    player.lifeRegen = (int)(player.lifeRegen * 0.4f);
+                }
+                else
+                {
+                    player.lifeRegen = (int)(player.lifeRegen * 0.6f);
+                }
+            }
+
+        }
+    }
+    public class LeadPoisonEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<TerraHeader>();
+        public override int ToggleItemType => ModContent.ItemType<LeadEnchant>();
+        public override void OnHitNPCEither(Player player, NPC target, NPC.HitInfo hitInfo, DamageClass damageClass, int baseDamage, Projectile projectile, Item item)
+        {
+            target.AddBuff(ModContent.BuffType<LeadPoisonBuff>(), 30);
+        }
+    }
 }

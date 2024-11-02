@@ -1,54 +1,102 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.WyvernFeather
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Content.Projectiles.Masomode;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
+using Microsoft.Xna.Framework;
+using System;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  [AutoloadEquip]
-  public class WyvernFeather : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    [AutoloadEquip(EquipType.Face)]
+    public class WyvernFeather : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 1;
-      this.Item.value = Item.sellPrice(0, 4, 0, 0);
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void UpdateInventory(Player player)
-    {
-      player.AddEffect<StabilizedGravity>(this.Item);
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Blue;
+            Item.value = Item.sellPrice(0, 4);
+        }
 
-    public virtual void UpdateVanity(Player player)
-    {
-      player.AddEffect<StabilizedGravity>(this.Item);
-    }
+        public override void UpdateInventory(Player player)
+        {
+            player.AddEffect<StabilizedGravity>(Item);
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
-      player.buffImmune[ModContent.BuffType<CrippledBuff>()] = true;
-      player.AddEffect<ClippedEffect>(this.Item);
-      player.AddEffect<StabilizedGravity>(this.Item);
-      player.AddEffect<WyvernBalls>(this.Item);
+        public override void UpdateVanity(Player player)
+        {
+            player.AddEffect<StabilizedGravity>(Item);
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<CrippledBuff>()] = true;
+            player.AddEffect<ClippedEffect>(Item);
+            player.AddEffect<StabilizedGravity>(Item);
+            player.AddEffect<WyvernBalls>(Item);
+        }
     }
-  }
+    public class StabilizedGravity : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<BionomicHeader>();
+        public override int ToggleItemType => ModContent.ItemType<WyvernFeather>();
+
+        public override void PostUpdateMiscEffects(Player player)
+        {
+            player.gravity = Math.Max(player.gravity, Player.defaultGravity);
+
+            if (!player.ignoreWater && Collision.WetCollision(player.position, player.width, player.height) && !player.shimmerWet && !player.trident && !player.merman)
+            {
+                player.ignoreWater = true; // allow full movement then restrict the horizontal
+                float speedLoss = player.honeyWet ? 0.75f : 0.5f; // 25% speed in honey, 50% otherwise
+                player.position.X -= speedLoss * player.velocity.X; // simulate slower horizontal movement
+            }
+        }
+    }
+    public class ClippedEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<BionomicHeader>();
+        public override int ToggleItemType => ModContent.ItemType<WyvernFeather>();
+        public override void OnHitNPCEither(Player player, NPC target, NPC.HitInfo hitInfo, DamageClass damageClass, int baseDamage, Projectile projectile, Item item)
+        {
+            if (!target.boss && !target.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] && Main.rand.NextBool(10))
+            {
+                target.velocity.X = 0f;
+                target.velocity.Y = 10f;
+                target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 240);
+                target.netUpdate = true;
+            }
+        }
+    }
+    public class WyvernBalls : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<BionomicHeader>();
+        public override int ToggleItemType => ModContent.ItemType<WyvernFeather>();
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (player.velocity.Y != 0 && ++modPlayer.WyvernBallsCD > 180)
+            {
+                modPlayer.WyvernBallsCD = 0;
+                if (player.whoAmI == Main.myPlayer)
+                {
+                    Projectile.NewProjectile(GetSource_EffectItem(player), player.Center,
+                        Main.rand.NextFloat(6f, 12f) * Vector2.UnitX.RotatedByRandom(MathHelper.TwoPi),
+                        ModContent.ProjectileType<FlightBall>(), 0, 0f, player.whoAmI);
+                }
+            }
+        }
+    }
 }

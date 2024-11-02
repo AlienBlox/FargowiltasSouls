@@ -1,103 +1,115 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.DeviBoss.DeviHammerHeld
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.DeviBoss
 {
-  public class DeviHammerHeld : ModProjectile
-  {
-    private const int maxTime = 60;
-
-    public virtual string Texture => "Terraria/Images/Projectile_300";
-
-    public virtual void SetStaticDefaults()
+    public class DeviHammerHeld : ModProjectile
     {
-    }
+        public override string Texture => "Terraria/Images/Projectile_300";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 30;
-      this.Projectile.scale = 1.5f;
-      this.Projectile.hostile = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.timeLeft = 60;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.penetrate = -1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.hide = true;
-    }
-
-    public virtual void AI()
-    {
-      this.Projectile.hide = false;
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0], ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>());
-      if (npc != null)
-      {
-        if ((double) this.Projectile.localAI[0] == 0.0)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.localAI[0] = 1f;
-          this.Projectile.localAI[1] = this.Projectile.ai[1] / 60f;
+            // DisplayName.SetDefault("Paladin's Hammer");
+            /*ProjectileID.Sets.TrailCacheLength[Projectile.type] = 10;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;*/
         }
-        ((Entity) this.Projectile).velocity = Utils.RotatedBy(((Entity) this.Projectile).velocity, (double) this.Projectile.ai[1], new Vector2());
-        this.Projectile.ai[1] -= this.Projectile.localAI[1];
-        ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply(Utils.RotatedBy(new Vector2(20f, 20f), (double) Utils.ToRotation(((Entity) this.Projectile).velocity) - 0.78539818525314331, new Vector2()), this.Projectile.scale));
-        ((Entity) this.Projectile).direction = this.Projectile.spriteDirection = Math.Sign(this.Projectile.ai[1]);
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + MathHelper.ToRadians(((Entity) this.Projectile).direction < 0 ? 135f : 45f);
-      }
-      else
-        this.Projectile.Kill();
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index1 = 0; index1 < 10; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 246, 0.0f, 0.0f, 100, new Color(), 1.5f);
-        Main.dust[index2].noGravity = true;
-        Dust dust1 = Main.dust[index2];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 3.5f);
-        Main.dust[index2].noLight = true;
-        int index3 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 246, 0.0f, 0.0f, 100, new Color(), 1f);
-        Dust dust2 = Main.dust[index3];
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 2f);
-        Main.dust[index3].noGravity = true;
-        Main.dust[index3].noLight = true;
-      }
-    }
+        const int maxTime = 60;
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (target.HasBuff(ModContent.BuffType<StunnedBuff>()))
-        return;
-      target.AddBuff(ModContent.BuffType<StunnedBuff>(), 60, true, false);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 30;
+            Projectile.height = 30;
+            Projectile.scale = 1.5f;
+            Projectile.hostile = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = maxTime;
+            Projectile.aiStyle = -1;
+            Projectile.penetrate = -1;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection < 0 ? (SpriteEffects) 1 : (SpriteEffects) 0;
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+            Projectile.hide = true;
+        }
+
+        public override void AI()
+        {
+            Projectile.hide = false; //to avoid edge case tick 1 wackiness
+
+            //the important part
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[0], ModContent.NPCType<DeviBoss>());
+            if (npc != null)
+            {
+                if (Projectile.localAI[0] == 0)
+                {
+                    Projectile.localAI[0] = 1;
+                    Projectile.localAI[1] = Projectile.ai[1] / maxTime;
+                }
+
+                Projectile.velocity = Projectile.velocity.RotatedBy(Projectile.ai[1]);
+                Projectile.ai[1] -= Projectile.localAI[1];
+                Projectile.Center = npc.Center + new Vector2(20, 20).RotatedBy(Projectile.velocity.ToRotation() - MathHelper.PiOver4) * Projectile.scale;
+            }
+            else
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            Projectile.direction = Projectile.spriteDirection = Math.Sign(Projectile.ai[1]);
+            Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.ToRadians(Projectile.direction < 0 ? 135 : 45);
+            //Main.NewText(MathHelper.ToDegrees(Projectile.velocity.ToRotation()) + " " + MathHelper.ToDegrees(Projectile.ai[1]));
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            for (int index1 = 0; index1 < 10; ++index1)
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.GoldCoin, 0f, 0f, 100, new Color(), 1.5f);
+                Main.dust[index2].noGravity = true;
+                Main.dust[index2].velocity *= 3.5f;
+                Main.dust[index2].noLight = true;
+                int index3 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.GoldCoin, 0f, 0f, 100, new Color(), 1f);
+                Main.dust[index3].velocity *= 2f;
+                Main.dust[index3].noGravity = true;
+                Main.dust[index3].noLight = true;
+            }
+        }
+        public override bool CanHitPlayer(Player target) => false;
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (!target.HasBuff(ModContent.BuffType<Buffs.Masomode.StunnedBuff>()))
+                target.AddBuff(ModContent.BuffType<Buffs.Masomode.StunnedBuff>(), 60);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            SpriteEffects effects = Projectile.spriteDirection < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            /*for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color26 * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }*/
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

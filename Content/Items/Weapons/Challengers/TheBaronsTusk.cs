@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.Challengers.TheBaronsTusk
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.BossBags;
+﻿using FargowiltasSouls.Content.Items.BossBags;
 using FargowiltasSouls.Content.Projectiles.ChallengerItems;
 using Microsoft.Xna.Framework;
 using System;
@@ -13,110 +7,128 @@ using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.Challengers
 {
-  public class TheBaronsTusk : SoulsItem
-  {
-    private int Timer;
-
-    public virtual void SetStaticDefaults()
+    public class TheBaronsTusk : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-      ItemID.Sets.BonusAttackSpeedMultiplier[this.Type] = 0.25f;
-    }
-
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 70;
-      this.Item.DamageType = DamageClass.Melee;
-      ((Entity) this.Item).width = 66;
-      ((Entity) this.Item).height = 64;
-      this.Item.useTime = 30;
-      this.Item.useAnimation = 30;
-      this.Item.useStyle = 1;
-      this.Item.knockBack = 6f;
-      this.Item.value = Item.sellPrice(0, 4, 0, 0);
-      this.Item.rare = 4;
-      this.Item.autoReuse = true;
-      this.Item.shoot = ModContent.ProjectileType<BaronTuskShrapnel>();
-      this.Item.shootSpeed = 15f;
-    }
-
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      return false;
-    }
-
-    public virtual void HoldItem(Player player)
-    {
-      if (player.itemAnimation == 0)
-      {
-        this.Timer = 0;
-      }
-      else
-      {
-        if (player.itemAnimation == player.itemAnimationMax)
-          this.Timer = player.itemAnimationMax;
-        if (player.itemAnimation > 0)
-          --this.Timer;
-        if (this.Timer == player.itemAnimationMax / 2)
+        public override void SetStaticDefaults()
         {
-          SoundEngine.PlaySound(ref SoundID.Item1, new Vector2?(((Entity) player).Center), (SoundUpdateCallback) null);
-          SoundEngine.PlaySound(ref SoundID.Item39, new Vector2?(((Entity) player).Center), (SoundUpdateCallback) null);
-          for (int index = 0; index < 3; ++index)
-          {
-            Vector2 vector2 = Vector2.op_Multiply(this.Item.shootSpeed + (float) Main.rand.Next(-2, 2), Utils.RotatedByRandom(Vector2.Normalize(Vector2.op_Subtraction(Main.MouseWorld, player.itemLocation)), 0.22439947724342346));
-            Projectile.NewProjectile(player.GetSource_ItemUse(this.Item, (string) null), player.itemLocation, vector2, this.Item.shoot, (int) ((double) player.ActualClassDamage(DamageClass.Melee) * (double) this.Item.damage / 3.0), this.Item.knockBack, ((Entity) player).whoAmI, 0.0f, 0.0f, 0.0f);
-          }
+
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+
+            ItemID.Sets.BonusAttackSpeedMultiplier[Type] = 0.25f;
         }
-        if (this.Timer > 2 * player.itemAnimationMax / 3)
+
+        public override void SetDefaults()
         {
-          player.itemAnimation = player.itemAnimationMax;
-          this.Item.noMelee = true;
+            Item.damage = 70;
+            Item.DamageType = DamageClass.Melee;
+            Item.width = 66;
+            Item.height = 64;
+            Item.useTime = 30;
+            Item.useAnimation = 30;
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.knockBack = 6;
+            Item.value = Item.sellPrice(0, 4, 0);
+            Item.rare = ItemRarityID.LightRed;
+            //Item.UseSound = SoundID.Item1;
+            Item.autoReuse = true;
+            Item.shoot = ModContent.ProjectileType<BaronTuskShrapnel>();
+            Item.shootSpeed = 15f;
         }
-        else
+        int Timer = 0;
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback) => false;
+        public override void HoldItem(Player player) //fancy momentum swing, this should be generalized and applied to other swords imo
         {
-          this.Item.noMelee = false;
-          float x = (float) this.Timer / (float) (2 * player.itemAnimationMax / 3);
-          player.itemAnimation = (int) ((double) player.itemAnimationMax * Math.Pow((double) TheBaronsTusk.MomentumProgress(x), 2.0));
+            if (player.itemAnimation == 0)
+            {
+                Timer = 0;
+                return;
+            }
+
+            if (player.itemAnimation == player.itemAnimationMax)
+            {
+                Timer = player.itemAnimationMax;
+            }
+            if (player.itemAnimation > 0)
+            {
+                Timer--;
+            }
+
+            if (Timer == player.itemAnimationMax / 2)
+            {
+                SoundEngine.PlaySound(SoundID.Item1, player.Center);
+                SoundEngine.PlaySound(SoundID.Item39, player.Center);
+                if (player.whoAmI == Main.myPlayer)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Vector2 vel = (Item.shootSpeed + Main.rand.Next(-2, 2)) * Vector2.Normalize(Main.MouseWorld - player.itemLocation).RotatedByRandom(MathHelper.Pi / 14);
+                        int p = Projectile.NewProjectile(player.GetSource_ItemUse(Item), player.itemLocation, vel, Item.shoot, (int)(player.ActualClassDamage(DamageClass.Melee) * Item.damage / 3f), Item.knockBack, player.whoAmI);
+                    }
+                }
+            }
+            if (Timer > 2 * player.itemAnimationMax / 3)
+            {
+                player.itemAnimation = player.itemAnimationMax;
+                Item.noMelee = true;
+            }
+            else
+            {
+                Item.noMelee = false;
+                float prog = (float)Timer / (2 * player.itemAnimationMax / 3);
+                player.itemAnimation = (int)(player.itemAnimationMax * Math.Pow(MomentumProgress(prog), 2));
+            }
+
         }
-      }
-    }
+        public override void ModifyHitNPC(Player player, NPC target, ref NPC.HitModifiers modifiers)
+        {
+            IEnumerable<Projectile> embeddedShrapnel = Main.projectile.Where(p => p.TypeAlive<BaronTuskShrapnel>() && p.owner == player.whoAmI && p.As<BaronTuskShrapnel>().EmbeddedNPC == target);
+            int shrapnel = embeddedShrapnel.Count();
+            if (shrapnel >= 15)
+            {
+                if (Main.netMode == NetmodeID.SinglePlayer)
+                {
+                    foreach (Projectile proj in embeddedShrapnel)
+                    {
+                        proj.ai[1] = 2;
+                        proj.netUpdate = true;
+                    }
+                }
+                else
+                {
+                    // remember that this is target client side; we sync to server
+                    var netMessage = Mod.GetPacket();
+                    netMessage.Write((byte)FargowiltasSouls.PacketID.SyncTuskRip);
+                    netMessage.Write((byte)target.whoAmI);
+                    netMessage.Write((byte)player.whoAmI);
+                    netMessage.Send();
+                }
 
-    public virtual void ModifyHitNPC(Player player, NPC target, ref NPC.HitModifiers modifiers)
-    {
-      IEnumerable<Projectile> source = ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (p => p.TypeAlive<BaronTuskShrapnel>() && p.owner == ((Entity) player).whoAmI && Luminance.Common.Utilities.Utilities.As<BaronTuskShrapnel>(p).EmbeddedNPC == target));
-      int num = source.Count<Projectile>();
-      if (num < 15)
-        return;
-      SoundEngine.PlaySound(ref SoundID.Item68, new Vector2?(((Entity) target).Center), (SoundUpdateCallback) null);
-      ref AddableFloat local = ref modifiers.FlatBonusDamage;
-      local = AddableFloat.op_Addition(local, (float) (15 * this.Item.damage) / 2.5f + (float) (num * this.Item.damage / 6));
-      ((NPC.HitModifiers) ref modifiers).SetCrit();
-      foreach (Projectile projectile in source)
-        projectile.ai[1] = 2f;
+                SoundEngine.PlaySound(SoundID.Item68, target.Center);
+                modifiers.FlatBonusDamage += 15 * Item.damage / 2.5f + (shrapnel * Item.damage / 6);
+                modifiers.SetCrit();
+                foreach (Projectile proj in embeddedShrapnel)
+                {
+                    proj.ai[1] = 2;
+                    proj.netUpdate = true;
+                }
+            }
+        }
+        //this is ripped from my own game project
+        ///<summary>
+        ///Returns distance progress by a sine formula based on linear progress = (% between 1-0). f(1) = 1, f(0) = 0.
+        ///</summary>
+        public static float MomentumProgress(float x)
+        {
+            return (x * x * 3) - (x * x * x * 2);
+        }
+        public override void AddRecipes()
+        {
+            CreateRecipe().AddIngredient<BanishedBaronBag>(2).AddTile(TileID.Solidifier).DisableDecraft().Register();
+        }
     }
-
-    public static float MomentumProgress(float x)
-    {
-      return (float) ((double) x * (double) x * 3.0 - (double) x * (double) x * (double) x * 2.0);
-    }
-
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient<BanishedBaronBag>(2).AddTile(220).DisableDecraft().Register();
-    }
-  }
 }

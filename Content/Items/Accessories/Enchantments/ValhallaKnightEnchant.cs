@@ -1,40 +1,54 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.ValhallaKnightEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.AccessoryEffectSystem;
+﻿using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class ValhallaKnightEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(147, 101, 30);
-
-    public override void SetDefaults()
+    public class ValhallaKnightEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 8;
-      this.Item.value = 250000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.FargoSouls().ValhallaEnchantActive = true;
-      player.AddEffect<ValhallaDash>(this.Item);
-      SquireEnchant.SquireEffect(player, this.Item);
-    }
+        public override Color nameColor => new(147, 101, 30);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(3871, 1).AddIngredient(3872, 1).AddIngredient(3873, 1).AddIngredient(879, 1).AddIngredient((Mod) null, "SquireEnchant", 1).AddIngredient(4789, 1).AddTile(125).Register();
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Yellow;
+            Item.value = 250000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.FargoSouls().ValhallaEnchantActive = true;
+            player.AddEffect<ValhallaDash>(Item);
+            SquireEnchant.SquireEffect(player, Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ItemID.SquireAltHead)
+            .AddIngredient(ItemID.SquireAltShirt)
+            .AddIngredient(ItemID.SquireAltPants)
+            .AddIngredient(ItemID.VikingHelmet)
+            .AddIngredient(null, "SquireEnchant")
+            .AddIngredient(ItemID.ShadowJoustingLance)
+
+            .AddTile(TileID.CrystalBall)
+            .Register();
+        }
     }
-  }
+    public class ValhallaDash : AccessoryEffect
+    {
+
+        public override Header ToggleHeader => Header.GetHeader<WillHeader>();
+        public override int ToggleItemType => ModContent.ItemType<ValhallaKnightEnchant>();
+    }
 }

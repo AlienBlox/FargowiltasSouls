@@ -1,60 +1,71 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.DubiousCircuitry
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
-using FargowiltasSouls.Content.Items.Materials;
+﻿using FargowiltasSouls.Content.Items.Materials;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class DubiousCircuitry : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class DubiousCircuitry : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 6;
-      this.Item.value = Item.sellPrice(0, 5, 0, 0);
-      this.Item.defense = 10;
-    }
+        public override void SetStaticDefaults()
+        {
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[39] = true;
-      player.buffImmune[69] = true;
-      player.buffImmune[ModContent.BuffType<DefenselessBuff>()] = true;
-      player.buffImmune[ModContent.BuffType<NanoInjectionBuff>()] = true;
-      player.buffImmune[ModContent.BuffType<LightningRodBuff>()] = true;
-      player.FargoSouls().FusedLens = true;
-      player.AddEffect<FusedLensInstall>(this.Item);
-      if (player.onFire2)
-        player.FargoSouls().AttackSpeed += 0.15f;
-      if (player.ichor)
-        player.GetCritChance(DamageClass.Generic) += 15f;
-      player.AddEffect<ProbeMinionEffect>(this.Item);
-      player.AddEffect<GroundStickDR>(this.Item);
-      player.endurance += 0.05f;
-      player.noKnockback = true;
-    }
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.ItemType<FusedLens>(), 1).AddIngredient(ModContent.ItemType<GroundStick>(), 1).AddIngredient(ModContent.ItemType<ReinforcedPlating>(), 1).AddIngredient(1225, 10).AddIngredient(547, 5).AddIngredient(548, 5).AddIngredient(549, 5).AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 10).AddTile(134).Register();
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.LightPurple;
+            Item.value = Item.sellPrice(0, 5);
+            Item.defense = 10;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[BuffID.CursedInferno] = true;
+            player.buffImmune[BuffID.Ichor] = true;
+            player.buffImmune[ModContent.BuffType<Buffs.Masomode.DefenselessBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<Buffs.Masomode.NanoInjectionBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<Buffs.Masomode.LightningRodBuff>()] = true;
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            modPlayer.FusedLens = true;
+            modPlayer.DubiousCircuitry = true;
+            player.AddEffect<FusedLensInstall>(Item);
+            if (player.onFire2)
+                player.FargoSouls().AttackSpeed += 0.15f;
+            if (player.ichor)
+                player.GetCritChance(DamageClass.Generic) += 15;
+
+            player.AddEffect<ProbeMinionEffect>(Item);
+            player.AddEffect<GroundStickDR>(Item);
+
+            player.endurance += 0.05f;
+            player.noKnockback = true;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ModContent.ItemType<FusedLens>())
+            .AddIngredient(ModContent.ItemType<GroundStick>())
+            .AddIngredient(ModContent.ItemType<ReinforcedPlating>())
+            .AddIngredient(ItemID.HallowedBar, 10)
+            .AddIngredient(ItemID.SoulofFright, 5)
+            .AddIngredient(ItemID.SoulofMight, 5)
+            .AddIngredient(ItemID.SoulofSight, 5)
+            .AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 10)
+
+            .AddTile(TileID.MythrilAnvil)
+
+            .Register();
+        }
     }
-  }
 }

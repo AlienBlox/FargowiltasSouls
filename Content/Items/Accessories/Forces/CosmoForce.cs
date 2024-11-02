@@ -1,56 +1,134 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Forces.CosmoForce
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Bosses.Champions.Cosmos;
 using FargowiltasSouls.Content.Items.Accessories.Enchantments;
 using FargowiltasSouls.Content.Items.Materials;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
+using FargowiltasSouls.Core.Toggler.Content;
+using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Forces
 {
-  public class CosmoForce : BaseForce
-  {
-    public override void SetStaticDefaults()
+    public class CosmoForce : BaseForce
     {
-      BaseForce.Enchants[this.Type] = new int[6]
-      {
-        ModContent.ItemType<MeteorEnchant>(),
-        ModContent.ItemType<WizardEnchant>(),
-        ModContent.ItemType<SolarEnchant>(),
-        ModContent.ItemType<VortexEnchant>(),
-        ModContent.ItemType<NebulaEnchant>(),
-        ModContent.ItemType<StardustEnchant>()
-      };
-    }
+        public override void SetStaticDefaults()
+        {
+            Enchants[Type] =
+            [
+                ModContent.ItemType<MeteorEnchant>(),
+                ModContent.ItemType<WizardEnchant>(),
+                ModContent.ItemType<SolarEnchant>(),
+                ModContent.ItemType<VortexEnchant>(),
+                ModContent.ItemType<NebulaEnchant>(),
+                ModContent.ItemType<StardustEnchant>()
+            ];
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      this.SetActive(player);
-      fargoSoulsPlayer.WizardEnchantActive = true;
-      MeteorEnchant.AddEffects(player, this.Item);
-      player.AddEffect<SolarEffect>(this.Item);
-      player.AddEffect<SolarFlareEffect>(this.Item);
-      VortexEnchant.AddEffects(player, this.Item);
-      player.AddEffect<NebulaEffect>(this.Item);
-      player.AddEffect<StardustMinionEffect>(this.Item);
-      player.AddEffect<StardustEffect>(this.Item);
-    }
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            //meme speed, solar flare,
+            SetActive(player);
+            modPlayer.WizardEnchantActive = true;
+            player.AddEffect<MeteorMomentumEffect>(Item);
+            player.AddEffect<StardustEffect>(Item);
+            if (player.AddEffect<CosmoForceEffect>(Item))
+                player.AddEffect<CosmosMoonEffect>(Item);
 
-    public virtual void AddRecipes()
-    {
-      Recipe recipe = this.CreateRecipe(1);
-      foreach (int num in BaseForce.Enchants[this.Type])
-        recipe.AddIngredient(num, 1);
-      recipe.AddIngredient(ModContent.ItemType<Eridanium>(), 5);
-      recipe.AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"));
-      recipe.Register();
+            if (!player.HasEffect<CosmosMoonEffect>())
+            {
+                //meteor shower
+                MeteorEnchant.AddEffects(player, Item);
+                //solar shields
+                //player.AddEffect<SolarEffect>(Item);
+                player.AddEffect<SolarFlareEffect>(Item);
+                //stealth, voids, pet
+                VortexEnchant.AddEffects(player, Item);
+                //boosters
+                player.AddEffect<NebulaEffect>(Item);
+                //guardian and time freeze
+                player.AddEffect<StardustMinionEffect>(Item);
+                player.AddEffect<StardustEffect>(Item);
+            }
+        }
+
+        public override void AddRecipes()
+        {
+            Recipe recipe = CreateRecipe();
+            foreach (int ench in Enchants[Type])
+                recipe.AddIngredient(ench);
+
+            recipe.AddIngredient(ModContent.ItemType<Eridanium>(), 5);
+
+            recipe.AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"));
+            recipe.Register();
+        }
     }
-  }
+    public class CosmosMoonEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<CosmoHeader>();
+        public override int ToggleItemType => ModContent.ItemType<CosmoForce>();
+        public override bool ExtraAttackEffect => true;
+        
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (modPlayer.TerrariaSoul)
+            {
+                if (!player.ItemTimeIsZero)
+                {
+                    modPlayer.CosmosMoonTimer += 2;
+                    if (modPlayer.CosmosMoonTimer >= LumUtils.SecondsToFrames(3) && player.whoAmI == Main.myPlayer)
+                    {
+                        int moonDamage = FargoSoulsUtil.HighestDamageTypeScaling(player, 1200);
+
+                        NPC result = null;
+                        float range = 1200;
+                        for (int i = 0; i < 200; i++)
+                        {
+                            NPC npc = Main.npc[i];
+                            if (npc.CanBeChasedBy() && Collision.CanHitLine(player.Center, 1, 1, npc.Center, 1, 1))
+                            {
+                                float foundRange = player.Distance(npc.Center);
+                                if (!(range <= foundRange))
+                                {
+                                    range = foundRange;
+                                    result = npc;
+                                }
+                            }
+                        }
+                        int npcid = result != null ? result.whoAmI : -1;
+
+                        Projectile.NewProjectileDirect(player.GetSource_EffectItem<CosmosMoonEffect>(), player.Center, player.DirectionTo(Main.MouseWorld) * 7, ModContent.ProjectileType<TerrariaSoulMoon>(), moonDamage, 1, player.whoAmI, MathHelper.Pi, ai1: npcid, ai2: modPlayer.CosmosMoonCycle);
+                        modPlayer.CosmosMoonTimer = 0;
+                        modPlayer.CosmosMoonCycle++;
+                        modPlayer.CosmosMoonCycle %= 4;
+                    }
+                }
+                return;
+            }
+
+            if (player.HeldItem != null && player.HeldItem.damage > 0 && (player.controlUseItem || !player.ItemTimeIsZero))
+            {
+                modPlayer.CosmosMoonTimer += 2;
+                int moonCount = player.ownedProjectileCounts[ModContent.ProjectileType<CosmosForceMoon>()];
+                if (modPlayer.CosmosMoonTimer >= LumUtils.SecondsToFrames(3) && player.whoAmI == Main.myPlayer && moonCount < 4)
+                {
+                    int moonDamage = FargoSoulsUtil.HighestDamageTypeScaling(player, 1200);
+
+                    Projectile.NewProjectileDirect(player.GetSource_EffectItem<CosmosMoonEffect>(), player.Center, Vector2.Zero, ModContent.ProjectileType<CosmosForceMoon>(), moonDamage, 1, player.whoAmI, MathHelper.Pi, ai2: modPlayer.CosmosMoonCycle);
+                    modPlayer.CosmosMoonTimer = 0;
+                    modPlayer.CosmosMoonCycle++;
+                    modPlayer.CosmosMoonCycle %= 4;
+                }
+            }
+            
+        }
+    }
+    public class CosmoForceEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => null;
+        //public override int ToggleItemType => ModContent.ItemType<CosmoForce>();
+    }
 }

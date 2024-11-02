@@ -1,27 +1,23 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.GuiltyBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class GuiltyBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class GuiltyBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Guilty");
+            // Description.SetDefault("Weapons dulled by the guilt of slaying innocent critters");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "内疚");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "杀害无辜动物的内疚使你的武器变得迟钝");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      ref StatModifier local = ref player.GetDamage(DamageClass.Generic);
-      local = StatModifier.op_Subtraction(local, 0.25f);
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.GetDamage(DamageClass.Generic) -= 0.25f;
+        }
     }
-  }
 }

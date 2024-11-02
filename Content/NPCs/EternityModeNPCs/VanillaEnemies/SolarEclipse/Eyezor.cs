@@ -1,38 +1,34 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.SolarEclipse.Eyezor
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.SolarEclipse
 {
-  public class Eyezor : EModeNPCBehaviour
-  {
-    public int Counter;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(251);
-
-    public virtual void AI(NPC npc)
+    public class Eyezor : EModeNPCBehaviour
     {
-      base.AI(npc);
-      if (++this.Counter < 8)
-        return;
-      this.Counter = 0;
-      int index = npc.HasPlayerTarget ? npc.target : npc.FindClosestPlayer();
-      if (index == -1 || !((Entity) Main.player[index]).active || Main.player[index].ghost || Main.player[index].dead || (double) ((Entity) npc).Distance(((Entity) Main.player[index]).Center) >= 600.0)
-        return;
-      Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) Main.player[index]).Center, ((Entity) npc).Center);
-      ((Vector2) ref vector2_1).Normalize();
-      Vector2 vector2_2 = Vector2.op_Multiply(vector2_1, 4f);
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, vector2_2, 101, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 0.8f), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Eyezor);
+
+        public int Counter;
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            if (++Counter >= 8)
+            {
+                Counter = 0;
+                int p = npc.HasPlayerTarget ? npc.target : npc.FindClosestPlayer();
+                if (p != -1 && Main.player[p].active && !Main.player[p].ghost && !Main.player[p].dead && npc.Distance(Main.player[p].Center) < 600)
+                {
+                    Vector2 velocity = Main.player[p].Center - npc.Center;
+                    velocity.Normalize();
+                    velocity *= 4f;
+                    if (FargoSoulsUtil.HostCheck)
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, velocity, ProjectileID.EyeFire, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 0.8f), 0f, Main.myPlayer);
+                }
+            }
+        }
     }
-  }
 }

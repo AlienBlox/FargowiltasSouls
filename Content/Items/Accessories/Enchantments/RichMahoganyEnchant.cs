@@ -1,37 +1,79 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.RichMahoganyEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class RichMahoganyEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(181, 108, 100);
-
-    public override void SetDefaults()
+    public class RichMahoganyEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 1;
-      this.Item.value = 10000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<MahoganyEffect>(this.Item);
-    }
+        public override Color nameColor => new(181, 108, 100);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(733, 1).AddIngredient(734, 1).AddIngredient(735, 1).AddIngredient(314, 1).AddIngredient(4294, 1).AddIngredient(84, 1).AddTile(26).Register();
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Blue;
+            Item.value = 10000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<MahoganyEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ItemID.RichMahoganyHelmet)
+            .AddIngredient(ItemID.RichMahoganyBreastplate)
+            .AddIngredient(ItemID.RichMahoganyGreaves)
+            .AddIngredient(ItemID.Moonglow)
+            .AddIngredient(ItemID.Pineapple)
+            .AddIngredient(ItemID.GrapplingHook)
+
+            .AddTile(TileID.DemonAltar)
+            .Register();
+        }
     }
-  }
+    public class MahoganyEffect : AccessoryEffect
+    {
+
+        public override Header ToggleHeader => Header.GetHeader<TimberHeader>();
+        public override int ToggleItemType => ModContent.ItemType<RichMahoganyEnchant>();
+        
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            bool forceEffect = modPlayer.ForceEffect<RichMahoganyEnchant>();
+
+            if (player.grapCount > 0)
+            {
+                player.thorns += forceEffect ? 5.0f : 0.5f;
+
+                if (modPlayer.MahoganyCanUseDR)
+                    player.endurance += forceEffect ? 0.3f : 0.1f;
+            }
+            else //when not grapple, refresh DR
+            {
+                modPlayer.MahoganyCanUseDR = true;
+            }
+        }
+        public static void MahoganyHookAI(Projectile projectile, FargoSoulsPlayer modPlayer)
+        {
+            int cap = projectile.type == ProjectileID.QueenSlimeHook ? 4 : 1;
+            if (projectile.extraUpdates < cap)
+                projectile.extraUpdates += cap;
+        }
+    }
 }

@@ -1,37 +1,33 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.EyeFireFriendly
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class EyeFireFriendly : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_101";
-
-    public virtual void SetStaticDefaults()
+    public class EyeFireFriendly : ModProjectile
     {
-    }
+        public override string Texture => "Terraria/Images/Projectile_101";
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(101);
-      this.AIType = 101;
-      this.Projectile.friendly = true;
-      this.Projectile.hostile = false;
-      this.Projectile.DamageType = DamageClass.Melee;
-      this.Projectile.tileCollide = true;
-      this.Projectile.penetrate = 2;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Eye Fire");
+        }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.AddBuff(39, 120, false);
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.EyeFire);
+            AIType = ProjectileID.EyeFire;
+            Projectile.friendly = true;
+            Projectile.hostile = false;
+            Projectile.DamageType = DamageClass.Melee;
+
+            Projectile.tileCollide = true;
+            Projectile.penetrate = 2;
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.AddBuff(BuffID.CursedInferno, 120);
+        }
     }
-  }
 }

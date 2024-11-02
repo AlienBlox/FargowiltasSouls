@@ -1,9 +1,3 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.VanillaEternity.EmpressofLight
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Common.Utilities;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Globals;
@@ -11,7 +5,6 @@ using FargowiltasSouls.Core.NPCMatching;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Terraria;
@@ -20,556 +13,696 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.VanillaEternity
 {
-  public class EmpressofLight : EModeNPCBehaviour
-  {
-    public int AttackTimer;
-    public int AttackCounter;
-    public int P2SwordsAttackCounter;
-    public int DashCounter;
-    public bool DroppedSummon;
-    private float startRotation;
-    private Vector2 targetPos;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(636);
-
-    private static int SwordWallCap => !WorldSavingSystem.MasochistModeReal ? 3 : 4;
-
-    public bool DoParallelSwordWalls
+    public class EmpressofLight : EModeNPCBehaviour
     {
-      get => this.P2SwordsAttackCounter % EmpressofLight.SwordWallCap > 0;
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.HallowBoss);
 
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
-    {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.AttackTimer);
-      binaryWriter.Write7BitEncodedInt(this.AttackCounter);
-      binaryWriter.Write7BitEncodedInt(this.P2SwordsAttackCounter);
-      binaryWriter.Write7BitEncodedInt(this.DashCounter);
-    }
+        public int AttackTimer;
+        public int AttackCounter;
+        public int P2SwordsAttackCounter;
+        public int DashCounter;
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.AttackTimer = binaryReader.Read7BitEncodedInt();
-      this.AttackCounter = binaryReader.Read7BitEncodedInt();
-      this.P2SwordsAttackCounter = binaryReader.Read7BitEncodedInt();
-      this.DashCounter = binaryReader.Read7BitEncodedInt();
-    }
+        public bool DroppedSummon;
 
-    public virtual void SetDefaults(NPC npc)
-    {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(npc);
-      npc.lifeMax = (int) Math.Round((double) npc.lifeMax * 1.5, (MidpointRounding) 0);
-    }
+        private float startRotation;
+        private Vector2 targetPos;
 
-    public virtual bool CanHitPlayer(NPC npc, Player target, ref int CooldownSlot)
-    {
-      return ((double) npc.ai[0] == 8.0 || (double) npc.ai[0] == 9.0) && (double) npc.ai[1] >= 40.0 && base.CanHitPlayer(npc, target, ref CooldownSlot);
-    }
+        private static int SwordWallCap => WorldSavingSystem.MasochistModeReal ? 4 : 3;
+        public bool DoParallelSwordWalls => P2SwordsAttackCounter % SwordWallCap > 0;
 
-    public override bool SafePreAI(NPC npc)
-    {
-      EModeGlobalNPC.empressBoss = ((Entity) npc).whoAmI;
-      if (WorldSavingSystem.SwarmActive)
-        return base.SafePreAI(npc);
-      if (((Entity) Main.LocalPlayer).active && !Main.LocalPlayer.dead && !Main.LocalPlayer.ghost)
-        Main.LocalPlayer.AddBuff(ModContent.BuffType<PurgedBuff>(), 2, true, false);
-      bool useP2Attacks = (double) npc.ai[3] != 0.0 || WorldSavingSystem.MasochistModeReal;
-      switch (npc.ai[0])
-      {
-        case 1f:
-          if ((double) npc.ai[1] == 0.0)
-          {
-            this.AttackTimer = 0;
-            ++this.AttackCounter;
-            EModeNPCBehaviour.NetSync(npc);
-            break;
-          }
-          break;
-        case 2f:
-          if (useP2Attacks && (double) npc.ai[1] > 80.0 && !WorldSavingSystem.MasochistModeReal)
-          {
-            npc.ai[1] -= 0.5f;
-            break;
-          }
-          break;
-        case 4f:
-          if ((double) npc.ai[1] == 0.0)
-          {
-            this.AttackTimer = 0;
-            EModeNPCBehaviour.NetSync(npc);
-            EmpressofLight.TryRandom(npc);
-          }
-          if ((double) npc.ai[1] > 97.0 & useP2Attacks)
-          {
-            this.SwordCircle(npc, 97f);
-            break;
-          }
-          break;
-        case 5f:
-          if (this.AttackTimer < 2)
-          {
-            if ((double) npc.ai[1] > 1.0)
-              npc.ai[1] -= 0.5f;
-            if ((double) npc.ai[1] == 30.0)
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(AttackTimer);
+            binaryWriter.Write7BitEncodedInt(AttackCounter);
+            binaryWriter.Write7BitEncodedInt(P2SwordsAttackCounter);
+            binaryWriter.Write7BitEncodedInt(DashCounter);
+        }
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+        {
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            AttackTimer = binaryReader.Read7BitEncodedInt();
+            AttackCounter = binaryReader.Read7BitEncodedInt();
+            P2SwordsAttackCounter = binaryReader.Read7BitEncodedInt();
+            DashCounter = binaryReader.Read7BitEncodedInt();
+        }
+
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
+
+            npc.lifeMax = (int)Math.Round(npc.lifeMax * 1.5, MidpointRounding.ToEven);
+        }
+
+        public override bool CanHitPlayer(NPC npc, Player target, ref int CooldownSlot)
+        {
+            //only have contact damage when dashing
+            if ((npc.ai[0] == 8 || npc.ai[0] == 9) && npc.ai[1] >= 40)
+                return base.CanHitPlayer(npc, target, ref CooldownSlot);
+
+            return false;
+        }
+
+        public override bool SafePreAI(NPC npc)
+        {
+            EModeGlobalNPC.empressBoss = npc.whoAmI;
+
+            if (Main.LocalPlayer.active && !Main.LocalPlayer.dead && !Main.LocalPlayer.ghost)
+                Main.LocalPlayer.AddBuff(ModContent.BuffType<PurgedBuff>(), 2);
+
+            bool useP2Attacks = npc.ai[3] != 0 || WorldSavingSystem.MasochistModeReal;
+            switch ((int)npc.ai[0])
             {
-              npc.ai[1] = 0.0f;
-              ++this.AttackTimer;
+                //0 spawn
+
+                case 1: //move over player
+                    if (npc.ai[1] == 0)
+                    {
+                        AttackTimer = 0;
+                        AttackCounter++;
+                        NetSync(npc);
+                    }
+                    break;
+
+                case 2: //homing bolts, ends at ai1=130
+                    if (useP2Attacks && npc.ai[1] > 80 && !WorldSavingSystem.MasochistModeReal)
+                        npc.ai[1] -= 0.5f; //p2, more delay before next attack
+                    break;
+
+                case 4: //pseudorandom swords following you, ends at ai1=100
+                    {
+                        if (npc.ai[1] == 0)
+                        {
+                            AttackTimer = 0;
+                            NetSync(npc);
+
+                            TryRandom(npc);
+                        }
+
+                        const int specialAttackThreshold = 97;
+                        if (npc.ai[1] > specialAttackThreshold && useP2Attacks) //p2 only sword circle
+                        {
+                            SwordCircle(npc, specialAttackThreshold);
+                        }
+                    }
+                    break;
+
+                case 5: //stupid long trail circle ring
+                    if (AttackTimer < 2)
+                    {
+                        if (npc.ai[1] > 1f)
+                            npc.ai[1] -= 0.5f; //progress slower
+
+                        if (npc.ai[1] == 30) //repeat attack
+                        {
+                            npc.ai[1] = 0f;
+                            AttackTimer++;
+                        }
+                    }
+
+                    //p2, do sword rings
+                    if (useP2Attacks && AttackTimer >= 2)
+                    {
+                        if (npc.ai[1] == 20)
+                            startRotation = Main.rand.NextFloat(MathHelper.TwoPi);
+
+                        if (npc.ai[1] >= (WorldSavingSystem.MasochistModeReal ? 20 : 35) && npc.ai[1] <= 60)
+                        {
+                            npc.position -= npc.velocity;
+                            npc.velocity = Vector2.Zero;
+
+                            if (npc.ai[1] % 5 == 0)
+                            {
+                                for (float i = 0; i < 1; i += 1f / 24f)
+                                {
+                                    Vector2 spinningpoint = Vector2.UnitY.RotatedBy(MathHelper.PiOver2 + MathHelper.TwoPi * i + startRotation);
+                                    if (FargoSoulsUtil.HostCheck)
+                                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center + spinningpoint.RotatedBy(-MathHelper.PiOver2) * 30f, Vector2.Zero, ProjectileID.FairyQueenLance, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.3f), 0f, Main.myPlayer, spinningpoint.ToRotation(), i);
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                case 6: //sun rays
+                    if (!WorldSavingSystem.MasochistModeReal)
+                    {
+                        if (npc.ai[1] == 0 && AttackTimer == 0 && Main.projectile.Count(p => p.active && p.type == ProjectileID.HallowBossRainbowStreak) > 20)
+                        {
+                            npc.ai[1] -= 30;
+                            npc.netUpdate = true;
+                        }
+
+                        if (npc.ai[1] == 1)
+                            NetSync(npc);
+
+                        npc.position -= npc.velocity / (npc.ai[3] == 0 ? 2 : 4); //move slower
+                    }
+                    if (npc.ai[1] < 90)
+                        PullNonTargets(npc, npc.Center, 600);
+                    break;
+
+                case 7: //sword walls, ends at ai1=260
+                    {
+                        int start = WorldSavingSystem.MasochistModeReal ? -15 : -45;
+
+                        if (npc.ai[1] == 0)
+                        {
+                            TryRandom(npc);
+
+                            npc.netUpdate = true;
+                            NetSync(npc); //sync it in advance to prepare for actual attacks
+                        }
+
+                        const int specialAttackThreshold = 255;
+                        if (npc.ai[1] == specialAttackThreshold)
+                        {
+                            AttackTimer = start;
+                            P2SwordsAttackCounter++;
+                            startRotation = Main.rand.NextFloat(MathHelper.TwoPi);
+                        }
+
+                        if (npc.ai[1] > specialAttackThreshold)
+                        {
+                            if (DoParallelSwordWalls)
+                                ParallelSwordWalls(npc, specialAttackThreshold);
+                            else //excel spreadsheet
+                                ExcelSpreadsheet(npc, specialAttackThreshold);
+                        }
+                    }
+                    break;
+
+                case 8: //dash from right to left
+                case 9: //dash from left to right
+                    Dash(npc, useP2Attacks);
+                    break;
+
+                case 10: //p2 transition
+                    if (npc.dontTakeDamage && npc.ai[1] > 120)
+                    {
+                        Vector2 target = Main.player[npc.target].Center - 160f * Vector2.UnitY;
+                        npc.Center = Vector2.Lerp(npc.Center, target, 0.1f);
+
+                        if (npc.life < npc.lifeMax / 2)
+                        {
+                            npc.HealEffect(npc.lifeMax / 2 - npc.life);
+                            npc.life = npc.lifeMax / 2;
+                        }
+                    }
+                    break;
+
+                case 11: //p2 direct sword trail
+                    if ((WorldSavingSystem.MasochistModeReal || npc.ai[1] > 40) && npc.ai[1] % 3 == 0 && npc.HasValidTarget) //add perpendicular swords
+                    {
+                        Vector2 offset = Main.player[npc.target].velocity;
+                        if (offset == Vector2.Zero || offset.Length() < 1)
+                            offset = offset.SafeNormalize(-Vector2.UnitY);
+                        offset = 90f * offset.RotatedBy(MathHelper.PiOver2);
+
+                        Vector2 spawnPos = Main.player[npc.target].Center + offset;
+                        Vector2 vel = Main.player[npc.target].DirectionFrom(spawnPos);
+
+                        if (FargoSoulsUtil.HostCheck)
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), spawnPos, Vector2.Zero, ProjectileID.FairyQueenLance, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.3f), 0f, Main.myPlayer, vel.ToRotation(), npc.ai[1] / 100f);
+                    }
+                    break;
+
+                case 12: //8-way homing bolts
+                    {
+                        const int max = 24;
+                        const int delay = 75;
+
+                        if (npc.ai[1] < 4)
+                        {
+                            Vector2 target = Main.player[npc.target].Center - 160f * Vector2.UnitY;
+                            npc.Center = Vector2.Lerp(npc.Center, target, 0.1f);
+                            if (npc.Distance(target) > 160)
+                                npc.ai[1] -= 1f;
+                        }
+
+                        if (npc.ai[1] == delay)
+                            startRotation = npc.HasValidTarget ? npc.SafeDirectionTo(Main.player[npc.target].Center).ToRotation() : MathHelper.PiOver2;
+
+                        if (npc.ai[1] >= delay && npc.ai[1] < delay + max)
+                        {
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                float ai1 = (npc.ai[1] - delay) / max;
+
+                                if (WorldSavingSystem.MasochistModeReal)
+                                {
+                                    float math = MathHelper.TwoPi / max * (npc.ai[1] - delay);
+                                    Vector2 boltVel = -Vector2.UnitY.RotatedBy(-math);
+                                    Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, 20f * boltVel, ProjectileID.HallowBossRainbowStreak, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.3f), 0f, Main.myPlayer, npc.target, ai1);
+                                }
+
+                                float spread = MathHelper.ToRadians(24);
+                                float swordRotation = startRotation + MathHelper.Lerp(-spread, spread, ai1);
+                                Vector2 appearVel = swordRotation.ToRotationVector2();
+                                Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center + appearVel * 160f + appearVel * 10f * 60f, -appearVel * 10f, ProjectileID.FairyQueenLance, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.3f), 0f, Main.myPlayer, swordRotation, ai1);
+                            }
+                        }
+
+                        if (npc.ai[1] > delay + max && !WorldSavingSystem.MasochistModeReal)
+                            npc.ai[1] -= 0.65f; //more delay before next attack
+                    }
+                    break;
+
+                default:
+                    break;
             }
-          }
-          if (useP2Attacks && this.AttackTimer >= 2)
-          {
-            if ((double) npc.ai[1] == 20.0)
-              this.startRotation = Utils.NextFloat(Main.rand, 6.28318548f);
-            if ((double) npc.ai[1] >= (WorldSavingSystem.MasochistModeReal ? 20.0 : 35.0) && (double) npc.ai[1] <= 60.0)
+
+            EModeUtils.DropSummon(npc, "PrismaticPrimrose", NPC.downedEmpressOfLight, ref DroppedSummon, Main.hardMode);
+
+            return true;
+        }
+
+        #region helper funcs
+
+        private static void TryRandom(NPC npc)
+        {
+            if (WorldSavingSystem.MasochistModeReal && npc.life < npc.lifeMax / 2) //RANDOM ATTACKS
             {
-              NPC npc1 = npc;
-              ((Entity) npc1).position = Vector2.op_Subtraction(((Entity) npc1).position, ((Entity) npc).velocity);
-              ((Entity) npc).velocity = Vector2.Zero;
-              if ((double) npc.ai[1] % 5.0 == 0.0)
-              {
-                for (float num = 0.0f; (double) num < 1.0; num += 0.0416666679f)
+                npc.ai[2] += Main.rand.Next(3);
+                npc.netUpdate = true;
+            }
+        }
+
+        //defdamage multiplier because expert empress actually has 184 defdamage for some reason and not 110?????
+        private static int BaseProjDmg(NPC npc) => Main.dayTime ? 9999 : (int)(npc.defDamage * 0.6);
+
+        private void SwordCircle(NPC npc, float stop)
+        {
+            int startDelay = 60;
+            if (AttackTimer == 0)
+            {
+                SoundEngine.PlaySound(SoundID.Item161, npc.HasValidTarget ? Main.player[npc.target].Center : npc.Center);
+            }
+            else if (AttackTimer == startDelay)
+            {
+                targetPos = Main.player[npc.target].Center;
+                startRotation = npc.HasValidTarget ? Main.player[npc.target].velocity.ToRotation() : 0;
+            }
+
+            AttackTimer++;
+
+            const float radius = 600;
+            if (Main.player[npc.target].Distance(targetPos) > radius)
+                targetPos = Main.player[npc.target].Center + Main.player[npc.target].SafeDirectionTo(targetPos) * radius;
+
+            if (AttackTimer < startDelay + 30)
+            {
+                PullNonTargets(npc, targetPos, radius);
+            }
+
+            if (AttackTimer % 90 == 30) //rapid fire sound effect
+                SoundEngine.PlaySound(SoundID.Item164, Main.player[npc.target].Center);
+
+            int spinTime = WorldSavingSystem.MasochistModeReal ? 210 : 160;
+            float spins = /*WorldSavingSystem.MasochistModeReal ? 2 :*/ 1.5f;
+            if (AttackTimer > startDelay && AttackTimer <= spinTime * spins + startDelay && AttackTimer % 2 == 0)
+            {
+                int max = WorldSavingSystem.MasochistModeReal ? 3 : 2;
+                for (int i = 0; i < max; i++)
                 {
-                  Vector2 vector2 = Utils.RotatedBy(Vector2.UnitY, 1.5707963705062866 + 6.2831854820251465 * (double) num + (double) this.startRotation, new Vector2());
-                  if (FargoSoulsUtil.HostCheck)
-                    Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply(Utils.RotatedBy(vector2, -1.5707963705062866, new Vector2()), 30f)), Vector2.Zero, 919, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.3f), 0.0f, Main.myPlayer, Utils.ToRotation(vector2), num, 0.0f);
+                    int direction = WorldSavingSystem.MasochistModeReal ? -1 : 1;
+                    float increment = MathHelper.TwoPi / spinTime * AttackTimer * direction;
+                    Vector2 offsetDirection = Vector2.UnitX.RotatedBy(startRotation + increment + MathHelper.TwoPi / max * i);
+                    Vector2 spawnPos = targetPos + radius * offsetDirection;
+                    Vector2 vel = Vector2.Normalize(targetPos - spawnPos);
+                    float ai1 = (float)(AttackTimer - startDelay) / spinTime % 1;
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 appearVel = -vel;
+                        appearVel *= WorldSavingSystem.MasochistModeReal ? 7.5f : 2.5f;
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), spawnPos - appearVel * 60, appearVel, ProjectileID.FairyQueenLance, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.5f), 0f, Main.myPlayer, vel.ToRotation(), ai1);
+
+                        float angleOffset = MathHelper.ToRadians(45);
+                        for (int j = -1; j <= 1; j++)
+                        {
+                            float length = 128f * (j + 2) + radius;
+                            Vector2 newPos = targetPos + length * offsetDirection.RotatedBy(MathHelper.Pi / max / 3 * (2 - j) - increment * 2);
+                            Vector2 newBaseVel = Vector2.Normalize(targetPos - newPos);
+                            Vector2 fancyVel = 2.5f * (j + 2) * newBaseVel.RotatedBy(MathHelper.PiOver2 * j);
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), newPos - fancyVel * 60f, fancyVel, ProjectileID.FairyQueenLance, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.5f), 0f, Main.myPlayer, newBaseVel.ToRotation() + MathHelper.Pi + angleOffset * j, ai1);
+                        }
+                    }
                 }
-                break;
-              }
-              break;
             }
-            break;
-          }
-          break;
-        case 6f:
-          if (!WorldSavingSystem.MasochistModeReal)
-          {
-            if ((double) npc.ai[1] == 0.0 && this.AttackTimer == 0 && ((IEnumerable<Projectile>) Main.projectile).Count<Projectile>((Func<Projectile, bool>) (p => ((Entity) p).active && p.type == 873)) > 20)
+
+            if (!npc.HasValidTarget)
             {
-              npc.ai[1] -= 30f;
-              npc.netUpdate = true;
+                npc.TargetClosest(false);
+                if (!npc.HasValidTarget)
+                    AttackTimer += 9000;
             }
-            if ((double) npc.ai[1] == 1.0)
-              EModeNPCBehaviour.NetSync(npc);
-            NPC npc2 = npc;
-            ((Entity) npc2).position = Vector2.op_Subtraction(((Entity) npc2).position, Vector2.op_Division(((Entity) npc).velocity, (double) npc.ai[3] == 0.0 ? 2f : 4f));
-            break;
-          }
-          break;
-        case 7f:
-          int num1 = WorldSavingSystem.MasochistModeReal ? -15 : -45;
-          if ((double) npc.ai[1] == 0.0)
-          {
-            EmpressofLight.TryRandom(npc);
-            npc.netUpdate = true;
-            EModeNPCBehaviour.NetSync(npc);
-          }
-          if ((double) npc.ai[1] == (double) byte.MaxValue)
-          {
-            this.AttackTimer = num1;
-            ++this.P2SwordsAttackCounter;
-            this.startRotation = Utils.NextFloat(Main.rand, 6.28318548f);
-          }
-          if ((double) npc.ai[1] > (double) byte.MaxValue)
-          {
-            if (this.DoParallelSwordWalls)
+
+            if (AttackTimer < spinTime * spins + startDelay * 2)
+                npc.ai[1] = stop; //stop vanilla ai from progressing
+        }
+
+        private void ParallelSwordWalls(NPC npc, float stop)
+        {
+            if (AttackTimer == 0)
             {
-              this.ParallelSwordWalls(npc, (float) byte.MaxValue);
-              break;
+                SoundEngine.PlaySound(SoundID.Item161, npc.HasValidTarget ? Main.player[npc.target].Center : npc.Center);
+
+                //rainbow trails to prevent running out of range
+                for (float i = 0; i < 1; i += 1f / 13f)
+                {
+                    Vector2 spinningpoint = Vector2.UnitY.RotatedBy(MathHelper.PiOver2 + MathHelper.TwoPi * i + startRotation);
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        void LastingRainbow(Vector2 vel, int timeLeft)
+                        {
+                            Vector2 pos = Main.player[npc.target].Center + spinningpoint.RotatedBy(-MathHelper.PiOver2) * 30f;
+                            int p = Projectile.NewProjectile(npc.GetSource_FromThis(), pos, vel, ProjectileID.HallowBossLastingRainbow, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.5f), 0f, Main.myPlayer, 0f, i);
+                            if (p != Main.maxProjectiles)
+                                Main.projectile[p].timeLeft = timeLeft;
+                        }
+
+                        LastingRainbow(6f * spinningpoint, 500 + 120);
+                        LastingRainbow(-7f * spinningpoint, 500 + 120);
+                        LastingRainbow(8.5f * spinningpoint.RotatedBy(MathHelper.PiOver2), 500 + 120);
+                    }
+                }
             }
-            this.ExcelSpreadsheet(npc, (float) byte.MaxValue);
-            break;
-          }
-          break;
-        case 8f:
-        case 9f:
-          this.Dash(npc, useP2Attacks);
-          break;
-        case 10f:
-          if (npc.dontTakeDamage && (double) npc.ai[1] > 120.0)
-          {
-            Vector2 vector2 = Vector2.op_Subtraction(((Entity) Main.player[npc.target]).Center, Vector2.op_Multiply(160f, Vector2.UnitY));
-            ((Entity) npc).Center = Vector2.Lerp(((Entity) npc).Center, vector2, 0.1f);
+
+            const int delay = 15;
+            int attackTime = WorldSavingSystem.MasochistModeReal ? 30 : 45;
+
+            int effectiveTimer = AttackTimer - delay;
+            if (effectiveTimer == -1)
+            {
+                targetPos = Main.player[npc.target].Center;
+                startRotation += MathHelper.PiOver2 * Main.rand.NextFloat(0.9f, 1.1f);
+            }
+            if (effectiveTimer >= 0 && effectiveTimer <= attackTime)
+            {
+                const float coverage = 1200f;
+
+                int interval = WorldSavingSystem.MasochistModeReal ? 1 : 2;
+                if (effectiveTimer % interval == 0)
+                {
+                    for (int i = -1; i <= 1; i += 2)
+                    {
+                        float ratio = (float)effectiveTimer / attackTime;
+
+                        float rotation = startRotation;
+                        if (i < 0)
+                            rotation += MathHelper.Pi;
+
+                        float offsetLength = coverage * (1f - ratio) * i;
+                        Vector2 offset = offsetLength * (startRotation + MathHelper.PiOver2).ToRotationVector2();
+                        Vector2 spawnPos = targetPos + offset - coverage * rotation.ToRotationVector2();
+
+                        float ai0 = rotation;
+                        float ai1 = (float)effectiveTimer / attackTime;
+
+                        Vector2 appearVel = -coverage / 60f * 0.8f * ai0.ToRotationVector2();
+                        if (FargoSoulsUtil.HostCheck)
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), spawnPos - appearVel * 60, appearVel, ProjectileID.FairyQueenLance, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.5f), 0f, Main.myPlayer, ai0, ai1);
+                    }
+                }
+            }
+
+            bool quit = false;
+            if (!npc.HasValidTarget)
+            {
+                npc.TargetClosest(false);
+                if (!npc.HasValidTarget)
+                    quit = true;
+            }
+
+            int threshold = delay + 90 + attackTime;
+            if (++AttackTimer <= threshold) //stop vanilla ai from progressing
+                npc.ai[1] = stop;
+            else if (!quit && P2SwordsAttackCounter % SwordWallCap != SwordWallCap - 1) //increment the sword counter and repeat this attack
+                npc.ai[1] = stop - 1;
+        }
+
+        private void ExcelSpreadsheet(NPC npc, float stop)
+        {
+            if (AttackTimer == 0)
+            {
+                SoundEngine.PlaySound(SoundID.Item161, npc.HasValidTarget ? Main.player[npc.target].Center : npc.Center);
+
+                startRotation = Main.rand.NextFloat(MathHelper.TwoPi);
+            }
+
+            int waveDelay = /*WorldSavingSystem.MasochistModeReal ? 20 :*/ 30;
+            const int spaceCovered = 800;
+            if (++AttackTimer > 0)
+            {
+                if (AttackTimer % waveDelay == 0)
+                {
+                    float ai1 = 1;
+                    Vector2 spawnPos = targetPos;
+                    spawnPos += 600f * Vector2.UnitX.RotatedBy(startRotation);
+                    spawnPos += MathHelper.Lerp(-spaceCovered, spaceCovered, ai1) * Vector2.UnitY.RotatedBy(startRotation);
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 vel = (startRotation + MathHelper.Pi).ToRotationVector2();
+                        Vector2 appearVel = vel.RotatedBy(-MathHelper.PiOver2);
+                        appearVel *= WorldSavingSystem.MasochistModeReal ? 2f : 1f;
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), spawnPos - 60f * appearVel, appearVel, ProjectileID.FairyQueenLance, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.5f), 0f, Main.myPlayer, vel.ToRotation(), ai1);
+                    }
+
+                    targetPos = npc.HasValidTarget ? Main.player[npc.target].Center : npc.Center;
+                    startRotation += MathHelper.PiOver2 * (Main.rand.NextBool() ? -1 : 1);
+                    if (Main.rand.NextBool())
+                        startRotation += MathHelper.Pi;
+                    startRotation += MathHelper.ToRadians(WorldSavingSystem.MasochistModeReal ? 30 : 15) * Main.rand.NextFloat(-1, 1);
+
+                    //whooshy sound effect
+                    if (AttackTimer % waveDelay * 4 == 0)
+                        SoundEngine.PlaySound(SoundID.Item163, Main.player[npc.target].Center);
+                }
+
+                if (AttackTimer % /*(WorldSavingSystem.MasochistModeReal ? 2 : 3)*/ 3 == 0)
+                {
+                    float ai1 = (float)(AttackTimer % waveDelay) / waveDelay;
+                    Vector2 spawnPos = targetPos;
+                    spawnPos += 600f * Vector2.UnitX.RotatedBy(startRotation);
+                    spawnPos += MathHelper.Lerp(-spaceCovered, spaceCovered, ai1) * Vector2.UnitY.RotatedBy(startRotation);
+
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 vel = (startRotation + MathHelper.Pi).ToRotationVector2();
+                        Vector2 appearVel = vel.RotatedBy(-MathHelper.PiOver2);
+                        appearVel *= WorldSavingSystem.MasochistModeReal ? 1.5f : 1f;
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), spawnPos - 60f * appearVel, appearVel, ProjectileID.FairyQueenLance, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.5f), 0f, Main.myPlayer, vel.ToRotation(), ai1);
+                    }
+                }
+            }
+
+            if (!npc.HasValidTarget)
+            {
+                npc.TargetClosest(false);
+                if (!npc.HasValidTarget)
+                    AttackTimer += 9000;
+            }
+
+            int waves = WorldSavingSystem.MasochistModeReal ? 12 : 8;
+            if (AttackTimer < waveDelay * waves + waveDelay * 2)
+                npc.ai[1] = stop; //stop vanilla ai from progressing
+        }
+
+        private void Dash(NPC npc, bool useP2Attacks)
+        {
+            const int dashValue = 4;
+
+            bool doSunWings = AttackCounter % 2 == 0;
+
+            if (npc.ai[1] == 0)
+            {
+                AttackTimer = 0;
+
+                if (!doSunWings)
+                    SoundEngine.PlaySound(SoundID.Item164, Main.player[npc.target].Center);
+
+                if (--DashCounter <= 0) //sometimes do two consecutive dashes
+                {
+                    DashCounter = dashValue;
+                    npc.ai[2] -= 1;
+                }
+                else if (WorldSavingSystem.MasochistModeReal && npc.life < npc.lifeMax / 2) //RANDOM ATTACKS
+                {
+                    npc.ai[2] += Main.rand.Next(3);
+                }
+
+                npc.netUpdate = true;
+                NetSync(npc);
+            }
+
+            if (npc.ai[1] < 40)
+            {
+                bool shouldIncrement = true;
+
+                if (!doSunWings)
+                {
+                    Vector2 targetPos = Main.player[npc.target].Center;
+                    targetPos.X += 550f * (npc.ai[0] == 8 ? 1 : -1);
+                    npc.Center = Vector2.Lerp(npc.Center, targetPos, 0.1f);
+                    if (npc.Distance(targetPos) < 240)
+                    {
+                        int direction = ++AttackTimer % 2 == 0 ? -1 : 1;
+
+                        float ai1 = (npc.ai[1] - 10) / 30f;
+
+                        Vector2 vel = Main.rand.NextFloat(24f) * direction * Vector2.UnitY;
+                        vel.X += 30f * Math.Sign(npc.SafeDirectionTo(Main.player[npc.target].Center).X);
+
+                        if (FargoSoulsUtil.HostCheck)
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, vel, ProjectileID.HallowBossRainbowStreak, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.5f), 0f, Main.myPlayer, npc.target, ai1);
+                    }
+                    else
+                    {
+                        shouldIncrement = false;
+                        if (npc.ai[1] > 1f)
+                            npc.ai[1] -= 1f;
+                    }
+                }
+
+                if (shouldIncrement && DashCounter == dashValue - 1) //for the second consecutive dash
+                {
+                    if (npc.ai[1] == 0) //add the sound since the longer startup broke it
+                        SoundEngine.PlaySound(SoundID.Item160, npc.Center);
+
+                    if (npc.ai[1] < 39) //more startup on this one
+                        npc.ai[1] -= 0.33f;
+                    else
+                        npc.ai[1] = 39; //fix any rounding issues
+                }
+            }
+
+            if (npc.ai[1] == 40) //add sun wings
+            {
+                if (doSunWings)
+                {
+                    float baseDirection = npc.ai[0] == 8 ? 0 : MathHelper.Pi;
+                    for (int i = -2; i <= 2; i++)
+                    {
+                        if (i == 0)
+                            continue;
+
+                        float ai0 = baseDirection + MathHelper.ToRadians(20) / 2 * i;
+                        if (FargoSoulsUtil.HostCheck)
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ProjectileID.FairyQueenSunDance, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.5f), 0f, Main.myPlayer, ai0, npc.whoAmI);
+                    }
+                }
+            }
+
+            if (npc.ai[1] >= 40)
+            {
+                if (doSunWings || !WorldSavingSystem.MasochistModeReal)
+                    npc.ai[1] -= 0.33f; //extend the dash
+
+                if (!WorldSavingSystem.MasochistModeReal)
+                    npc.velocity.Y = 0;
+
+                if (doSunWings && useP2Attacks && ++AttackTimer % 15 == 0) //extra swords, p2 only
+                {
+                    float baseDirection = npc.ai[0] == 8 ? 0 : MathHelper.Pi;
+                    for (int i = -2; i <= 2; i++)
+                    {
+                        if (i == 0)
+                            continue;
+
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            float ai0 = baseDirection + MathHelper.ToRadians(40) / 2 * i;
+                            float ai1 = (npc.ai[1] - 40f) / 50f;
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ProjectileID.FairyQueenLance, FargoSoulsUtil.ScaledProjectileDamage(BaseProjDmg(npc), 1.5f), 0f, Main.myPlayer, ai0, ai1);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void PullNonTargets(NPC npc, Vector2 center, float radius)
+        {
+            if (npc.target == Main.myPlayer)
+                return;
+            float distance = center.Distance(Main.LocalPlayer.Center);
+            float threshold = radius;
+            Player player = Main.LocalPlayer;
+            if (player.active && !player.dead && !player.ghost) //pull into arena
+            {
+                if (distance > threshold && distance < 3500)
+                {
+                    if (distance > 1500)
+                    {
+                        player.Incapacitate();
+                        player.velocity.X = 0f;
+                        player.velocity.Y = -0.4f;
+                    }
+
+                    Vector2 movement = center - player.Center;
+                    float difference = movement.Length() - threshold;
+                    movement.Normalize();
+                    movement *= difference < 32f ? difference : 32f;
+                    player.position += movement;
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        int DustType = Main.rand.NextFromList(DustID.RainbowTorch);
+                        int d = Dust.NewDust(player.position, player.width, player.height, DustType, 0f, 0f, 0, default, 1.25f);
+                        Main.dust[d].noGravity = true;
+                        Main.dust[d].velocity *= 5f;
+                    }
+                }
+            }
+        }
+
+        #endregion helper funcs
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            if (target.HasBuff<SmiteBuff>())
+                target.AddBuff(ModContent.BuffType<PurifiedBuff>(), 300);
+            target.AddBuff(ModContent.BuffType<SmiteBuff>(), 900);
+        }
+
+        public override void SafeModifyHitByProjectile(NPC npc, Projectile projectile, ref NPC.HitModifiers modifiers)
+        {
+            base.SafeModifyHitByProjectile(npc, projectile, ref modifiers);
+
+            if (ProjectileID.Sets.CultistIsResistantTo[projectile.type] && !FargoSoulsUtil.IsSummonDamage(projectile))
+                modifiers.FinalDamage *= 0.75f;
+        }
+
+        public override void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
+        {
             if (npc.life < npc.lifeMax / 2)
-            {
-              npc.HealEffect(npc.lifeMax / 2 - npc.life, true);
-              npc.life = npc.lifeMax / 2;
-              break;
-            }
-            break;
-          }
-          break;
-        case 11f:
-          if ((WorldSavingSystem.MasochistModeReal || (double) npc.ai[1] > 40.0) && (double) npc.ai[1] % 3.0 == 0.0 && npc.HasValidTarget)
-          {
-            Vector2 vector2_1 = ((Entity) Main.player[npc.target]).velocity;
-            if (Vector2.op_Equality(vector2_1, Vector2.Zero) || (double) ((Vector2) ref vector2_1).Length() < 1.0)
-              vector2_1 = Utils.SafeNormalize(vector2_1, Vector2.op_UnaryNegation(Vector2.UnitY));
-            Vector2 vector2_2 = Vector2.op_Multiply(90f, Utils.RotatedBy(vector2_1, 1.5707963705062866, new Vector2()));
-            Vector2 vector2_3 = Vector2.op_Addition(((Entity) Main.player[npc.target]).Center, vector2_2);
-            Vector2 vector2_4 = ((Entity) Main.player[npc.target]).DirectionFrom(vector2_3);
-            if (FargoSoulsUtil.HostCheck)
-            {
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), vector2_3, Vector2.Zero, 919, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.3f), 0.0f, Main.myPlayer, Utils.ToRotation(vector2_4), npc.ai[1] / 100f, 0.0f);
-              break;
-            }
-            break;
-          }
-          break;
-        case 12f:
-          if ((double) npc.ai[1] < 4.0)
-          {
-            Vector2 vector2 = Vector2.op_Subtraction(((Entity) Main.player[npc.target]).Center, Vector2.op_Multiply(160f, Vector2.UnitY));
-            ((Entity) npc).Center = Vector2.Lerp(((Entity) npc).Center, vector2, 0.1f);
-            if ((double) ((Entity) npc).Distance(vector2) > 160.0)
-              --npc.ai[1];
-          }
-          if ((double) npc.ai[1] == 75.0)
-            this.startRotation = npc.HasValidTarget ? Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center)) : 1.57079637f;
-          if ((double) npc.ai[1] >= 75.0 && (double) npc.ai[1] < 99.0 && FargoSoulsUtil.HostCheck)
-          {
-            float num2 = (float) (((double) npc.ai[1] - 75.0) / 24.0);
-            if (WorldSavingSystem.MasochistModeReal)
-            {
-              Vector2 vector2 = Vector2.op_UnaryNegation(Utils.RotatedBy(Vector2.UnitY, -(0.2617993950843811 * ((double) npc.ai[1] - 75.0)), new Vector2()));
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.op_Multiply(20f, vector2), 873, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.3f), 0.0f, Main.myPlayer, (float) npc.target, num2, 0.0f);
-            }
-            float radians = MathHelper.ToRadians(24f);
-            float num3 = this.startRotation + MathHelper.Lerp(-radians, radians, num2);
-            Vector2 rotationVector2 = Utils.ToRotationVector2(num3);
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), Vector2.op_Addition(Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply(rotationVector2, 160f)), Vector2.op_Multiply(Vector2.op_Multiply(rotationVector2, 10f), 60f)), Vector2.op_Multiply(Vector2.op_UnaryNegation(rotationVector2), 10f), 919, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.3f), 0.0f, Main.myPlayer, num3, num2, 0.0f);
-          }
-          if ((double) npc.ai[1] > 99.0 && !WorldSavingSystem.MasochistModeReal)
-          {
-            npc.ai[1] -= 0.65f;
-            break;
-          }
-          break;
-      }
-      EModeUtils.DropSummon(npc, "PrismaticPrimrose", NPC.downedEmpressOfLight, ref this.DroppedSummon, Main.hardMode);
-      return true;
-    }
+                modifiers.FinalDamage *= 2.0f / 3.0f;
 
-    private static void TryRandom(NPC npc)
-    {
-      if (!WorldSavingSystem.MasochistModeReal || npc.life >= npc.lifeMax / 2)
-        return;
-      npc.ai[2] += (float) Main.rand.Next(3);
-      npc.netUpdate = true;
-    }
-
-    private static int BaseProjDmg(NPC npc)
-    {
-      return !Main.dayTime ? (int) ((double) npc.defDamage * 0.6) : 9999;
-    }
-
-    private void SwordCircle(NPC npc, float stop)
-    {
-      int num1 = 60;
-      if (this.AttackTimer == 0)
-        SoundEngine.PlaySound(ref SoundID.Item161, new Vector2?(npc.HasValidTarget ? ((Entity) Main.player[npc.target]).Center : ((Entity) npc).Center), (SoundUpdateCallback) null);
-      else if (this.AttackTimer == num1)
-      {
-        this.targetPos = ((Entity) Main.player[npc.target]).Center;
-        this.startRotation = npc.HasValidTarget ? Utils.ToRotation(((Entity) Main.player[npc.target]).velocity) : 0.0f;
-      }
-      ++this.AttackTimer;
-      if ((double) ((Entity) Main.player[npc.target]).Distance(this.targetPos) > 600.0)
-        this.targetPos = Vector2.op_Addition(((Entity) Main.player[npc.target]).Center, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) Main.player[npc.target], this.targetPos), 600f));
-      if (this.AttackTimer % 90 == 30)
-        SoundEngine.PlaySound(ref SoundID.Item164, new Vector2?(((Entity) Main.player[npc.target]).Center), (SoundUpdateCallback) null);
-      int num2 = WorldSavingSystem.MasochistModeReal ? 210 : 160;
-      float num3 = 1.5f;
-      if (this.AttackTimer > num1 && (double) this.AttackTimer <= (double) num2 * (double) num3 + (double) num1 && this.AttackTimer % 2 == 0)
-      {
-        int num4 = WorldSavingSystem.MasochistModeReal ? 3 : 2;
-        for (int index1 = 0; index1 < num4; ++index1)
-        {
-          int num5 = WorldSavingSystem.MasochistModeReal ? -1 : 1;
-          float num6 = 6.28318548f / (float) num2 * (float) this.AttackTimer * (float) num5;
-          Vector2 vector2_1 = Utils.RotatedBy(Vector2.UnitX, (double) this.startRotation + (double) num6 + 6.2831854820251465 / (double) num4 * (double) index1, new Vector2());
-          Vector2 vector2_2 = Vector2.op_Addition(this.targetPos, Vector2.op_Multiply(600f, vector2_1));
-          Vector2 vector2_3 = Vector2.Normalize(Vector2.op_Subtraction(this.targetPos, vector2_2));
-          float num7 = (float) ((double) (this.AttackTimer - num1) / (double) num2 % 1.0);
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 vector2_4 = Vector2.op_Multiply(Vector2.op_UnaryNegation(vector2_3), WorldSavingSystem.MasochistModeReal ? 7.5f : 2.5f);
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), Vector2.op_Subtraction(vector2_2, Vector2.op_Multiply(vector2_4, 60f)), vector2_4, 919, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.5f), 0.0f, Main.myPlayer, Utils.ToRotation(vector2_3), num7, 0.0f);
-            float radians = MathHelper.ToRadians(45f);
-            for (int index2 = -1; index2 <= 1; ++index2)
-            {
-              Vector2 vector2_5 = Vector2.op_Addition(this.targetPos, Vector2.op_Multiply((float) (128.0 * (double) (index2 + 2) + 600.0), Utils.RotatedBy(vector2_1, 3.1415927410125732 / (double) num4 / 3.0 * (double) (2 - index2) - (double) num6 * 2.0, new Vector2())));
-              Vector2 vector2_6 = Vector2.Normalize(Vector2.op_Subtraction(this.targetPos, vector2_5));
-              Vector2 vector2_7 = Vector2.op_Multiply(2.5f * (float) (index2 + 2), Utils.RotatedBy(vector2_6, 1.5707963705062866 * (double) index2, new Vector2()));
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), Vector2.op_Subtraction(vector2_5, Vector2.op_Multiply(vector2_7, 60f)), vector2_7, 919, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.5f), 0.0f, Main.myPlayer, (float) ((double) Utils.ToRotation(vector2_6) + 3.1415927410125732 + (double) radians * (double) index2), num7, 0.0f);
-            }
-          }
+            base.ModifyIncomingHit(npc, ref modifiers);
         }
-      }
-      if (!npc.HasValidTarget)
-      {
-        npc.TargetClosest(false);
-        if (!npc.HasValidTarget)
-          this.AttackTimer += 9000;
-      }
-      if ((double) this.AttackTimer >= (double) num2 * (double) num3 + (double) (num1 * 2))
-        return;
-      npc.ai[1] = stop;
-    }
 
-    private void ParallelSwordWalls(NPC npc, float stop)
-    {
-      if (this.AttackTimer == 0)
-      {
-        SoundEngine.PlaySound(ref SoundID.Item161, new Vector2?(npc.HasValidTarget ? ((Entity) Main.player[npc.target]).Center : ((Entity) npc).Center), (SoundUpdateCallback) null);
-        for (float i = 0.0f; (double) i < 1.0; i += 0.07692308f)
+        public override void LoadSprites(NPC npc, bool recolor)
         {
-          Vector2 spinningpoint = Utils.RotatedBy(Vector2.UnitY, 1.5707963705062866 + 6.2831854820251465 * (double) i + (double) this.startRotation, new Vector2());
-          if (FargoSoulsUtil.HostCheck)
-          {
-            LastingRainbow(Vector2.op_Multiply(6f, spinningpoint), 620);
-            LastingRainbow(Vector2.op_Multiply(-7f, spinningpoint), 620);
-            LastingRainbow(Vector2.op_Multiply(8.5f, Utils.RotatedBy(spinningpoint, 1.5707963705062866, new Vector2())), 620);
-          }
+            base.LoadSprites(npc, recolor);
 
-          void LastingRainbow(Vector2 vel, int timeLeft)
-          {
-            Vector2 vector2 = Vector2.op_Addition(((Entity) Main.player[npc.target]).Center, Vector2.op_Multiply(Utils.RotatedBy(spinningpoint, -1.5707963705062866, new Vector2()), 30f));
-            int index = Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), vector2, vel, 872, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.5f), 0.0f, Main.myPlayer, 0.0f, i, 0.0f);
-            if (index == Main.maxProjectiles)
-              return;
-            Main.projectile[index].timeLeft = timeLeft;
-          }
-        }
-      }
-      int num1 = WorldSavingSystem.MasochistModeReal ? 30 : 45;
-      int num2 = this.AttackTimer - 15;
-      if (num2 == -1)
-      {
-        this.targetPos = ((Entity) Main.player[npc.target]).Center;
-        this.startRotation += 1.57079637f * Utils.NextFloat(Main.rand, 0.9f, 1.1f);
-      }
-      if (num2 >= 0 && num2 <= num1)
-      {
-        int num3 = WorldSavingSystem.MasochistModeReal ? 1 : 2;
-        if (num2 % num3 == 0)
-        {
-          for (int index = -1; index <= 1; index += 2)
-          {
-            float num4 = (float) num2 / (float) num1;
-            float startRotation = this.startRotation;
-            if (index < 0)
-              startRotation += 3.14159274f;
-            Vector2 vector2_1 = Vector2.op_Subtraction(Vector2.op_Addition(this.targetPos, Vector2.op_Multiply((float) (1200.0 * (1.0 - (double) num4)) * (float) index, Utils.ToRotationVector2(this.startRotation + 1.57079637f))), Vector2.op_Multiply(1200f, Utils.ToRotationVector2(startRotation)));
-            float num5 = startRotation;
-            float num6 = (float) num2 / (float) num1;
-            Vector2 vector2_2 = Vector2.op_Multiply(-16f, Utils.ToRotationVector2(num5));
-            if (FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), Vector2.op_Subtraction(vector2_1, Vector2.op_Multiply(vector2_2, 60f)), vector2_2, 919, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.5f), 0.0f, Main.myPlayer, num5, num6, 0.0f);
-          }
-        }
-      }
-      bool flag = false;
-      if (!npc.HasValidTarget)
-      {
-        npc.TargetClosest(false);
-        if (!npc.HasValidTarget)
-          flag = true;
-      }
-      if (++this.AttackTimer <= 105 + num1)
-      {
-        npc.ai[1] = stop;
-      }
-      else
-      {
-        if (flag || this.P2SwordsAttackCounter % EmpressofLight.SwordWallCap == EmpressofLight.SwordWallCap - 1)
-          return;
-        npc.ai[1] = stop - 1f;
-      }
-    }
+            LoadNPCSprite(recolor, npc.type);
+            LoadBossHeadSprite(recolor, 37);
 
-    private void ExcelSpreadsheet(NPC npc, float stop)
-    {
-      if (this.AttackTimer == 0)
-      {
-        SoundEngine.PlaySound(ref SoundID.Item161, new Vector2?(npc.HasValidTarget ? ((Entity) Main.player[npc.target]).Center : ((Entity) npc).Center), (SoundUpdateCallback) null);
-        this.startRotation = Utils.NextFloat(Main.rand, 6.28318548f);
-      }
-      int num1 = 30;
-      if (++this.AttackTimer > 0)
-      {
-        if (this.AttackTimer % num1 == 0)
-        {
-          float num2 = 1f;
-          Vector2 vector2_1 = Vector2.op_Addition(Vector2.op_Addition(this.targetPos, Vector2.op_Multiply(600f, Utils.RotatedBy(Vector2.UnitX, (double) this.startRotation, new Vector2()))), Vector2.op_Multiply(MathHelper.Lerp(-800f, 800f, num2), Utils.RotatedBy(Vector2.UnitY, (double) this.startRotation, new Vector2())));
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 rotationVector2 = Utils.ToRotationVector2(this.startRotation + 3.14159274f);
-            Vector2 vector2_2 = Vector2.op_Multiply(Utils.RotatedBy(rotationVector2, -1.5707963705062866, new Vector2()), WorldSavingSystem.MasochistModeReal ? 2f : 1f);
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), Vector2.op_Subtraction(vector2_1, Vector2.op_Multiply(60f, vector2_2)), vector2_2, 919, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.5f), 0.0f, Main.myPlayer, Utils.ToRotation(rotationVector2), num2, 0.0f);
-          }
-          this.targetPos = npc.HasValidTarget ? ((Entity) Main.player[npc.target]).Center : ((Entity) npc).Center;
-          this.startRotation += (float) (1.5707963705062866 * (Utils.NextBool(Main.rand) ? -1.0 : 1.0));
-          if (Utils.NextBool(Main.rand))
-            this.startRotation += 3.14159274f;
-          this.startRotation += MathHelper.ToRadians(WorldSavingSystem.MasochistModeReal ? 30f : 15f) * Utils.NextFloat(Main.rand, -1f, 1f);
-          if (this.AttackTimer % num1 * 4 == 0)
-            SoundEngine.PlaySound(ref SoundID.Item163, new Vector2?(((Entity) Main.player[npc.target]).Center), (SoundUpdateCallback) null);
-        }
-        if (this.AttackTimer % 3 == 0)
-        {
-          float num3 = (float) (this.AttackTimer % num1) / (float) num1;
-          Vector2 vector2_3 = Vector2.op_Addition(Vector2.op_Addition(this.targetPos, Vector2.op_Multiply(600f, Utils.RotatedBy(Vector2.UnitX, (double) this.startRotation, new Vector2()))), Vector2.op_Multiply(MathHelper.Lerp(-800f, 800f, num3), Utils.RotatedBy(Vector2.UnitY, (double) this.startRotation, new Vector2())));
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 rotationVector2 = Utils.ToRotationVector2(this.startRotation + 3.14159274f);
-            Vector2 vector2_4 = Vector2.op_Multiply(Utils.RotatedBy(rotationVector2, -1.5707963705062866, new Vector2()), WorldSavingSystem.MasochistModeReal ? 1.5f : 1f);
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), Vector2.op_Subtraction(vector2_3, Vector2.op_Multiply(60f, vector2_4)), vector2_4, 919, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.5f), 0.0f, Main.myPlayer, Utils.ToRotation(rotationVector2), num3, 0.0f);
-          }
-        }
-      }
-      if (!npc.HasValidTarget)
-      {
-        npc.TargetClosest(false);
-        if (!npc.HasValidTarget)
-          this.AttackTimer += 9000;
-      }
-      int num4 = WorldSavingSystem.MasochistModeReal ? 12 : 8;
-      if (this.AttackTimer >= num1 * num4 + num1 * 2)
-        return;
-      npc.ai[1] = stop;
-    }
+            //LoadGoreRange(recolor, 1262, 1268);
 
-    private void Dash(NPC npc, bool useP2Attacks)
-    {
-      bool flag1 = this.AttackCounter % 2 == 0;
-      if ((double) npc.ai[1] == 0.0)
-      {
-        this.AttackTimer = 0;
-        if (!flag1)
-          SoundEngine.PlaySound(ref SoundID.Item164, new Vector2?(((Entity) Main.player[npc.target]).Center), (SoundUpdateCallback) null);
-        if (--this.DashCounter <= 0)
-        {
-          this.DashCounter = 4;
-          --npc.ai[2];
+            LoadExtra(recolor, 156); //shader, but isnt working...
+            LoadExtra(recolor, 157);
+            LoadExtra(recolor, 158);
+            LoadExtra(recolor, 159);
+            LoadExtra(recolor, 160);
+            LoadExtra(recolor, 187);
+            LoadExtra(recolor, 188);
         }
-        else if (WorldSavingSystem.MasochistModeReal && npc.life < npc.lifeMax / 2)
-          npc.ai[2] += (float) Main.rand.Next(3);
-        npc.netUpdate = true;
-        EModeNPCBehaviour.NetSync(npc);
-      }
-      if ((double) npc.ai[1] < 40.0)
-      {
-        bool flag2 = true;
-        if (!flag1)
-        {
-          Vector2 center = ((Entity) Main.player[npc.target]).Center;
-          center.X += (float) (550.0 * ((double) npc.ai[0] == 8.0 ? 1.0 : -1.0));
-          ((Entity) npc).Center = Vector2.Lerp(((Entity) npc).Center, center, 0.1f);
-          if ((double) ((Entity) npc).Distance(center) < 240.0)
-          {
-            int num1 = ++this.AttackTimer % 2 == 0 ? -1 : 1;
-            float num2 = (float) (((double) npc.ai[1] - 10.0) / 30.0);
-            Vector2 vector2 = Vector2.op_Multiply(Utils.NextFloat(Main.rand, 24f) * (float) num1, Vector2.UnitY);
-            vector2.X += 30f * (float) Math.Sign(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center).X);
-            if (FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, vector2, 873, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.5f), 0.0f, Main.myPlayer, (float) npc.target, num2, 0.0f);
-          }
-          else
-          {
-            flag2 = false;
-            if ((double) npc.ai[1] > 1.0)
-              --npc.ai[1];
-          }
-        }
-        if (flag2 && this.DashCounter == 3)
-        {
-          if ((double) npc.ai[1] == 0.0)
-            SoundEngine.PlaySound(ref SoundID.Item160, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-          if ((double) npc.ai[1] < 39.0)
-            npc.ai[1] -= 0.33f;
-          else
-            npc.ai[1] = 39f;
-        }
-      }
-      if ((double) npc.ai[1] == 40.0 && flag1)
-      {
-        float num3 = (double) npc.ai[0] == 8.0 ? 0.0f : 3.14159274f;
-        for (int index = -2; index <= 2; ++index)
-        {
-          if (index != 0)
-          {
-            float num4 = num3 + MathHelper.ToRadians(20f) / 2f * (float) index;
-            if (FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, 923, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.5f), 0.0f, Main.myPlayer, num4, (float) ((Entity) npc).whoAmI, 0.0f);
-          }
-        }
-      }
-      if ((double) npc.ai[1] < 40.0)
-        return;
-      if (flag1 || !WorldSavingSystem.MasochistModeReal)
-        npc.ai[1] -= 0.33f;
-      if (!WorldSavingSystem.MasochistModeReal)
-        ((Entity) npc).velocity.Y = 0.0f;
-      if (!(flag1 & useP2Attacks) || ++this.AttackTimer % 15 != 0)
-        return;
-      float num5 = (double) npc.ai[0] == 8.0 ? 0.0f : 3.14159274f;
-      for (int index = -2; index <= 2; ++index)
-      {
-        if (index != 0 && FargoSoulsUtil.HostCheck)
-        {
-          float num6 = num5 + MathHelper.ToRadians(40f) / 2f * (float) index;
-          float num7 = (float) (((double) npc.ai[1] - 40.0) / 50.0);
-          Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, 919, FargoSoulsUtil.ScaledProjectileDamage(EmpressofLight.BaseProjDmg(npc), 1.5f), 0.0f, Main.myPlayer, num6, num7, 0.0f);
-        }
-      }
     }
-
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(ModContent.BuffType<PurifiedBuff>(), 300, true, false);
-      target.AddBuff(ModContent.BuffType<SmiteBuff>(), 1800, true, false);
-    }
-
-    public override void SafeModifyHitByProjectile(
-      NPC npc,
-      Projectile projectile,
-      ref NPC.HitModifiers modifiers)
-    {
-      base.SafeModifyHitByProjectile(npc, projectile, ref modifiers);
-      if (!ProjectileID.Sets.CultistIsResistantTo[projectile.type] || FargoSoulsUtil.IsSummonDamage(projectile))
-        return;
-      ref StatModifier local = ref modifiers.FinalDamage;
-      local = StatModifier.op_Multiply(local, 0.75f);
-    }
-
-    public virtual void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
-    {
-      if (npc.life < npc.lifeMax / 2)
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Multiply(local, 0.6666667f);
-      }
-      base.ModifyIncomingHit(npc, ref modifiers);
-    }
-
-    public override void LoadSprites(NPC npc, bool recolor)
-    {
-      base.LoadSprites(npc, recolor);
-      EModeNPCBehaviour.LoadNPCSprite(recolor, npc.type);
-      EModeNPCBehaviour.LoadBossHeadSprite(recolor, 37);
-      EModeNPCBehaviour.LoadExtra(recolor, 156);
-      EModeNPCBehaviour.LoadExtra(recolor, 157);
-      EModeNPCBehaviour.LoadExtra(recolor, 158);
-      EModeNPCBehaviour.LoadExtra(recolor, 159);
-      EModeNPCBehaviour.LoadExtra(recolor, 160);
-      EModeNPCBehaviour.LoadExtra(recolor, 187);
-      EModeNPCBehaviour.LoadExtra(recolor, 188);
-    }
-  }
 }

@@ -1,9 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.PatreonGlobalNPC
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Bosses.AbomBoss;
 using FargowiltasSouls.Content.Patreon.Catsounds;
 using FargowiltasSouls.Content.Patreon.Daawnz;
 using FargowiltasSouls.Content.Patreon.DemonKing;
@@ -19,67 +14,96 @@ using FargowiltasSouls.Core.Systems;
 using System;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon
 {
-  public class PatreonGlobalNPC : GlobalNPC
-  {
-    public virtual void ModifyShop(NPCShop shop)
+    public class PatreonGlobalNPC : GlobalNPC
     {
-      if (((AbstractNPCShop) shop).NpcType != 178)
-        return;
-      NPCShop npcShop = shop;
-      Item obj = new Item(ModContent.ItemType<RoombaPet>(), 1, 0);
-      obj.shopCustomPrice = new int?(Item.buyPrice(0, 0, 0, 50000));
-      Condition[] conditionArray = new Condition[1]
-      {
-        new Condition("Mods.FargowiltasSouls.Conditions.RoombaPetSold", (Func<bool>) (() => SoulConfig.Instance.PatreonRoomba))
-      };
-      npcShop.Add(obj, conditionArray);
-    }
+        public override void ModifyShop(NPCShop shop)
+        {
+            if (shop.NpcType == NPCID.Steampunker)
+                shop.Add(new Item(ModContent.ItemType<RoombaPet>()) { shopCustomPrice = Item.buyPrice(copper: 50000) }, new Condition("Mods.FargowiltasSouls.Conditions.RoombaPetSold", () => SoulConfig.Instance.PatreonRoomba));
+        }
 
-    public virtual void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
-    {
-      base.ModifyNPCLoot(npc, npcLoot);
-      switch (npc.type)
-      {
-        case 20:
-          ((NPCLoot) ref npcLoot).Add(ItemDropRule.ByCondition((IItemDropRuleCondition) new PatreonPlantDropCondition(Language.GetTextValue("Mods.FargowiltasSouls.Conditions.PatreonPlant")), ModContent.ItemType<PiranhaPlantVoodooDoll>(), 1, 1, 1, 1));
-          break;
-        case 50:
-          AddPatreonDrop((Func<bool>) (() => SoulConfig.Instance.PatreonKingSlime && WorldSavingSystem.EternityMode), ModContent.ItemType<MedallionoftheFallenKing>(), 100, "PatreonEMode");
-          break;
-        case (int) sbyte.MaxValue:
-          AddPatreonDrop((Func<bool>) (() => SoulConfig.Instance.PatreonPrime && WorldSavingSystem.EternityMode), ModContent.ItemType<PrimeStaff>(), 20, "PatreonEMode");
-          break;
-        case 221:
-          AddPatreonDrop((Func<bool>) (() => SoulConfig.Instance.PatreonDoor), ModContent.ItemType<SquidwardDoor>(), 50);
-          break;
-        case 245:
-          AddPatreonDrop((Func<bool>) (() => SoulConfig.Instance.PatreonOrb), ModContent.ItemType<ComputationOrb>(), 10);
-          break;
-        case 266:
-          AddPatreonDrop((Func<bool>) (() => SoulConfig.Instance.PatreonCrimetroid), ModContent.ItemType<CrimetroidEgg>(), 25);
-          break;
-        case 398:
-          AddPatreonDrop((Func<bool>) (() => SoulConfig.Instance.PatreonDevious && WorldSavingSystem.EternityMode), ModContent.ItemType<DeviousAestheticus>(), 20, "PatreonEMode");
-          break;
-      }
-      if (npc.type != ModContent.NPCType<FargowiltasSouls.Content.Bosses.AbomBoss.AbomBoss>())
-        return;
-      AddPatreonDrop((Func<bool>) (() => SoulConfig.Instance.PatreonFishron), ModContent.ItemType<StaffOfUnleashedOcean>(), 25);
+        public override void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
+        {
+            base.ModifyNPCLoot(npc, npcLoot);
 
-      void AddPatreonDrop(Func<bool> condition, int item, int chanceDenominator = 1, string extraKey = null)
-      {
-        string textValue = Language.GetTextValue("Mods.FargowiltasSouls.Conditions.Patreon");
-        if (extraKey != null)
-          textValue = Language.GetTextValue("Mods.FargowiltasSouls.Conditions." + extraKey);
-        RuntimeDropCondition runtimeDropCondition = new RuntimeDropCondition(condition, textValue);
-        ((NPCLoot) ref npcLoot).Add(ItemDropRule.ByCondition((IItemDropRuleCondition) runtimeDropCondition, item, chanceDenominator, 1, 1, 1));
-      }
+            void AddPatreonDrop(Func<bool> condition, int item, int chanceDenominator = 1, string extraKey = default)
+            {
+                string description = Language.GetTextValue("Mods.FargowiltasSouls.Conditions.Patreon");
+                if (extraKey != default)
+                    description = Language.GetTextValue($"Mods.FargowiltasSouls.Conditions.{extraKey}");
+                RuntimeDropCondition dropCondition = new(condition, description);
+                npcLoot.Add(ItemDropRule.ByCondition(dropCondition, item, chanceDenominator));
+            }
+            switch (npc.type)
+            {
+                case NPCID.BrainofCthulhu:
+                    AddPatreonDrop(
+                        () => SoulConfig.Instance.PatreonCrimetroid,
+                        ModContent.ItemType<CrimetroidEgg>(),
+                        25);
+                    break;
+
+                case NPCID.Golem:
+                    AddPatreonDrop(
+                        () => SoulConfig.Instance.PatreonOrb,
+                        ModContent.ItemType<ComputationOrb>(),
+                        10);
+                    break;
+
+                case NPCID.Squid:
+                    AddPatreonDrop(
+                        () => SoulConfig.Instance.PatreonDoor,
+                        ModContent.ItemType<SquidwardDoor>(),
+                        50);
+                    break;
+
+                case NPCID.KingSlime:
+                    AddPatreonDrop(
+                        () => SoulConfig.Instance.PatreonKingSlime && WorldSavingSystem.EternityMode,
+                        ModContent.ItemType<MedallionoftheFallenKing>(),
+                        100,
+                        "PatreonEMode");
+                    break;
+
+                case NPCID.Dryad:
+                    npcLoot.Add(ItemDropRule.ByCondition(
+                        new PatreonPlantDropCondition(Language.GetTextValue("Mods.FargowiltasSouls.Conditions.PatreonPlant")),
+                        ModContent.ItemType<PiranhaPlantVoodooDoll>()));
+                    break;
+
+                case NPCID.MoonLordCore:
+                    AddPatreonDrop(
+                        () => SoulConfig.Instance.PatreonDevious && WorldSavingSystem.EternityMode,
+                        ModContent.ItemType<DeviousAestheticus>(),
+                        20,
+                        "PatreonEMode");
+                    break;
+
+                case NPCID.SkeletronPrime:
+                    AddPatreonDrop(
+                        () => SoulConfig.Instance.PatreonPrime && WorldSavingSystem.EternityMode,
+                        ModContent.ItemType<PrimeStaff>(),
+                        20,
+                        "PatreonEMode");
+                    break;
+
+                default:
+                    break;
+
+            }
+            if (npc.type == ModContent.NPCType<AbomBoss>())
+            {
+                AddPatreonDrop(
+                        () => SoulConfig.Instance.PatreonFishron,
+                        ModContent.ItemType<StaffOfUnleashedOcean>(),
+                        25);
+            }
+        }
     }
-  }
 }

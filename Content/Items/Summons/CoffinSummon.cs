@@ -1,56 +1,91 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Summons.CoffinSummon
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
 
-using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.Audio;
-using Terraria.GameContent.Creative;
-using Terraria.ID;
 using Terraria.ModLoader;
+using Terraria.ID;
+using static Terraria.ModLoader.ModContent;
+using Terraria.Audio;
+using FargowiltasSouls.Content.Bosses.CursedCoffin;
+using FargowiltasSouls.Content.WorldGeneration;
+using Microsoft.Xna.Framework;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Summons
 {
-  public class CoffinSummon : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
-    {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 5;
-    }
 
-    public virtual bool IsLoadingEnabled(Mod mod) => false;
-
-    public virtual void SetDefaults()
+    public class CoffinSummon : SoulsItem
     {
-      ((Entity) this.Item).width = 32;
-      ((Entity) this.Item).height = 32;
-      this.Item.useAnimation = 30;
-      this.Item.useTime = 30;
-      this.Item.useStyle = 4;
-      this.Item.rare = 3;
-      this.Item.consumable = true;
-      this.Item.maxStack = 20;
-      this.Item.noUseGraphic = false;
-    }
+        public override void SetStaticDefaults()
+        {
+            //DisplayName.SetDefault("Coffin Summon");
+            //Tooltip.SetDefault("While in the underground Desert, summon the Cursed Coffin");
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 5;
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(133, 15).AddIngredient(3380, 8).AddIngredient(177, 2).AddTile(26).Register();
-    }
+        public override bool IsLoadingEnabled(Mod mod) => CursedCoffin.Enabled;
 
-    public virtual bool CanUseItem(Player Player)
-    {
-      return Player.ZoneDesert && (Player.ZoneDirtLayerHeight || Player.ZoneRockLayerHeight) && !NPC.AnyNPCs(ModContent.NPCType<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>());
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 32;
+            Item.height = 32;
+            Item.useAnimation = 30;
+            Item.useTime = 30;
+            Item.useStyle = ItemUseStyleID.HoldUp;
+            Item.rare = ItemRarityID.Orange;
+            Item.consumable = true;
+            Item.maxStack = 20;
+            Item.noUseGraphic = false;
+        }
 
-    public virtual bool? UseItem(Player Player)
-    {
-      NPC.SpawnOnPlayer(((Entity) Player).whoAmI, ModContent.NPCType<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>());
-      SoundEngine.PlaySound(ref SoundID.Shatter, new Vector2?(((Entity) Player).Center), (SoundUpdateCallback) null);
-      return new bool?(true);
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                //.AddRecipeGroup("FargowiltasSouls:AnyDemoniteBar", 4)
+                .AddIngredient(ItemID.ClayBlock, 15)
+                .AddIngredient(ItemID.FossilOre, 8)
+                .AddRecipeGroup("FargowiltasSouls:AnyGem", 4)
+                .AddTile(TileID.DemonAltar)
+                .DisableDecraft()
+                .Register();
+        }
+
+        public override bool CanUseItem(Player player)
+        {
+            if (CoffinArena.Rectangle.Contains(player.Center.ToTileCoordinates()))// && (Player.ZoneDirtLayerHeight || Player.ZoneRockLayerHeight))
+                return !NPC.AnyNPCs(NPCType<CursedCoffin>());
+            return false;
+        }
+
+        public override bool? UseItem(Player player)
+        {
+            if (!NPC.AnyNPCs(NPCType<CursedCoffinInactive>())) // no dormant coffin, just summon the boss
+            {
+                Vector2 coffinArenaCenter = CoffinArena.Center.ToWorldCoordinates();
+                SoundEngine.PlaySound(CursedCoffin.ShotSFX with { Pitch = -0.75f }, coffinArenaCenter);
+                int n = NPC.NewNPC(player.GetSource_ItemUse(Item), (int)coffinArenaCenter.X, (int)coffinArenaCenter.Y, ModContent.NPCType<CursedCoffin>());
+                if (n.IsWithinBounds(Main.maxNPCs))
+                {
+                    if (Main.npc[n].ModNPC is CursedCoffin coffin)
+                        coffin.LockVector1 = coffinArenaCenter;
+                    Main.npc[n].netUpdate = true;
+                }
+                return true;
+            }
+
+            // else: dormant coffin exists, turn it into boss
+
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                NPC npc = Main.npc[i];
+                if (npc.TypeAlive<CursedCoffinInactive>())
+                {
+                    npc.Transform(ModContent.NPCType<CursedCoffin>());
+                    SoundEngine.PlaySound(CursedCoffin.ShotSFX with { Pitch = -0.75f }, npc.Center);
+                    if (npc.ModNPC is CursedCoffin coffin)
+                        coffin.LockVector1 = npc.Center + Vector2.UnitY * 16;
+                    npc.velocity.Y = -8f;
+                    npc.netUpdate = true;
+                }
+            }
+            return true;
+        }
     }
-  }
 }

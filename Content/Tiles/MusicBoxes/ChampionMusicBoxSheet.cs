@@ -1,39 +1,40 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Tiles.MusicBoxes.ChampionMusicBoxSheet
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Items.Placables.MusicBoxes;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ObjectData;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Tiles.MusicBoxes
 {
-  public class ChampionMusicBoxSheet : ModTile
-  {
-    public virtual void SetStaticDefaults()
+    public class ChampionMusicBoxSheet : ModTile
     {
-      Main.tileFrameImportant[(int) ((ModBlockType) this).Type] = true;
-      Main.tileObsidianKill[(int) ((ModBlockType) this).Type] = true;
-      TileObjectData.newTile.CopyFrom(TileObjectData.Style2x2);
-      TileObjectData.newTile.Origin = new Point16(0, 1);
-      TileObjectData.newTile.LavaDeath = false;
-      TileObjectData.newTile.DrawYOffset = 2;
-      TileObjectData.addTile((int) ((ModBlockType) this).Type);
-      this.AddMapEntry(new Color(200, 200, 200), ((ModBlockType) this).CreateMapEntryName());
+        public override void SetStaticDefaults()
+        {
+            Main.tileFrameImportant[Type] = true;
+            Main.tileObsidianKill[Type] = true;
+            TileObjectData.newTile.CopyFrom(TileObjectData.Style2x2);
+            TileObjectData.newTile.Origin = new Point16(0, 1);
+            TileObjectData.newTile.LavaDeath = false;
+            TileObjectData.newTile.DrawYOffset = 2;
+            TileObjectData.addTile(Type);
+            LocalizedText name = CreateMapEntryName();
+            // name.SetDefault("Music Box");
+            AddMapEntry(new Color(200, 200, 200), name);
+        }
+        /*
+        public override void KillMultiTile(int i, int j, int frameX, int frameY)
+        {
+            Item.NewItem(new EntitySource_TileBreak(i, j), i * 16, j * 16, 16, 48, ModContent.ItemType<ChampionMusicBox>());
+        }
+        */
+        public override void MouseOver(int i, int j)
+        {
+            Player player = Main.LocalPlayer;
+            player.noThrow = 2;
+            player.cursorItemIconEnabled = true;
+            player.cursorItemIconID = ModContent.ItemType<ChampionMusicBox>();
+        }
     }
-
-    public virtual void MouseOver(int i, int j)
-    {
-      Player localPlayer = Main.LocalPlayer;
-      localPlayer.noThrow = 2;
-      localPlayer.cursorItemIconEnabled = true;
-      localPlayer.cursorItemIconID = ModContent.ItemType<ChampionMusicBox>();
-    }
-  }
 }

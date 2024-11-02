@@ -1,9 +1,3 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.MutantBoss.MutantEyeOfCthulhu
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Projectiles;
@@ -14,261 +8,295 @@ using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.MutantBoss
 {
-  public class MutantEyeOfCthulhu : ModProjectile
-  {
-    private const float degreesOffset = 22.5f;
-    private const float dashSpeed = 120f;
-    private const float baseDistance = 700f;
-    private bool spawned;
-
-    public virtual string Texture
+    public class MutantEyeOfCthulhu : ModProjectile
     {
-      get
-      {
-        return !FargoSoulsUtil.AprilFools ? "FargowiltasSouls/Assets/ExtraTextures/Resprites/NPC_4" : "FargowiltasSouls/Content/Bosses/MutantBoss/MutantEyeOfCthulhu_April";
-      }
-    }
+        public override string Texture => FargoSoulsUtil.AprilFools ?
+            "FargowiltasSouls/Content/Bosses/MutantBoss/MutantEyeOfCthulhu_April" :
+            "FargowiltasSouls/Assets/ExtraTextures/Resprites/NPC_4";
 
-    public virtual void SetStaticDefaults()
-    {
-      Main.projFrames[this.Projectile.type] = Main.npcFrameCount[4];
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 12;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 80;
-      ((Entity) this.Projectile).height = 80;
-      this.Projectile.penetrate = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.aiStyle = -1;
-      this.CooldownSlot = 1;
-      this.Projectile.timeLeft = 216;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.alpha = (int) byte.MaxValue;
-    }
-
-    public virtual bool CanHitPlayer(Player target) => target.hurtCooldowns[1] == 0;
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.Projectile.localAI[0]);
-      writer.Write(this.Projectile.localAI[1]);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.Projectile.localAI[0] = reader.ReadSingle();
-      this.Projectile.localAI[1] = reader.ReadSingle();
-    }
-
-    public virtual bool? CanDamage() => new bool?((double) this.Projectile.ai[1] >= 120.0);
-
-    public virtual void AI()
-    {
-      Player player = FargoSoulsUtil.PlayerExists(this.Projectile.ai[0]);
-      if (player == null)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if (!this.spawned)
+        public override void SetStaticDefaults()
         {
-          this.spawned = true;
-          SoundEngine.PlaySound(ref SoundID.ForceRoarPitched, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-            Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0.0f, Main.myPlayer, -1f, 4f, 0.0f);
+            // DisplayName.SetDefault("Eye of Cthulhu");
+            Main.projFrames[Projectile.type] = Main.npcFrameCount[NPCID.EyeofCthulhu];
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 12;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-        if ((double) ++this.Projectile.ai[1] < 120.0)
+
+        public override void SetDefaults()
         {
-          this.Projectile.alpha -= 8;
-          if (this.Projectile.alpha < 0)
-            this.Projectile.alpha = 0;
-          Projectile projectile = this.Projectile;
-          ((Entity) projectile).position = Vector2.op_Addition(((Entity) projectile).position, Vector2.op_Division(((Entity) player).velocity, 2f));
-          float num1 = (float) ((double) this.Projectile.ai[1] * 1.5 / 120.0);
-          if ((double) num1 < 0.25)
-            num1 = 0.25f;
-          if ((double) num1 > 1.0)
-            num1 = 1f;
-          Vector2 vector2 = Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(Vector2.op_Multiply(Utils.RotatedBy(((Entity) this.Projectile).DirectionFrom(((Entity) player).Center), (double) MathHelper.ToRadians(20f), new Vector2()), 700f), num1));
-          float num2 = 0.6f;
-          if ((double) ((Entity) this.Projectile).Center.X < (double) vector2.X)
-          {
-            ((Entity) this.Projectile).velocity.X += num2;
-            if ((double) ((Entity) this.Projectile).velocity.X < 0.0)
-              ((Entity) this.Projectile).velocity.X += num2 * 2f;
-          }
-          else
-          {
-            ((Entity) this.Projectile).velocity.X -= num2;
-            if ((double) ((Entity) this.Projectile).velocity.X > 0.0)
-              ((Entity) this.Projectile).velocity.X -= num2 * 2f;
-          }
-          if ((double) ((Entity) this.Projectile).Center.Y < (double) vector2.Y)
-          {
-            ((Entity) this.Projectile).velocity.Y += num2;
-            if ((double) ((Entity) this.Projectile).velocity.Y < 0.0)
-              ((Entity) this.Projectile).velocity.Y += num2 * 2f;
-          }
-          else
-          {
-            ((Entity) this.Projectile).velocity.Y -= num2;
-            if ((double) ((Entity) this.Projectile).velocity.Y > 0.0)
-              ((Entity) this.Projectile).velocity.Y -= num2 * 2f;
-          }
-          if ((double) Math.Abs(((Entity) this.Projectile).velocity.X) > 24.0)
-            ((Entity) this.Projectile).velocity.X = (float) (24 * Math.Sign(((Entity) this.Projectile).velocity.X));
-          if ((double) Math.Abs(((Entity) this.Projectile).velocity.Y) > 24.0)
-            ((Entity) this.Projectile).velocity.Y = (float) (24 * Math.Sign(((Entity) this.Projectile).velocity.Y));
-          this.Projectile.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) player).Center)) - 1.57079637f;
+            Projectile.width = 80;
+            Projectile.height = 80;
+            Projectile.penetrate = -1;
+            Projectile.hostile = true;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.aiStyle = -1;
+            CooldownSlot = 1;
+
+            Projectile.timeLeft = 216;
+
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+
+            Projectile.alpha = 255;
         }
-        else if ((double) this.Projectile.ai[1] == 120.0)
+
+        public override bool CanHitPlayer(Player target)
         {
-          this.Projectile.localAI[0] = ((Entity) player).Center.X;
-          this.Projectile.localAI[1] = ((Entity) player).Center.Y;
-          ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(((Entity) this.Projectile).DirectionFrom(((Entity) player).Center), 700f));
-          ((Entity) this.Projectile).velocity = Vector2.Zero;
-          this.Projectile.netUpdate = true;
+            return target.hurtCooldowns[1] == 0;
         }
-        else if ((double) this.Projectile.ai[1] == 121.0)
+
+        public override void SendExtraAI(BinaryWriter writer)
         {
-          if (FargoSoulsUtil.HostCheck)
-          {
-            SpawnProjectile(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Division(((Entity) this.Projectile).velocity, 2f)));
-            float num = 0.025f;
-            Vector2 vector2;
-            // ISSUE: explicit constructor call
-            ((Vector2) ref vector2).\u002Ector(this.Projectile.localAI[0], this.Projectile.localAI[1]);
-            float rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, vector2));
-            int index1 = Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.Zero, ModContent.ProjectileType<MutantScythe2>(), this.Projectile.damage, 0.0f, Main.myPlayer, num, rotation, 0.0f);
-            if (index1 != Main.maxProjectiles)
-              Main.projectile[index1].timeLeft = this.Projectile.timeLeft + 180 + 30;
-            if (WorldSavingSystem.MasochistModeReal)
+            writer.Write(Projectile.localAI[0]);
+            writer.Write(Projectile.localAI[1]);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            Projectile.localAI[0] = reader.ReadSingle();
+            Projectile.localAI[1] = reader.ReadSingle();
+        }
+
+        private const float degreesOffset = 45f / 2;
+        private const float dashSpeed = 120f;
+        private const float baseDistance = 700f;
+
+        //private float goldScytheAngleOffset;
+        //private float cyanScytheAngleOffset;
+
+        public override bool? CanDamage()
+        {
+            return Projectile.ai[1] >= 120;
+        }
+
+        bool spawned;
+
+        public override void AI()
+        {
+            Player player = FargoSoulsUtil.PlayerExists(Projectile.ai[0]);
+            if (player == null)
             {
-              int index2 = Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.Zero, ModContent.ProjectileType<MutantScythe2>(), this.Projectile.damage, 0.0f, Main.myPlayer, num, rotation, 0.0f);
-              if (index2 != Main.maxProjectiles)
-                Main.projectile[index2].timeLeft = this.Projectile.timeLeft + 180 + 30 + 150;
+                Projectile.Kill();
+                return;
             }
-          }
-          ((Entity) this.Projectile).velocity = Vector2.op_Multiply(120f, Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, new Vector2(this.Projectile.localAI[0], this.Projectile.localAI[1])), (double) MathHelper.ToRadians(22.5f), new Vector2()));
-          this.Projectile.netUpdate = true;
-          SoundEngine.PlaySound(ref SoundID.ForceRoarPitched, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        }
-        else if ((double) this.Projectile.ai[1] < 131.66667175292969)
-        {
-          this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) - 1.57079637f;
-          if (FargoSoulsUtil.HostCheck)
-          {
-            SpawnProjectile(((Entity) this.Projectile).Center);
-            SpawnProjectile(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Division(((Entity) this.Projectile).velocity, 2f)));
-          }
-        }
-        else
-        {
-          if (FargoSoulsUtil.HostCheck)
-          {
-            SpawnProjectile(((Entity) this.Projectile).Center);
-            SpawnProjectile(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Division(((Entity) this.Projectile).velocity, 2f)));
-          }
-          this.Projectile.ai[1] = 120f;
-        }
-        if (++this.Projectile.frameCounter > 6)
-        {
-          this.Projectile.frameCounter = 0;
-          if (++this.Projectile.frame >= Main.projFrames[this.Projectile.type])
-            this.Projectile.frame = 0;
-        }
-        if (this.Projectile.frame >= 3)
-          return;
-        this.Projectile.frame = 3;
-      }
 
-      void SpawnProjectile(Vector2 position)
-      {
-        float num = 0.03f;
-        Vector2 vector2;
-        // ISSUE: explicit constructor call
-        ((Vector2) ref vector2).\u002Ector(this.Projectile.localAI[0], this.Projectile.localAI[1]);
-        float rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, Vector2.op_Addition(vector2, Vector2.op_Multiply(180f, Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, vector2), 1.5707963705062866, new Vector2())))));
-        int index = Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), position, Vector2.Zero, ModContent.ProjectileType<MutantScythe1>(), this.Projectile.damage, 0.0f, Main.myPlayer, num, rotation, 0.0f);
-        if (index == Main.maxProjectiles)
-          return;
-        Main.projectile[index].timeLeft = this.Projectile.timeLeft + 180 + 30 + 150;
-        if (!WorldSavingSystem.MasochistModeReal)
-          return;
-        Main.projectile[index].timeLeft -= 30;
-      }
-    }
+            void SpawnProjectile(Vector2 position)
+            {
+                float accel = 0.03f;
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(163, 15, true, false);
-      target.FargoSouls().MaxLifeReduction += 100;
-      target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400, true, false);
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 120, true, false);
-      target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 300, true, false);
-      target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180, true, false);
-    }
+                Vector2 target = new(Projectile.localAI[0], Projectile.localAI[1]);// + 150f * Vector2.UnitX.RotatedBy(cyanScytheAngleOffset);
+                target += 180 * Projectile.SafeDirectionTo(target).RotatedBy(MathHelper.PiOver2);
 
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index1 = 0; index1 < 50; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 5, 0.0f, 0.0f, 0, new Color(), 2f);
-        Main.dust[index2].noGravity = true;
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 5f);
-      }
-      Vector2 vector2 = (double) this.Projectile.localAI[0] == 0.0 || (double) this.Projectile.localAI[1] == 0.0 ? Vector2.Zero : Vector2.op_Multiply(30f, Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, new Vector2(this.Projectile.localAI[0], this.Projectile.localAI[1])), (double) MathHelper.ToRadians(22.5f), new Vector2()));
-      for (int index = 0; index < 2; ++index)
-      {
-        if (!Main.dedServ)
-        {
-          Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.Projectile).position, new Vector2(Utils.NextFloat(Main.rand, (float) ((Entity) this.Projectile).width), Utils.NextFloat(Main.rand, (float) ((Entity) this.Projectile).height))), vector2, ModContent.Find<ModGore>(((ModType) this).Mod.Name, "Gore_8").Type, 1f);
-          Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.Projectile).position, new Vector2(Utils.NextFloat(Main.rand, (float) ((Entity) this.Projectile).width), Utils.NextFloat(Main.rand, (float) ((Entity) this.Projectile).height))), vector2, ModContent.Find<ModGore>(((ModType) this).Mod.Name, "Gore_9").Type, 1f);
-          Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.Projectile).position, new Vector2(Utils.NextFloat(Main.rand, (float) ((Entity) this.Projectile).width), Utils.NextFloat(Main.rand, (float) ((Entity) this.Projectile).height))), vector2, ModContent.Find<ModGore>(((ModType) this).Mod.Name, "Gore_10").Type, 1f);
+                float angle = Projectile.SafeDirectionTo(target).ToRotation();
+
+                int p = Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), position, Vector2.Zero, ModContent.ProjectileType<MutantScythe1>(), Projectile.damage, 0, Main.myPlayer, accel, angle);
+                if (p != Main.maxProjectiles)
+                {
+                    Main.projectile[p].timeLeft = Projectile.timeLeft + 180 + 30 + 150; //+ 60 + 240;
+                    if (WorldSavingSystem.MasochistModeReal)
+                        Main.projectile[p].timeLeft -= 30;
+                }
+            };
+
+            if (!spawned)
+            {
+                spawned = true;
+
+                SoundEngine.PlaySound(SoundID.ForceRoarPitched, Projectile.Center);
+
+                if (FargoSoulsUtil.HostCheck)
+                    Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, -1, NPCID.EyeofCthulhu);
+            }
+
+            if (++Projectile.ai[1] < 120)
+            {
+                Projectile.alpha -= 8;
+                if (Projectile.alpha < 0)
+                    Projectile.alpha = 0;
+
+                Projectile.position += player.velocity / 2f;
+
+                float rangeModifier = Projectile.ai[1] * 1.5f / 120f;
+                if (rangeModifier < 0.25f)
+                    rangeModifier = 0.25f;
+                if (rangeModifier > 1f)
+                    rangeModifier = 1f;
+                Vector2 target = player.Center + Projectile.DirectionFrom(player.Center).RotatedBy(MathHelper.ToRadians(20)) * baseDistance * rangeModifier;
+
+                float speedModifier = 0.6f;
+                if (Projectile.Center.X < target.X)
+                {
+                    Projectile.velocity.X += speedModifier;
+                    if (Projectile.velocity.X < 0)
+                        Projectile.velocity.X += speedModifier * 2;
+                }
+                else
+                {
+                    Projectile.velocity.X -= speedModifier;
+                    if (Projectile.velocity.X > 0)
+                        Projectile.velocity.X -= speedModifier * 2;
+                }
+                if (Projectile.Center.Y < target.Y)
+                {
+                    Projectile.velocity.Y += speedModifier;
+                    if (Projectile.velocity.Y < 0)
+                        Projectile.velocity.Y += speedModifier * 2;
+                }
+                else
+                {
+                    Projectile.velocity.Y -= speedModifier;
+                    if (Projectile.velocity.Y > 0)
+                        Projectile.velocity.Y -= speedModifier * 2;
+                }
+                if (Math.Abs(Projectile.velocity.X) > 24)
+                    Projectile.velocity.X = 24 * Math.Sign(Projectile.velocity.X);
+                if (Math.Abs(Projectile.velocity.Y) > 24)
+                    Projectile.velocity.Y = 24 * Math.Sign(Projectile.velocity.Y);
+
+                Projectile.rotation = Projectile.SafeDirectionTo(player.Center).ToRotation() - MathHelper.PiOver2;
+            }
+            else if (Projectile.ai[1] == 120)
+            {
+                Projectile.localAI[0] = player.Center.X;
+                Projectile.localAI[1] = player.Center.Y;
+                Projectile.Center = player.Center + Projectile.DirectionFrom(player.Center) * baseDistance;
+                Projectile.velocity = Vector2.Zero;
+                Projectile.netUpdate = true;
+                //goldScytheAngleOffset = Main.rand.NextFloat(MathHelper.TwoPi);
+                //cyanScytheAngleOffset = goldScytheAngleOffset + MathHelper.Pi + Main.rand.NextFloat(-MathHelper.PiOver2, MathHelper.PiOver2); //always somewhere in the opposite half
+            }
+            else if (Projectile.ai[1] == 121) //make the golden sickles
+            {
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    SpawnProjectile(Projectile.Center - Projectile.velocity / 2);
+
+                    float accel = 0.025f;
+                    Vector2 target = new(Projectile.localAI[0], Projectile.localAI[1]); //+ 150f * Vector2.UnitX.RotatedBy(goldScytheAngleOffset);
+                    float angle = Projectile.SafeDirectionTo(target).ToRotation();
+                    int p = Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.Zero, ModContent.ProjectileType<MutantScythe2>(), Projectile.damage, 0, Main.myPlayer, accel, angle);
+                    if (p != Main.maxProjectiles)
+                        Main.projectile[p].timeLeft = Projectile.timeLeft + 180 + 30;
+
+                    if (WorldSavingSystem.MasochistModeReal)
+                    {
+                        p = Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.Zero, ModContent.ProjectileType<MutantScythe2>(), Projectile.damage, 0, Main.myPlayer, accel, angle);
+                        if (p != Main.maxProjectiles)
+                            Main.projectile[p].timeLeft = Projectile.timeLeft + 180 + 30 + 150;
+                    }
+                }
+
+                /*if (FargoSoulsUtil.HostCheck)
+                {
+                    SpawnProjectile(Projectile.Center);
+                    SpawnProjectile(Projectile.Center - Projectile.velocity / 2);
+                }*/
+
+                Projectile.velocity = dashSpeed * Projectile.SafeDirectionTo(new Vector2(Projectile.localAI[0], Projectile.localAI[1])).RotatedBy(MathHelper.ToRadians(degreesOffset));
+                Projectile.netUpdate = true;
+                SoundEngine.PlaySound(SoundID.ForceRoarPitched, Projectile.Center);
+            }
+            else if (Projectile.ai[1] < 120 + baseDistance / dashSpeed * 2)
+            {
+                Projectile.rotation = Projectile.velocity.ToRotation() - MathHelper.PiOver2;
+
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    SpawnProjectile(Projectile.Center);
+                    SpawnProjectile(Projectile.Center - Projectile.velocity / 2);
+                }
+            }
+            else
+            {
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    SpawnProjectile(Projectile.Center);
+                    SpawnProjectile(Projectile.Center - Projectile.velocity / 2);
+                }
+
+                Projectile.ai[1] = 120;
+            }
+
+            if (++Projectile.frameCounter > 6)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame >= Main.projFrames[Projectile.type])
+                    Projectile.frame = 0;
+            }
+
+            if (Projectile.frame < 3)
+                Projectile.frame = 3;
         }
-      }
-    }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      Main.spriteBatch.End();
-      Main.spriteBatch.Begin((SpriteSortMode) 0, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      float num3 = (float) (((double) Main.mouseTextColor / 200.0 - 0.34999999403953552) * 0.30000001192092896 + 0.89999997615814209) * this.Projectile.scale;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(alpha, (double) this.Projectile.ai[1] >= 120.0 ? 0.75f : 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num4 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num4, vector2, num3, (SpriteEffects) 0, 0.0f);
-      }
-      Main.spriteBatch.End();
-      Main.spriteBatch.Begin((SpriteSortMode) 0, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.AddBuff(BuffID.Obstructed, 15);
+                target.FargoSouls().MaxLifeReduction += 100;
+                target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400);
+                target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 120);
+                target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 300);
+                target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180);
+            }
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            for (int i = 0; i < 50; i++)
+            {
+                int dust = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Blood, 0, 0, 0, default, 2f);
+                Main.dust[dust].noGravity = true;
+                Main.dust[dust].velocity *= 5f;
+            }
+
+            Vector2 goreSpeed = Projectile.localAI[0] != 0 && Projectile.localAI[1] != 0 ?
+                dashSpeed / 4f * Projectile.SafeDirectionTo(new Vector2(Projectile.localAI[0], Projectile.localAI[1])).RotatedBy(MathHelper.ToRadians(degreesOffset)) : Vector2.Zero;
+            for (int i = 0; i < 2; i++)
+            {
+                if (!Main.dedServ)
+                {
+                    Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.position + new Vector2(Main.rand.NextFloat(Projectile.width), Main.rand.NextFloat(Projectile.height)), goreSpeed, ModContent.Find<ModGore>(Mod.Name, $"Gore_8").Type);
+                    Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.position + new Vector2(Main.rand.NextFloat(Projectile.width), Main.rand.NextFloat(Projectile.height)), goreSpeed, ModContent.Find<ModGore>(Mod.Name, $"Gore_9").Type);
+                    Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.position + new Vector2(Main.rand.NextFloat(Projectile.width), Main.rand.NextFloat(Projectile.height)), goreSpeed, ModContent.Find<ModGore>(Mod.Name, $"Gore_10").Type);
+                }
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = Projectile.GetAlpha(lightColor);
+
+            Main.spriteBatch.UseBlendState(BlendState.Additive);
+
+            float scale = (Main.mouseTextColor / 200f - 0.35f) * 0.3f + 0.9f;
+            scale *= Projectile.scale;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color26 * (Projectile.ai[1] >= 120 ? 0.75f : 0.5f);
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, scale, SpriteEffects.None, 0);
+            }
+
+            Main.spriteBatch.ResetToDefault();
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }
+

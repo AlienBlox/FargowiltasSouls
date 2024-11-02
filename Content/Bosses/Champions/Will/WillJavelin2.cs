@@ -1,98 +1,107 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Will.WillJavelin2
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Will
 {
-  public class WillJavelin2 : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_508";
-
-    public virtual void SetStaticDefaults()
+    public class WillJavelin2 : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public override string Texture => "Terraria/Images/Projectile_508";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 10;
-      ((Entity) this.Projectile).height = 60;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.timeLeft = 360;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.scale = 1.5f;
-      this.CooldownSlot = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Javelin");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+        }
 
-    public virtual bool? CanDamage() => new bool?((double) this.Projectile.localAI[0] > 180.0);
+        public override void SetDefaults()
+        {
+            Projectile.width = 10;
+            Projectile.height = 60;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.timeLeft = 360;
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[1] == 0.0)
-        this.Projectile.localAI[1] = (double) ((Entity) this.Projectile).Center.Y > (double) this.Projectile.ai[1] ? 1f : -1f;
-      if ((double) ++this.Projectile.localAI[0] < 180.0)
-      {
-        Vector2 vector2 = Vector2.op_Division(Vector2.op_Subtraction(new Vector2(this.Projectile.ai[0], this.Projectile.ai[1]), ((Entity) this.Projectile).Center), 8f);
-        ((Entity) this.Projectile).velocity = Vector2.op_Division(Vector2.op_Addition(Vector2.op_Multiply(((Entity) this.Projectile).velocity, 23f), vector2), 24f);
-      }
-      else if ((double) this.Projectile.localAI[0] == 180.0)
-      {
-        SoundEngine.PlaySound(ref SoundID.Item12, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        this.Projectile.netUpdate = true;
-        ((Entity) this.Projectile).velocity.X = 0.0f;
-        ((Entity) this.Projectile).velocity.Y = 40f * this.Projectile.localAI[1];
-      }
-      if ((double) this.Projectile.localAI[1] != 1.0)
-        return;
-      this.Projectile.rotation = 3.14159274f;
-    }
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300, true, false);
-        target.AddBuff(ModContent.BuffType<MidasBuff>(), 300, true, false);
-      }
-      target.AddBuff(30, 300, true, false);
-    }
+            Projectile.scale = 1.5f;
+            CooldownSlot = 1;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection < 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(Color.White, this.Projectile.Opacity), 0.75f), 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override bool? CanDamage()
+        {
+            return Projectile.localAI[0] > 180;
+        }
+
+        public override void AI()
+        {
+            if (Projectile.localAI[1] == 0)
+            {
+                Projectile.localAI[1] = Projectile.Center.Y > Projectile.ai[1] ? 1f : -1f;
+            }
+
+            if (++Projectile.localAI[0] < 180)
+            {
+                Vector2 target = new(Projectile.ai[0], Projectile.ai[1]);
+                Vector2 distance = target - Projectile.Center;
+                distance /= 8f;
+                Projectile.velocity = (Projectile.velocity * 23f + distance) / 24f;
+            }
+            else if (Projectile.localAI[0] == 180)
+            {
+                SoundEngine.PlaySound(SoundID.Item12, Projectile.Center);
+
+                Projectile.netUpdate = true;
+                Projectile.velocity.X = 0;
+                Projectile.velocity.Y = 40f * Projectile.localAI[1];
+            }
+
+            if (Projectile.localAI[1] == 1)
+                Projectile.rotation = (float)Math.PI;
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300);
+                target.AddBuff(ModContent.BuffType<MidasBuff>(), 300);
+            }
+            target.AddBuff(BuffID.Bleeding, 300);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection < 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = Color.White * Projectile.Opacity * 0.75f * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

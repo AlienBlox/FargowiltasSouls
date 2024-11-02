@@ -1,83 +1,76 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Jungle.Arapaima
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
+using System;
 using Terraria;
-using Terraria.ModLoader;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Jungle
 {
-  public class Arapaima : EModeNPCBehaviour
-  {
-    public int JumpTimer;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(157);
-
-    public virtual void SetDefaults(NPC npc)
+    public class Arapaima : EModeNPCBehaviour
     {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(npc);
-      this.JumpTimer = Main.rand.Next(120);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Arapaima);
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      if (++this.JumpTimer > 420)
-      {
-        this.JumpTimer = 0;
-        int index = npc.HasPlayerTarget ? npc.target : npc.FindClosestPlayer();
-        if (npc.life < npc.lifeMax && index != -1 && ((Entity) Main.player[index]).wet && FargoSoulsUtil.HostCheck)
+        public int JumpTimer;
+
+        public override void SetDefaults(NPC npc)
         {
-          Vector2 vector2;
-          if (((Entity) Main.player[index]).active && !Main.player[index].dead && !Main.player[index].ghost)
-          {
-            vector2 = Vector2.op_Subtraction(((Entity) Main.player[index]).Center, ((Entity) npc).Center);
-          }
-          else
-          {
-            // ISSUE: explicit constructor call
-            ((Vector2) ref vector2).\u002Ector((double) ((Entity) npc).Center.X < (double) ((Entity) Main.player[index]).Center.X ? -300f : 300f, -100f);
-          }
-          vector2.X /= 120f;
-          vector2.Y = (float) ((double) vector2.Y / 120.0 - 18.0);
-          npc.ai[1] = 120f;
-          npc.ai[2] = vector2.X;
-          npc.ai[3] = vector2.Y;
-          npc.netUpdate = true;
+            base.SetDefaults(npc);
+
+            JumpTimer = Main.rand.Next(120);
         }
-      }
-      if ((double) npc.ai[1] > 0.0)
-      {
-        --npc.ai[1];
-        npc.noTileCollide = true;
-        ((Entity) npc).velocity.X = npc.ai[2];
-        ((Entity) npc).velocity.Y = npc.ai[3];
-        npc.ai[3] += 0.3f;
-        int num = 5;
-        for (int index1 = 0; index1 < num; ++index1)
+
+        public override void AI(NPC npc)
         {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.ToRotationVector2((float) (Main.rand.NextDouble() * 3.14159274101257) - 1.57079637f), (float) Main.rand.Next(3, 8));
-          int index2 = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 172, vector2.X * 2f, vector2.Y * 2f, 100, new Color(), 1.4f);
-          Main.dust[index2].noGravity = true;
-          Main.dust[index2].noLight = true;
-          Dust dust1 = Main.dust[index2];
-          dust1.velocity = Vector2.op_Division(dust1.velocity, 4f);
-          Dust dust2 = Main.dust[index2];
-          dust2.velocity = Vector2.op_Subtraction(dust2.velocity, ((Entity) npc).velocity);
+            base.AI(npc);
+
+            if (++JumpTimer > 420) //initiate jump
+            {
+                JumpTimer = 0;
+
+                int t = npc.HasPlayerTarget ? npc.target : npc.FindClosestPlayer();
+                if (npc.life < npc.lifeMax && t != -1 && Main.player[t].wet && FargoSoulsUtil.HostCheck)
+                {
+                    const float gravity = 0.3f;
+                    const float time = 120f;
+                    Vector2 distance;
+                    if (Main.player[t].active && !Main.player[t].dead && !Main.player[t].ghost)
+                        distance = Main.player[t].Center - npc.Center;
+                    else
+                        distance = new Vector2(npc.Center.X < Main.player[t].Center.X ? -300 : 300, -100);
+                    distance.X /= time;
+                    distance.Y = distance.Y / time - 0.5f * gravity * time;
+                    npc.ai[1] = 120f;
+                    npc.ai[2] = distance.X;
+                    npc.ai[3] = distance.Y;
+                    npc.netUpdate = true;
+                }
+            }
+
+            if (npc.ai[1] > 0f) //while jumping
+            {
+                npc.ai[1]--;
+                npc.noTileCollide = true;
+                npc.velocity.X = npc.ai[2];
+                npc.velocity.Y = npc.ai[3];
+                npc.ai[3] += 0.3f;
+
+                int num22 = 5;
+                for (int index1 = 0; index1 < num22; ++index1)
+                {
+                    Vector2 vector2_2 = ((float)(Main.rand.NextDouble() * 3.14159274101257) - (float)Math.PI / 2).ToRotationVector2() * Main.rand.Next(3, 8);
+                    int index2 = Dust.NewDust(npc.position, npc.width, npc.height, DustID.DungeonWater, vector2_2.X * 2f, vector2_2.Y * 2f, 100, new Color(), 1.4f);
+                    Main.dust[index2].noGravity = true;
+                    Main.dust[index2].noLight = true;
+                    Main.dust[index2].velocity /= 4f;
+                    Main.dust[index2].velocity -= npc.velocity;
+                }
+            }
+            else
+            {
+                if (npc.noTileCollide) //compensate for long body
+                    npc.noTileCollide = Collision.SolidCollision(npc.position + Vector2.UnitX * npc.width / 4, npc.width / 2, npc.height);
+            }
         }
-      }
-      else
-      {
-        if (!npc.noTileCollide)
-          return;
-        npc.noTileCollide = Collision.SolidCollision(Vector2.op_Addition(((Entity) npc).position, Vector2.op_Division(Vector2.op_Multiply(Vector2.UnitX, (float) ((Entity) npc).width), 4f)), ((Entity) npc).width / 2, ((Entity) npc).height);
-      }
     }
-  }
 }

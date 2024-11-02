@@ -1,35 +1,34 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Souls.LeadPoisonBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Souls
 {
-  public class LeadPoisonBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class LeadPoisonBuff : ModBuff
     {
-      Main.buffNoSave[this.Type] = true;
-      Main.debuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Lead Poison");
+            Main.buffNoSave[Type] = true;
+            Main.debuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "铅中毒");
+        }
 
-    public virtual void Update(NPC npc, ref int buffIndex)
-    {
-      npc.FargoSouls().LeadPoison = true;
-      if (npc.buffTime[buffIndex] != 2)
-        return;
-      for (int index = 0; index < Main.maxNPCs; ++index)
-      {
-        NPC npc1 = Main.npc[index];
-        if (index != ((Entity) npc).whoAmI && npc1 != null && ((Entity) npc1).active && !npc1.townNPC && !npc1.friendly && npc1.lifeMax > 5 && (double) Vector2.Distance(((Entity) npc).Center, ((Entity) npc1).Center) < 50.0)
-          npc1.AddBuff(ModContent.BuffType<LeadPoisonBuff>(), 30, false);
-      }
+        public override void Update(NPC npc, ref int buffIndex)
+        {
+            npc.FargoSouls().LeadPoison = true;
+            if (npc.buffTime[buffIndex] == 2) //note: this totally also makes the npc reapply lead to themselves so its basically permanent debuff
+            {
+                for (int i = 0; i < Main.maxNPCs; i++)
+                {
+                    NPC spread = Main.npc[i];
+
+                    if (i != npc.whoAmI && spread != null && spread.active && !spread.townNPC && !spread.friendly && spread.lifeMax > 5 && Vector2.Distance(npc.Center, spread.Center) < 50)
+                    {
+                        spread.AddBuff(ModContent.BuffType<LeadPoisonBuff>(), 30);
+                    }
+                }
+            }
+        }
     }
-  }
 }

@@ -1,64 +1,161 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Souls.TrawlerSoul
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Souls
 {
-  public class TrawlerSoul : BaseSoul
-  {
-    public static readonly Color ItemColor = new Color(0, 238, 125);
-
-    public override void SetDefaults()
+    public class TrawlerSoul : BaseSoul
     {
-      base.SetDefaults();
-      this.Item.value = 750000;
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.value = 750000;
+        }
+        public static readonly Color ItemColor = new(0, 238, 125);
+        protected override Color? nameColor => ItemColor;
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            AddEffects(player, Item, hideVisual);
+        }
+        public static void AddEffects(Player player, Item item, bool hideVisual)
+        {
+            Player Player = player;
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            //instacatch
+            modPlayer.FishSoul1 = true;
+            //extra lures
+            modPlayer.FishSoul2 = true;
+
+            //tackle bag
+            Player.fishingSkill += 60;
+            Player.sonarPotion = true;
+            Player.cratePotion = true;
+            Player.accFishingLine = true;
+            Player.accTackleBox = true;
+            Player.accFishFinder = true;
+            Player.accLavaFishing = true;
+
+            //volatile gel
+            player.AddEffect<TrawlerGel>(item);
+
+            //spore sac
+            player.AddEffect<TrawlerSporeSac>(item);
+
+            //arctic diving gear
+            Player.arcticDivingGear = true;
+            Player.accFlipper = true;
+            Player.accDivingHelm = true;
+            Player.iceSkate = true;
+            if (Player.wet)
+            {
+                Lighting.AddLight((int)Player.Center.X / 16, (int)Player.Center.Y / 16, 0.2f, 0.8f, 0.9f);
+            }
+
+            //sharkron balloon
+            player.AddEffect<TrawlerJump>(item);
+
+            Player.jumpBoost = true;
+            Player.noFallDmg = true;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(null, "AnglerEnchant")
+            //inner tube
+            .AddIngredient(ItemID.BalloonHorseshoeSharkron)
+            .AddIngredient(ItemID.ArcticDivingGear)
+            //frog gear
+            .AddIngredient(ItemID.VolatileGelatin)
+            .AddIngredient(ItemID.SporeSac)
+
+            //engineer rod
+            .AddIngredient(ItemID.SittingDucksFishingRod)
+            //hotline fishing
+            .AddIngredient(ItemID.GoldenFishingRod)
+            .AddIngredient(ItemID.GoldenCarp)
+            .AddIngredient(ItemID.ReaverShark)
+            .AddIngredient(ItemID.Bladetongue)
+            .AddIngredient(ItemID.ObsidianSwordfish)
+            .AddIngredient(ItemID.FuzzyCarrot)
+            .AddIngredient(ItemID.HardySaddle)
+
+            .AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"))
+
+            .Register();
+        }
     }
-
-    protected override Color? nameColor => new Color?(TrawlerSoul.ItemColor);
-
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
+    public class TrawlerGel : AccessoryEffect
     {
-      TrawlerSoul.AddEffects(player, this.Item, hideVisual);
+        public override Header ToggleHeader => Header.GetHeader<TrawlerHeader>();
+        public override int ToggleItemType => ItemID.VolatileGelatin;
+        
+        public override void PostUpdateEquips(Player player)
+        {
+            if (Main.myPlayer != player.whoAmI)
+            {
+                return;
+            }
+            player.volatileGelatinCounter++;
+            if (player.volatileGelatinCounter > 50)
+            {
+                player.volatileGelatinCounter = 0;
+                int damage = 65;
+                float knockBack = 7f;
+                float num = 640f;
+                NPC npc = null;
+                for (int i = 0; i < 200; i++)
+                {
+                    NPC npc2 = Main.npc[i];
+                    if (npc2 != null && npc2.active && npc2.CanBeChasedBy(player, false) && Collision.CanHit(player, npc2))
+                    {
+                        float num2 = Vector2.Distance(npc2.Center, player.Center);
+                        if (num2 < num)
+                        {
+                            num = num2;
+                            npc = npc2;
+                        }
+                    }
+                }
+                if (npc != null)
+                {
+                    Vector2 vector = npc.Center - player.Center;
+                    vector = vector.SafeNormalize(Vector2.Zero) * 6f;
+                    vector.Y -= 2f;
+                    Projectile.NewProjectile(GetSource_EffectItem(player), player.Center.X, player.Center.Y, vector.X, vector.Y, ProjectileID.VolatileGelatinBall, damage, knockBack, player.whoAmI, 0f, 0f);
+                }
+            }
+        }
     }
-
-    public static void AddEffects(Player player, Item item, bool hideVisual)
+    public class TrawlerSporeSac : AccessoryEffect
     {
-      Player player1 = player;
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      fargoSoulsPlayer.FishSoul1 = true;
-      fargoSoulsPlayer.FishSoul2 = true;
-      player1.fishingSkill += 60;
-      player1.sonarPotion = true;
-      player1.cratePotion = true;
-      player1.accFishingLine = true;
-      player1.accTackleBox = true;
-      player1.accFishFinder = true;
-      player1.accLavaFishing = true;
-      player.AddEffect<TrawlerGel>(item);
-      player.AddEffect<TrawlerSporeSac>(item);
-      player1.arcticDivingGear = true;
-      player1.accFlipper = true;
-      player1.accDivingHelm = true;
-      player1.iceSkate = true;
-      if (((Entity) player1).wet)
-        Lighting.AddLight((int) ((Entity) player1).Center.X / 16, (int) ((Entity) player1).Center.Y / 16, 0.2f, 0.8f, 0.9f);
-      player.AddEffect<TrawlerJump>(item);
-      player1.jumpBoost = true;
-      player1.noFallDmg = true;
+        public override Header ToggleHeader => Header.GetHeader<TrawlerHeader>();
+        public override int ToggleItemType => ItemID.SporeSac;
+        public override bool ExtraAttackEffect => true;
+        
+        public override void PostUpdateEquips(Player player)
+        {
+            if (player.whoAmI == Main.myPlayer)
+            {
+                player.sporeSac = true;
+                player.SporeSac(EffectItem(player));
+            }
+        }
     }
-
-    public virtual void AddRecipes()
+    public class TrawlerJump : AccessoryEffect
     {
-      this.CreateRecipe(1).AddIngredient((Mod) null, "AnglerEnchant", 1).AddIngredient(3252, 1).AddIngredient(1861, 1).AddIngredient(4987, 1).AddIngredient(3336, 1).AddIngredient(2296, 1).AddIngredient(2294, 1).AddIngredient(2308, 1).AddIngredient(2341, 1).AddIngredient(3211, 1).AddIngredient(2331, 1).AddIngredient(2428, 1).AddIngredient(2491, 1).AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet")).Register();
+        public override Header ToggleHeader => Header.GetHeader<TrawlerHeader>();
+        public override int ToggleItemType => ModContent.ItemType<TrawlerSoul>();
+        public override void PostUpdateEquips(Player player)
+        {
+            if (player.wingTime == 0)
+                player.GetJumpState(ExtraJump.TsunamiInABottle).Enable();
+        }
     }
-  }
 }

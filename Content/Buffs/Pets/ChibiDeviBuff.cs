@@ -1,32 +1,28 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Pets.ChibiDeviBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.Pets;
+﻿using FargowiltasSouls.Content.Projectiles.Pets;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Pets
 {
-  public class ChibiDeviBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class ChibiDeviBuff : ModBuff
     {
-      Main.buffNoTimeDisplay[this.Type] = true;
-      Main.lightPet[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Chibi Devi");
+            // Description.SetDefault("She's interested in 'you'");
+            Main.buffNoTimeDisplay[Type] = true;
+            Main.lightPet[Type] = true;
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.buffTime[buffIndex] = 18000;
-      player.FargoSouls().ChibiDevi = true;
-      if (player.ownedProjectileCounts[ModContent.ProjectileType<ChibiDevi>()] > 0 || ((Entity) player).whoAmI != Main.myPlayer)
-        return;
-      Projectile.NewProjectile(player.GetSource_Buff(buffIndex), ((Entity) player).Center, Vector2.Zero, ModContent.ProjectileType<ChibiDevi>(), 0, 0.0f, ((Entity) player).whoAmI, 0.0f, 0.0f, 0.0f);
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.buffTime[buffIndex] = 18000;
+            player.FargoSouls().ChibiDevi = true;
+            if (player.ownedProjectileCounts[ModContent.ProjectileType<ChibiDevi>()] <= 0 && player.whoAmI == Main.myPlayer)
+            {
+                Projectile.NewProjectile(player.GetSource_Buff(buffIndex), player.Center, Vector2.Zero, ModContent.ProjectileType<ChibiDevi>(), 0, 0f, player.whoAmI);
+            }
+        }
     }
-  }
 }

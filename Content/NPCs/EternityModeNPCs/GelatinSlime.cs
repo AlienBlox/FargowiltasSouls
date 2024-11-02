@@ -1,161 +1,189 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.GelatinSlime
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Bosses.VanillaEternity;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.GameContent.Bestiary;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs
 {
-  public class GelatinSlime : ModNPC
-  {
-    public virtual string Texture => "Terraria/Images/NPC_658";
-
-    public virtual void SetStaticDefaults()
+    public class GelatinSlime : ModNPC
     {
-      Main.npcFrameCount[this.NPC.type] = 2;
-      NPCID.Sets.TrailCacheLength[this.NPC.type] = 6;
-      NPCID.Sets.TrailingMode[this.NPC.type] = 1;
-      NPCID.Sets.CantTakeLunchMoney[this.Type] = true;
-      NPCID.Sets.SpecificDebuffImmunity[this.Type] = NPCID.Sets.SpecificDebuffImmunity[657];
-      NPCID.Sets.BossBestiaryPriority.Add(this.NPC.type);
-    }
+        public override string Texture => "Terraria/Images/NPC_658";
 
-    public virtual void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
-    {
-      bestiaryEntry.UIInfoProvider = (IBestiaryUICollectionInfoProvider) new CommonEnemyUICollectionInfoProvider(ContentSamples.NpcBestiaryCreditIdsByNpcNetIds[657], true);
-      bestiaryEntry.Info.AddRange((IEnumerable<IBestiaryInfoElement>) new \u003C\u003Ez__ReadOnlyArray<IBestiaryInfoElement>(new IBestiaryInfoElement[3]
-      {
-        (IBestiaryInfoElement) BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.TheHallow,
-        (IBestiaryInfoElement) BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Times.DayTime,
-        (IBestiaryInfoElement) new FlavorTextBestiaryInfoElement("Mods.FargowiltasSouls.Bestiary." + ((ModType) this).Name)
-      }));
-    }
-
-    public virtual void SetDefaults()
-    {
-      this.NPC.CloneDefaults(658);
-      this.NPC.lifeMax = 40;
-      this.NPC.damage = 30;
-      this.NPC.aiStyle = -1;
-      this.NPC.knockBackResist = 0.0f;
-      this.NPC.timeLeft = NPC.activeTime * 30;
-      this.NPC.noTileCollide = true;
-      this.NPC.scale *= 1.5f;
-      this.NPC.lifeMax *= 3;
-    }
-
-    public virtual bool CanHitNPC(NPC target) => false;
-
-    public virtual bool CanHitPlayer(Player target, ref int cooldownSlot) => false;
-
-    public virtual void AI()
-    {
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.queenSlimeBoss, 657))
-      {
-        if (Main.npc[EModeGlobalNPC.queenSlimeBoss].GetGlobalNPC<QueenSlime>().RainTimer > -90)
-          Main.npc[EModeGlobalNPC.queenSlimeBoss].GetGlobalNPC<QueenSlime>().RainTimer = -90;
-        if (!WorldSavingSystem.MasochistModeReal && Main.npc[EModeGlobalNPC.queenSlimeBoss].GetGlobalNPC<QueenSlime>().StompTimer > -30)
-          Main.npc[EModeGlobalNPC.queenSlimeBoss].GetGlobalNPC<QueenSlime>().StompTimer = -30;
-      }
-      if ((double) --this.NPC.ai[0] > 0.0)
-      {
-        ((Entity) this.NPC).position.X += this.NPC.ai[2];
-        ((Entity) this.NPC).position.Y += this.NPC.ai[3];
-        this.NPC.ai[3] += this.NPC.ai[1];
-        ((Entity) this.NPC).velocity = Vector2.Zero;
-      }
-      else
-      {
-        this.NPC.noTileCollide = false;
-        if (Collision.SolidCollision(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height))
-          ((Entity) this.NPC).position.Y -= 16f;
-        if ((double) this.NPC.ai[0] < -210.0)
+        public override void SetStaticDefaults()
         {
-          if (FargoSoulsUtil.HostCheck)
-          {
-            float num = !FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.queenSlimeBoss, 657) || Main.npc[EModeGlobalNPC.queenSlimeBoss].life >= Main.npc[EModeGlobalNPC.queenSlimeBoss].lifeMax / 2 ? 8f : 12f;
-            for (int index = 0; index < 20; ++index)
-              Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, new Vector2(Utils.NextFloat(Main.rand, -0.5f, 0.5f), Utils.NextFloat(Main.rand, -num, -4f)), 920, FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage, 1.5f), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-          }
-          this.NPC.life = 0;
-          this.NPC.HitEffect(0, 10.0, new bool?());
-          this.NPC.checkDead();
+            // DisplayName.SetDefault("Crystal Slime");
+            Main.npcFrameCount[NPC.type] = 2;
+            NPCID.Sets.TrailCacheLength[NPC.type] = 6;
+            NPCID.Sets.TrailingMode[NPC.type] = 1;
+            NPCID.Sets.CantTakeLunchMoney[Type] = true;
+
+            NPCID.Sets.SpecificDebuffImmunity[Type] = NPCID.Sets.SpecificDebuffImmunity[NPCID.QueenSlimeBoss];
+
+            NPCID.Sets.BossBestiaryPriority.Add(NPC.type);
+
+            this.ExcludeFromBestiary();
         }
-      }
-      if ((double) this.NPC.ai[0] != 0.0)
-        return;
-      ((Entity) this.NPC).velocity.Y = 12f;
-    }
 
-    public virtual bool CheckDead()
-    {
-      if (this.NPC.DeathSound.HasValue)
-      {
-        SoundStyle soundStyle = this.NPC.DeathSound.Value;
-        SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-      }
-      ((Entity) this.NPC).active = false;
-      return false;
-    }
+        public override void SetDefaults()
+        {
+            NPC.CloneDefaults(NPCID.QueenSlimeMinionBlue);
 
-    public virtual void HitEffect(NPC.HitInfo hit)
-    {
-      if (this.NPC.life > 0)
-        return;
-      for (int index1 = 0; index1 < 20; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height, 59, 0.0f, 0.0f, 0, new Color(), 1f);
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 3f);
-        Main.dust[index2].scale += 0.75f;
-      }
-    }
+            //because they will double dip on expert/master scaling otherwise
+            NPC.lifeMax = 40;
+            NPC.damage = 30;
 
-    public virtual void FindFrame(int frameHeight)
-    {
-      ++this.NPC.frameCounter;
-      if (this.NPC.frameCounter > 4.0)
-      {
-        this.NPC.frame.Y += frameHeight;
-        this.NPC.frameCounter = 0.0;
-      }
-      if (this.NPC.frame.Y < Main.npcFrameCount[this.NPC.type] * frameHeight)
-        return;
-      this.NPC.frame.Y = 0;
-    }
+            NPC.aiStyle = -1;
+            NPC.knockBackResist = 0;
+            NPC.timeLeft = NPC.activeTime * 30;
+            NPC.noTileCollide = true;
 
-    public virtual bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
-    {
-      if (!TextureAssets.Npc[658].IsLoaded)
-        return false;
-      Texture2D texture2D = TextureAssets.Npc[658].Value;
-      Rectangle frame = this.NPC.frame;
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(frame), 2f);
-      Color alpha = this.NPC.GetAlpha(drawColor);
-      SpriteEffects spriteEffects = this.NPC.spriteDirection < 1 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < NPCID.Sets.TrailCacheLength[this.NPC.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(alpha, 0.5f), (float) (NPCID.Sets.TrailCacheLength[this.NPC.type] - index) / (float) NPCID.Sets.TrailCacheLength[this.NPC.type]);
-        Vector2 oldPo = this.NPC.oldPos[index];
-        float rotation = this.NPC.rotation;
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.NPC).Size, 2f)), screenPos), new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(frame), color, rotation, vector2, this.NPC.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.NPC).Center, screenPos), new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(frame), alpha, this.NPC.rotation, vector2, this.NPC.scale, spriteEffects, 0.0f);
-      return false;
+            NPC.scale *= 1.5f;
+            NPC.lifeMax *= 3;
+        }
+
+        public override bool CanHitNPC(NPC target) => false;
+
+        public override bool CanHitPlayer(Player target, ref int cooldownSlot) => false;
+
+        public override void AI()
+        {
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.queenSlimeBoss, NPCID.QueenSlimeBoss))
+            {
+                if (Main.npc[EModeGlobalNPC.queenSlimeBoss].GetGlobalNPC<QueenSlime>().RainTimer > -90)
+                    Main.npc[EModeGlobalNPC.queenSlimeBoss].GetGlobalNPC<QueenSlime>().RainTimer = -90;
+
+                if (!WorldSavingSystem.MasochistModeReal)
+                {
+                    if (Main.npc[EModeGlobalNPC.queenSlimeBoss].GetGlobalNPC<QueenSlime>().StompTimer > -30)
+                        Main.npc[EModeGlobalNPC.queenSlimeBoss].GetGlobalNPC<QueenSlime>().StompTimer = -30;
+                }
+            }
+
+            if (--NPC.ai[0] > 0)
+            {
+                NPC.position.X += NPC.ai[2];
+                NPC.position.Y += NPC.ai[3];
+
+                NPC.ai[3] += NPC.ai[1];
+
+                NPC.velocity = Vector2.Zero;
+            }
+            else
+            {
+                NPC.noTileCollide = false;
+
+                if (Collision.SolidCollision(NPC.position, NPC.width, NPC.height))
+                    NPC.position.Y -= 16;
+
+                if (NPC.ai[0] < -210)
+                {
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        float maxSpeed =
+                            FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.queenSlimeBoss, NPCID.QueenSlimeBoss)
+                            && Main.npc[EModeGlobalNPC.queenSlimeBoss].life < Main.npc[EModeGlobalNPC.queenSlimeBoss].lifeMax / 2
+                            ? 12 : 8;
+
+                        for (int i = 0; i < 20; i++)
+                        {
+                            Projectile.NewProjectile(
+                                NPC.GetSource_FromThis(),
+                                NPC.Center,
+                                new Vector2(Main.rand.NextFloat(-0.5f, 0.5f), Main.rand.NextFloat(-maxSpeed, -4)),
+                                ProjectileID.QueenSlimeMinionBlueSpike,
+                                FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 1.5f),
+                                0f,
+                                Main.myPlayer);
+                        }
+                    }
+
+                    NPC.life = 0;
+                    NPC.HitEffect();
+                    NPC.checkDead();
+                }
+            }
+
+            if (NPC.ai[0] == 0)
+                NPC.velocity.Y = 12f;
+        }
+
+        public override bool CheckDead()
+        {
+            if (NPC.DeathSound != null)
+                SoundEngine.PlaySound(NPC.DeathSound.Value, NPC.Center);
+            NPC.active = false;
+
+            return false;
+        }
+
+        public override void HitEffect(NPC.HitInfo hit)
+        {
+            if (NPC.life <= 0)
+            {
+                for (int i = 0; i < 20; i++)
+                {
+                    int d = Dust.NewDust(NPC.position, NPC.width, NPC.height, DustID.BlueTorch);
+                    Main.dust[d].velocity *= 3f;
+                    Main.dust[d].scale += 0.75f;
+                }
+
+                //for (int i = 0; i < 2 ; i++)
+                //    if (!Main.dedServ)
+                //            Gore.NewGore(NPC.position + new Vector2(Main.rand.Next(NPC.width), Main.rand.Next(NPC.height)), NPC.velocity / 2, 1260, NPC.scale);
+            }
+        }
+
+        public override void FindFrame(int frameHeight)
+        {
+            NPC.frameCounter++;
+            if (NPC.frameCounter > 4)
+            {
+                NPC.frame.Y += frameHeight;
+                NPC.frameCounter = 0;
+            }
+            if (NPC.frame.Y >= Main.npcFrameCount[NPC.type] * frameHeight)
+                NPC.frame.Y = 0;
+        }
+
+        public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
+        {
+            if (!Terraria.GameContent.TextureAssets.Npc[NPCID.QueenSlimeMinionBlue].IsLoaded)
+                return false;
+
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Npc[NPCID.QueenSlimeMinionBlue].Value;
+            Rectangle rectangle = NPC.frame;
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = drawColor;
+            color26 = NPC.GetAlpha(color26);
+
+            SpriteEffects effects = NPC.spriteDirection < 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+
+            //spriteBatch.End(); spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Main.Transform);
+            //GameShaders.Misc["HallowBoss"].Apply(new Terraria.DataStructures.DrawData?());
+
+            for (int i = 0; i < NPCID.Sets.TrailCacheLength[NPC.type]; i++)
+            {
+                Color color27 = color26 * 0.5f;
+                color27 *= (float)(NPCID.Sets.TrailCacheLength[NPC.type] - i) / NPCID.Sets.TrailCacheLength[NPC.type];
+                Vector2 value4 = NPC.oldPos[i];
+                float num165 = NPC.rotation; //NPC.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + NPC.Size / 2f - screenPos + new Vector2(0, NPC.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, NPC.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, NPC.Center - screenPos + new Vector2(0f, NPC.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, NPC.rotation, origin2, NPC.scale, effects, 0);
+
+            //spriteBatch.End();
+            //spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
+
+            return false;
+        }
     }
-  }
 }

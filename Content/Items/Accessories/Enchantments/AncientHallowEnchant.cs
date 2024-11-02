@@ -1,65 +1,78 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.AncientHallowEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.Minions;
+﻿using FargowiltasSouls.Content.Projectiles.Minions;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class AncientHallowEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(150, 133, 100);
-
-    public override void SetDefaults()
+    public class AncientHallowEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 6;
-      this.Item.value = 180000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      AncientHallowEnchant.AddEffects(player, this.Item);
-    }
+        public override Color nameColor => new(150, 133, 100);
 
-    public static void AddEffects(Player player, Item item)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      bool toggle = player.AddEffect<AncientHallowMinion>(item);
-      int damage = fargoSoulsPlayer.ForceEffect<AncientHallowEnchant>() ? 600 : 350;
-      fargoSoulsPlayer.AddMinion(item, toggle, ModContent.ProjectileType<HallowSword>(), damage, 2f);
-    }
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
 
-    public static Color GetFairyQueenWeaponsColor(
-      float alphaChannelMultiplier,
-      float lerpToWhite,
-      float rawHueOverride)
-    {
-      double num1 = ((double) rawHueOverride + 0.5) % 1.0;
-      float num2 = 1f;
-      float num3 = 0.5f;
-      double num4 = (double) num2;
-      double num5 = (double) num3;
-      Color queenWeaponsColor = Main.hslToRgb((float) num1, (float) num4, (float) num5, byte.MaxValue);
-      if ((double) lerpToWhite != 0.0)
-        queenWeaponsColor = Color.Lerp(queenWeaponsColor, Color.White, lerpToWhite);
-      ((Color) ref queenWeaponsColor).A = (byte) ((double) ((Color) ref queenWeaponsColor).A * (double) alphaChannelMultiplier);
-      return queenWeaponsColor;
-    }
+            Item.rare = ItemRarityID.LightPurple;
+            Item.value = 180000;
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddRecipeGroup("FargowiltasSouls:AnyAncientHallowHead", 1).AddIngredient(4900, 1).AddIngredient(4901, 1).AddIngredient(495, 1).AddIngredient(4678, 1).AddIngredient(422, 50).AddTile(125).Register();
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            AddEffects(player, Item);
+        }
+
+        public static void AddEffects(Player player, Item item)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            bool minion = player.AddEffect<AncientHallowMinion>(item);
+            modPlayer.AddMinion(item, minion, ModContent.ProjectileType<HallowSword>(), 350, 2);
+        }
+
+        public static Color GetFairyQueenWeaponsColor(float alphaChannelMultiplier, float lerpToWhite, float rawHueOverride)
+        {
+            float num = rawHueOverride;
+
+            float num2 = (num + 0.5f) % 1f;
+            float saturation = 1f;
+            float luminosity = 0.5f;
+
+            Color color3 = Main.hslToRgb(num2, saturation, luminosity, byte.MaxValue);
+            //color3 *= this.Opacity;
+            if (lerpToWhite != 0f)
+            {
+                color3 = Color.Lerp(color3, Color.White, lerpToWhite);
+            }
+            color3.A = (byte)(color3.A * alphaChannelMultiplier);
+            return color3;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddRecipeGroup("FargowiltasSouls:AnyAncientHallowHead")
+                .AddIngredient(ItemID.AncientHallowedPlateMail)
+                .AddIngredient(ItemID.AncientHallowedGreaves)
+                .AddIngredient(ItemID.RainbowRod)
+                .AddIngredient(ItemID.SwordWhip) //durendal
+                .AddIngredient(ItemID.HolyWater, 50)
+                .AddTile(TileID.CrystalBall)
+                .Register();
+        }
     }
-  }
+    public class AncientHallowMinion : AccessoryEffect
+    {
+        public override int ToggleItemType => ModContent.ItemType<AncientHallowEnchant>();
+        public override Header ToggleHeader => Header.GetHeader<SpiritHeader>();
+        public override bool MinionEffect => true;
+    }
 }

@@ -1,48 +1,70 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.Misc.TophatSquirrelWeapon
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Misc;
+﻿using FargowiltasSouls.Content.Items.Misc;
 using FargowiltasSouls.Content.Projectiles.Critters;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.Misc
 {
-  public class TophatSquirrelWeapon : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class TophatSquirrelWeapon : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+            // DisplayName.SetDefault("Top Hat Squirrel");
+            // Tooltip.SetDefault("'Who knew this squirrel had phenomenal cosmic power?'");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "高顶礼帽松鼠");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "'谁能知道,这只松鼠竟然有着非凡的宇宙力量呢?'");
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 22;
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.rare = 8;
-      this.Item.useAnimation = 45;
-      this.Item.useTime = 45;
-      this.Item.DamageType = DamageClass.Magic;
-      this.Item.noMelee = true;
-      this.Item.noUseGraphic = true;
-      this.Item.useStyle = 1;
-      this.Item.knockBack = 6.6f;
-      this.Item.mana = 66;
-      this.Item.autoReuse = true;
-      this.Item.shoot = ModContent.ProjectileType<TopHatSquirrelProj>();
-      this.Item.shootSpeed = 8f;
-      this.Item.value = Item.sellPrice(0, 20, 0, 0);
-    }
+        public override void SetDefaults()
+        {
+            Item.damage = 22;
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.ItemType<TopHatSquirrelCaught>(), 10).AddIngredient(1006, 5).AddIngredient(547, 3).AddIngredient(549, 3).AddIngredient(548, 3).AddIngredient(520, 3).AddIngredient(521, 3).AddTile(134).Register();
+            Item.width = 20;
+            Item.height = 20;
+            Item.rare = ItemRarityID.Yellow;
+            Item.useAnimation = 45;
+            Item.useTime = 45;
+
+            Item.DamageType = DamageClass.Magic;
+            Item.noMelee = true;
+            Item.noUseGraphic = true;
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.knockBack = 6.6f;
+
+            Item.mana = 66;
+
+            Item.autoReuse = true;
+
+            Item.shoot = ModContent.ProjectileType<TopHatSquirrelProj>();
+            Item.shootSpeed = 8f;
+
+            Item.value = Item.sellPrice(0, 20);
+        }
+
+        //public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        //{
+        //    Projectile.NewProjectile(source, position, velocity, type, damage, knockback, player.whoAmI);
+
+        //    return false;
+        //}
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ModContent.ItemType<TopHatSquirrelCaught>(), 10)
+            .AddIngredient(ItemID.ChlorophyteBar, 5)
+            .AddIngredient(ItemID.SoulofFright, 3)
+            .AddIngredient(ItemID.SoulofSight, 3)
+            .AddIngredient(ItemID.SoulofMight, 3)
+            .AddIngredient(ItemID.SoulofLight, 3)
+            .AddIngredient(ItemID.SoulofNight, 3)
+            .AddTile(TileID.MythrilAnvil)
+
+
+            .Register();
+        }
     }
-  }
 }

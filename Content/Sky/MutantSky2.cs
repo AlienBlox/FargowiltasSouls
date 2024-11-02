@@ -1,65 +1,79 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Sky.MutantSky2
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Bosses.MutantBoss;
 using FargowiltasSouls.Core.Globals;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
-using System;
 using Terraria;
 using Terraria.Graphics.Effects;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Sky
 {
-  public class MutantSky2 : CustomSky
-  {
-    private bool isActive;
-    private float intensity;
-
-    public virtual void Update(GameTime gameTime)
+    public class MutantSky2 : CustomSky
     {
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.mutantBoss, ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>()) && ((double) Main.npc[EModeGlobalNPC.mutantBoss].ai[0] < 0.0 || (double) Main.npc[EModeGlobalNPC.mutantBoss].ai[0] > 10.0 || (double) Main.npc[EModeGlobalNPC.mutantBoss].ai[0] == 10.0 && (double) Main.npc[EModeGlobalNPC.mutantBoss].ai[1] > 120.0))
-      {
-        this.intensity += 0.01f;
-        if ((double) this.intensity <= 1.0)
-          return;
-        this.intensity = 1f;
-      }
-      else
-      {
-        this.intensity -= 0.01f;
-        if ((double) this.intensity >= 0.0)
-          return;
-        this.intensity = 0.0f;
-        ((GameEffect) this).Deactivate(Array.Empty<object>());
-      }
+        private bool isActive = false;
+        private float intensity = 0f;
+
+        public override void Update(GameTime gameTime)
+        {
+            const float increment = 0.01f;
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.mutantBoss, ModContent.NPCType<MutantBoss>())
+                && (Main.npc[EModeGlobalNPC.mutantBoss].ai[0] < 0 || Main.npc[EModeGlobalNPC.mutantBoss].ai[0] > 10
+                || Main.npc[EModeGlobalNPC.mutantBoss].ai[0] == 10 && Main.npc[EModeGlobalNPC.mutantBoss].ai[1] > 120))
+            {
+                intensity += increment;
+                if (intensity > 1f)
+                {
+                    intensity = 1f;
+                }
+            }
+            else
+            {
+                intensity -= increment;
+                if (intensity < 0f)
+                {
+                    intensity = 0f;
+                    Deactivate();
+                }
+            }
+        }
+
+        public override void Draw(SpriteBatch spriteBatch, float minDepth, float maxDepth)
+        {
+            if (maxDepth >= 0 && minDepth < 0)
+            {
+                spriteBatch.Draw(ModContent.Request<Texture2D>("FargowiltasSouls/Content/Sky/MutantSky2", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value,
+                    new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.White * intensity * 0.9f);
+            }
+        }
+
+        public override float GetCloudAlpha()
+        {
+            return 1f - intensity;
+        }
+
+        public override void Activate(Vector2 position, params object[] args)
+        {
+            isActive = true;
+        }
+
+        public override void Deactivate(params object[] args)
+        {
+            isActive = false;
+        }
+
+        public override void Reset()
+        {
+            isActive = false;
+        }
+
+        public override bool IsActive()
+        {
+            return isActive;
+        }
+
+        public override Color OnTileColor(Color inColor)
+        {
+            return new Color(Vector4.Lerp(new Vector4(0.6f, 0.9f, 1f, 1f), inColor.ToVector4(), 1f - intensity));
+        }
     }
-
-    public virtual void Draw(SpriteBatch spriteBatch, float minDepth, float maxDepth)
-    {
-      if ((double) maxDepth < 0.0 || (double) minDepth >= 0.0)
-        return;
-      spriteBatch.Draw(ModContent.Request<Texture2D>("FargowiltasSouls/Content/Sky/MutantSky2", (AssetRequestMode) 1).Value, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.op_Multiply(Color.op_Multiply(Color.White, this.intensity), 0.9f));
-    }
-
-    public virtual float GetCloudAlpha() => 1f - this.intensity;
-
-    public virtual void Activate(Vector2 position, params object[] args) => this.isActive = true;
-
-    public virtual void Deactivate(params object[] args) => this.isActive = false;
-
-    public virtual void Reset() => this.isActive = false;
-
-    public virtual bool IsActive() => this.isActive;
-
-    public virtual Color OnTileColor(Color inColor)
-    {
-      return new Color(Vector4.Lerp(new Vector4(0.6f, 0.9f, 1f, 1f), ((Color) ref inColor).ToVector4(), 1f - this.intensity));
-    }
-  }
 }

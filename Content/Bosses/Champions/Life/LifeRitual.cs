@@ -1,66 +1,56 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Life.LifeRitual
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Projectiles;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Life
 {
-  public class LifeRitual : BaseArena
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_467";
-
-    public LifeRitual()
-      : base((float) Math.PI / 140f, 1000f, ModContent.NPCType<LifeChampion>(), 87)
+    public class LifeRitual : BaseArena
     {
-    }
+        public override string Texture => "Terraria/Images/Projectile_467";
 
-    public override void SetStaticDefaults()
-    {
-      base.SetStaticDefaults();
-      Main.projFrames[this.Projectile.type] = 4;
-    }
+        public LifeRitual() : base(MathHelper.Pi / 140f, 1000f, ModContent.NPCType<LifeChampion>(), 87) { }
 
-    protected override void Movement(NPC npc)
-    {
-      if ((double) npc.ai[0] != 2.0 && (double) npc.ai[0] != 8.0)
-      {
-        ((Entity) this.Projectile).velocity = Vector2.op_Division(Vector2.op_Subtraction(((Entity) npc).Center, ((Entity) this.Projectile).Center), 30f);
-      }
-      else
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 0.95f);
-      }
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Life Seal");
+            base.SetStaticDefaults();
+            Main.projFrames[Projectile.type] = 4;
+        }
 
-    public override void AI()
-    {
-      base.AI();
-      this.Projectile.rotation += 0.77f;
-      if (++this.Projectile.frameCounter <= 6)
-        return;
-      this.Projectile.frameCounter = 0;
-      if (++this.Projectile.frame <= 3)
-        return;
-      this.Projectile.frame = 0;
-    }
+        protected override void Movement(NPC npc)
+        {
+            if (npc.ai[0] != 2f && npc.ai[0] != 8f)
+            {
+                Projectile.velocity = (npc.Center - Projectile.Center) / 30;
+            }
+            else
+            {
+                Projectile.velocity *= 0.95f;
+            }
+        }
 
-    public override void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      base.OnHitPlayer(target, info);
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(ModContent.BuffType<PurifiedBuff>(), 300, true, false);
+        public override void AI()
+        {
+            base.AI();
+
+            Projectile.rotation += 0.77f;
+            if (++Projectile.frameCounter > 6)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame > 3)
+                    Projectile.frame = 0;
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            base.OnHitPlayer(target, info);
+
+            if (WorldSavingSystem.EternityMode)
+                target.AddBuff(ModContent.BuffType<PurifiedBuff>(), 300);
+        }
     }
-  }
 }

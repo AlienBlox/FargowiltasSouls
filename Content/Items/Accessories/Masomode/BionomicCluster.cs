@@ -1,134 +1,289 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.BionomicCluster
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Items.Consumables;
 using FargowiltasSouls.Content.Items.Materials;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
 using Terraria;
-using Terraria.Audio;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class BionomicCluster : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class BionomicCluster : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
+        public override void SetStaticDefaults()
+        {
+
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
+
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.LightPurple;
+            Item.value = Item.sellPrice(0, 6);
+            Item.defense = 6;
+            Item.useTime = 180;
+            Item.useAnimation = 180;
+            Item.useStyle = ItemUseStyleID.HoldUp;
+            Item.useTurn = true;
+            Item.UseSound = SoundID.Item6;
+        }
+
+        public static void PassiveEffect(Player player, Item item)
+        {
+            player.buffImmune[BuffID.WindPushed] = true;
+            player.buffImmune[BuffID.Suffocation] = true;
+            player.buffImmune[BuffID.Chilled] = true;
+            player.buffImmune[ModContent.BuffType<GuiltyBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<LoosePocketsBuff>()] = true;
+
+            player.nightVision = true;
+
+            player.manaMagnet = true;
+            player.manaFlower = true;
+            player.AddEffect<MasoCarrotEffect>(item);
+
+            FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+            fargoPlayer.SandsofTime = true;
+            fargoPlayer.CactusImmune = true;
+            fargoPlayer.SecurityWallet = true;
+            fargoPlayer.TribalCharm = true;
+            fargoPlayer.NymphsPerfumeRespawn = true;
+            fargoPlayer.ConcentratedRainbowMatter = true;
+            player.AddEffect<RainbowHealEffect>(item);
+            fargoPlayer.FrigidGemstoneItem = item;
+            player.AddEffect<StabilizedGravity>(item);
+        }
+
+        public override void UpdateInventory(Player player) => PassiveEffect(player, Item);
+        public override void UpdateVanity(Player player) => PassiveEffect(player, Item);
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            PassiveEffect(player, Item);
+
+            FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+
+            // Concentrated rainbow matter
+            player.buffImmune[ModContent.BuffType<FlamesoftheUniverseBuff>()] = true;
+            player.AddEffect<RainbowSlimeMinion>(Item);
+
+            // Dragon fang
+            player.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<CrippledBuff>()] = true;
+            player.AddEffect<ClippedEffect>(Item);
+
+            // Frigid gemstone
+            player.buffImmune[BuffID.Frostburn] = true;
+
+            // Wretched pouch
+            player.buffImmune[BuffID.ShadowFlame] = true;
+            player.buffImmune[ModContent.BuffType<ShadowflameBuff>()] = true;
+            player.AddEffect<WretchedPouchEffect>(Item);
+
+            // Sands of time
+            player.buffImmune[BuffID.WindPushed] = true;
+            fargoPlayer.SandsofTime = true;
+
+            // Squeaky toy
+            player.buffImmune[ModContent.BuffType<Buffs.Masomode.SqueakyToyBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<GuiltyBuff>()] = true;
+            player.AddEffect<SqueakEffect>(Item);
+
+            // Tribal charm
+            player.buffImmune[BuffID.Webbed] = true;
+            player.buffImmune[ModContent.BuffType<PurifiedBuff>()] = true;
+            fargoPlayer.TribalCharm = true;
+            fargoPlayer.TribalCharmEquipped = true;
+            player.AddEffect<TribalCharmClickBonus>(Item);
+
+            // Mystic skull
+            player.buffImmune[BuffID.Suffocation] = true;
+            player.manaMagnet = true;
+            player.manaFlower = true;
+
+            // Security wallet
+            player.buffImmune[ModContent.BuffType<MidasBuff>()] = true;
+            fargoPlayer.SecurityWallet = true;
+
+            // Carrot
+            player.nightVision = true;
+            player.AddEffect<MasoCarrotEffect>(Item);
+
+            // Nymph's perfume
+            player.buffImmune[BuffID.Lovestruck] = true;
+            player.buffImmune[ModContent.BuffType<LovestruckBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<HexedBuff>()] = true;
+            player.buffImmune[BuffID.Stinky] = true;
+            fargoPlayer.NymphsPerfumeRespawn = true;
+            player.AddEffect<NymphPerfumeEffect>(Item);
+
+            // Tim's concoction
+            player.AddEffect<TimsConcoctionEffect>(Item);
+
+            // Wyvern feather
+            player.AddEffect<WyvernBalls>(Item);
+        }
+
+        public override void UseItemFrame(Player player) => SandsofTime.Use(player);
+        public override bool? UseItem(Player player) => true;
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ModContent.ItemType<ConcentratedRainbowMatter>())
+            .AddIngredient(ModContent.ItemType<WyvernFeather>())
+            .AddIngredient(ModContent.ItemType<FrigidGemstone>())
+            .AddIngredient(ModContent.ItemType<SandsofTime>())
+            .AddIngredient(ModContent.ItemType<SqueakyToy>())
+            .AddIngredient(ModContent.ItemType<TribalCharm>())
+            .AddIngredient(ModContent.ItemType<MysticSkull>())
+            .AddIngredient(ModContent.ItemType<SecurityWallet>())
+            .AddIngredient(ModContent.ItemType<OrdinaryCarrot>())
+            .AddIngredient(ModContent.ItemType<WretchedPouch>())
+            .AddIngredient(ModContent.ItemType<NymphsPerfume>())
+            .AddIngredient(ModContent.ItemType<TimsConcoction>())
+            .AddIngredient(ItemID.HallowedBar, 5)
+            .AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 10)
+
+            .AddTile(TileID.MythrilAnvil)
+            .DisableDecraft()
+            .Register();
+        }
+        public override bool CanRightClick() => true;
+        public override void RightClick(Player player)
+        {
+            player.ReplaceItem(Item, ModContent.ItemType<BionomicClusterInactive>());
+        }
+    }
+    public class BionomicClusterInactive : SoulsItem
     {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 6;
-      this.Item.value = Item.sellPrice(0, 6, 0, 0);
-      this.Item.defense = 6;
-      this.Item.useTime = 180;
-      this.Item.useAnimation = 180;
-      this.Item.useStyle = 4;
-      this.Item.useTurn = true;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item6);
+        public override bool Eternity => true;
+
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 0;
+        }
+
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Yellow;
+            Item.value = Item.sellPrice(0, 6);
+            Item.defense = 6;
+            Item.useTime = 180;
+            Item.useAnimation = 180;
+            Item.useStyle = ItemUseStyleID.HoldUp;
+            Item.useTurn = true;
+            Item.UseSound = SoundID.Item6;
+        }
+
+        public static void PassiveEffect(Player player, Item item)
+        {
+            player.buffImmune[BuffID.WindPushed] = true;
+            player.buffImmune[BuffID.Suffocation] = true;
+            player.buffImmune[BuffID.Chilled] = true;
+            player.buffImmune[ModContent.BuffType<GuiltyBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<LoosePocketsBuff>()] = true;
+
+            player.nightVision = true;
+
+            player.manaMagnet = true;
+            player.manaFlower = true;
+            player.AddEffect<MasoCarrotEffect>(item);
+
+            FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+            fargoPlayer.SandsofTime = true;
+            fargoPlayer.SecurityWallet = true;
+            fargoPlayer.TribalCharm = true;
+            fargoPlayer.NymphsPerfumeRespawn = true;
+            fargoPlayer.ConcentratedRainbowMatter = true;
+            player.AddEffect<RainbowHealEffect>(item);
+            fargoPlayer.FrigidGemstoneItem = item;
+            player.AddEffect<StabilizedGravity>(item);
+        }
+
+        public override void UpdateInventory(Player player) { return; }//PassiveEffect(player, Item);
+        public override void UpdateVanity(Player player) { return; }//PassiveEffect(player, Item);
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            PassiveEffect(player, Item);
+
+            FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+
+            // Concentrated rainbow matter
+            player.buffImmune[ModContent.BuffType<FlamesoftheUniverseBuff>()] = true;
+            player.AddEffect<RainbowSlimeMinion>(Item);
+
+            // Dragon fang
+            player.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<CrippledBuff>()] = true;
+            player.AddEffect<ClippedEffect>(Item);
+
+            // Frigid gemstone
+            player.buffImmune[BuffID.Frostburn] = true;
+
+            // Wretched pouch
+            player.buffImmune[BuffID.ShadowFlame] = true;
+            player.buffImmune[ModContent.BuffType<ShadowflameBuff>()] = true;
+            player.AddEffect<WretchedPouchEffect>(Item);
+
+            // Sands of time
+            player.buffImmune[BuffID.WindPushed] = true;
+            fargoPlayer.SandsofTime = true;
+
+            // Squeaky toy
+            player.buffImmune[ModContent.BuffType<Buffs.Masomode.SqueakyToyBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<GuiltyBuff>()] = true;
+            player.AddEffect<SqueakEffect>(Item);
+
+            // Tribal charm
+            player.buffImmune[BuffID.Webbed] = true;
+            player.buffImmune[ModContent.BuffType<PurifiedBuff>()] = true;
+            fargoPlayer.TribalCharm = true;
+            fargoPlayer.TribalCharmEquipped = true;
+            player.AddEffect<TribalCharmClickBonus>(Item);
+
+            // Mystic skull
+            player.buffImmune[BuffID.Suffocation] = true;
+            player.manaMagnet = true;
+            player.manaFlower = true;
+
+            // Security wallet
+            player.buffImmune[ModContent.BuffType<MidasBuff>()] = true;
+            fargoPlayer.SecurityWallet = true;
+
+            // Carrot
+            player.nightVision = true;
+            player.AddEffect<MasoCarrotEffect>(Item);
+
+            // Nymph's perfume
+            player.buffImmune[BuffID.Lovestruck] = true;
+            player.buffImmune[ModContent.BuffType<LovestruckBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<HexedBuff>()] = true;
+            player.buffImmune[BuffID.Stinky] = true;
+            fargoPlayer.NymphsPerfumeRespawn = true;
+            player.AddEffect<NymphPerfumeEffect>(Item);
+
+            // Tim's concoction
+            player.AddEffect<TimsConcoctionEffect>(Item);
+        }
+
+        public override void UseItemFrame(Player player) => SandsofTime.Use(player);
+        public override bool? UseItem(Player player) => true;
+
+        public override bool CanRightClick() => true;
+        public override void RightClick(Player player)
+        {
+            player.ReplaceItem(Item, ModContent.ItemType<BionomicCluster>());
+        }
     }
-
-    public static void PassiveEffect(Player player, Item item)
-    {
-      player.buffImmune[194] = true;
-      player.buffImmune[68] = true;
-      player.buffImmune[46] = true;
-      player.buffImmune[ModContent.BuffType<GuiltyBuff>()] = true;
-      player.buffImmune[ModContent.BuffType<LoosePocketsBuff>()] = true;
-      player.nightVision = true;
-      player.manaMagnet = true;
-      player.manaFlower = true;
-      player.AddEffect<MasoCarrotEffect>(item);
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      fargoSoulsPlayer.SandsofTime = true;
-      fargoSoulsPlayer.CactusImmune = true;
-      fargoSoulsPlayer.SecurityWallet = true;
-      fargoSoulsPlayer.TribalCharm = true;
-      fargoSoulsPlayer.NymphsPerfumeRespawn = true;
-      fargoSoulsPlayer.ConcentratedRainbowMatter = true;
-      player.AddEffect<RainbowHealEffect>(item);
-      fargoSoulsPlayer.FrigidGemstoneItem = item;
-      player.AddEffect<StabilizedGravity>(item);
-    }
-
-    public virtual void UpdateInventory(Player player)
-    {
-      BionomicCluster.PassiveEffect(player, this.Item);
-    }
-
-    public virtual void UpdateVanity(Player player)
-    {
-      BionomicCluster.PassiveEffect(player, this.Item);
-    }
-
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      BionomicCluster.PassiveEffect(player, this.Item);
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      player.buffImmune[ModContent.BuffType<FlamesoftheUniverseBuff>()] = true;
-      player.AddEffect<RainbowSlimeMinion>(this.Item);
-      player.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
-      player.buffImmune[ModContent.BuffType<CrippledBuff>()] = true;
-      player.AddEffect<ClippedEffect>(this.Item);
-      player.buffImmune[44] = true;
-      player.buffImmune[153] = true;
-      player.buffImmune[ModContent.BuffType<ShadowflameBuff>()] = true;
-      player.AddEffect<WretchedPouchEffect>(this.Item);
-      player.buffImmune[194] = true;
-      fargoSoulsPlayer.SandsofTime = true;
-      player.buffImmune[ModContent.BuffType<SqueakyToyBuff>()] = true;
-      player.buffImmune[ModContent.BuffType<GuiltyBuff>()] = true;
-      player.AddEffect<SqueakEffect>(this.Item);
-      player.buffImmune[149] = true;
-      player.buffImmune[ModContent.BuffType<PurifiedBuff>()] = true;
-      fargoSoulsPlayer.TribalCharm = true;
-      fargoSoulsPlayer.TribalCharmEquipped = true;
-      player.AddEffect<TribalCharmClickBonus>(this.Item);
-      player.buffImmune[68] = true;
-      player.manaMagnet = true;
-      player.manaFlower = true;
-      player.buffImmune[ModContent.BuffType<MidasBuff>()] = true;
-      fargoSoulsPlayer.SecurityWallet = true;
-      player.nightVision = true;
-      player.AddEffect<MasoCarrotEffect>(this.Item);
-      player.buffImmune[119] = true;
-      player.buffImmune[ModContent.BuffType<LovestruckBuff>()] = true;
-      player.buffImmune[ModContent.BuffType<HexedBuff>()] = true;
-      player.buffImmune[120] = true;
-      fargoSoulsPlayer.NymphsPerfumeRespawn = true;
-      player.AddEffect<NymphPerfumeEffect>(this.Item);
-      player.AddEffect<TimsConcoctionEffect>(this.Item);
-      player.AddEffect<WyvernBalls>(this.Item);
-    }
-
-    public virtual void UseItemFrame(Player player) => SandsofTime.Use(player);
-
-    public virtual bool? UseItem(Player player) => new bool?(true);
-
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.ItemType<ConcentratedRainbowMatter>(), 1).AddIngredient(ModContent.ItemType<WyvernFeather>(), 1).AddIngredient(ModContent.ItemType<FrigidGemstone>(), 1).AddIngredient(ModContent.ItemType<SandsofTime>(), 1).AddIngredient(ModContent.ItemType<SqueakyToy>(), 1).AddIngredient(ModContent.ItemType<TribalCharm>(), 1).AddIngredient(ModContent.ItemType<MysticSkull>(), 1).AddIngredient(ModContent.ItemType<SecurityWallet>(), 1).AddIngredient(ModContent.ItemType<OrdinaryCarrot>(), 1).AddIngredient(ModContent.ItemType<WretchedPouch>(), 1).AddIngredient(ModContent.ItemType<NymphsPerfume>(), 1).AddIngredient(ModContent.ItemType<TimsConcoction>(), 1).AddIngredient(1225, 5).AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 10).AddTile(134).Register();
-    }
-
-    public virtual bool CanRightClick() => true;
-
-    public virtual void RightClick(Player player)
-    {
-      player.ReplaceItem(this.Item, ModContent.ItemType<BionomicClusterInactive>());
-    }
-  }
 }

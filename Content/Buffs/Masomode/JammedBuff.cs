@@ -1,26 +1,26 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.JammedBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class JammedBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class JammedBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Jammed");
+            // Description.SetDefault("Your ranged weapons are faulty");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "卡壳");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "你的远程武器出故障了");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().Jammed = true;
+        public override void Update(Player player, ref int buffIndex)
+        {
+            //all ranged weapons shoot confetti 
+            player.FargoSouls().Jammed = true;
+
+            player.GetDamage(DamageClass.Ranged) *= 0.6f;
+        }
     }
-  }
 }

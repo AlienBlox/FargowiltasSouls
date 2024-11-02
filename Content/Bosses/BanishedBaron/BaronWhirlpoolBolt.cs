@@ -1,96 +1,98 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.BanishedBaron.BaronWhirlpoolBolt
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Systems;
-using Microsoft.Xna.Framework;
+﻿using FargowiltasSouls.Core.Systems;
 using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.BanishedBaron
 {
-  public class BaronWhirlpoolBolt : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_385";
 
-    public virtual void SetStaticDefaults()
+    public class BaronWhirlpoolBolt : ModProjectile
     {
-      Main.projFrames[this.Type] = 3;
-      ProjectileID.Sets.TrailCacheLength[this.Type] = 10;
-      ProjectileID.Sets.TrailingMode[this.Type] = 2;
-    }
+        public override string Texture => "Terraria/Images/Projectile_385";
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Banished Baron Mine Shrapnel");
+            Main.projFrames[Type] = 3;
+            ProjectileID.Sets.TrailCacheLength[Type] = 10;
+            ProjectileID.Sets.TrailingMode[Type] = 2;
+        }
+        public override void SetDefaults()
+        {
+            Projectile.width = 62;
+            Projectile.height = 62;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.penetrate = 1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.scale = 1f;
+            Projectile.light = 1;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 62;
-      ((Entity) this.Projectile).height = 62;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.penetrate = 1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.scale = 1f;
-      this.Projectile.light = 1f;
-    }
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(BuffID.Bleeding, 60 * 6);
+            if (!WorldSavingSystem.EternityMode)
+            {
+                return;
+            }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(30, 360, true, false);
-      int num = WorldSavingSystem.EternityMode ? 1 : 0;
-    }
+        }
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
+            => Projectile.Distance(FargoSoulsUtil.ClosestPointInHitbox(targetHitbox, Projectile.Center)) < projHitbox.Width / 2;
 
-    public virtual bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      return new bool?((double) ((Entity) this.Projectile).Distance(FargoSoulsUtil.ClosestPointInHitbox(targetHitbox, ((Entity) this.Projectile).Center)) < (double) (projHitbox.Width / 2));
-    }
+        public override void AI()
+        {
+            ref float variant = ref Projectile.ai[0];
 
-    public virtual void AI()
-    {
-      ref float local = ref this.Projectile.ai[0];
-      if ((double) ++this.Projectile.localAI[0] > 600.0)
-        this.Projectile.Kill();
-      if (!this.Projectile.tileCollide && (double) this.Projectile.localAI[0] > (double) (60 * this.Projectile.MaxUpdates) && (double) local == 1.0 && !WorldSavingSystem.MasochistModeReal)
-      {
-        Tile tileSafely = Framing.GetTileSafely(((Entity) this.Projectile).Center);
-        if (!((Tile) ref tileSafely).HasUnactuatedTile || !Main.tileSolid[(int) ((Tile) ref tileSafely).TileType] || Main.tileSolidTop[(int) ((Tile) ref tileSafely).TileType])
-          this.Projectile.tileCollide = true;
-      }
-      if (++this.Projectile.frameCounter > 2)
-      {
-        if (++this.Projectile.frame >= Main.projFrames[this.Type])
-          this.Projectile.frame = 0;
-        this.Projectile.frameCounter = 0;
-      }
-      float num1 = local;
-      if ((double) num1 != 1.0)
-      {
-        if ((double) num1 != 2.0)
-          return;
-        int num2 = Math.Sign(this.Projectile.ai[1]);
-        int num3 = WorldSavingSystem.MasochistModeReal ? 14 : (WorldSavingSystem.EternityMode ? 12 : 10);
-        if ((double) Math.Abs(((Entity) this.Projectile).velocity.X) >= (double) num3)
-          return;
-        ((Entity) this.Projectile).velocity.X += (float) num2 * 0.12f;
-      }
-      else
-      {
-        int num4 = Math.Sign(((Entity) this.Projectile).velocity.X);
-        int num5 = WorldSavingSystem.MasochistModeReal ? 16 : (WorldSavingSystem.EternityMode ? 14 : 12);
-        if ((double) Math.Abs(((Entity) this.Projectile).velocity.X) >= (double) num5)
-          return;
-        ((Entity) this.Projectile).velocity.X += (float) num4 * 0.06f;
-      }
-    }
+            if (++Projectile.localAI[0] > 600f)
+            {
+                Projectile.Kill();
+            }
+            //a bit after spawning, become tangible when it finds an open space
+            if (!Projectile.tileCollide && Projectile.localAI[0] > 60 * Projectile.MaxUpdates && variant == 1 && !WorldSavingSystem.MasochistModeReal)
+            {
+                Tile tile = Framing.GetTileSafely(Projectile.Center);
+                if (!(tile.HasUnactuatedTile && Main.tileSolid[tile.TileType] && !Main.tileSolidTop[tile.TileType]))
+                    Projectile.tileCollide = true;
+            }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      FargoSoulsUtil.ProjectileWithTrailDraw(this.Projectile, lightColor, additiveTrail: true, alsoAdditiveMainSprite: false);
-      return false;
+            //animate
+            if (++Projectile.frameCounter > 2)
+            {
+                if (++Projectile.frame >= Main.projFrames[Type])
+                {
+                    Projectile.frame = 0;
+                }
+                Projectile.frameCounter = 0;
+            }
+
+            switch (variant)
+            {
+                case 1: //underwater whirlpool, go straight out
+                    int sign = Math.Sign(Projectile.velocity.X);
+                    int maxSpeed = WorldSavingSystem.MasochistModeReal ? 16 : WorldSavingSystem.EternityMode ? 14 : 12;
+                    if (Math.Abs(Projectile.velocity.X) < maxSpeed)
+                    {
+                        Projectile.velocity.X += sign * 0.06f;
+                    }
+                    break;
+                case 2: //arena whirlpool, curve back in
+                    int sign2 = Math.Sign(Projectile.ai[1]);
+                    int maxSpeed2 = WorldSavingSystem.MasochistModeReal ? 14 : WorldSavingSystem.EternityMode ? 12 : 10;
+                    if (Math.Abs(Projectile.velocity.X) < maxSpeed2)
+                    {
+                        Projectile.velocity.X += sign2 * 0.12f;
+                    }
+                    break;
+            }
+        }
+        public override bool PreDraw(ref Microsoft.Xna.Framework.Color lightColor)
+        {
+            FargoSoulsUtil.ProjectileWithTrailDraw(Projectile, lightColor, additiveTrail: true, alsoAdditiveMainSprite: false);
+            return false;
+        }
     }
-  }
 }

@@ -1,31 +1,26 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.ReverseManaFlowBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class ReverseManaFlowBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class ReverseManaFlowBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Reverse Mana Flow");
+            // Description.SetDefault("Your magic weapons cost life instead of mana");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "反魔力流");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "魔法武器消耗生命,而不是法力");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().ReverseManaFlow = true;
-      ref StatModifier local = ref player.GetDamage(DamageClass.Magic);
-      local = StatModifier.op_Multiply(local, 0.25f);
-      if (!player.HeldItem.CountsAsClass(DamageClass.Magic))
-        return;
-      player.FargoSouls().AttackSpeed -= 0.5f;
+        public override void Update(Player player, ref int buffIndex)
+        {
+            //mana cost also damages
+            player.FargoSouls().ReverseManaFlow = true;
+
+            player.GetDamage(DamageClass.Summon) *= 0.6f;
+        }
     }
-  }
 }

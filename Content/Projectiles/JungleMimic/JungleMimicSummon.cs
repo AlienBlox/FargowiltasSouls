@@ -1,139 +1,163 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.JungleMimic.JungleMimicSummon
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Minions;
+﻿using FargowiltasSouls.Content.Buffs.Minions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.JungleMimic
 {
-  public class JungleMimicSummon : ModProjectile
-  {
-    public int counter;
-    public bool trailbehind;
-
-    public virtual void SetStaticDefaults()
+    public class JungleMimicSummon : ModProjectile
     {
-      Main.projPet[this.Projectile.type] = true;
-      Main.projFrames[this.Projectile.type] = 6;
-      ProjectileID.Sets.MinionSacrificable[this.Projectile.type] = true;
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-      ProjectileID.Sets.MinionTargettingFeature[this.Projectile.type] = true;
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 10;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public int counter;
+        public bool trailbehind;
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.minion = true;
-      this.Projectile.minionSlots = 2f;
-      this.Projectile.penetrate = -1;
-      this.Projectile.aiStyle = 26;
-      ((Entity) this.Projectile).width = 52;
-      ((Entity) this.Projectile).height = 56;
-      this.AIType = 266;
-      this.Projectile.usesIDStaticNPCImmunity = true;
-      this.Projectile.idStaticNPCHitCooldown = 15;
-      this.Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
-    }
-
-    public virtual bool? CanCutTiles() => new bool?(false);
-
-    public virtual bool MinionContactDamage() => true;
-
-    public virtual bool PreAI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      if (player.dead || !((Entity) player).active)
-        player.ClearBuff(ModContent.BuffType<JungleMimicSummonBuff>());
-      if (player.HasBuff(ModContent.BuffType<JungleMimicSummonBuff>()))
-        this.Projectile.timeLeft = 2;
-      ++this.counter;
-      if (this.counter % 15 == 0 && this.Projectile.owner == Main.myPlayer)
-      {
-        NPC npc = FargoSoulsUtil.NPCExists(FargoSoulsUtil.FindClosestHostileNPC(((Entity) this.Projectile).Center, 1000f, true), Array.Empty<int>());
-        if (npc != null)
+        public override void SetStaticDefaults()
         {
-          Vector2 vector2 = Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center);
-          SoundEngine.PlaySound(ref SoundID.Item11, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Vector2.op_Addition(Vector2.op_Multiply(vector2, 14f), Vector2.op_Division(((Entity) npc).velocity, 2f)), ModContent.ProjectileType<JungleMimicSummonCoin>(), this.Projectile.damage / 4, this.Projectile.knockBack, Main.myPlayer, 0.0f, 0.0f, 0.0f);
+            // DisplayName.SetDefault("Jungle Mimic");
+            Main.projPet[Projectile.type] = true;
+            Main.projFrames[Projectile.type] = 6;
+            ProjectileID.Sets.MinionSacrificable[Projectile.type] = true;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+            ProjectileID.Sets.MinionTargettingFeature[Projectile.type] = true;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 10;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-      }
-      if (this.counter > 180)
-      {
-        if (this.counter > 300)
-          this.counter = 0;
-        if (this.Projectile.owner == Main.myPlayer)
+        public override void SetDefaults()
         {
-          NPC npc = FargoSoulsUtil.NPCExists(FargoSoulsUtil.FindClosestHostileNPC(((Entity) this.Projectile).Center, 1000f, true), Array.Empty<int>());
-          if (npc != null)
-          {
-            ++this.Projectile.frameCounter;
-            this.trailbehind = true;
-            if (this.Projectile.frameCounter > 8)
-            {
-              ++this.Projectile.frame;
-              if (this.Projectile.frame > 5)
-                this.Projectile.frame = 2;
-            }
-            for (int index = 0; index < 1000; ++index)
-            {
-              if (index != ((Entity) this.Projectile).whoAmI && ((Entity) Main.projectile[index]).active && Main.projectile[index].owner == this.Projectile.owner && Main.projectile[index].type == this.Projectile.type && (double) Math.Abs(((Entity) this.Projectile).position.X - ((Entity) Main.projectile[index]).position.X) + (double) Math.Abs(((Entity) this.Projectile).position.Y - ((Entity) Main.projectile[index]).position.Y) < (double) ((Entity) this.Projectile).width)
-              {
-                if ((double) ((Entity) this.Projectile).position.X < (double) ((Entity) Main.projectile[index]).position.X)
-                  ((Entity) this.Projectile).velocity.X -= 0.05f;
-                else
-                  ((Entity) this.Projectile).velocity.X += 0.05f;
-                if ((double) ((Entity) this.Projectile).position.Y < (double) ((Entity) Main.projectile[index]).position.Y)
-                  ((Entity) this.Projectile).velocity.Y -= 0.05f;
-                else
-                  ((Entity) this.Projectile).velocity.Y += 0.05f;
-              }
-            }
-            ((Entity) this.Projectile).velocity = Vector2.Lerp(((Entity) this.Projectile).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center), 18f), 0.03f);
-            this.Projectile.rotation = 0.0f;
-            this.Projectile.tileCollide = false;
-            ((Entity) this.Projectile).direction = Math.Sign(((Entity) this.Projectile).velocity.X);
-            this.Projectile.spriteDirection = -((Entity) this.Projectile).direction;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.minion = true;
+            Projectile.minionSlots = 2f;
+            Projectile.penetrate = -1;
+            Projectile.aiStyle = 26;
+            Projectile.width = 52;
+            Projectile.height = 56;
+            AIType = ProjectileID.BabySlime;
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 15;
+            Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
+        }
+        public override bool? CanCutTiles()
+        {
             return false;
-          }
         }
-      }
-      this.trailbehind = false;
-      this.Projectile.tileCollide = true;
-      return true;
-    }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type] && this.trailbehind; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(this.Projectile.GetAlpha(lightColor), 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, this.Projectile.spriteDirection < 0 ? (SpriteEffects) 1 : (SpriteEffects) 0, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY - 4f)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, this.Projectile.spriteDirection < 0 ? (SpriteEffects) 1 : (SpriteEffects) 0, 0.0f);
-      return false;
+        public override bool MinionContactDamage()
+        {
+            return true;
+        }
+
+        public override bool PreAI()
+        {
+            Player player = Main.player[Projectile.owner];
+            if (player.dead || !player.active)
+            {
+                player.ClearBuff(ModContent.BuffType<JungleMimicSummonBuff>());
+            }
+
+            if (player.HasBuff(ModContent.BuffType<JungleMimicSummonBuff>()))
+            {
+                Projectile.timeLeft = 2;
+            }
+
+            counter++;
+            if (counter % 15 == 0)
+            {
+                if (Projectile.owner == Main.myPlayer)
+                {
+                    NPC targetNPC = FargoSoulsUtil.NPCExists(FargoSoulsUtil.FindClosestHostileNPC(Projectile.Center, 1000, true));
+                    if (targetNPC != null)
+                    {
+                        Vector2 shootVel = Projectile.SafeDirectionTo(targetNPC.Center);
+                        SoundEngine.PlaySound(SoundID.Item11, Projectile.Center);
+                        Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, shootVel * 14f + targetNPC.velocity / 2, ModContent.ProjectileType<JungleMimicSummonCoin>(), Projectile.damage / 4, Projectile.knockBack, Main.myPlayer);
+                    }
+                }
+            }
+
+            if (counter > 180)
+            {
+                if (counter > 300)
+                    counter = 0;
+
+                if (Projectile.owner == Main.myPlayer)
+                {
+                    NPC targetNPC = FargoSoulsUtil.NPCExists(FargoSoulsUtil.FindClosestHostileNPC(Projectile.Center, 1000, true));
+                    if (targetNPC != null)
+                    {
+                        Projectile.frameCounter++;
+                        trailbehind = true;
+                        if (Projectile.frameCounter > 8)
+                        {
+                            Projectile.frame++;
+                            if (Projectile.frame > 5)
+                                Projectile.frame = 2;
+                        }
+
+                        for (int index = 0; index < 1000; ++index)
+                        {
+                            if (index != Projectile.whoAmI && Main.projectile[index].active && Main.projectile[index].owner == Projectile.owner && Main.projectile[index].type == Projectile.type && (double)Math.Abs((float)(Projectile.position.X - Main.projectile[index].position.X)) + (double)Math.Abs((float)(Projectile.position.Y - Main.projectile[index].position.Y)) < Projectile.width)
+                            {
+                                if (Projectile.position.X < Main.projectile[index].position.X)
+                                {
+                                    Projectile.velocity.X -= 0.05f;
+                                }
+                                else
+                                {
+                                    Projectile.velocity.X += 0.05f;
+                                }
+                                if (Projectile.position.Y < Main.projectile[index].position.Y)
+                                {
+                                    Projectile.velocity.Y -= 0.05f;
+                                }
+                                else
+                                {
+                                    Projectile.velocity.Y += 0.05f;
+                                }
+                            }
+                        }
+
+                        Vector2 dashVel = Projectile.SafeDirectionTo(targetNPC.Center);
+                        Projectile.velocity = Vector2.Lerp(Projectile.velocity, dashVel * 18, 0.03f);
+                        Projectile.rotation = 0;
+                        Projectile.tileCollide = false;
+                        Projectile.direction = Math.Sign(Projectile.velocity.X);
+                        Projectile.spriteDirection = -Projectile.direction;
+                        return false;
+                    }
+                }
+            }
+            trailbehind = false;
+            Projectile.tileCollide = true;
+            return true;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type] && trailbehind; i++)
+            {
+                Color color27 = Projectile.GetAlpha(lightColor) * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle),
+                    color27, num165, origin2, Projectile.scale, Projectile.spriteDirection < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY - 4),
+                new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2,
+                Projectile.scale, Projectile.spriteDirection < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }
+

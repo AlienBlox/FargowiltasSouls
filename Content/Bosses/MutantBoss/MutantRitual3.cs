@@ -1,133 +1,129 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.MutantBoss.MutantRitual3
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using Terraria;
-using Terraria.GameContent;
-using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.MutantBoss
 {
-  public class MutantRitual3 : ModProjectile
-  {
-    private const float PI = 3.14159274f;
-    private const float rotationPerTick = 0.03141593f;
-    private const float threshold = 1400f;
-
-    public virtual string Texture
+    public class MutantRitual3 : ModProjectile
     {
-      get
-      {
-        return !FargoSoulsUtil.AprilFools ? "Terraria/Images/Projectile_454" : "FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphere_April";
-      }
-    }
+        public override string Texture => FargoSoulsUtil.AprilFools ?
+            "FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphere_April" :
+            "Terraria/Images/Projectile_454";
 
-    public virtual void SetStaticDefaults()
-    {
-      ((ModType) this).SetStaticDefaults();
-      Main.projFrames[this.Projectile.type] = 2;
-      ProjectileID.Sets.DrawScreenCheckFluff[this.Projectile.type] = 2400;
-    }
+        private const float PI = (float)Math.PI;
+        private const float rotationPerTick = PI / 100f;
+        private const float threshold = 1400;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 46;
-      ((Entity) this.Projectile).height = 46;
-      this.Projectile.scale *= 2f;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-    }
-
-    public virtual void AI()
-    {
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[1], ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>());
-      if (npc != null && (double) npc.ai[0] == 10.0)
-      {
-        this.Projectile.alpha -= 17;
-        if (this.Projectile.alpha < 0)
-          this.Projectile.alpha = 0;
-        ((Entity) this.Projectile).Center = ((Entity) npc).Center;
-      }
-      else
-      {
-        if (npc != null)
-          ((Entity) this.Projectile).Center = ((Entity) npc).Center;
-        ((Entity) this.Projectile).velocity = Vector2.Zero;
-        this.Projectile.alpha += 9;
-        if (this.Projectile.alpha > (int) byte.MaxValue)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.Kill();
-          return;
+            // DisplayName.SetDefault("Mutant Seal");
+            base.SetStaticDefaults();
+            Main.projFrames[Projectile.type] = 2;
+            Terraria.ID.ProjectileID.Sets.DrawScreenCheckFluff[Projectile.type] = 2400;
         }
-      }
-      this.Projectile.timeLeft = 2;
-      this.Projectile.scale = (float) (1.0 - (double) this.Projectile.alpha / (double) byte.MaxValue);
-      this.Projectile.ai[0] += (float) Math.PI / 100f;
-      if ((double) this.Projectile.ai[0] > 3.1415927410125732)
-      {
-        this.Projectile.ai[0] -= 6.28318548f;
-        this.Projectile.netUpdate = true;
-      }
-      ++this.Projectile.frameCounter;
-      if (this.Projectile.frameCounter < 6)
-        return;
-      this.Projectile.frameCounter = 0;
-      ++this.Projectile.frame;
-      if (this.Projectile.frame <= 1)
-        return;
-      this.Projectile.frame = 0;
-    }
 
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D1 = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle1;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle1).\u002Ector(0, num2, texture2D1.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle1), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      Texture2D texture2D2 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphereGlow", (AssetRequestMode) 1).Value;
-      int height = texture2D2.Height;
-      int num3 = 0;
-      Rectangle rectangle2;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle2).\u002Ector(0, num3, texture2D2.Width, height);
-      Vector2 vector2_2 = Vector2.op_Division(Utils.Size(rectangle2), 2f);
-      Color color1 = Color.Lerp(FargoSoulsUtil.AprilFools ? Color.Red : new Color(196, 247, (int) byte.MaxValue, 0), Color.Transparent, 0.8f);
-      for (int index1 = 0; index1 < 14; ++index1)
-      {
-        Vector2 vector2_3 = Utils.RotatedBy(Utils.RotatedBy(new Vector2((float) (1400.0 * (double) this.Projectile.scale / 2.0), 0.0f), (double) this.Projectile.ai[0], new Vector2()), 0.44879895448684692 * (double) index1, new Vector2());
-        for (int index2 = 0; index2 < 4; ++index2)
+        public override void SetDefaults()
         {
-          Color color2 = Color.op_Multiply(alpha, (float) (4 - index2) / 4f);
-          Vector2 vector2_4 = Vector2.op_Addition(((Entity) this.Projectile).Center, Utils.RotatedBy(vector2_3, 0.031415928155183792 * (double) -index2, new Vector2()));
-          float rotation = this.Projectile.rotation;
-          Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(vector2_4, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle1), color2, rotation, vector2_1, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-          Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(Vector2.op_Subtraction(vector2_4, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle2), Color.op_Multiply(color1, (float) (4 - index2) / 4f), this.Projectile.rotation, vector2_2, this.Projectile.scale * 1.4f, (SpriteEffects) 0, 0.0f);
+            Projectile.width = 46;
+            Projectile.height = 46;
+            Projectile.scale *= 2f;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.alpha = 255;
+            Projectile.FargoSouls().TimeFreezeImmune = true;
         }
-        Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_3), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle1), alpha, this.Projectile.rotation, vector2_1, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-        Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_3), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle2), color1, this.Projectile.rotation, vector2_2, this.Projectile.scale * 1.3f, (SpriteEffects) 0, 0.0f);
-      }
-      return false;
-    }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
+        public override void AI()
+        {
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[1], ModContent.NPCType<MutantBoss>());
+            if (npc != null && npc.ai[0] == 10)
+            {
+                Projectile.alpha -= 17;
+                if (Projectile.alpha < 0)
+                    Projectile.alpha = 0;
+                Projectile.Center = npc.Center;
+            }
+            else
+            {
+                if (npc != null)
+                    Projectile.Center = npc.Center;
+
+                Projectile.velocity = Vector2.Zero;
+                Projectile.alpha += 9;
+                if (Projectile.alpha > 255)
+                {
+                    Projectile.Kill();
+                    return;
+                }
+            }
+
+            Projectile.timeLeft = 2;
+            Projectile.scale = 1f - Projectile.alpha / 255f;
+            Projectile.ai[0] += rotationPerTick;
+            if (Projectile.ai[0] > PI)
+            {
+                Projectile.ai[0] -= 2f * PI;
+                Projectile.netUpdate = true;
+            }
+
+            Projectile.frameCounter++;
+            if (Projectile.frameCounter >= 6)
+            {
+                Projectile.frameCounter = 0;
+                Projectile.frame++;
+                if (Projectile.frame > 1)
+                    Projectile.frame = 0;
+            }
+        }
+
+        public override bool? CanDamage()
+        {
+            return false;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = Projectile.GetAlpha(lightColor);
+            Texture2D glow = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphereGlow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            int rect1 = glow.Height;
+            int rect2 = 0;
+            Rectangle glowrectangle = new(0, rect2, glow.Width, rect1);
+            Vector2 gloworigin2 = glowrectangle.Size() / 2f;
+            Color glowcolor = Color.Lerp(FargoSoulsUtil.AprilFools ? Color.Red : new Color(196, 247, 255, 0), Color.Transparent, 0.8f);
+
+            for (int x = 0; x < 14; x++)
+            {
+                Vector2 drawOffset = new Vector2(threshold * Projectile.scale / 2f, 0f).RotatedBy(Projectile.ai[0]);
+                drawOffset = drawOffset.RotatedBy(2f * PI / 14f * x);
+                const int max = 4;
+                for (int i = 0; i < max; i++)
+                {
+                    Color color27 = color26;
+                    color27 *= (float)(max - i) / max;
+                    Vector2 value4 = Projectile.Center + drawOffset.RotatedBy(rotationPerTick * -i);
+                    float num165 = Projectile.rotation;
+                    Main.EntitySpriteDraw(texture2D13, value4 - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, SpriteEffects.None, 0);
+                    Main.EntitySpriteDraw(glow, value4 - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle), glowcolor * ((float)(max - i) / max),
+                        Projectile.rotation, gloworigin2, Projectile.scale * 1.4f, SpriteEffects.None, 0);
+                }
+                Main.EntitySpriteDraw(texture2D13, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+                Main.EntitySpriteDraw(glow, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle), glowcolor,
+                    Projectile.rotation, gloworigin2, Projectile.scale * 1.3f, SpriteEffects.None, 0);
+            }
+            return false;
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
     }
-  }
 }

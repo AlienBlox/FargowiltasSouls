@@ -1,126 +1,134 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.Purified.PrimeMinionVice
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.Purified
 {
-  public class PrimeMinionVice : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class PrimeMinionVice : ModProjectile
     {
-      ProjectileID.Sets.MinionSacrificable[this.Projectile.type] = true;
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-      ProjectileID.Sets.MinionTargettingFeature[this.Projectile.type] = true;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 34;
-      ((Entity) this.Projectile).height = 38;
-      this.Projectile.netImportant = true;
-      this.Projectile.friendly = true;
-      this.Projectile.minionSlots = 1f;
-      this.Projectile.timeLeft = 18000;
-      this.Projectile.penetrate = -1;
-      this.Projectile.minion = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.tileCollide = false;
-    }
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      PatreonPlayer modPlayer = player.GetModPlayer<PatreonPlayer>();
-      if (player.dead)
-        modPlayer.PrimeMinion = false;
-      if (modPlayer.PrimeMinion)
-        this.Projectile.timeLeft = 2;
-      int index1 = -1;
-      for (int index2 = 0; index2 < Main.projectile.Length; ++index2)
-      {
-        if (Main.projectile[index2].type == ModContent.ProjectileType<PrimeMinionProj>() && ((Entity) Main.projectile[index2]).active && Main.projectile[index2].owner == this.Projectile.owner)
-          index1 = index2;
-      }
-      if (index1 == -1)
-      {
-        if (this.Projectile.owner != Main.myPlayer)
-          return;
-        this.Projectile.Kill();
-      }
-      else
-      {
-        for (int index3 = 0; index3 < 1000; ++index3)
+        public override void SetStaticDefaults()
         {
-          if (index3 != ((Entity) this.Projectile).whoAmI && ((Entity) Main.projectile[index3]).active && Main.projectile[index3].owner == this.Projectile.owner && Main.projectile[index3].type == this.Projectile.type && (double) Math.Abs(((Entity) this.Projectile).position.X - ((Entity) Main.projectile[index3]).position.X) + (double) Math.Abs(((Entity) this.Projectile).position.Y - ((Entity) Main.projectile[index3]).position.Y) < (double) ((Entity) this.Projectile).width)
-          {
-            if ((double) ((Entity) this.Projectile).position.X < (double) ((Entity) Main.projectile[index3]).position.X)
-              ((Entity) this.Projectile).velocity.X -= 0.2f;
-            else
-              ((Entity) this.Projectile).velocity.X += 0.2f;
-            if ((double) ((Entity) this.Projectile).position.Y < (double) ((Entity) Main.projectile[index3]).position.Y)
-              ((Entity) this.Projectile).velocity.Y -= 0.2f;
-            else
-              ((Entity) this.Projectile).velocity.Y += 0.2f;
-          }
+            // DisplayName.SetDefault("Prime Vice");
+            ProjectileID.Sets.MinionSacrificable[Projectile.type] = true;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+            ProjectileID.Sets.MinionTargettingFeature[Projectile.type] = true;
         }
-        bool flag = false;
-        NPC npc = (NPC) null;
-        NPC minionAttackTargetNpc = this.Projectile.OwnerMinionAttackTargetNPC;
-        if (minionAttackTargetNpc != null && minionAttackTargetNpc.CanBeChasedBy((object) this, false))
+        public override void SetDefaults()
         {
-          Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) minionAttackTargetNpc).Center, ((Entity) this.Projectile).Center);
-          Vector2 vector2_2 = Vector2.op_Subtraction(((Entity) minionAttackTargetNpc).Center, ((Entity) Main.projectile[index1]).Center);
-          if ((double) ((Vector2) ref vector2_1).Length() < 1000.0 && (double) ((Vector2) ref vector2_2).Length() < 300.0)
-          {
-            npc = minionAttackTargetNpc;
-            flag = true;
-          }
+            Projectile.width = 34;
+            Projectile.height = 38;
+            Projectile.netImportant = true;
+            Projectile.friendly = true;
+            Projectile.minionSlots = 1f;
+            Projectile.timeLeft = 18000;
+            Projectile.penetrate = -1;
+            Projectile.minion = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.tileCollide = false;
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 15;
         }
-        else if (!flag)
+        public override void AI()
         {
-          float num = 1000f;
-          for (int index4 = 0; index4 < 200; ++index4)
-          {
-            if (Main.npc[index4].CanBeChasedBy((object) this, false))
+            Player player = Main.player[Projectile.owner];
+            PatreonPlayer patronPlayer = player.GetModPlayer<PatreonPlayer>();
+            if (player.dead) patronPlayer.PrimeMinion = false;
+            if (patronPlayer.PrimeMinion) Projectile.timeLeft = 2;
+
+            int head = -1;
+            for (int i = 0; i < Main.projectile.Length; i++)
             {
-              Vector2 vector2_3 = Vector2.op_Subtraction(((Entity) Main.npc[index4]).Center, ((Entity) this.Projectile).Center);
-              Vector2 vector2_4 = Vector2.op_Subtraction(((Entity) Main.npc[index4]).Center, ((Entity) Main.projectile[index1]).Center);
-              if ((double) ((Vector2) ref vector2_3).Length() < (double) num && (double) ((Vector2) ref vector2_4).Length() < 300.0)
-              {
-                num = ((Vector2) ref vector2_3).Length();
-                npc = Main.npc[index4];
-                flag = true;
-              }
+                if (Main.projectile[i].type == ModContent.ProjectileType<PrimeMinionProj>() && Main.projectile[i].active && Main.projectile[i].owner == Projectile.owner)
+                {
+                    head = i;
+                }
             }
-          }
+            if (head == -1)
+            {
+                if (Projectile.owner == Main.myPlayer)
+                    Projectile.Kill();
+            }
+            else
+            {
+                for (int index = 0; index < 1000; ++index)
+                {
+                    if (index != Projectile.whoAmI && Main.projectile[index].active && Main.projectile[index].owner == Projectile.owner && Main.projectile[index].type == Projectile.type && (double)Math.Abs((float)(Projectile.position.X - Main.projectile[index].position.X)) + (double)Math.Abs((float)(Projectile.position.Y - Main.projectile[index].position.Y)) < (double)Projectile.width)
+                    {
+                        if (Projectile.position.X < Main.projectile[index].position.X)
+                        {
+                            Projectile.velocity.X -= 0.2f;
+                        }
+                        else
+                        {
+                            Projectile.velocity.X += 0.2f;
+                        }
+                        if (Projectile.position.Y < Main.projectile[index].position.Y)
+                        {
+                            Projectile.velocity.Y -= 0.2f;
+                        }
+                        else
+                        {
+                            Projectile.velocity.Y += 0.2f;
+                        }
+                    }
+                }
+
+                bool targetting = false;
+                NPC targetnpc = null;
+                NPC minionAttackTargetNpc = Projectile.OwnerMinionAttackTargetNPC;
+                if (minionAttackTargetNpc != null && minionAttackTargetNpc.CanBeChasedBy((object)this, false))
+                {
+                    Vector2 distancetotarget = minionAttackTargetNpc.Center - Projectile.Center;
+                    Vector2 headtoTarget = minionAttackTargetNpc.Center - Main.projectile[head].Center;
+                    if (distancetotarget.Length() < 1000 && headtoTarget.Length() < 300)
+                    {
+                        targetnpc = minionAttackTargetNpc;
+                        targetting = true;
+                    }
+                }
+                else if (!targetting)
+                {
+                    float distancemax = 1000;
+                    for (int index = 0; index < 200; ++index)
+                    {
+                        if (Main.npc[index].CanBeChasedBy((object)this, false))
+                        {
+                            Vector2 distancetotarget = Main.npc[index].Center - Projectile.Center;
+                            Vector2 headtotarget = Main.npc[index].Center - Main.projectile[head].Center;
+                            if (distancetotarget.Length() < distancemax && headtotarget.Length() < 300)
+                            {
+                                distancemax = distancetotarget.Length();
+                                targetnpc = Main.npc[index];
+                                targetting = true;
+                            }
+                        }
+                    }
+                }
+
+                if (targetting)
+                {
+                    Projectile.direction = Projectile.spriteDirection = Math.Sign(targetnpc.Center.X - Projectile.Center.X);
+
+                    float movespeed = Math.Max(Projectile.Distance(targetnpc.Center) / 40f, 18f);
+
+                    if (Projectile.Distance(targetnpc.Center) > 32)
+                        Projectile.velocity = Vector2.Lerp(Projectile.velocity, Projectile.SafeDirectionTo(targetnpc.Center) * movespeed, 0.05f);
+                }
+                else
+                {
+                    Projectile.direction = Projectile.spriteDirection = Main.projectile[head].spriteDirection;
+
+                    float movespeed = Math.Max(Projectile.Distance(Main.projectile[head].Center) / 40f, 14f);
+
+                    if (Projectile.Distance(Main.projectile[head].Center) > 1000)
+                        Projectile.Center = Main.projectile[head].Center;
+                    else if (Projectile.Distance(Main.projectile[head].Center) > 32)
+                        Projectile.velocity = Vector2.Lerp(Projectile.velocity, Projectile.SafeDirectionTo(Main.projectile[head].Center) * movespeed, 0.04f);
+                }
+
+                Projectile.position += Main.projectile[head].velocity * 0.8f;
+            }
         }
-        if (flag)
-        {
-          ((Entity) this.Projectile).direction = this.Projectile.spriteDirection = Math.Sign(((Entity) npc).Center.X - ((Entity) this.Projectile).Center.X);
-          float num = Math.Max(((Entity) this.Projectile).Distance(((Entity) npc).Center) / 40f, 18f);
-          if ((double) ((Entity) this.Projectile).Distance(((Entity) npc).Center) > 32.0)
-            ((Entity) this.Projectile).velocity = Vector2.Lerp(((Entity) this.Projectile).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center), num), 0.05f);
-        }
-        else
-        {
-          ((Entity) this.Projectile).direction = this.Projectile.spriteDirection = Main.projectile[index1].spriteDirection;
-          float num = Math.Max(((Entity) this.Projectile).Distance(((Entity) Main.projectile[index1]).Center) / 40f, 14f);
-          if ((double) ((Entity) this.Projectile).Distance(((Entity) Main.projectile[index1]).Center) > 32.0)
-            ((Entity) this.Projectile).velocity = Vector2.Lerp(((Entity) this.Projectile).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) Main.projectile[index1]).Center), num), 0.04f);
-        }
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).position = Vector2.op_Addition(((Entity) projectile).position, Vector2.op_Multiply(((Entity) Main.projectile[index1]).velocity, 0.8f));
-      }
     }
-  }
 }

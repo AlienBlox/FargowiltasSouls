@@ -1,44 +1,39 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.BossDrops.LeashOfCthulhu
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.BossWeapons;
+﻿using FargowiltasSouls.Content.Projectiles.BossWeapons;
 using Terraria;
-using Terraria.Audio;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.BossDrops
 {
-  public class LeashOfCthulhu : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class LeashOfCthulhu : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+            // DisplayName.SetDefault("Leash of Cthulhu");
+            // Tooltip.SetDefault("'The mutilated carcass of a defeated foe...'");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "克苏鲁连枷");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "'被打败的敌人的残尸...'");
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 15;
-      ((Entity) this.Item).width = 30;
-      ((Entity) this.Item).height = 10;
-      this.Item.value = Item.sellPrice(0, 1, 0, 0);
-      this.Item.rare = 1;
-      this.Item.noMelee = true;
-      this.Item.useStyle = 5;
-      this.Item.useAnimation = 25;
-      this.Item.useTime = 25;
-      this.Item.knockBack = 4f;
-      this.Item.noUseGraphic = true;
-      this.Item.shoot = ModContent.ProjectileType<LeashFlail>();
-      this.Item.shootSpeed = 25f;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item1);
-      this.Item.DamageType = DamageClass.Melee;
-      this.Item.autoReuse = true;
+        public override void SetDefaults()
+        {
+            Item.damage = 15;
+            Item.width = 30;
+            Item.height = 10;
+            Item.value = Item.sellPrice(0, 1);
+            Item.rare = ItemRarityID.Blue;
+            Item.noMelee = true;
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.useAnimation = 25;
+            Item.useTime = 25;
+            Item.knockBack = 4f;
+            Item.noUseGraphic = true;
+            Item.shoot = ModContent.ProjectileType<LeashFlail>();
+            Item.shootSpeed = 25f;
+            Item.UseSound = SoundID.Item1;
+            Item.DamageType = DamageClass.Melee;
+            Item.autoReuse = true;
+        }
     }
-  }
 }

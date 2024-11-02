@@ -1,51 +1,46 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.Challengers.EnchantedLifeblade
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Items.BossBags;
 using FargowiltasSouls.Content.Projectiles.ChallengerItems;
 using Terraria;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.Challengers
 {
-  public class EnchantedLifeblade : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class EnchantedLifeblade : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-      Main.RegisterItemAnimation(this.Item.type, (DrawAnimation) new DrawAnimationVertical(5, 5, false));
-      ItemID.Sets.AnimatesAsSoul[this.Item.type] = true;
-      ItemID.Sets.BonusAttackSpeedMultiplier[this.Item.type] = 0.25f;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Enchanted Lifeblade");
+            // Tooltip.SetDefault("A living blade that will attack your mouse position");
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 80;
-      ((Entity) this.Item).height = 80;
-      this.Item.damage = 53;
-      this.Item.knockBack = 3f;
-      this.Item.useStyle = 1;
-      this.Item.useAnimation = this.Item.useTime = 40;
-      this.Item.DamageType = DamageClass.Melee;
-      this.Item.autoReuse = true;
-      this.Item.noUseGraphic = true;
-      this.Item.noMelee = true;
-      this.Item.rare = 5;
-      this.Item.value = Item.sellPrice(0, 10, 0, 0);
-      this.Item.shoot = ModContent.ProjectileType<EnchantedLifebladeProjectile>();
-      this.Item.shootSpeed = 30f;
-    }
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+            Main.RegisterItemAnimation(Item.type, new DrawAnimationVertical(5, 5));
+            ItemID.Sets.AnimatesAsSoul[Item.type] = true;
+            ItemID.Sets.BonusAttackSpeedMultiplier[Item.type] = 0.25f;
+        }
+        public override void SetDefaults()
+        {
+            Item.width = 80;
+            Item.height = 80;
+            Item.damage = 53;
+            Item.knockBack = 3f;
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.useAnimation = Item.useTime = 40;
+            Item.DamageType = DamageClass.Melee;
+            Item.autoReuse = true;
+            Item.noUseGraphic = true;
+            Item.noMelee = true;
+            //Item.channel = true;
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient<LifelightBag>(2).AddTile(220).DisableDecraft().Register();
+            Item.rare = ItemRarityID.Pink;
+            Item.value = Item.sellPrice(0, 10, 0, 0);
+            Item.shoot = ModContent.ProjectileType<EnchantedLifebladeProjectile>();
+            Item.shootSpeed = 30f;
+        }
+        public override void AddRecipes()
+        {
+            CreateRecipe().AddIngredient<LifelightBag>(2).AddTile(TileID.Solidifier).DisableDecraft().Register();
+        }
     }
-  }
 }

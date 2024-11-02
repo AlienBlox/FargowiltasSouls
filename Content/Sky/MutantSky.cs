@@ -1,176 +1,197 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Sky.MutantSky
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Bosses.MutantBoss;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
-using System;
 using Terraria;
 using Terraria.Graphics.Effects;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Sky
 {
-  public class MutantSky : CustomSky
-  {
-    private bool isActive;
-    private float intensity;
-    private float lifeIntensity;
-    private float specialColorLerp;
-    private Color? specialColor;
-    private int delay;
-    private readonly int[] xPos = new int[50];
-    private readonly int[] yPos = new int[50];
-
-    public virtual void Update(GameTime gameTime)
+    public class MutantSky : CustomSky
     {
-      bool useSpecialColor = false;
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.mutantBoss, ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>()) && ((double) Main.npc[EModeGlobalNPC.mutantBoss].ai[0] < 0.0 || (double) Main.npc[EModeGlobalNPC.mutantBoss].ai[0] >= 10.0))
-      {
-        this.intensity += 0.01f;
-        this.lifeIntensity = (double) Main.npc[EModeGlobalNPC.mutantBoss].ai[0] < 0.0 ? 1f : (float) (1.0 - (double) Main.npc[EModeGlobalNPC.mutantBoss].life / (double) Main.npc[EModeGlobalNPC.mutantBoss].lifeMax);
-        switch ((int) Main.npc[EModeGlobalNPC.mutantBoss].ai[0])
+        private bool isActive = false;
+        private float intensity = 0f;
+        private float lifeIntensity = 0f;
+        private float specialColorLerp = 0f;
+        private Color? specialColor = null;
+        private int delay = 0;
+        private readonly int[] xPos = new int[50];
+        private readonly int[] yPos = new int[50];
+
+        public override void Update(GameTime gameTime)
         {
-          case -5:
-            if ((double) Main.npc[EModeGlobalNPC.mutantBoss].ai[2] >= 420.0)
+            const float increment = 0.01f;
+
+            bool useSpecialColor = false;
+
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.mutantBoss, ModContent.NPCType<MutantBoss>())
+                && (Main.npc[EModeGlobalNPC.mutantBoss].ai[0] < 0 || Main.npc[EModeGlobalNPC.mutantBoss].ai[0] >= 10))
             {
-              ChangeColorIfDefault(FargoSoulsUtil.AprilFools ? new Color((int) byte.MaxValue, 180, 50) : Color.Cyan);
-              break;
+                intensity += increment;
+                lifeIntensity = Main.npc[EModeGlobalNPC.mutantBoss].ai[0] < 0 ? 1f : 1f - (float)Main.npc[EModeGlobalNPC.mutantBoss].life / Main.npc[EModeGlobalNPC.mutantBoss].lifeMax;
+
+                void ChangeColorIfDefault(Color color) //waits for bg to return to default first
+                {
+                    if (specialColor == null)
+                        specialColor = color;
+                    if (specialColor != null && specialColor == color)
+                        useSpecialColor = true;
+                }
+
+                switch ((int)Main.npc[EModeGlobalNPC.mutantBoss].ai[0])
+                {
+                    case -5:
+                        if (Main.npc[EModeGlobalNPC.mutantBoss].ai[2] >= 420)
+                            ChangeColorIfDefault(FargoSoulsUtil.AprilFools ? new Color(255, 180, 50) : Color.Cyan);
+                        break;
+
+                    case 10: //p2 transition, smash to black
+                        useSpecialColor = true;
+                        specialColor = Color.Black;
+                        specialColorLerp = 1f;
+                        break;
+
+                    case 27: //twins
+                        ChangeColorIfDefault(Color.Red);
+                        break;
+
+                    case 36: //slime rain
+                        if (WorldSavingSystem.MasochistModeReal && Main.npc[EModeGlobalNPC.mutantBoss].ai[2] > 180 * 3 - 60)
+                            ChangeColorIfDefault(Color.Blue);
+                        break;
+
+                    case 44: //empress
+                        ChangeColorIfDefault(Color.DeepPink);
+                        break;
+
+                    case 48: //queen slime
+                        ChangeColorIfDefault(Color.Purple);
+                        break;
+
+                    default:
+                        break;
+                }
+
+                if (intensity > 1f)
+                    intensity = 1f;
             }
-            break;
-          case 10:
-            useSpecialColor = true;
-            this.specialColor = new Color?(Color.Black);
-            this.specialColorLerp = 1f;
-            break;
-          case 27:
-            ChangeColorIfDefault(Color.Red);
-            break;
-          case 36:
-            if (WorldSavingSystem.MasochistModeReal && (double) Main.npc[EModeGlobalNPC.mutantBoss].ai[2] > 480.0)
+            else
             {
-              ChangeColorIfDefault(Color.Blue);
-              break;
+                lifeIntensity -= increment;
+                if (lifeIntensity < 0f)
+                    lifeIntensity = 0f;
+
+                specialColorLerp -= increment * 2;
+                if (specialColorLerp < 0)
+                    specialColorLerp = 0;
+
+                intensity -= increment;
+                if (intensity < 0f)
+                {
+                    intensity = 0f;
+                    lifeIntensity = 0f;
+                    specialColorLerp = 0f;
+                    specialColor = null;
+                    delay = 0;
+                    Deactivate();
+                    return;
+                }
             }
-            break;
-          case 44:
-            ChangeColorIfDefault(Color.DeepPink);
-            break;
-          case 48:
-            ChangeColorIfDefault(Color.Purple);
-            break;
+
+            if (useSpecialColor)
+            {
+                specialColorLerp += increment * 2;
+                if (specialColorLerp > 1)
+                    specialColorLerp = 1;
+            }
+            else
+            {
+                specialColorLerp -= increment * 2;
+                if (specialColorLerp < 0)
+                {
+                    specialColorLerp = 0;
+                    specialColor = null;
+                }
+            }
         }
-        if ((double) this.intensity > 1.0)
-          this.intensity = 1f;
-      }
-      else
-      {
-        this.lifeIntensity -= 0.01f;
-        if ((double) this.lifeIntensity < 0.0)
-          this.lifeIntensity = 0.0f;
-        this.specialColorLerp -= 0.02f;
-        if ((double) this.specialColorLerp < 0.0)
-          this.specialColorLerp = 0.0f;
-        this.intensity -= 0.01f;
-        if ((double) this.intensity < 0.0)
+
+        private Color ColorToUse(ref float opacity)
         {
-          this.intensity = 0.0f;
-          this.lifeIntensity = 0.0f;
-          this.specialColorLerp = 0.0f;
-          this.specialColor = new Color?();
-          this.delay = 0;
-          ((GameEffect) this).Deactivate(Array.Empty<object>());
-          return;
+            Color color = FargoSoulsUtil.AprilFools ? Color.OrangeRed : new(51, 255, 191);
+            opacity = intensity * 0.5f + lifeIntensity * 0.5f;
+
+            if (specialColorLerp > 0 && specialColor != null)
+            {
+                color = Color.Lerp(color, (Color)specialColor, specialColorLerp);
+                if (specialColor == Color.Black)
+                    opacity = System.Math.Min(1f, opacity + System.Math.Min(intensity, lifeIntensity) * 0.5f);
+            }
+
+            return color;
         }
-      }
-      if (useSpecialColor)
-      {
-        this.specialColorLerp += 0.02f;
-        if ((double) this.specialColorLerp <= 1.0)
-          return;
-        this.specialColorLerp = 1f;
-      }
-      else
-      {
-        this.specialColorLerp -= 0.02f;
-        if ((double) this.specialColorLerp >= 0.0)
-          return;
-        this.specialColorLerp = 0.0f;
-        this.specialColor = new Color?();
-      }
 
-      void ChangeColorIfDefault(Color color)
-      {
-        if (!this.specialColor.HasValue)
-          this.specialColor = new Color?(color);
-        if (!this.specialColor.HasValue)
-          return;
-        Color? specialColor = this.specialColor;
-        Color color1 = color;
-        if ((specialColor.HasValue ? (Color.op_Equality(specialColor.GetValueOrDefault(), color1) ? 1 : 0) : 0) == 0)
-          return;
-        useSpecialColor = true;
-      }
-    }
-
-    private Color ColorToUse(ref float opacity)
-    {
-      Color use = FargoSoulsUtil.AprilFools ? Color.OrangeRed : new Color(51, (int) byte.MaxValue, 191);
-      opacity = (float) ((double) this.intensity * 0.5 + (double) this.lifeIntensity * 0.5);
-      if ((double) this.specialColorLerp > 0.0 && this.specialColor.HasValue)
-      {
-        use = Color.Lerp(use, this.specialColor.Value, this.specialColorLerp);
-        Color? specialColor = this.specialColor;
-        Color black = Color.Black;
-        if ((specialColor.HasValue ? (Color.op_Equality(specialColor.GetValueOrDefault(), black) ? 1 : 0) : 0) != 0)
-          opacity = Math.Min(1f, opacity + Math.Min(this.intensity, this.lifeIntensity) * 0.5f);
-      }
-      return use;
-    }
-
-    public virtual void Draw(SpriteBatch spriteBatch, float minDepth, float maxDepth)
-    {
-      if ((double) maxDepth < 0.0 || (double) minDepth >= 0.0)
-        return;
-      float opacity = 0.0f;
-      Color use = this.ColorToUse(ref opacity);
-      spriteBatch.Draw(ModContent.Request<Texture2D>("FargowiltasSouls/Content/Sky/MutantSky" + FargoSoulsUtil.TryAprilFoolsTexture, (AssetRequestMode) 1).Value, new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), Color.op_Multiply(use, opacity));
-      if (--this.delay < 0)
-      {
-        this.delay = Main.rand.Next(5 + (int) (85.0 * (1.0 - (double) this.lifeIntensity)));
-        for (int index = 0; index < 50; ++index)
+        public override void Draw(SpriteBatch spriteBatch, float minDepth, float maxDepth)
         {
-          this.xPos[index] = Main.rand.Next(Main.screenWidth);
-          this.yPos[index] = Main.rand.Next(Main.screenHeight);
+            if (maxDepth >= 0 && minDepth < 0)
+            {
+                float opacity = 0f;
+                Color color = ColorToUse(ref opacity);
+
+                spriteBatch.Draw(ModContent.Request<Texture2D>($"FargowiltasSouls/Content/Sky/MutantSky{FargoSoulsUtil.TryAprilFoolsTexture}", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value,
+                    new Rectangle(0, 0, Main.screenWidth, Main.screenHeight), color * opacity);
+
+                if (--delay < 0)
+                {
+                    delay = Main.rand.Next(5 + (int)(85f * (1f - lifeIntensity)));
+                    for (int i = 0; i < 50; i++) //update positions
+                    {
+                        xPos[i] = Main.rand.Next(Main.screenWidth);
+                        yPos[i] = Main.rand.Next(Main.screenHeight);
+                    }
+                }
+
+                for (int i = 0; i < 50; i++) //static on screen
+                {
+                    int width = Main.rand.Next(3, 251);
+                    spriteBatch.Draw(ModContent.Request<Texture2D>("FargowiltasSouls/Content/Sky/MutantStatic", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value,
+                    new Rectangle(xPos[i] - width / 2, yPos[i], width, 3),
+                    color * lifeIntensity * 0.75f);
+                }
+            }
         }
-      }
-      for (int index = 0; index < 50; ++index)
-      {
-        int num = Main.rand.Next(3, 251);
-        spriteBatch.Draw(ModContent.Request<Texture2D>("FargowiltasSouls/Content/Sky/MutantStatic", (AssetRequestMode) 1).Value, new Rectangle(this.xPos[index] - num / 2, this.yPos[index], num, 3), Color.op_Multiply(Color.op_Multiply(use, this.lifeIntensity), 0.75f));
-      }
+
+        public override float GetCloudAlpha()
+        {
+            return 1f - intensity;
+        }
+
+        public override void Activate(Vector2 position, params object[] args)
+        {
+            isActive = true;
+        }
+
+        public override void Deactivate(params object[] args)
+        {
+            isActive = false;
+        }
+
+        public override void Reset()
+        {
+            isActive = false;
+        }
+
+        public override bool IsActive()
+        {
+            return isActive;
+        }
+
+        public override Color OnTileColor(Color inColor)
+        {
+            float dummy = 0f;
+            Color skyColor = Color.Lerp(Color.White, ColorToUse(ref dummy), 0.5f);
+            return Color.Lerp(skyColor, inColor, 1f - intensity);
+        }
     }
-
-    public virtual float GetCloudAlpha() => 1f - this.intensity;
-
-    public virtual void Activate(Vector2 position, params object[] args) => this.isActive = true;
-
-    public virtual void Deactivate(params object[] args) => this.isActive = false;
-
-    public virtual void Reset() => this.isActive = false;
-
-    public virtual bool IsActive() => this.isActive;
-
-    public virtual Color OnTileColor(Color inColor)
-    {
-      float opacity = 0.0f;
-      return Color.Lerp(Color.Lerp(Color.White, this.ColorToUse(ref opacity), 0.5f), inColor, 1f - this.intensity);
-    }
-  }
 }

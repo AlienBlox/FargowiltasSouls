@@ -1,135 +1,158 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.CrystalLeafShot
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.GameContent.Drawing;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class CrystalLeafShot : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_227";
-
-    public virtual void SetStaticDefaults()
+    public class CrystalLeafShot : ModProjectile
     {
-    }
+        public override string Texture => "Terraria/Images/Projectile_227";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 10;
-      ((Entity) this.Projectile).height = 10;
-      this.Projectile.hostile = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.timeLeft = 900;
-      this.Projectile.aiStyle = -1;
-      this.AIType = 227;
-      this.Projectile.penetrate = -1;
-    }
-
-    public void VanillaAIStyleCrystalLeafShot()
-    {
-      this.Projectile.rotation = (float) Math.Atan2((double) ((Entity) this.Projectile).velocity.Y, (double) ((Entity) this.Projectile).velocity.X) + 3.14f;
-      float num = (float) ((((1.0 - (double) this.Projectile.timeLeft / 180.0) * -6.0 * 0.85000002384185791 + 0.33000001311302185) % 1.0 + 1.0) % 1.0);
-      bool flag = SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
-      Color color1 = flag ? Color.Blue : Color.LimeGreen;
-      Color color2 = Color.Lerp(flag ? color1 : Main.hslToRgb(num, 1f, 0.5f, byte.MaxValue), flag ? Color.DarkSlateGray : Color.Red, Utils.Remap(num, 0.33f, 0.7f, 0.0f, 1f, true));
-      Color color3 = Color.Lerp(color2, Color.Lerp(color1, Color.Gold, 0.3f), (float) ((double) ((Color) ref color2).R / (double) byte.MaxValue * 1.0));
-      if (this.Projectile.frameCounter++ >= 1)
-      {
-        this.Projectile.frameCounter = 0;
-        ParticleOrchestrator.RequestParticleSpawn(true, (ParticleOrchestraType) 17, new ParticleOrchestraSettings()
+        public override void SetStaticDefaults()
         {
-          PositionInWorld = ((Entity) this.Projectile).Center,
-          MovementVector = ((Entity) this.Projectile).velocity,
-          UniqueInfoPiece = (int) (byte) ((double) Main.rgbToHsl(color3).X * (double) byte.MaxValue)
-        }, new int?());
-      }
-      Lighting.AddLight(((Entity) this.Projectile).Center, Vector3.op_Multiply(new Vector3(0.05f, 0.2f, 0.1f), 1.5f));
-      if (!Utils.NextBool(Main.rand, 5))
-        return;
-      Dust dust = Dust.NewDustDirect(new Vector2(((Entity) this.Projectile).position.X, ((Entity) this.Projectile).position.Y), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 63, 0.0f, 0.0f, 0, new Color(), 1f);
-      dust.noGravity = true;
-      dust.velocity = Vector2.op_Multiply(dust.velocity, 0.1f);
-      dust.scale = 1.5f;
-      dust.velocity = Vector2.op_Addition(dust.velocity, Vector2.op_Multiply(((Entity) this.Projectile).velocity, Utils.NextFloat(Main.rand)));
-      dust.color = color3;
-      ref Color local = ref dust.color;
-      ((Color) ref local).A = (byte) ((uint) ((Color) ref local).A / 4U);
-      dust.alpha = 100;
-      dust.noLight = true;
-    }
-
-    public virtual void AI()
-    {
-      if (!Collision.SolidCollision(Vector2.op_Addition(((Entity) this.Projectile).position, ((Entity) this.Projectile).velocity), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height))
-      {
-        if ((!SoulConfig.Instance.BossRecolors ? 0 : (WorldSavingSystem.EternityMode ? 1 : 0)) != 0)
-          Lighting.AddLight(((Entity) this.Projectile).Center, 0.09803922f, 0.184313729f, 0.2509804f);
-        else
-          Lighting.AddLight(Vector2.op_Addition(((Entity) this.Projectile).Center, ((Entity) this.Projectile).velocity), 0.1f, 0.4f, 0.2f);
-      }
-      if (this.Projectile.timeLeft < 780)
-        this.Projectile.tileCollide = true;
-      if ((double) this.Projectile.ai[1] > 0.0)
-      {
-        if ((double) this.Projectile.ai[1] > 10.0)
-        {
-          Player player = Main.player[(int) this.Projectile.ai[2]];
-          if (player.Alive())
-          {
-            float num = FargoSoulsUtil.RotationDifference(((Entity) this.Projectile).velocity, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) player).Center));
-            ((Entity) this.Projectile).velocity = Utils.RotatedBy(((Entity) this.Projectile).velocity, (double) Math.Sign(num) * (double) Math.Min(Math.Abs(num), (float) Math.PI / 70f), new Vector2());
-            this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-          }
+            // DisplayName.SetDefault("Crystal Leaf");
         }
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).position = Vector2.op_Subtraction(((Entity) projectile).position, Vector2.op_Multiply(((Entity) this.Projectile).velocity, 0.9f));
-        ++this.Projectile.ai[1];
-        if ((double) this.Projectile.ai[1] > 70.0)
+
+        public override void SetDefaults()
         {
-          this.Projectile.ai[1] = 0.0f;
-          this.Projectile.netUpdate = true;
+            Projectile.width = 10;
+            Projectile.height = 10;
+            Projectile.hostile = true;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = 900;
+            Projectile.aiStyle = -1;//ProjAIStyleID.CrystalLeafShot;
+            AIType = ProjectileID.CrystalLeafShot;
+            Projectile.penetrate = -1;
         }
-      }
-      this.VanillaAIStyleCrystalLeafShot();
-    }
+        public void VanillaAIStyleCrystalLeafShot()
+        {
+            Projectile.rotation = (float)Math.Atan2(Projectile.velocity.Y, Projectile.velocity.X) + 3.14f;
 
-    public virtual void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
-    {
-      if (target.hurtCooldowns[1] != 0)
-        return;
-      target.AddBuff(ModContent.BuffType<IvyVenomBuff>(), 240, true, false);
-    }
+            float num347 = 1f - (float)Projectile.timeLeft / 180f;
+            float num348 = ((num347 * -6f * 0.85f + 0.33f) % 1f + 1f) % 1f;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = (!SoulConfig.Instance.BossRecolors ? 0 : (WorldSavingSystem.EternityMode ? 1 : 0)) != 0 ? ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/Masomode/CrystalLeafShot", (AssetRequestMode) 2).Value : TextureAssets.Projectile[this.Type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection < 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      float num3 = this.Projectile.scale * 1.5f;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, num3, spriteEffects, 0.0f);
-      ((Color) ref alpha).A = (byte) 150;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, num3, spriteEffects, 0.0f);
-      return false;
+            bool recolor = SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
+            Color color = recolor ? Color.Blue : Color.LimeGreen;
+
+            Color value3 = recolor ? color : Main.hslToRgb(num348, 1f, 0.5f);
+            value3 = Color.Lerp(value3, recolor ? Color.DarkSlateGray : Color.Red, Utils.Remap(num348, 0.33f, 0.7f, 0f, 1f));
+            value3 = Color.Lerp(value3, Color.Lerp(color, Color.Gold, 0.3f), (float)(int)value3.R / 255f * 1f);
+            if (Projectile.frameCounter++ >= 1)
+            {
+                Projectile.frameCounter = 0;
+                ParticleOrchestrator.RequestParticleSpawn(clientOnly: true, ParticleOrchestraType.ChlorophyteLeafCrystalShot, new ParticleOrchestraSettings
+                {
+                    PositionInWorld = Projectile.Center,
+                    MovementVector = Projectile.velocity,
+                    UniqueInfoPiece = (byte)(Main.rgbToHsl(value3).X * 255f)
+                });
+            }
+            Lighting.AddLight(Projectile.Center, new Vector3(0.05f, 0.2f, 0.1f) * 1.5f);
+            if (Main.rand.NextBool(5))
+            {
+                Dust dust12 = Dust.NewDustDirect(new Vector2(Projectile.position.X, Projectile.position.Y), Projectile.width, Projectile.height, DustID.WhiteTorch);
+                dust12.noGravity = true;
+                Dust dust2 = dust12;
+                dust2.velocity *= 0.1f;
+                dust12.scale = 1.5f;
+                dust2 = dust12;
+                dust2.velocity += Projectile.velocity * Main.rand.NextFloat();
+                dust12.color = value3;
+                dust12.color.A /= 4;
+                dust12.alpha = 100;
+                dust12.noLight = true;
+            }
+        }
+
+        public override void AI()
+        {
+            if (!Collision.SolidCollision(Projectile.position + Projectile.velocity, Projectile.width, Projectile.height))
+            {
+                bool recolor = SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
+                if (recolor)
+                    Lighting.AddLight(Projectile.Center, 25f / 255, 47f / 255, 64f / 255);
+                else
+                    Lighting.AddLight(Projectile.Center + Projectile.velocity, 0.1f, 0.4f, 0.2f);
+
+            }
+
+            if (Projectile.timeLeft < 900 - 120)
+                Projectile.tileCollide = true;
+
+            const int netWindow = 10; // extra leniency time to let variables net sync
+            const float redirectTime = 60f + netWindow;
+            if (Projectile.ai[1] > 0) // redirect
+            {
+                if (Projectile.ai[1] > netWindow)
+                {
+
+                    Player player = Main.player[(int)Projectile.ai[2]];
+                    if (player.Alive())
+                    {
+                        Vector2 LV = Projectile.velocity;
+                        Vector2 PV = Projectile.SafeDirectionTo(player.Center);
+                        float anglediff = FargoSoulsUtil.RotationDifference(LV, PV);
+                        //change rotation towards target
+                        Projectile.velocity = Projectile.velocity.RotatedBy(Math.Sign(anglediff) * Math.Min(Math.Abs(anglediff), MathHelper.Pi / redirectTime));
+                        Projectile.rotation = Projectile.velocity.ToRotation();
+
+                        /*
+                        float angledif = FargoSoulsUtil.RotationDifference(Projectile.rotation.ToRotationVector2(), Projectile.SafeDirectionTo(player.Center));
+                        float amt = MathHelper.Min(Math.Abs(angledif), MathHelper.Pi / redirectTime);
+                        Projectile.rotation += amt * Math.Sign(angledif);
+                        Projectile.velocity = Projectile.rotation.ToRotationVector2() * Projectile.velocity
+                        */
+                    }
+
+                }
+                Projectile.position -= Projectile.velocity * 0.9f;
+                Projectile.ai[1]++;
+                if (Projectile.ai[1] > redirectTime)
+                {
+                    Projectile.ai[1] = 0;
+                    Projectile.netUpdate = true;
+                }
+            }
+            VanillaAIStyleCrystalLeafShot();
+        }
+
+        public override void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
+        {
+            if (target.hurtCooldowns[1] == 0)
+            {
+                target.AddBuff(ModContent.BuffType<IvyVenomBuff>(), 240);
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            bool recolor = SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
+            Texture2D texture2D13 = recolor ? ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/Masomode/CrystalLeafShot").Value : Terraria.GameContent.TextureAssets.Projectile[Type].Value;
+
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            SpriteEffects spriteEffects = Projectile.spriteDirection < 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            float scale = Projectile.scale * 1.5f;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, scale, spriteEffects, 0);
+
+            color26.A = 150;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, scale, spriteEffects, 0);
+            return false;
+        }
     }
-  }
 }

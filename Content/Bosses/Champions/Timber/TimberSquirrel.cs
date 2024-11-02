@@ -1,151 +1,175 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Timber.TimberSquirrel
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Timber
 {
-  internal class TimberSquirrel : ModProjectile
-  {
-    public int Counter;
-    private const int baseTimeleft = 120;
-    private NPC npc;
-    private bool spawned;
-
-    public virtual string Texture
+    internal class TimberSquirrel : ModProjectile
     {
-      get => "FargowiltasSouls/Content/Items/Weapons/Misc/TophatSquirrelWeapon";
-    }
+        public int Counter;
 
-    public virtual void SetStaticDefaults()
-    {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 15;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public override string Texture => "FargowiltasSouls/Content/Items/Weapons/Misc/TophatSquirrelWeapon";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 19;
-      ((Entity) this.Projectile).height = 19;
-      this.Projectile.hostile = true;
-      this.Projectile.timeLeft = 120;
-      this.Projectile.penetrate = -1;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
-
-    public virtual bool? CanDamage() => new bool?(false);
-
-    private bool EvilSqurrl => (double) this.Projectile.ai[0] != 0.0;
-
-    public virtual void OnSpawn(IEntitySource source)
-    {
-      this.npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[1]);
-    }
-
-    public virtual void AI()
-    {
-      if (!this.spawned)
-      {
-        this.spawned = true;
-        for (int index1 = 0; index1 < 50; ++index1)
+        public override void SetStaticDefaults()
         {
-          int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 7, 0.0f, 0.0f, 0, new Color(), 3f);
-          Main.dust[index2].noGravity = true;
-          Dust dust1 = Main.dust[index2];
-          dust1.velocity = Vector2.op_Multiply(dust1.velocity, 3f);
-          Dust dust2 = Main.dust[index2];
-          dust2.velocity = Vector2.op_Addition(dust2.velocity, Vector2.op_Multiply(((Entity) this.Projectile).velocity, Utils.NextFloat(Main.rand, 9f)));
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 15;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-      }
-      this.Projectile.spriteDirection = Math.Sign(((Entity) this.Projectile).velocity.X);
-      this.Projectile.rotation += 0.2f * (float) this.Projectile.spriteDirection;
-      if (++this.Counter >= 45)
-        this.Projectile.scale += 0.1f;
-      if (!this.EvilSqurrl)
-        return;
-      ++this.Projectile.timeLeft;
-      FargoSoulsUtil.AuraDust((Entity) this.Projectile, 1000f, 156, Color.White, true, (float) (1.0 - (double) this.Projectile.localAI[1] / 20.0));
-      if (this.Counter == 120 && FargoSoulsUtil.HostCheck)
-        Projectile.NewProjectile(Entity.InheritSource(this.npc != null ? (Entity) (object) this.npc : (Entity) (object) this.Projectile), ((Entity) this.Projectile).Center, Vector2.Zero, ModContent.ProjectileType<TimberLightningOrb>(), this.Projectile.damage, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      if (this.Counter <= 120)
-        return;
-      this.Projectile.hide = true;
-      Projectile projectile = this.Projectile;
-      ((Entity) projectile).position = Vector2.op_Subtraction(((Entity) projectile).position, ((Entity) this.Projectile).velocity);
-      ((Entity) this.Projectile).velocity = Utils.SafeNormalize(((Entity) this.Projectile).velocity, Vector2.UnitX);
-      this.Projectile.rotation += 0.1349578f * (float) Math.Sign(((Entity) this.Projectile).velocity.X);
-      if ((double) --this.Projectile.localAI[0] >= 0.0)
-        return;
-      this.Projectile.localAI[0] = 15f;
-      SoundEngine.PlaySound(ref SoundID.Item157, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      int num1 = (int) this.Projectile.localAI[1];
-      if (num1 >= 10)
-        num1 = 20 - num1;
-      int num2 = 3 * num1;
-      for (int index = 0; index < num2; ++index)
-      {
-        float num3 = this.npc != null ? (float) ((Entity) this.npc).whoAmI : -1f;
-        float num4 = 6.28318548f / (float) num2;
-        Vector2 vector2_1 = Vector2.op_Multiply(4f, Utils.ToRotationVector2(this.Projectile.rotation + num4 * (float) index));
-        if (FargoSoulsUtil.HostCheck)
-          Projectile.NewProjectile(Entity.InheritSource(this.npc != null ? (Entity) (object) this.npc : (Entity) (object) this.Projectile), ((Entity) this.Projectile).Center, vector2_1, ModContent.ProjectileType<TimberLaser>(), this.Projectile.damage, 0.0f, Main.myPlayer, num3, 0.0f, 0.0f);
-        if (this.npc != null)
-        {
-          float num5 = this.Projectile.rotation + num4 * ((float) index + 0.5f);
-          Vector2 vector2_2 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(1000f, Utils.ToRotationVector2(num5)));
-          Vector2 vector2_3 = Utils.SafeNormalize(Vector2.op_Subtraction(Vector2.op_Addition(Vector2.op_Addition(((Entity) Main.player[this.npc.target]).Center, Vector2.op_Multiply(((Entity) Main.player[this.npc.target]).velocity, Utils.NextFloat(Main.rand, 30f))), Utils.NextVector2Circular(Main.rand, 128f, 128f)), vector2_2), Vector2.UnitY);
-          float num6 = MathHelper.WrapAngle(Utils.ToRotation(vector2_3) - num5);
-          if ((double) Math.Abs(num6) > 1.5707963705062866)
-            vector2_3 = Utils.ToRotationVector2(num5 + 1.57079637f * (float) Math.Sign(num6));
-          Vector2 vector2_4 = Vector2.op_Multiply(vector2_3, 12f);
-          if (FargoSoulsUtil.HostCheck)
-            Projectile.NewProjectile(Entity.InheritSource((Entity) this.npc), vector2_2, vector2_4, ModContent.ProjectileType<TimberLaser>(), this.Projectile.damage, 0.0f, Main.myPlayer, num3, 0.0f, 0.0f);
-        }
-      }
-      if ((double) ++this.Projectile.localAI[1] < 20.0)
-        return;
-      this.Projectile.Kill();
-    }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 1 : (SpriteEffects) 0;
-      if (this.EvilSqurrl)
-      {
-        for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index += 3)
+        const int baseTimeleft = 120;
+
+        public override void SetDefaults()
         {
-          Color color;
-          // ISSUE: explicit constructor call
-          ((Color) ref color).\u002Ector(93, (int) byte.MaxValue, 241, 0);
-          color = Color.op_Multiply(color, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-          Vector2 oldPo = this.Projectile.oldPos[index];
-          float num3 = this.Projectile.oldRot[index];
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale * 1.1f, spriteEffects, 0.0f);
+            Projectile.width = 19;
+            Projectile.height = 19;
+            Projectile.hostile = true;
+            Projectile.timeLeft = baseTimeleft;
+            Projectile.penetrate = -1;
+            Projectile.aiStyle = -1;
+            Projectile.tileCollide = false;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
         }
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+
+        public override bool? CanDamage() => false;
+
+        bool EvilSqurrl => Projectile.ai[0] != 0;
+
+        NPC npc;
+
+        public override void OnSpawn(IEntitySource source)
+        {
+            npc = FargoSoulsUtil.NPCExists(Projectile.ai[1]);
+        }
+
+        bool spawned;
+
+        public override void AI()
+        {
+            //NOTE: AI[1] CONTAINS NPC.WHOAMI (so boss knows to wait until this proj is gone)
+
+            if (!spawned)
+            {
+                spawned = true;
+                for (int i = 0; i < 50; i++)
+                {
+                    int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.WoodFurniture, Scale: 3f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity *= 3f;
+                    Main.dust[d].velocity += Projectile.velocity * Main.rand.NextFloat(9f);
+                }
+            }
+
+            Projectile.spriteDirection = Math.Sign(Projectile.velocity.X);
+            Projectile.rotation += 0.2f * Projectile.spriteDirection;
+
+            if (++Counter >= 45)
+            {
+                Projectile.scale += .1f;
+            }
+
+            if (EvilSqurrl)
+            {
+                Projectile.timeLeft++;
+
+                const float maxRange = 1000f;
+                const int maxAttacks = 20;
+
+                FargoSoulsUtil.AuraDust(Projectile, maxRange, DustID.UltraBrightTorch, Color.White, true, 1f - Projectile.localAI[1] / maxAttacks);
+
+                if (Counter == baseTimeleft)
+                {
+                    if (FargoSoulsUtil.HostCheck)
+                        Projectile.NewProjectile(Terraria.Entity.InheritSource(npc is NPC ? npc : Projectile), Projectile.Center, Vector2.Zero, ModContent.ProjectileType<TimberLightningOrb>(), Projectile.damage, 0f, Main.myPlayer);
+                }
+
+                if (Counter > baseTimeleft)
+                {
+                    Projectile.hide = true;
+                    Projectile.position -= Projectile.velocity;
+
+                    Projectile.velocity = Projectile.velocity.SafeNormalize(Vector2.UnitX);
+
+                    Projectile.rotation += 0.1349578f * Math.Sign(Projectile.velocity.X);
+
+                    if (--Projectile.localAI[0] < 0)
+                    {
+                        Projectile.localAI[0] = 15;
+
+                        SoundEngine.PlaySound(SoundID.Item157, Projectile.Center);
+
+                        int lasersToAddPerAttack = 3;
+
+                        int modifier = (int)Projectile.localAI[1]; //scale up to halfway
+                        if (modifier >= maxAttacks / 2) //scale back down after that
+                            modifier = maxAttacks - modifier;
+
+                        int max = lasersToAddPerAttack * modifier;
+                        for (int i = 0; i < max; i++)
+                        {
+                            float ai0 = npc is NPC ? npc.whoAmI : -1;
+
+                            const float speed = 20f / 5f;
+
+                            float rotationBaseOffset = MathHelper.TwoPi / max;
+                            Vector2 vel = speed * (Projectile.rotation + rotationBaseOffset * i).ToRotationVector2();
+
+                            if (FargoSoulsUtil.HostCheck)
+                                Projectile.NewProjectile(Terraria.Entity.InheritSource(npc is NPC ? npc : Projectile), Projectile.Center, vel, ModContent.ProjectileType<TimberLaser>(), Projectile.damage, 0f, Main.myPlayer, ai0);
+
+                            if (npc is NPC)
+                            {
+                                float edgeRotation = Projectile.rotation + rotationBaseOffset * (i + 0.5f);
+                                Vector2 spawnPos = Projectile.Center + maxRange * edgeRotation.ToRotationVector2();
+                                Vector2 target = Main.player[npc.target].Center + Main.player[npc.target].velocity * Main.rand.NextFloat(30f) + Main.rand.NextVector2Circular(128, 128);
+                                Vector2 edgeVel = (target - spawnPos).SafeNormalize(Vector2.UnitY);
+
+                                float angleDifference = MathHelper.WrapAngle(edgeVel.ToRotation() - edgeRotation);
+                                if (Math.Abs(angleDifference) > MathHelper.PiOver2)
+                                    edgeVel = (edgeRotation + MathHelper.PiOver2 * Math.Sign(angleDifference)).ToRotationVector2();
+
+                                edgeVel *= speed * 3f;
+
+                                if (FargoSoulsUtil.HostCheck)
+                                    Projectile.NewProjectile(Terraria.Entity.InheritSource(npc), spawnPos, edgeVel, ModContent.ProjectileType<TimberLaser>(), Projectile.damage, 0f, Main.myPlayer, ai0);
+                            }
+                        }
+
+                        if (++Projectile.localAI[1] >= maxAttacks)
+                            Projectile.Kill();
+                    }
+                }
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+
+            if (EvilSqurrl)
+            {
+                for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 3)
+                {
+                    Color color27 = new(93, 255, 241, 0);
+                    color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                    Vector2 value4 = Projectile.oldPos[i];
+                    float num165 = Projectile.oldRot[i];
+                    Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale * 1.1f, effects, 0);
+                }
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

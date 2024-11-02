@@ -1,44 +1,60 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.SaucerControlConsole
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Buffs.Minions;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class SaucerControlConsole : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class SaucerControlConsole : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
+
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Yellow;
+            Item.value = Item.sellPrice(0, 6);
+        }
+
+        public override void UpdateInventory(Player player)
+        {
+            player.FargoSouls().CanAmmoCycle = true;
+        }
+
+        public override void UpdateVanity(Player player)
+        {
+            player.FargoSouls().CanAmmoCycle = true;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.FargoSouls().CanAmmoCycle = true;
+
+            player.buffImmune[BuffID.Electrified] = true;
+            player.buffImmune[BuffID.VortexDebuff] = true;
+            player.AddEffect<UfoMinionEffect>(Item);
+
+        }
+    }
+    public class UfoMinionEffect : AccessoryEffect
     {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 8;
-      this.Item.value = Item.sellPrice(0, 6, 0, 0);
+        public override Header ToggleHeader => Header.GetHeader<HeartHeader>();
+        public override int ToggleItemType => ModContent.ItemType<SaucerControlConsole>();
+        public override bool MinionEffect => true;
+        public override void PostUpdateEquips(Player player)
+        {
+            if (!player.HasBuff<SouloftheMasochistBuff>())
+                player.AddBuff(ModContent.BuffType<SaucerMinionBuff>(), 2);
+        }
+
     }
-
-    public virtual void UpdateInventory(Player player) => player.FargoSouls().CanAmmoCycle = true;
-
-    public virtual void UpdateVanity(Player player) => player.FargoSouls().CanAmmoCycle = true;
-
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.FargoSouls().CanAmmoCycle = true;
-      player.buffImmune[144] = true;
-      player.buffImmune[164] = true;
-      player.AddEffect<UfoMinionEffect>(this.Item);
-    }
-  }
 }

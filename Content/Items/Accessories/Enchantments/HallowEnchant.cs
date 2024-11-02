@@ -1,37 +1,76 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.HallowEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Common.Graphics.Particles;
+using FargowiltasSouls.Content.Items.Accessories.Forces;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
+using Luminance.Core.Graphics;
+using Microsoft.CodeAnalysis;
 using Microsoft.Xna.Framework;
+using System.Linq;
 using Terraria;
+using Terraria.Audio;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class HallowEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(150, 133, 100);
-
-    public override void SetDefaults()
+    public class HallowEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 6;
-      this.Item.value = 180000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<HallowEffect>(this.Item);
-    }
+        public override Color nameColor => new(150, 133, 100);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddRecipeGroup("FargowiltasSouls:AnyHallowHead", 1).AddIngredient(551, 1).AddIngredient(552, 1).AddIngredient(425, 1).AddIngredient(4790, 1).AddIngredient(4760, 1).AddTile(125).Register();
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.LightPurple;
+            Item.value = 180000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<HallowEffect>(Item);
+        }
+
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddRecipeGroup("FargowiltasSouls:AnyHallowHead")
+                .AddIngredient(ItemID.HallowedPlateMail)
+                .AddIngredient(ItemID.HallowedGreaves)
+                .AddIngredient(ItemID.FairyBell)
+                .AddIngredient(ItemID.HallowJoustingLance)
+                .AddIngredient(ItemID.BouncingShield)
+            .AddTile(TileID.CrystalBall)
+            .Register();
+        }
     }
-  }
+    public class HallowEffect : AccessoryEffect
+    {
+
+        public override Header ToggleHeader => Header.GetHeader<SpiritHeader>();
+        public override int ToggleItemType => ModContent.ItemType<HallowEnchant>();
+
+        public const int RepelRadius = 350;
+        public static void HealRepel(Player player)
+        {
+            Item effectItem = player.EffectItem<HallowEffect>();
+            if (effectItem != null || player.HasEffect<SpiritTornadoEffect>())
+                return;
+            SoundEngine.PlaySound(SoundID.Item72);
+            Particle p = new HallowEnchantBarrier(player.Center, Vector2.Zero, RepelRadius / 160f, 32);
+            p.Spawn();
+
+            foreach (Projectile projectile in Main.projectile.Where(p => p.hostile && FargoSoulsUtil.CanDeleteProjectile(p) && p.Distance(player.Center) <= RepelRadius))
+            {
+                projectile.velocity = Vector2.Normalize(projectile.Center - player.Center) * projectile.velocity.Length();
+                projectile.hostile = false;
+            }
+        }
+    }
 }

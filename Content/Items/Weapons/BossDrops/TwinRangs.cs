@@ -1,77 +1,70 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.BossDrops.TwinRangs
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.BossWeapons;
+﻿using FargowiltasSouls.Content.Projectiles.BossWeapons;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.BossDrops
 {
-  public class TwinRangs : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class TwinRangs : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+            ItemID.Sets.ItemsThatAllowRepeatedRightClick[Type] = true;
+            // DisplayName.SetDefault("Twinrangs");
+            /* Tooltip.SetDefault("Fire a different twinrang depending on mouse click" +
+                "\n'The compressed forms of defeated foes..'"); */
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "双子");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "被打败的敌人的压缩形态..");
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 50;
-      this.Item.DamageType = DamageClass.Melee;
-      ((Entity) this.Item).width = 30;
-      ((Entity) this.Item).height = 30;
-      this.Item.useTime = 25;
-      this.Item.useAnimation = 25;
-      this.Item.noUseGraphic = true;
-      this.Item.useStyle = 1;
-      this.Item.knockBack = 3f;
-      this.Item.value = 100000;
-      this.Item.rare = 5;
-      this.Item.shootSpeed = 20f;
-      this.Item.shoot = 1;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item1);
-      this.Item.autoReuse = true;
-    }
+        public override void SetDefaults()
+        {
+            Item.damage = 50;
+            Item.DamageType = DamageClass.Melee;
+            Item.width = 30;
+            Item.height = 30;
+            Item.useTime = 25;
+            Item.useAnimation = 25;
+            Item.noUseGraphic = true;
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.knockBack = 3;
+            Item.value = 100000;
+            Item.rare = ItemRarityID.Pink;
+            Item.shootSpeed = 20;
+            Item.shoot = ProjectileID.WoodenArrowFriendly;
+            Item.UseSound = SoundID.Item1;
+            Item.autoReuse = true;
+        }
 
-    public virtual bool AltFunctionUse(Player player) => true;
+        public override bool AltFunctionUse(Player player)
+        {
+            return true;
+        }
 
-    public virtual bool CanUseItem(Player player)
-    {
-      if (player.altFunctionUse == 2)
-      {
-        this.Item.shoot = ModContent.ProjectileType<Retirang>();
-        this.Item.shootSpeed = 20f;
-      }
-      else
-      {
-        this.Item.shoot = ModContent.ProjectileType<Spazmarang>();
-        this.Item.shootSpeed = 30f;
-      }
-      return true;
-    }
+        public override bool CanUseItem(Player player)
+        {
+            if (player.altFunctionUse == 2)
+            {
+                Item.shoot = ModContent.ProjectileType<Retirang>();
+                Item.shootSpeed = 20f;
+            }
+            else
+            {
+                Item.shoot = ModContent.ProjectileType<Spazmarang>();
+                Item.shootSpeed = 30f;
+            }
+            return true;
+        }
 
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      if (player.altFunctionUse == 2)
-        damage = (int) ((double) damage * 0.75);
-      Projectile.NewProjectile((IEntitySource) source, position, velocity, type, damage, knockback, ((Entity) player).whoAmI, 0.0f, 0.0f, 0.0f);
-      return false;
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            if (player.altFunctionUse == 2)
+                damage = (int)(damage * 0.75);
+            Projectile.NewProjectile(source, position, velocity, type, damage, knockback, player.whoAmI);
+            return false;
+        }
     }
-  }
 }

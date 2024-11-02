@@ -1,39 +1,72 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.AncientShadowEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.AccessoryEffectSystem;
+﻿using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class AncientShadowEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(94, 85, 220);
-
-    public override void SetDefaults()
+    public class AncientShadowEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 5;
-      this.Item.value = 100000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.FargoSouls().AncientShadowEnchantActive = true;
-      player.AddEffect<AncientShadowDarkness>(this.Item);
-      player.AddEffect<ShadowBalls>(this.Item);
-    }
+        public override Color nameColor => new(94, 85, 220);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(956, 1).AddIngredient(957, 1).AddIngredient(958, 1).AddIngredient<ShadowEnchant>(1).AddIngredient(3054, 1).AddIngredient(3053, 1).AddTile(125).Register();
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Pink;
+            Item.value = 100000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.FargoSouls().AncientShadowEnchantActive = true;
+            player.AddEffect<AncientShadowDarkness>(Item);
+            player.AddEffect<ShadowBalls>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ItemID.AncientShadowHelmet)
+            .AddIngredient(ItemID.AncientShadowScalemail)
+            .AddIngredient(ItemID.AncientShadowGreaves)
+            //.AddIngredient(ItemID.AncientNecroHelmet);
+            //.AddIngredient(ItemID.AncientGoldHelmet);
+            .AddIngredient<ShadowEnchant>()
+            .AddIngredient(ItemID.ShadowFlameKnife)
+            .AddIngredient(ItemID.ShadowFlameHexDoll)
+            //dart rifle
+            //toxicarp
+
+            .AddTile(TileID.CrystalBall)
+            .Register();
+        }
     }
-  }
+    public class AncientShadowDarkness : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<ShadowHeader>();
+        public override int ToggleItemType => ModContent.ItemType<AncientShadowEnchant>();
+        public override void PostUpdateMiscEffects(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (modPlayer.AncientShadowFlameCooldown > 0)
+                modPlayer.AncientShadowFlameCooldown--;
+        }
+        public override void OnHitNPCEither(Player player, NPC target, NPC.HitInfo hitInfo, DamageClass damageClass, int baseDamage, Projectile projectile, Item item)
+        {
+            if (!player.FargoSouls().TerrariaSoul)
+            {
+                if ((projectile == null || projectile.type != ProjectileID.ShadowFlame) && Main.rand.NextBool(5))
+                    target.AddBuff(BuffID.Darkness, 600, true);
+            }
+        }
+    }
 }

@@ -1,33 +1,50 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.FlamesoftheUniverseBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class FlamesoftheUniverseBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class FlamesoftheUniverseBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Flames of the Universe");
+            // Description.SetDefault("The heavens themselves have judged you");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "宇宙之火");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "来自诸天的亲自审判");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().FlamesoftheUniverse = true;
-      player.ichor = true;
-    }
+        public override void Update(Player player, ref int buffIndex)
+        {
+            //activates various vanilla debuffs
+            player.FargoSouls().FlamesoftheUniverse = true;
+            player.ichor = true;
 
-    public virtual void Update(NPC npc, ref int buffIndex)
-    {
-      npc.FargoSouls().FlamesoftheUniverse = true;
-      npc.ichor = true;
+            /*player.FargoSouls().Shadowflame = true;
+            player.onFire = true;
+            player.onFire2 = true;
+            player.onFrostBurn = true;
+            player.burned = true;
+            player.ichor = true;*/
+        }
+
+        public override void Update(NPC npc, ref int buffIndex)
+        {
+            npc.FargoSouls().FlamesoftheUniverse = true;
+            npc.ichor = true;
+
+            /*bool beImmune = npc.buffTime[buffIndex] > 2;
+            npc.buffImmune[BuffID.OnFire] = beImmune;
+            npc.buffImmune[BuffID.CursedInferno] = beImmune;
+            npc.buffImmune[BuffID.ShadowFlame] = beImmune;
+            npc.buffImmune[BuffID.Frostburn] = beImmune;
+            npc.buffImmune[BuffID.Ichor] = beImmune;
+            npc.onFire = true;
+            npc.onFire2 = true;
+            npc.shadowFlame = true;
+            npc.onFrostBurn = true;
+            npc.ichor = true;*/
+        }
     }
-  }
 }

@@ -1,28 +1,30 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.AntisocialBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class AntisocialBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class AntisocialBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Antisocial");
+            // Description.SetDefault("You have no friends and no summon damage");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "反社交");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "你没有朋友");
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().Asocial = true;
-      ref StatModifier local = ref player.GetDamage(DamageClass.Summon);
-      local = StatModifier.op_Multiply(local, 0.1f);
+        }
+
+        public override void Update(Player player, ref int buffIndex)
+        {
+            //disables minions, disables pets
+            player.FargoSouls().Asocial = true;
+
+            player.GetDamage(DamageClass.Summon) *= 0.6f;
+
+            if (player.HeldItem.DamageType.CountsAsClass(DamageClass.SummonMeleeSpeed))
+                player.FargoSouls().AttackSpeed /= 2;
+        }
     }
-  }
 }

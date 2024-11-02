@@ -1,37 +1,126 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.AdamantiteEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Items.Accessories.Forces;
+using FargowiltasSouls.Content.Items.Weapons.Challengers;
+using FargowiltasSouls.Content.Projectiles;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using Microsoft.Xna.Framework;
-using Terraria;
+using FargowiltasSouls.Core.Toggler.Content;
 
-#nullable disable
+using Microsoft.Xna.Framework;
+using System.Linq;
+using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
+
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class AdamantiteEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(221, 85, 125);
-
-    public override void SetDefaults()
+    public class AdamantiteEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 5;
-      this.Item.value = 100000;
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
+
+        public override Color nameColor => new(221, 85, 125);
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Pink;
+            Item.value = 100000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<AdamantiteEffect>(Item);
+        }
+
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddRecipeGroup("FargowiltasSouls:AnyAdamHead")
+                .AddIngredient(ItemID.AdamantiteBreastplate)
+                .AddIngredient(ItemID.AdamantiteLeggings)
+                .AddIngredient(ItemID.Boomstick)
+                .AddIngredient(ItemID.QuadBarrelShotgun)
+                .AddIngredient(ItemID.DarkLance)
+                .AddTile(TileID.CrystalBall)
+                .Register();
+        }
     }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
+    public class AdamantiteEffect : AccessoryEffect
     {
-      player.AddEffect<AdamantiteEffect>(this.Item);
-    }
+        public override Header ToggleHeader => Header.GetHeader<EarthHeader>();
+        public override int ToggleItemType => ModContent.ItemType<AdamantiteEnchant>();
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddRecipeGroup("FargowiltasSouls:AnyAdamHead", 1).AddIngredient(403, 1).AddIngredient(404, 1).AddIngredient(964, 1).AddIngredient(4703, 1).AddIngredient(274, 1).AddTile(125).Register();
+        public override bool ExtraAttackEffect => true;
+
+        public override void PostUpdateEquips(Player player)
+        {
+            if (player.HasEffect<EarthForceEffect>())
+                return;
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            //modPlayer.AdamantiteEnchantItem = item;
+
+            int adaCap = 60; //ada cap in DEGREES
+
+            const float incSeconds = 10;
+            const float decSeconds = 1.5f;
+            if (modPlayer.WeaponUseTimer > 0)
+                modPlayer.AdamantiteSpread += (adaCap / 60f) / incSeconds; //ada spread change per frame, based on total amount of seconds to reach cap
+            else
+                modPlayer.AdamantiteSpread -= (adaCap / 60f) / decSeconds;
+
+            if (modPlayer.AdamantiteSpread < 0)
+                modPlayer.AdamantiteSpread = 0;
+
+            if (modPlayer.AdamantiteSpread > adaCap)
+                modPlayer.AdamantiteSpread = adaCap;
+        }
+
+        public static int[] AdamIgnoreItems =
+        [
+            ItemID.NightsEdge,
+            ItemID.TrueNightsEdge,
+            ItemID.Excalibur,
+            ItemID.TrueExcalibur,
+            ItemID.TerraBlade,
+            ModContent.ItemType<DecrepitAirstrikeRemote>()
+        ];
+
+        public static void AdamantiteSplit(Projectile projectile, FargoSoulsPlayer modPlayer, int splitDegreeAngle)
+        {
+            bool adaForce = modPlayer.ForceEffect<AdamantiteEnchant>();
+            bool isProjHoming = ProjectileID.Sets.CultistIsResistantTo[projectile.type];
+            if (AdamIgnoreItems.Contains(modPlayer.Player.HeldItem.type))
+            {
+                return;
+            }
+
+            float adaDamageRatio = isProjHoming ? (adaForce ? 0.375f : 0.6f) : (adaForce ? 0.5f : 0.7f);
+            // if its homing, damage is 0.6x2/0.4x3 (+20%)
+            // if its not homing, damage is 0.7x2/0.5x3 (+40/50%)
+
+            foreach (Projectile p in FargoSoulsGlobalProjectile.SplitProj(projectile, 3, MathHelper.ToRadians(splitDegreeAngle), adaDamageRatio))
+            {
+                if (p.Alive())
+                {
+                    p.FargoSouls().HuntressProj = projectile.FargoSouls().HuntressProj;
+                    p.FargoSouls().Adamantite = true;
+                }
+            }
+
+            if (!adaForce) 
+            {
+                projectile.type = ProjectileID.None;
+                projectile.timeLeft = 0;
+                projectile.active = false;
+            }
+            else
+            {
+                projectile.damage = (int)(projectile.damage * adaDamageRatio);
+            }
+        }
     }
-  }
 }

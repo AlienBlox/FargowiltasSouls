@@ -1,62 +1,65 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.FinalUpgrades.PhantasmalLeashOfCthulhu
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Materials;
+﻿using FargowiltasSouls.Content.Items.Materials;
 using FargowiltasSouls.Content.Items.Weapons.SwarmDrops;
 using FargowiltasSouls.Content.Projectiles.BossWeapons;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Terraria;
-using Terraria.Audio;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.FinalUpgrades
 {
-  public class PhantasmalLeashOfCthulhu : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class PhantasmalLeashOfCthulhu : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+            // DisplayName.SetDefault("Phantasmal Leash of Cthulhu");
+            // Tooltip.SetDefault("'The True Eye's soul trapped for eternity..'");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "幻影克苏鲁连枷");
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 2800;
-      ((Entity) this.Item).width = 30;
-      ((Entity) this.Item).height = 10;
-      this.Item.value = Item.sellPrice(1, 0, 0, 0);
-      this.Item.rare = 11;
-      this.Item.noMelee = true;
-      this.Item.useStyle = 5;
-      this.Item.autoReuse = true;
-      this.Item.useAnimation = 25;
-      this.Item.useTime = 25;
-      this.Item.knockBack = 6f;
-      this.Item.noUseGraphic = true;
-      this.Item.shoot = ModContent.ProjectileType<PhantasmalFlail>();
-      this.Item.shootSpeed = 45f;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item1);
-      this.Item.DamageType = DamageClass.Melee;
-    }
+        public override void SetDefaults()
+        {
+            Item.damage = 2800; //eoc base life funny
+            Item.width = 30;
+            Item.height = 10;
+            Item.value = Item.sellPrice(1);
+            Item.rare = ItemRarityID.Purple;
+            Item.noMelee = true;
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.autoReuse = true;
+            Item.useAnimation = 25;
+            Item.useTime = 25;
+            Item.knockBack = 6f;
+            Item.noUseGraphic = true;
+            Item.shoot = ModContent.ProjectileType<PhantasmalFlail>();
+            Item.shootSpeed = 45f;
+            Item.UseSound = SoundID.Item1;
+            Item.DamageType = DamageClass.Melee;
+        }
 
-    public override void SafeModifyTooltips(List<TooltipLine> list)
-    {
-      foreach (TooltipLine tooltipLine in list)
-      {
-        if (tooltipLine.Mod == "Terraria" && tooltipLine.Name == "ItemName")
-          tooltipLine.OverrideColor = new Color?(new Color(0, Main.DiscoG, (int) byte.MaxValue));
-      }
-    }
+        public override void SafeModifyTooltips(List<TooltipLine> list)
+        {
+            foreach (TooltipLine line2 in list)
+            {
+                if (line2.Mod == "Terraria" && line2.Name == "ItemName")
+                {
+                    line2.OverrideColor = new Color(0, Main.DiscoG, 255);
+                }
+            }
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.ItemType<MechanicalLeashOfCthulhu>(), 1).AddIngredient(ModContent.ItemType<EternalEnergy>(), 15).AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet")).Register();
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ModContent.ItemType<MechanicalLeashOfCthulhu>(), 1)
+            .AddIngredient(ModContent.ItemType<EternalEnergy>(), 15)
+
+            .AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"))
+
+            .Register();
+        }
     }
-  }
 }

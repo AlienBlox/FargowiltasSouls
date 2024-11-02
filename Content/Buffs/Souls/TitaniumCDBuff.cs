@@ -1,28 +1,23 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Souls.TitaniumCDBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Souls
 {
-  public class TitaniumCDBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class TitaniumCDBuff : ModBuff
     {
-      Main.buffNoSave[this.Type] = true;
-      Main.debuff[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Titanium Shield Cooldown");
+            // Description.SetDefault("You are charging up Titanium Shield");
+            Main.buffNoSave[Type] = true;
+            Main.debuff[Type] = true;
+            BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().TitaniumCD = true;
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.FargoSouls().TitaniumCD = true;
+        }
     }
-  }
 }

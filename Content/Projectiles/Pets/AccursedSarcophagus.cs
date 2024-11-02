@@ -1,69 +1,69 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Pets.AccursedSarcophagus
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Pets
 {
-  public class AccursedSarcophagus : ModProjectile
-  {
-    private int realFrameCounter;
-    private int realFrame;
-
-    public virtual void SetStaticDefaults()
+    public class AccursedSarcophagus : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 5;
-      Main.projPet[this.Projectile.type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Accursed Sarcophagus");
+            Main.projFrames[Projectile.type] = 5;
+            Main.projPet[Projectile.type] = true;
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(199);
-      this.AIType = 199;
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 52;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.TikiSpirit);
+            AIType = ProjectileID.TikiSpirit;
 
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (player.dead)
-        fargoSoulsPlayer.AccursedSarcophagus = false;
-      if (fargoSoulsPlayer.AccursedSarcophagus)
-        this.Projectile.timeLeft = 2;
-      if (++this.realFrameCounter > 6)
-      {
-        this.realFrameCounter = 0;
-        if (++this.realFrame >= Main.projFrames[this.Projectile.type])
-          this.realFrame = 0;
-      }
-      this.Projectile.frame = this.realFrame;
-    }
+            Projectile.width = 30;
+            Projectile.height = 52;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = (SpriteEffects) 0;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      Main.EntitySpriteDraw(ModContent.Request<Texture2D>(this.Texture + "_Glow", (AssetRequestMode) 1).Value, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.op_Multiply(Color.White, this.Projectile.Opacity), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        int realFrameCounter;
+        int realFrame;
+
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (player.dead)
+            {
+                modPlayer.AccursedSarcophagus = false;
+            }
+            if (modPlayer.AccursedSarcophagus)
+            {
+                Projectile.timeLeft = 2;
+            }
+
+            if (++realFrameCounter > 6)
+            {
+                realFrameCounter = 0;
+                if (++realFrame >= Main.projFrames[Projectile.type])
+                    realFrame = 0;
+            }
+
+            Projectile.frame = realFrame;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            SpriteEffects spriteEffects = /*Projectile.spriteDirection < 0 ? SpriteEffects.FlipHorizontally :*/ SpriteEffects.None;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, spriteEffects, 0);
+
+            Texture2D glowTexture = ModContent.Request<Texture2D>($"{Texture}_Glow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            Main.EntitySpriteDraw(glowTexture, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Color.White * Projectile.Opacity, Projectile.rotation, origin2, Projectile.scale, spriteEffects, 0);
+            return false;
+        }
     }
-  }
 }

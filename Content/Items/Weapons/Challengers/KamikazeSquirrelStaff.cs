@@ -1,84 +1,77 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.Challengers.KamikazeSquirrelStaff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.BossBags;
+﻿using FargowiltasSouls.Content.Items.BossBags;
 using FargowiltasSouls.Content.Projectiles.Minions;
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.Challengers
 {
-  public class KamikazeSquirrelStaff : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class KamikazeSquirrelStaff : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Kamikaze Squirrel Staff");
+            // Tooltip.SetDefault("Summons friendly squirrels to cuddle your foes\nRight click to make them explode");
+
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "神风松鼠杖");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "召唤出友善的松鼠，拥抱你的敌人\n右键点击让松鼠爆炸");
+
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
+
+        public override void SetDefaults()
+        {
+            Item.damage = 60;
+            Item.DamageType = DamageClass.Summon;
+            Item.width = 50;
+            Item.height = 50;
+            Item.useTime = 46;
+            Item.useAnimation = 46;
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.knockBack = 8;
+            Item.value = Item.sellPrice(0, 0, 50);
+            Item.rare = ItemRarityID.Blue;
+            Item.UseSound = SoundID.Item1;
+            Item.autoReuse = true;
+            Item.shoot = ModContent.ProjectileType<KamikazeSquirrel>();
+            Item.shootSpeed = 1f;
+            Item.mana = 10;
+            Item.noMelee = true;
+        }
+
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            player.SpawnMinionOnCursor(source, player.whoAmI, type, Item.damage, knockback, default, velocity);
+            return false;
+        }
+
+        public override bool AltFunctionUse(Player player) => true;
+
+        public override bool CanShoot(Player player) => player.altFunctionUse != 2;
+
+        public override float UseSpeedMultiplier(Player player)
+        {
+            //if (player.altFunctionUse == 2) return 0.5f;
+
+            return base.UseSpeedMultiplier(player);
+        }
+
+        public override bool? UseItem(Player player)
+        {
+            if (player.ItemTimeIsZero && player.altFunctionUse == 2)
+            {
+                foreach (Projectile p in Main.projectile.Where(p => p.active && p.owner == player.whoAmI && p.type == Item.shoot))
+                    p.Kill();
+            }
+
+            return true;
+        }
+        public override void AddRecipes()
+        {
+            CreateRecipe().AddIngredient<TrojanSquirrelBag>(2).AddTile(TileID.Solidifier).DisableDecraft().Register();
+        }
     }
-
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 60;
-      this.Item.DamageType = DamageClass.Summon;
-      ((Entity) this.Item).width = 50;
-      ((Entity) this.Item).height = 50;
-      this.Item.useTime = 46;
-      this.Item.useAnimation = 46;
-      this.Item.useStyle = 1;
-      this.Item.knockBack = 8f;
-      this.Item.value = Item.sellPrice(0, 0, 50, 0);
-      this.Item.rare = 1;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item1);
-      this.Item.autoReuse = true;
-      this.Item.shoot = ModContent.ProjectileType<KamikazeSquirrel>();
-      this.Item.shootSpeed = 1f;
-      this.Item.mana = 10;
-      this.Item.noMelee = true;
-    }
-
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      player.SpawnMinionOnCursor((IEntitySource) source, ((Entity) player).whoAmI, type, this.Item.damage, knockback, new Vector2(), velocity);
-      return false;
-    }
-
-    public virtual bool AltFunctionUse(Player player) => true;
-
-    public virtual bool CanShoot(Player player) => player.altFunctionUse != 2;
-
-    public virtual float UseSpeedMultiplier(Player player) => base.UseSpeedMultiplier(player);
-
-    public virtual bool? UseItem(Player player)
-    {
-      if (player.ItemTimeIsZero && player.altFunctionUse == 2)
-      {
-        foreach (Projectile projectile in ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (p => ((Entity) p).active && p.owner == ((Entity) player).whoAmI && p.type == this.Item.shoot)))
-          projectile.Kill();
-      }
-      return new bool?(true);
-    }
-
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient<TrojanSquirrelBag>(2).AddTile(220).DisableDecraft().Register();
-    }
-  }
 }

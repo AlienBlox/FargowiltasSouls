@@ -1,80 +1,114 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Expert.RustedOxygenTank
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
-using Terraria.GameContent.Creative;
+﻿using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Expert
 {
-  public class RustedOxygenTank : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class RustedOxygenTank : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.rare = -12;
-      this.Item.value = Item.sellPrice(0, 4, 0, 0);
-      this.Item.expert = true;
-    }
-
-    public static void PassiveEffect(Player player)
-    {
-      player.ignoreWater = true;
-      if (Collision.WetCollision(((Entity) player).position, ((Entity) player).width, ((Entity) player).height))
-      {
-        player.moveSpeed += 1.25f;
-        player.maxRunSpeed += 1.25f;
-      }
-      else
-      {
-        if (player.merman)
+        public override void SetStaticDefaults()
         {
-          player.gravity = 0.3f;
-          player.maxFallSpeed = 7f;
+
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
         }
-        else if (player.trident)
+
+        public override void SetDefaults()
         {
-          player.gravity = 0.25f;
-          player.maxFallSpeed = 6f;
-          Player.jumpHeight = 25;
-          Player.jumpSpeed = 5.51f;
-          if (player.controlUp)
-          {
-            player.gravity = 0.1f;
-            player.maxFallSpeed = 2f;
-          }
+            Item.width = 20;
+            Item.height = 20;
+            Item.rare = ItemRarityID.Expert;
+            Item.value = Item.sellPrice(0, 4);
+
+            Item.expert = true;
         }
-        else
+
+        public static void PassiveEffect(Player player)
         {
-          player.gravity = 0.2f;
-          player.maxFallSpeed = 5f;
-          Player.jumpHeight = 30;
-          Player.jumpSpeed = 6.01f;
+            player.ignoreWater = true;
+
+            if (Collision.WetCollision(player.position, player.width, player.height))
+            {
+                player.moveSpeed += 1.25f;
+                player.maxRunSpeed += 1.25f;
+                return;
+            }
+
+            //ripped from "effects while in water" vanilla code
+            if (player.merman)
+            {
+                player.gravity = 0.3f;
+                player.maxFallSpeed = 7f;
+            }
+            else if (player.trident)
+            {
+                player.gravity = 0.25f;
+                player.maxFallSpeed = 6f;
+                Player.jumpHeight = 25;
+                Player.jumpSpeed = 5.51f;
+                if (player.controlUp)
+                {
+                    player.gravity = 0.1f;
+                    player.maxFallSpeed = 2f;
+                }
+            }
+            else
+            {
+                player.gravity = 0.2f;
+                player.maxFallSpeed = 5f;
+                Player.jumpHeight = 30;
+                Player.jumpSpeed = 6.01f;
+            }
+
+            if (!player.wet)
+            {
+                player.wet = true;
+                player.wetCount = 10;
+            }
+            //player.wingTime = player.wingTimeMax;
+
+            /*
+            if (player.controlJump && player.GetJumpState(ExtraJump.Flipper).Available) //simulate flipper jump
+            {
+                player.swimTime = 30;
+                player.velocity.Y = (0f - Player.jumpSpeed) * player.gravDir;
+                player.jump = Player.jumpHeight;
+            }
+            */
+            //player.position -= player.velocity * 0.5f; //water speed is half of normal speed
+
+
         }
-        if (((Entity) player).wet)
-          return;
-        ((Entity) player).wet = true;
-        ((Entity) player).wetCount = (byte) 10;
-      }
+        public override bool CanRightClick() => true;
+        public override void RightClick(Player player)
+        {
+            player.ReplaceItem(Item, ModContent.ItemType<RustedOxygenTankInactive>());
+        }
+        public override void UpdateInventory(Player player)
+        {
+            player.FargoSouls().OxygenTank = true;
+        }
     }
-
-    public virtual bool CanRightClick() => true;
-
-    public virtual void RightClick(Player player)
+    public class RustedOxygenTankInactive : SoulsItem
     {
-      player.ReplaceItem(this.Item, ModContent.ItemType<RustedOxygenTankInactive>());
-    }
+        public override void SetStaticDefaults()
+        {
 
-    public virtual void UpdateInventory(Player player) => player.FargoSouls().OxygenTank = true;
-  }
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 0;
+        }
+
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.rare = ItemRarityID.Expert;
+            Item.value = Item.sellPrice(0, 4);
+
+            Item.expert = true;
+        }
+        public override bool CanRightClick() => true;
+        public override void RightClick(Player player)
+        {
+            player.ReplaceItem(Item, ModContent.ItemType<RustedOxygenTank>());
+        }
+    }
 }

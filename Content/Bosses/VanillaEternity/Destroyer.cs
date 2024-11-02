@@ -1,14 +1,12 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.VanillaEternity.Destroyer
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Common.Utilities;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Buffs.Souls;
 using FargowiltasSouls.Content.Projectiles;
+using FargowiltasSouls.Content.Projectiles.BossWeapons;
+using FargowiltasSouls.Content.Projectiles.ChallengerItems;
 using FargowiltasSouls.Content.Projectiles.Masomode;
+using FargowiltasSouls.Core;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using FargowiltasSouls.Core.Systems;
@@ -19,663 +17,1266 @@ using System.IO;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.VanillaEternity
 {
-  public class Destroyer : EModeNPCBehaviour
-  {
-    public int AttackModeTimer;
-    public int CoilRadius;
-    public int LaserTimer;
-    public int SecondaryAttackTimer;
-    public int RotationDirection = 1;
-    public bool InPhase2;
-    public bool IsCoiling;
-    public bool PrepareToCoil;
-    public bool DroppedSummon;
-    public const int P2_ATTACK_SPACING = 480;
-    public const int P2_COIL_BEGIN_TIME = 1920;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(134);
-
-    public virtual bool CanHitPlayer(NPC npc, Player target, ref int cooldownSlot)
+    public class Destroyer : EModeNPCBehaviour
     {
-      if (Main.getGoodWorld)
-        cooldownSlot = 1;
-      return base.CanHitPlayer(npc, target, ref cooldownSlot);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.TheDestroyer);
 
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
-    {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.AttackModeTimer);
-      binaryWriter.Write7BitEncodedInt(this.CoilRadius);
-      binaryWriter.Write7BitEncodedInt(this.LaserTimer);
-      binaryWriter.Write7BitEncodedInt(this.SecondaryAttackTimer);
-      binaryWriter.Write7BitEncodedInt(this.RotationDirection);
-      bitWriter.WriteBit(this.InPhase2);
-      bitWriter.WriteBit(this.IsCoiling);
-      bitWriter.WriteBit(this.PrepareToCoil);
-    }
+        public static readonly SoundStyle ScanSound = FargosSoundRegistry.DestroyerScan with { Volume = 5 };
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.AttackModeTimer = binaryReader.Read7BitEncodedInt();
-      this.CoilRadius = binaryReader.Read7BitEncodedInt();
-      this.LaserTimer = binaryReader.Read7BitEncodedInt();
-      this.SecondaryAttackTimer = binaryReader.Read7BitEncodedInt();
-      this.RotationDirection = binaryReader.Read7BitEncodedInt();
-      this.InPhase2 = bitReader.ReadBit();
-      this.IsCoiling = bitReader.ReadBit();
-      this.PrepareToCoil = bitReader.ReadBit();
-    }
+        public int AttackModeTimer;
+        public int CoilRadius;
+        public int LaserTimer;
+        public int SecondaryAttackTimer;
+        public int RotationDirection = 1;
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      npc.buffImmune[68] = true;
-      npc.buffImmune[46] = false;
-      npc.buffImmune[ModContent.BuffType<TimeFrozenBuff>()] = false;
-    }
+        public bool InPhase2;
+        public bool IsCoiling;
+        public bool PrepareToCoil;
 
-    private static int ProjectileDamage(NPC npc)
-    {
-      return FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 0.444444448f);
-    }
+        public bool DroppedSummon;
 
-    private void CoilAI(NPC npc)
-    {
-      npc.buffImmune[ModContent.BuffType<TimeFrozenBuff>()] = true;
-      npc.netUpdate = true;
-      ((Entity) npc).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) npc).velocity), 20f);
-      NPC npc1 = npc;
-      ((Entity) npc1).velocity = Vector2.op_Addition(((Entity) npc1).velocity, Vector2.op_Division(Vector2.op_Multiply(Utils.RotatedBy(((Entity) npc).velocity, 1.5707963705062866 * (double) this.RotationDirection, new Vector2()), ((Vector2) ref ((Entity) npc).velocity).Length()), (float) this.CoilRadius));
-      npc.rotation = Utils.ToRotation(((Entity) npc).velocity) + 1.57079637f;
-      if (this.AttackModeTimer == 0)
-        this.LaserTimer = 0;
-      if (npc.life < npc.lifeMax / 10)
-      {
-        if ((double) npc.localAI[2] >= 0.0)
-        {
-          npc.localAI[2] = WorldSavingSystem.MasochistModeReal ? -60f : 0.0f;
-          this.AttackModeTimer = 0;
-        }
-        if ((double) --npc.localAI[2] < -120.0)
-        {
-          npc.localAI[2] += WorldSavingSystem.MasochistModeReal ? 3f : 6f;
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 vector2 = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center), 14f);
-            int num = ModContent.ProjectileType<MechElectricOrbHoming>();
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, vector2, num, Destroyer.ProjectileDamage(npc), 0.0f, Main.myPlayer, (float) npc.target, 0.0f, 1f);
-          }
-        }
-        if (!npc.HasValidTarget || (double) ((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center) > 3000.0)
-        {
-          npc.TargetClosest(false);
-          if (!npc.HasValidTarget || (double) ((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center) > 3000.0)
-          {
-            this.AttackModeTimer = 0;
-            this.CoilRadius = 0;
-            this.IsCoiling = false;
-            this.PrepareToCoil = false;
-            EModeNPCBehaviour.NetSync(npc);
-          }
-        }
-        ++this.AttackModeTimer;
-      }
-      else
-      {
-        if ((double) --npc.localAI[2] < 0.0)
-        {
-          npc.localAI[2] = Main.player[npc.target].HasBuff(ModContent.BuffType<LightningRodBuff>()) ? 110f : 65f;
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) Main.player[npc.target]).Center, ((Entity) npc).Center);
-            double radians = (double) MathHelper.ToRadians(30f);
-            ((Vector2) ref vector2_1).Normalize();
-            Vector2 vector2_2 = Vector2.op_Multiply(vector2_1, 14f);
-            int num1 = ModContent.ProjectileType<MechElectricOrbHoming>();
-            int num2 = -5;
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Utils.RotatedBy(vector2_2, -radians, new Vector2()), num1, Destroyer.ProjectileDamage(npc), 0.0f, Main.myPlayer, (float) npc.target, (float) num2, 1f);
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, vector2_2, num1, Destroyer.ProjectileDamage(npc), 0.0f, Main.myPlayer, (float) npc.target, (float) num2, 1f);
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Utils.RotatedBy(vector2_2, radians, new Vector2()), num1, Destroyer.ProjectileDamage(npc), 0.0f, Main.myPlayer, (float) npc.target, (float) num2, 1f);
-          }
-        }
-        if (++this.AttackModeTimer > 300)
-        {
-          this.AttackModeTimer = 0;
-          this.CoilRadius = 0;
-          this.IsCoiling = false;
-          this.PrepareToCoil = false;
-          EModeNPCBehaviour.NetSync(npc);
-        }
-      }
-      Vector2 vector2_3 = Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply(Vector2.Normalize(Utils.RotatedBy(((Entity) npc).velocity, 1.5707963705062866 * (double) this.RotationDirection, new Vector2())), 600f));
-      if (++this.LaserTimer > 95)
-      {
-        this.LaserTimer = 0;
-        if (FargoSoulsUtil.HostCheck)
-        {
-          float num3 = (float) npc.life / (float) npc.lifeMax;
-          if (WorldSavingSystem.MasochistModeReal)
-            num3 = 0.0f;
-          int num4 = (int) (14.0 - 10.0 * (double) num3);
-          if (num4 % 2 != 0)
-            ++num4;
-          for (int index = 0; index < num4; ++index)
-          {
-            Vector2 vector2_4 = Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, vector2_3), 2.0 * Math.PI / (double) num4 * (double) index, new Vector2());
-            Vector2 vector2_5 = Vector2.op_Subtraction(vector2_3, Vector2.op_Multiply(vector2_4, 600f));
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), vector2_5, Vector2.op_Multiply(0.2f, vector2_4), ModContent.ProjectileType<DestroyerLaser>(), Destroyer.ProjectileDamage(npc), 0.0f, Main.myPlayer, 1f, 134f, 0.0f);
-          }
-        }
-      }
-      for (int index = 0; index < 20; ++index)
-      {
-        Vector2 vector2_6 = new Vector2();
-        double num = Main.rand.NextDouble() * 2.0 * Math.PI;
-        vector2_6.X += (float) (Math.Sin(num) * 600.0);
-        vector2_6.Y += (float) (Math.Cos(num) * 600.0);
-        Dust dust1 = Main.dust[Dust.NewDust(Vector2.op_Subtraction(Vector2.op_Addition(vector2_3, vector2_6), new Vector2(4f, 4f)), 0, 0, 112, 0.0f, 0.0f, 100, Color.White, 1f)];
-        dust1.velocity = Vector2.Zero;
-        if (Utils.NextBool(Main.rand, 3))
-        {
-          Dust dust2 = dust1;
-          dust2.velocity = Vector2.op_Addition(dust2.velocity, Vector2.op_Multiply(Vector2.Normalize(vector2_6), 5f));
-        }
-        dust1.noGravity = true;
-      }
-      Player player1 = Main.player[npc.target];
-      if (!((Entity) player1).active || player1.dead)
-        return;
-      float num5 = ((Entity) player1).Distance(vector2_3);
-      if ((double) num5 <= 600.0 || (double) num5 >= 3000.0)
-        return;
-      Vector2 vector2_7 = Vector2.op_Subtraction(vector2_3, ((Entity) player1).Center);
-      float num6 = ((Vector2) ref vector2_7).Length() - 600f;
-      ((Vector2) ref vector2_7).Normalize();
-      Vector2 vector2_8 = Vector2.op_Multiply(vector2_7, (double) num6 < 34.0 ? num6 : 34f);
-      Player player2 = player1;
-      ((Entity) player2).position = Vector2.op_Addition(((Entity) player2).position, vector2_8);
-      for (int index1 = 0; index1 < 20; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) player1).position, ((Entity) player1).width, ((Entity) player1).height, 112, 0.0f, 0.0f, 0, new Color(), 2f);
-        Main.dust[index2].noGravity = true;
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 5f);
-      }
-    }
+        public const int P2_ATTACK_SPACING = 480;
+        public const int P2_COIL_BEGIN_TIME = P2_ATTACK_SPACING * 4;
 
-    private void NonCoilAI(NPC npc)
-    {
-      npc.buffImmune[ModContent.BuffType<TimeFrozenBuff>()] = false;
-      npc.localAI[2] = 0.0f;
-      float maxSpeed = 16f;
-      float num15 = 0.1f;
-      float num16 = 0.15f;
-      bool flag1 = this.AttackModeTimer < 120;
-      float flySpeedModifierRatio = (float) npc.life / (float) npc.lifeMax;
-      if ((double) flySpeedModifierRatio > 0.5)
-        flySpeedModifierRatio = 0.5f;
-      if (flag1)
-        flySpeedModifierRatio = 0.0f;
-      if (npc.HasValidTarget)
-      {
-        if (!flag1)
+        public override bool CanHitPlayer(NPC npc, Player target, ref int cooldownSlot)
         {
-          float num = ((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center);
-          if ((double) num < 600.0)
-            maxSpeed *= 0.5f;
-          else if ((double) num > 900.0)
-          {
-            num15 *= 2f;
-            num16 *= 2f;
-          }
+            if (Main.getGoodWorld)
+                cooldownSlot = ImmunityCooldownID.Bosses;
+            return base.CanHitPlayer(npc, target, ref cooldownSlot);
         }
-        float num1 = ((Vector2) ref ((Entity) Main.player[npc.target]).velocity).Length() * 1.5f;
-        bool flag2 = (double) Math.Abs(MathHelper.WrapAngle(Utils.ToRotation(((Entity) npc).velocity) - Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center)))) < (double) MathHelper.ToRadians(45f);
-        if ((double) maxSpeed < (double) num1 & flag2)
-          maxSpeed = num1;
-      }
-      Vector2 target = ((Entity) Main.player[npc.target]).Center;
-      if (this.PrepareToCoil)
-      {
-        num15 = 0.4f;
-        num16 = 0.5f;
-        target = Vector2.op_Addition(target, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) Main.player[npc.target], ((Entity) npc).Center), 600f));
-        if (++this.AttackModeTimer > 120)
-          maxSpeed *= 2f;
-        if ((double) ((Entity) npc).Distance(target) < 50.0)
+
+
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
         {
-          this.AttackModeTimer = 0;
-          this.CoilRadius = (int) ((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center);
-          this.IsCoiling = true;
-          this.RotationDirection = Math.Sign(MathHelper.WrapAngle(Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center)) - Utils.ToRotation(((Entity) npc).velocity)));
-          ((Entity) npc).velocity = Vector2.op_Multiply(20f, Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center), -1.5707963705062866 * (double) this.RotationDirection, new Vector2()));
-          npc.netUpdate = true;
-          EModeNPCBehaviour.NetSync(npc);
-          SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) Main.player[npc.target]).Center), (SoundUpdateCallback) null);
-          if (npc.life < npc.lifeMax / 10)
-            SoundEngine.PlaySound(ref SoundID.ForceRoarPitched, new Vector2?(((Entity) Main.player[npc.target]).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-          {
-            for (int index = 0; index < Main.maxProjectiles; ++index)
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(AttackModeTimer);
+            binaryWriter.Write7BitEncodedInt(CoilRadius);
+            binaryWriter.Write7BitEncodedInt(LaserTimer);
+            binaryWriter.Write7BitEncodedInt(SecondaryAttackTimer);
+            binaryWriter.Write7BitEncodedInt(RotationDirection);
+            bitWriter.WriteBit(InPhase2);
+            bitWriter.WriteBit(IsCoiling);
+            bitWriter.WriteBit(PrepareToCoil);
+        }
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+        {
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            AttackModeTimer = binaryReader.Read7BitEncodedInt();
+            CoilRadius = binaryReader.Read7BitEncodedInt();
+            LaserTimer = binaryReader.Read7BitEncodedInt();
+            SecondaryAttackTimer = binaryReader.Read7BitEncodedInt();
+            RotationDirection = binaryReader.Read7BitEncodedInt();
+            InPhase2 = bitReader.ReadBit();
+            IsCoiling = bitReader.ReadBit();
+            PrepareToCoil = bitReader.ReadBit();
+        }
+
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
+
+            npc.buffImmune[BuffID.Suffocation] = true;
+            npc.buffImmune[BuffID.Chilled] = false;
+            npc.buffImmune[ModContent.BuffType<TimeFrozenBuff>()] = false;
+        }
+
+        private static int ProjectileDamage(NPC npc) => FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 4f / 9);
+
+        private void CoilAI(NPC npc)
+        {
+            npc.buffImmune[ModContent.BuffType<TimeFrozenBuff>()] = true;
+
+            npc.netUpdate = true;
+            npc.velocity = Vector2.Normalize(npc.velocity) * 20f;
+            npc.velocity += npc.velocity.RotatedBy(MathHelper.PiOver2 * RotationDirection) * npc.velocity.Length() / CoilRadius;
+            npc.rotation = npc.velocity.ToRotation() + MathHelper.PiOver2;
+
+            if (AttackModeTimer == 0)
+                LaserTimer = 0;
+
+            if (npc.life < npc.lifeMax / 10) //permanent coil phase 3
             {
-              if (((Entity) Main.projectile[index]).active && (Main.projectile[index].type == ModContent.ProjectileType<MechElectricOrbHoming>() || Main.projectile[index].type == ModContent.ProjectileType<MechElectricOrbDestroyer>() || Main.projectile[index].type == ModContent.ProjectileType<DestroyerLaser>() || Main.projectile[index].type == 100))
-                Main.projectile[index].Kill();
-            }
-          }
-        }
-      }
-      else
-      {
-        if (npc.life < npc.lifeMax / 10)
-        {
-          if (this.AttackModeTimer < 1920)
-          {
-            this.AttackModeTimer = 1920;
-            EModeNPCBehaviour.NetSync(npc);
-            SoundEngine.PlaySound(ref SoundID.ForceRoarPitched, new Vector2?(((Entity) Main.player[npc.target]).Center), (SoundUpdateCallback) null);
-          }
-        }
-        else
-          this.NonCoilAttacksAI(npc, ref num15, ref num16, ref target, ref maxSpeed, ref flySpeedModifierRatio);
-        if (++this.AttackModeTimer > 1920)
-        {
-          this.AttackModeTimer = 0;
-          this.PrepareToCoil = true;
-          npc.netUpdate = true;
-          EModeNPCBehaviour.NetSync(npc);
-        }
-        else if (this.AttackModeTimer == 1800)
-        {
-          SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) Main.player[npc.target]).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0.0f, Main.myPlayer, 6f, (float) ((Entity) npc).whoAmI, 0.0f);
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0.0f, Main.myPlayer, 6f, (float) ((Entity) npc).whoAmI, 0.0f);
-          }
-        }
-      }
-      Destroyer.MovementAI(npc, target, num15, num16, maxSpeed);
-      NPC npc1 = npc;
-      ((Entity) npc1).position = Vector2.op_Addition(((Entity) npc1).position, Vector2.op_Multiply(((Entity) npc).velocity, 0.5f - flySpeedModifierRatio));
-    }
+                if (npc.localAI[2] >= 0)
+                {
+                    npc.localAI[2] = WorldSavingSystem.MasochistModeReal ? -60 : 0;
+                    AttackModeTimer = 0; //for edge case where destroyer coils, then goes below 10% while coiling, make sure DR behaves right
+                }
 
-    private void NonCoilAttacksAI(
-      NPC npc,
-      ref float num15,
-      ref float num16,
-      ref Vector2 target,
-      ref float maxSpeed,
-      ref float flySpeedModifierRatio)
-    {
-      int num1 = 1440;
-      int num2 = 960;
-      if (FargoSoulsUtil.HostCheck && this.AttackModeTimer > 360 && this.AttackModeTimer < 900 && this.AttackModeTimer % (WorldSavingSystem.MasochistModeReal ? 40 : 120) == 12)
-      {
-        List<NPC> list = ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && n.type == 139)).ToList<NPC>();
-        int count = list.Count;
-        int index1 = Main.rand.Next(count);
-        int num3 = 0;
-        for (int index2 = 0; index2 < count; ++index2)
-        {
-          NPC npc1 = list[index1];
-          if (!npc1.GetGlobalNPC<Probe>().ShootLaser)
-          {
-            npc1.GetGlobalNPC<Probe>().ShootLaser = true;
-            npc1.GetGlobalNPC<Probe>().AttackTimer = 0;
-            if (++num3 < 2)
-              index1 += Main.rand.Next(count);
+                if (--npc.localAI[2] < -120)
+                {
+                    npc.localAI[2] += WorldSavingSystem.MasochistModeReal ? 3 : 6;
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 distance = npc.SafeDirectionTo(Main.player[npc.target].Center) * 14f;
+                        int type = ModContent.ProjectileType<MechElectricOrbHoming>();
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, distance, type, ProjectileDamage(npc), 0f, Main.myPlayer, npc.target, ai2: MechElectricOrb.Blue);
+                    }
+                }
+
+                if (!npc.HasValidTarget || npc.Distance(Main.player[npc.target].Center) > 3000)
+                {
+                    npc.TargetClosest(false);
+                    if (!npc.HasValidTarget || npc.Distance(Main.player[npc.target].Center) > 3000)
+                    {
+                        AttackModeTimer = 0;
+                        CoilRadius = 0;
+                        IsCoiling = false;
+                        PrepareToCoil = false;
+
+                        NetSync(npc);
+                    }
+                }
+
+                AttackModeTimer++;
+            }
             else
-              break;
-          }
-          index1 = (index1 + 1) % count;
-        }
-      }
-      int num4 = 4;
-      if ((double) npc.life < (double) npc.lifeMax * 0.75)
-        num4 = 5;
-      if ((double) npc.life < (double) npc.lifeMax * 0.5)
-        num4 = 6;
-      if ((double) npc.life < (double) npc.lifeMax * 0.25)
-        num4 = 7;
-      int num5 = num1 + num4 * 50;
-      if (this.AttackModeTimer == num1)
-        this.SecondaryAttackTimer = 0;
-      if (this.AttackModeTimer >= num1 && this.AttackModeTimer <= num5 + 90)
-      {
-        if (WorldSavingSystem.MasochistModeReal)
-        {
-          num15 *= 0.75f;
-          num16 *= 0.75f;
-        }
-        else if ((double) ((Entity) npc).Distance(target) < 600.0)
-        {
-          target = Vector2.op_Addition(target, Vector2.op_Multiply(((Entity) npc).DirectionFrom(target), 1000f));
-          num15 = 0.4f;
-          num16 = 0.5f;
-        }
-        else
-        {
-          target = Vector2.op_Addition(target, Vector2.op_Multiply(Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, target), 1.5707963705062866, new Vector2()), 1200f));
-          if ((double) ((Entity) npc).Distance(target) < 1200.0)
-          {
-            maxSpeed *= 0.5f;
-          }
-          else
-          {
-            num15 *= 2f;
-            num16 *= 2f;
-          }
-        }
-        if (this.AttackModeTimer < num5 && this.AttackModeTimer % 50 == 0)
-        {
-          Vector2 targetPos = ((Entity) Main.player[npc.target]).Center;
-          List<int> intList = new List<int>();
-          foreach (NPC npc2 in ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && n.realLife == ((Entity) npc).whoAmI && (double) ((Entity) n).Distance(targetPos) < 1600.0)))
-            intList.Add(((Entity) npc2).whoAmI);
-          NPC npc3 = intList.Count > 0 ? Main.npc[Utils.Next<int>(Main.rand, (IList<int>) intList)] : npc;
-          targetPos = Vector2.op_Addition(targetPos, Vector2.op_Multiply(((Entity) npc3).DirectionFrom(targetPos), Math.Min(300f, ((Entity) npc3).Distance(targetPos))));
-          float rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc3, targetPos));
-          int num6 = (int) ((0.5 + 0.5 * Math.Sin(3.1415927410125732 / (double) (num4 - 1) * (double) this.SecondaryAttackTimer++)) * (8.0 - 7.0 * (double) npc.life / (double) npc.lifeMax));
-          if (num6 > 6)
-            num6 = 6;
-          for (int index = -num6; index <= num6; ++index)
-          {
-            Vector2 vector2_1 = Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc3, targetPos), 1.5707963705062866, new Vector2());
-            float num7 = (float) (1000 / Math.Max(num6, 1) * index);
-            int num8 = 30 + Math.Abs(index) * 5;
-            Vector2 vector2_2 = Vector2.op_Division(Vector2.op_Subtraction(Vector2.op_Addition(targetPos, Vector2.op_Multiply(vector2_1, num7)), ((Entity) npc3).Center), (float) num8);
-            if (FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc3).Center, Vector2.op_Multiply(vector2_2, 2f), ModContent.ProjectileType<MechElectricOrbDestroyer>(), Destroyer.ProjectileDamage(npc), 0.0f, Main.myPlayer, rotation, (float) -num8, 1f);
-          }
-        }
-      }
-      if (this.AttackModeTimer == num2 - 120)
-      {
-        this.SecondaryAttackTimer = 0;
-        if (FargoSoulsUtil.HostCheck)
-        {
-          Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0.0f, Main.myPlayer, 9f, (float) ((Entity) npc).whoAmI, 0.0f);
-          Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0.0f, Main.myPlayer, 9f, (float) ((Entity) npc).whoAmI, 0.0f);
-        }
-      }
-      if (this.AttackModeTimer <= num2 || this.AttackModeTimer >= num2 + 420)
-        return;
-      flySpeedModifierRatio /= 2f;
-      if (this.SecondaryAttackTimer == 0)
-      {
-        if ((double) maxSpeed < 16.0)
-          maxSpeed = 16f;
-        maxSpeed *= 1.5f;
-        num15 *= 10f;
-        num16 *= 10f;
-        if ((double) ((Entity) npc).Distance(target) >= 400.0)
-          return;
-        this.SecondaryAttackTimer = 1;
-        ((Entity) npc).velocity = Vector2.op_Multiply(20f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, target));
-        if (!WorldSavingSystem.MasochistModeReal)
-        {
-          float num9 = MathHelper.WrapAngle(Utils.ToRotation(((Entity) Main.player[npc.target]).velocity) - Utils.ToRotation(((Entity) npc).velocity));
-          ((Entity) npc).velocity = Utils.RotatedBy(((Entity) npc).velocity, (double) MathHelper.ToRadians(30f) * (double) -Math.Sign(num9), new Vector2());
-        }
-        npc.netUpdate = true;
-        EModeNPCBehaviour.NetSync(npc);
-      }
-      else
-      {
-        double num10 = (double) Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, target)) - (double) Utils.ToRotation(((Entity) npc).velocity);
-        while (num10 > Math.PI)
-          num10 -= 2.0 * Math.PI;
-        while (num10 < -1.0 * Math.PI)
-          num10 += 2.0 * Math.PI;
-        int num11 = Math.Sign(num10);
-        if (Math.Abs(num10) >= (double) MathHelper.ToRadians(45f))
-        {
-          if (WorldSavingSystem.MasochistModeReal)
-            maxSpeed /= 2f;
-          else if ((double) maxSpeed > 4.0)
-            maxSpeed = 4f;
-          if ((double) ((Vector2) ref ((Entity) npc).velocity).Length() > (double) maxSpeed)
-          {
-            NPC npc4 = npc;
-            ((Entity) npc4).velocity = Vector2.op_Multiply(((Entity) npc4).velocity, 0.986f);
-          }
-          float num12 = 15f;
-          num15 /= num12;
-          num16 /= num12;
-        }
-        ((Entity) npc).velocity = Utils.RotatedBy(((Entity) npc).velocity, (double) MathHelper.ToRadians(0.3f) * (double) num11, new Vector2());
-        if (this.AttackModeTimer >= num2 + 300 || ++this.SecondaryAttackTimer % 90 != 20)
-          return;
-        bool flag1 = Utils.NextBool(Main.rand);
-        bool flag2 = true;
-        foreach (NPC npc5 in ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && n.realLife == ((Entity) npc).whoAmI)))
-        {
-          flag2 = !flag2;
-          if (flag2)
-          {
-            if (FargoSoulsUtil.HostCheck && (double) Utils.NextFloat(Main.rand) > (double) (npc.life / npc.lifeMax))
             {
-              float radians = MathHelper.ToRadians(10f);
-              float num13 = npc5.rotation + (flag1 ? 0.0f : 3.14159274f) + Utils.NextFloat(Main.rand, -radians, radians);
-              int index = Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc5).Center, Vector2.Zero, ModContent.ProjectileType<GlowLine>(), Destroyer.ProjectileDamage(npc), 0.0f, Main.myPlayer, 11f, (float) ((Entity) npc5).whoAmI, 0.0f);
-              if (index != Main.maxProjectiles)
-              {
-                Main.projectile[index].localAI[1] = num13;
-                if (Main.netMode == 2)
-                  NetMessage.SendData(27, -1, -1, (NetworkText) null, index, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-              }
+                if (--npc.localAI[2] < 0) //shoot star spreads into the circle
+                {
+                    npc.localAI[2] = Main.player[npc.target].HasBuff(ModContent.BuffType<LightningRodBuff>()) ? 110 : 65;
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 distance = Main.player[npc.target].Center - npc.Center;
+                        double angleModifier = MathHelper.ToRadians(30);
+                        distance.Normalize();
+                        distance *= 14f;
+                        int type = ModContent.ProjectileType<MechElectricOrbHoming>();
+                        int delay = -5;
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, distance.RotatedBy(-angleModifier), type, ProjectileDamage(npc), 0f, Main.myPlayer, npc.target, delay, ai2: MechElectricOrb.Blue);
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, distance, type, ProjectileDamage(npc), 0f, Main.myPlayer, npc.target, delay, ai2: MechElectricOrb.Blue);
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, distance.RotatedBy(angleModifier), type, ProjectileDamage(npc), 0f, Main.myPlayer, npc.target, delay, ai2: MechElectricOrb.Blue);
+                    }
+                }
+
+                if (++AttackModeTimer > 300) //go back to normal AI
+                {
+                    AttackModeTimer = 0;
+                    CoilRadius = 0;
+                    IsCoiling = false;
+                    PrepareToCoil = false;
+
+                    NetSync(npc);
+                }
             }
-            flag1 = !flag1;
-            if (Utils.NextBool(Main.rand, 5))
-              flag1 = !flag1;
-          }
+
+            Vector2 pivot = npc.Center;
+            pivot += Vector2.Normalize(npc.velocity.RotatedBy(MathHelper.PiOver2 * RotationDirection)) * 600;
+
+            if (++LaserTimer > 95)
+            {
+                LaserTimer = 0;
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    float ratio = (float)npc.life / npc.lifeMax;
+                    if (WorldSavingSystem.MasochistModeReal)
+                        ratio = 0;
+
+                    int max = (int)(14f - 10f * ratio);
+                    if (max % 2 != 0) //always shoot even number
+                        max++;
+
+                    for (int i = 0; i < max; i++)
+                    {
+                        Vector2 speed = npc.SafeDirectionTo(pivot).RotatedBy(2 * Math.PI / max * i);
+                        Vector2 spawnPos = pivot - speed * 600;
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), spawnPos, 0.2f * speed, ModContent.ProjectileType<DestroyerLaser>(), ProjectileDamage(npc), 0f, Main.myPlayer, 1f, ai1: NPCID.TheDestroyer);
+                    }
+                }
+            }
+
+            for (int i = 0; i < 20; i++) //arena dust
+            {
+                Vector2 offset = new();
+                double angle = Main.rand.NextDouble() * 2d * Math.PI;
+                offset.X += (float)(Math.Sin(angle) * 600);
+                offset.Y += (float)(Math.Cos(angle) * 600);
+                Dust dust = Main.dust[Dust.NewDust(pivot + offset - new Vector2(4, 4), 0, 0, DustID.Clentaminator_Blue, 0, 0, 100, Color.White, 1f)];
+                dust.velocity = Vector2.Zero;
+                if (Main.rand.NextBool(3))
+                    dust.velocity += Vector2.Normalize(offset) * 5f;
+                dust.noGravity = true;
+            }
+
+            Player target = Main.player[npc.target];
+            if (target.active && !target.dead) //arena effect
+            {
+                float distance = target.Distance(pivot);
+                if (distance > 600 && distance < 3000)
+                {
+                    Vector2 movement = pivot - target.Center;
+                    float difference = movement.Length() - 600;
+                    movement.Normalize();
+                    movement *= difference < 34f ? difference : 34f;
+                    target.position += movement;
+
+                    for (int i = 0; i < 20; i++)
+                    {
+                        int d = Dust.NewDust(target.position, target.width, target.height, DustID.Clentaminator_Blue, 0f, 0f, 0, default, 2f);
+                        Main.dust[d].noGravity = true;
+                        Main.dust[d].velocity *= 5f;
+                    }
+                }
+            }
         }
-      }
+
+        private void NonCoilAI(NPC npc)
+        {
+            npc.buffImmune[ModContent.BuffType<TimeFrozenBuff>()] = false;
+
+            npc.localAI[2] = 0;
+
+            float maxSpeed = 16f;    //max speed?
+            float num15 = 0.1f;   //turn speed?
+            float num16 = 0.15f;   //acceleration?
+
+            bool fastStart = AttackModeTimer < 120;
+
+            float flySpeedModifierRatio = (float)npc.life / npc.lifeMax;
+            if (flySpeedModifierRatio > 0.5f) //prevent it from subtracting speed
+                flySpeedModifierRatio = 0.5f;
+            if (fastStart) //if just entered this stage, max out ratio
+                flySpeedModifierRatio = 0;
+
+            if (npc.HasValidTarget)
+            {
+                if (!fastStart) //after fast start to uncoil
+                {
+                    float distance = npc.Distance(Main.player[npc.target].Center);
+                    if (distance < 600) //slower nearby
+                    {
+                        maxSpeed *= 0.5f;
+                    }
+                    else if (distance > 900) //come at you really hard when out of range
+                    {
+                        num15 *= 2f;
+                        num16 *= 2f;
+                    }
+                }
+
+                float comparisonSpeed = Main.player[npc.target].velocity.Length() * 1.5f;
+                float rotationDifference = MathHelper.WrapAngle(npc.velocity.ToRotation() - npc.SafeDirectionTo(Main.player[npc.target].Center).ToRotation());
+                bool inFrontOfMe = Math.Abs(rotationDifference) < MathHelper.ToRadians(90 / 2);
+                if (maxSpeed < comparisonSpeed && inFrontOfMe) //player is moving faster than my top speed
+                {
+                    maxSpeed = comparisonSpeed; //outspeed them
+                }
+            }
+
+            Vector2 target = Main.player[npc.target].Center;
+            if (PrepareToCoil) //move MUCH faster, approach a position nearby
+            {
+                num15 = 0.4f;
+                num16 = 0.5f;
+
+                target += Main.player[npc.target].SafeDirectionTo(npc.Center) * 600;
+
+                if (++AttackModeTimer > 120) //move way faster if still not in range
+                    maxSpeed *= 2f;
+
+                if (npc.Distance(target) < 50)
+                {
+                    AttackModeTimer = 0;
+                    CoilRadius = (int)npc.Distance(Main.player[npc.target].Center);
+                    IsCoiling = true;
+
+                    //angle difference from npc velocity, to angle towards player
+                    float rotationDiff = MathHelper.WrapAngle(npc.SafeDirectionTo(Main.player[npc.target].Center).ToRotation() - npc.velocity.ToRotation());
+                    RotationDirection = Math.Sign(rotationDiff);
+
+                    npc.velocity = 20 * npc.SafeDirectionTo(Main.player[npc.target].Center).RotatedBy(-MathHelper.PiOver2 * RotationDirection);
+
+                    npc.netUpdate = true;
+                    NetSync(npc);
+
+                    //SoundEngine.PlaySound(SoundID.Roar, Main.player[npc.target].Center);
+                    SoundEngine.PlaySound(ScanSound with { Pitch = -0.5f, Volume = 2f }, Main.player[npc.target].Center);
+                    if (npc.life < npc.lifeMax / 10)
+                        SoundEngine.PlaySound(SoundID.ForceRoarPitched, Main.player[npc.target].Center); //eoc roar
+
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        for (int i = 0; i < Main.maxProjectiles; i++)
+                        {
+                            if (Main.projectile[i].active && (
+                                Main.projectile[i].type == ModContent.ProjectileType<MechElectricOrbHoming>() ||
+                                Main.projectile[i].type == ModContent.ProjectileType<MechElectricOrbDestroyer>() ||
+                                Main.projectile[i].type == ModContent.ProjectileType<DestroyerLaser>() ||
+                                Main.projectile[i].type == ProjectileID.DeathLaser))
+                            {
+                                Main.projectile[i].Kill();
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (npc.life < npc.lifeMax / 10)
+                {
+                    if (AttackModeTimer < P2_COIL_BEGIN_TIME) //force begin desperation
+                    {
+                        AttackModeTimer = P2_COIL_BEGIN_TIME;
+                        NetSync(npc);
+                        SoundEngine.PlaySound(SoundID.ForceRoarPitched, Main.player[npc.target].Center); //eoc roar
+                    }
+                }
+                else
+                {
+                    NonCoilAttacksAI(npc, ref num15, ref num16, ref target, ref maxSpeed, ref flySpeedModifierRatio);
+                }
+
+                if (++AttackModeTimer > P2_COIL_BEGIN_TIME) //change state
+                {
+                    AttackModeTimer = 0;
+                    PrepareToCoil = true;
+
+                    npc.netUpdate = true;
+                    NetSync(npc);
+                }
+                else if (AttackModeTimer == P2_COIL_BEGIN_TIME - 120) //telegraph with roar
+                {
+                    SoundEngine.PlaySound(ScanSound with { Pitch = 0.5f, Volume = 2f }, Main.player[npc.target].Center);
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0f, Main.myPlayer, 6, npc.whoAmI);
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0f, Main.myPlayer, 6, npc.whoAmI);
+                    }
+                }
+            }
+
+            MovementAI(npc, target, num15, num16, maxSpeed);
+
+            npc.position += npc.velocity * (.5f - flySpeedModifierRatio);
+        }
+
+        private void NonCoilAttacksAI(NPC npc, ref float num15, ref float num16, ref Vector2 target, ref float maxSpeed, ref float flySpeedModifierRatio)
+        {
+            int MechElectricOrbThreshold = P2_ATTACK_SPACING * 3;
+            int laserThreshold = P2_ATTACK_SPACING * 2;
+
+            if (FargoSoulsUtil.HostCheck && AttackModeTimer > P2_ATTACK_SPACING - 120 && AttackModeTimer < P2_ATTACK_SPACING * 2 - 60)
+            {
+                int interval = WorldSavingSystem.MasochistModeReal ? 40 : 120;
+                if (AttackModeTimer % interval == 12) //make a probe shoot
+                {
+                    List<NPC> probes = Main.npc.Where(n => n.active && n.type == NPCID.Probe).ToList();
+
+                    int max = probes.Count;
+                    int attempt = Main.rand.Next(max);
+                    int probesActivated = 0;
+                    for (int i = 0; i < max; i++)
+                    {
+                        NPC probe = probes[attempt];
+                        if (!probe.GetGlobalNPC<Probe>().ShootLaser)
+                        {
+                            probe.GetGlobalNPC<Probe>().ShootLaser = true;
+                            probe.GetGlobalNPC<Probe>().AttackTimer = 0;
+
+                            if (++probesActivated >= 2)
+                                break;
+
+                            attempt += Main.rand.Next(max);
+                        }
+
+                        attempt = (attempt + 1) % max; //start from a random point in the probe collection and try to make one shoot a laser, looping around at end of list
+                    }
+                }
+            }
+
+            int maxMechElectricOrbIntervals = 4;
+            if (npc.life < npc.lifeMax * 0.75)
+                maxMechElectricOrbIntervals = 5;
+            if (npc.life < npc.lifeMax * 0.5)
+                maxMechElectricOrbIntervals = 6;
+            if (npc.life < npc.lifeMax * 0.25)
+                maxMechElectricOrbIntervals = 7;
+
+            const int MechElectricOrbPause = 50;
+            int upperMechElectricOrbTime = MechElectricOrbThreshold + maxMechElectricOrbIntervals * MechElectricOrbPause;
+            if (AttackModeTimer == MechElectricOrbThreshold)
+                SecondaryAttackTimer = 0;
+            if (AttackModeTimer >= MechElectricOrbThreshold && AttackModeTimer <= upperMechElectricOrbTime + 90) //spaced star spread attack
+            {
+                if (WorldSavingSystem.MasochistModeReal)
+                {
+                    num15 *= 0.75f;
+                    num16 *= 0.75f;
+                }
+                else
+                {
+                    if (npc.Distance(target) < 600) //get away from player at high speed
+                    {
+                        target += npc.DirectionFrom(target) * 1000;
+
+                        num15 = 0.4f;
+                        num16 = 0.5f;
+                    }
+                    else
+                    {
+                        target += npc.SafeDirectionTo(target).RotatedBy(MathHelper.PiOver2) * 1200;
+
+                        if (npc.Distance(target) < 1200)
+                        {
+                            maxSpeed *= 0.5f;
+                        }
+                        else //stop running
+                        {
+                            num15 *= 2f;
+                            num16 *= 2f;
+                        }
+                    }
+                }
+
+                if (AttackModeTimer < upperMechElectricOrbTime && AttackModeTimer % MechElectricOrbPause == 0)
+                {
+                    Vector2 targetPos = Main.player[npc.target].Center;
+
+                    List<int> segments = [];
+                    foreach (NPC n in Main.npc.Where(n => n.active && n.realLife == npc.whoAmI && n.Distance(targetPos) < 1600))
+                        segments.Add(n.whoAmI);
+
+                    NPC segment = segments.Count > 0 ? Main.npc[Main.rand.Next(segments)] : npc;
+
+                    targetPos += segment.DirectionFrom(targetPos) * Math.Min(300, segment.Distance(targetPos)); //slightly between player and npc
+
+                    float accelerationAngle = segment.SafeDirectionTo(targetPos).ToRotation();
+
+                    double maxStarModifier = 0.5 + 0.5 * Math.Sin(MathHelper.Pi / (maxMechElectricOrbIntervals - 1) * SecondaryAttackTimer++);
+                    int maxStarsInOneWave = (int)(maxStarModifier * (8.0 - 7.0 * npc.life / npc.lifeMax));
+                    if (maxStarsInOneWave > 6)
+                        maxStarsInOneWave = 6;
+                    //Main.NewText($"{Counter3} {maxStarModifier} {maxStarsInOneWave} {maxMechElectricOrbIntervals}");
+                    SoundEngine.PlaySound(MechElectricOrb.ShotSound with { Volume = 0.5f, MaxInstances = 4 }, Main.player[npc.target].position);
+                    for (int i = -maxStarsInOneWave; i <= maxStarsInOneWave; i++)
+                    {
+                        Vector2 offset = segment.SafeDirectionTo(targetPos).RotatedBy(MathHelper.PiOver2);
+                        float offsetLength = 1000 / Math.Max(maxStarsInOneWave, 1) * i;
+                        int travelTime = 30 + Math.Abs(i) * 5;
+                        Vector2 individualTarget = targetPos + offset * offsetLength;
+                        Vector2 vel = (individualTarget - segment.Center) / travelTime;
+                        if (FargoSoulsUtil.HostCheck)
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), segment.Center, vel * 2, ModContent.ProjectileType<MechElectricOrbDestroyer>(), ProjectileDamage(npc), 0f, Main.myPlayer, accelerationAngle, -travelTime, ai2: MechElectricOrb.Blue);
+                        //Main.NewText($"{segment.Center} to {individualTarget}, dist {segment.Distance(individualTarget)}");
+                        //Main.NewText($"vel: {vel * 2} for {travelTime} ticks");
+                        //Main.NewText($"sanity: {targetPos}");
+                    }
+                    //Main.NewText($"targetpos dist to player: {Main.player[npc.target].Distance(targetPos)}");
+                }
+            }
+            int telegraphTime = 120;
+
+            if (AttackModeTimer == laserThreshold - telegraphTime) //tell for hyper dash for light show
+            {
+                SecondaryAttackTimer = 0;
+                SoundEngine.PlaySound(ScanSound with { Volume = 2f }, npc.Center);
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    float angle = MathHelper.Pi * 0.7f;
+                    int p = Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, npc.velocity, ModContent.ProjectileType<DestroyerScanTelegraph>(), 0, 0f, Main.myPlayer, 0, angle, 1000);
+                    if (p != Main.maxProjectiles)
+                        Main.projectile[p].timeLeft = telegraphTime;
+                    //Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0f, Main.myPlayer, 9, npc.whoAmI);
+                    //Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0f, Main.myPlayer, 9, npc.whoAmI);
+                }
+            }
+            if (AttackModeTimer.IsWithinBounds(laserThreshold - telegraphTime, laserThreshold) && npc.HasPlayerTarget) // while telegraphing light show
+            {
+                npc.velocity = Vector2.Lerp(npc.velocity, (Main.player[npc.target].Center - npc.Center) / 80, 0.05f);
+            }
+            if (AttackModeTimer > laserThreshold && AttackModeTimer < laserThreshold + 420)
+            {
+                flySpeedModifierRatio /= 2;
+
+                if (SecondaryAttackTimer == 0) //fly at player
+                {
+                    if (maxSpeed < 16)
+                        maxSpeed = 16;
+                    maxSpeed *= 1.5f;
+
+                    num15 *= 10;
+                    num16 *= 10;
+
+                    if (npc.Distance(target) < 400)
+                    {
+                        SecondaryAttackTimer = 1;
+                        npc.velocity = 20f * npc.SafeDirectionTo(target);//.RotatedBy(MathHelper.ToRadians(30) * (Main.rand.NextBool() ? -1 : 1));
+
+                        if (!WorldSavingSystem.MasochistModeReal) //deflect away at the last second
+                        {
+                            float targetSpeedDirection = MathHelper.WrapAngle(Main.player[npc.target].velocity.ToRotation() - npc.velocity.ToRotation());
+                            npc.velocity = npc.velocity.RotatedBy(MathHelper.ToRadians(30) * -Math.Sign(targetSpeedDirection));
+                        }
+
+                        npc.netUpdate = true;
+                        NetSync(npc);
+                    }
+                }
+                else
+                {
+                    double angle = npc.SafeDirectionTo(target).ToRotation() - npc.velocity.ToRotation();
+                    while (angle > Math.PI)
+                        angle -= 2.0 * Math.PI;
+                    while (angle < -Math.PI)
+                        angle += 2.0 * Math.PI;
+                    int rotationTowardsPlayer = Math.Sign(angle);
+
+                    bool playerIsInFront = Math.Abs(angle) < MathHelper.ToRadians(45);
+                    if (!playerIsInFront)
+                    {
+                        if (WorldSavingSystem.MasochistModeReal)
+                            maxSpeed /= 2;
+                        else if (maxSpeed > 4)
+                            maxSpeed = 4;
+
+                        if (npc.velocity.Length() > maxSpeed)
+                            npc.velocity *= 0.986f;
+
+                        float turnModifier = 15f;
+                        num15 /= turnModifier; //garbage turning
+                        num16 /= turnModifier;
+                    }
+
+                    //curve very slightly towards player
+                    npc.velocity = npc.velocity.RotatedBy(MathHelper.ToRadians(0.3f) * rotationTowardsPlayer);
+
+                    if (AttackModeTimer < laserThreshold + 300 && ++SecondaryAttackTimer % 90 == 20)
+                    {
+                        bool flip = Main.rand.NextBool();
+                        bool spawn = true;
+                        foreach (NPC n in Main.npc.Where(n => n.active && n.realLife == npc.whoAmI))
+                        {
+                            spawn = !spawn;
+                            if (!spawn)
+                                continue;
+
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                if (Main.rand.NextFloat() > npc.life / npc.lifeMax)
+                                {
+                                    float range = MathHelper.ToRadians(10);
+                                    float ai1 = n.rotation + (flip ? 0 : MathHelper.Pi) + Main.rand.NextFloat(-range, range);
+                                    int p = Projectile.NewProjectile(npc.GetSource_FromThis(), n.Center, Vector2.Zero, ModContent.ProjectileType<GlowLine>(), ProjectileDamage(npc), 0f, Main.myPlayer, 11, n.whoAmI);
+                                    if (p != Main.maxProjectiles)
+                                    {
+                                        Main.projectile[p].localAI[1] = ai1;
+                                        if (Main.netMode == NetmodeID.Server)
+                                            NetMessage.SendData(MessageID.SyncProjectile, number: p);
+                                    }
+                                }
+                            }
+
+                            flip = !flip;
+                            if (Main.rand.NextBool(5))
+                                flip = !flip;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void MovementAI(NPC npc, Vector2 target, float num15, float num16, float maxSpeed)
+        {
+            float num17 = target.X;
+            float num18 = target.Y;
+
+            float num21 = num17 - npc.Center.X;
+            float num22 = num18 - npc.Center.Y;
+            float num23 = (float)Math.Sqrt((double)num21 * (double)num21 + (double)num22 * (double)num22);
+
+            //ground movement code but it always runs
+            float num2 = (float)Math.Sqrt(num21 * num21 + num22 * num22);
+            float num3 = Math.Abs(num21);
+            float num4 = Math.Abs(num22);
+            float num5 = maxSpeed / num2;
+            float num6 = num21 * num5;
+            float num7 = num22 * num5;
+            if ((npc.velocity.X > 0f && num6 > 0f || npc.velocity.X < 0f && num6 < 0f) && (npc.velocity.Y > 0f && num7 > 0f || npc.velocity.Y < 0f && num7 < 0f))
+            {
+                if (npc.velocity.X < num6)
+                    npc.velocity.X += num16;
+                else if (npc.velocity.X > num6)
+                    npc.velocity.X -= num16;
+                if (npc.velocity.Y < num7)
+                    npc.velocity.Y += num16;
+                else if (npc.velocity.Y > num7)
+                    npc.velocity.Y -= num16;
+            }
+            if (npc.velocity.X > 0f && num6 > 0f || npc.velocity.X < 0f && num6 < 0f || npc.velocity.Y > 0f && num7 > 0f || npc.velocity.Y < 0f && num7 < 0f)
+            {
+                if (npc.velocity.X < num6)
+                    npc.velocity.X += num15;
+                else if (npc.velocity.X > num6)
+                    npc.velocity.X -= num15;
+                if (npc.velocity.Y < num7)
+                    npc.velocity.Y += num15;
+                else if (npc.velocity.Y > num7)
+                    npc.velocity.Y -= num15;
+
+                if (Math.Abs(num7) < maxSpeed * 0.2f && (npc.velocity.X > 0f && num6 < 0f || npc.velocity.X < 0f && num6 > 0f))
+                {
+                    if (npc.velocity.Y > 0f)
+                        npc.velocity.Y += num15 * 2f;
+                    else
+                        npc.velocity.Y -= num15 * 2f;
+                }
+                if (Math.Abs(num6) < maxSpeed * 0.2f && (npc.velocity.Y > 0f && num7 < 0f || npc.velocity.Y < 0f && num7 > 0f))
+                {
+                    if (npc.velocity.X > 0f)
+                        npc.velocity.X += num15 * 2f;
+                    else
+                        npc.velocity.X -= num15 * 2f;
+                }
+            }
+            else if (num3 > num4)
+            {
+                if (npc.velocity.X < num6)
+                    npc.velocity.X += num15 * 1.1f;
+                else if (npc.velocity.X > num6)
+                    npc.velocity.X -= num15 * 1.1f;
+
+                if (Math.Abs(npc.velocity.X) + Math.Abs(npc.velocity.Y) < maxSpeed * 0.5f)
+                {
+                    if (npc.velocity.Y > 0f)
+                        npc.velocity.Y += num15;
+                    else
+                        npc.velocity.Y -= num15;
+                }
+            }
+            else
+            {
+                if (npc.velocity.Y < num7)
+                    npc.velocity.Y += num15 * 1.1f;
+                else if (npc.velocity.Y > num7)
+                    npc.velocity.Y -= num15 * 1.1f;
+
+                if (Math.Abs(npc.velocity.X) + Math.Abs(npc.velocity.Y) < maxSpeed * 0.5f)
+                {
+                    if (npc.velocity.X > 0f)
+                        npc.velocity.X += num15;
+                    else
+                        npc.velocity.X -= num15;
+                }
+            }
+            npc.rotation = (float)Math.Atan2(npc.velocity.Y, npc.velocity.X) + 1.57f;
+            npc.netUpdate = true;
+            npc.localAI[0] = 1f;
+        }
+
+        public override bool SafePreAI(NPC npc)
+        {
+            EModeGlobalNPC.destroyBoss = npc.whoAmI;
+
+
+            if (!InPhase2)
+            {
+                if (npc.life < (int)(npc.lifeMax * (WorldSavingSystem.MasochistModeReal ? 0.95 : .75)))
+                {
+                    InPhase2 = true;
+                    AttackModeTimer = P2_COIL_BEGIN_TIME;
+                    npc.netUpdate = true;
+                    if (npc.HasPlayerTarget)
+                        SoundEngine.PlaySound(ScanSound with { Pitch = 1f, Volume = 2f }, Main.player[npc.target].Center);
+                }
+            }
+            else
+            {
+                if (npc.HasValidTarget && (!Main.dayTime || Main.remixWorld))
+                {
+                    npc.timeLeft = 600; //don't despawn
+
+                    if (IsCoiling) //spinning
+                    {
+                        CoilAI(npc);
+                    }
+                    else
+                    {
+                        NonCoilAI(npc);
+                    }
+
+                    if (Main.netMode == NetmodeID.Server && npc.netUpdate && --npc.netSpam < 0) //manual mp sync control
+                    {
+                        npc.netUpdate = false;
+                        npc.netSpam = 5;
+                        NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, npc.whoAmI);
+                    }
+                    return false;
+                }
+                else
+                {
+                    npc.velocity.Y++;
+                    if (npc.timeLeft > 60)
+                        npc.timeLeft = 60;
+                    return true;
+                }
+            }
+
+            EModeUtils.DropSummon(npc, "MechWorm", NPC.downedMechBoss1, ref DroppedSummon, Main.hardMode);
+
+            return true;
+        }
+
+        public override void ModifyHitByAnything(NPC npc, Player player, ref NPC.HitModifiers modifiers)
+        {
+            base.ModifyHitByAnything(npc, player, ref modifiers);
+
+            if (IsCoiling)
+            {
+                if (npc.life < npc.lifeMax / 10)
+                {
+                    float modifier = Math.Min(1f, AttackModeTimer / 480f);
+                    modifiers.FinalDamage *= modifier;
+                }
+                else
+                {
+                    modifiers.FinalDamage *= 0.1f;
+                }
+            }
+            else if (PrepareToCoil || AttackModeTimer >= P2_COIL_BEGIN_TIME - 120 || npc.life < npc.lifeMax / 10)
+            {
+                modifiers.FinalDamage *= 0.1f;
+            }
+        }
+
+        public override void SafeModifyHitByProjectile(NPC npc, Projectile projectile, ref NPC.HitModifiers modifiers)
+        {
+            base.SafeModifyHitByProjectile(npc, projectile, ref modifiers);
+
+            if (projectile.numHits > 0 && !FargoSoulsUtil.IsSummonDamage(projectile))
+                modifiers.FinalDamage *= 2.0f / 3.0f + 1.0f / 3.0f * 1f / projectile.numHits;
+            if (projectile.type == ProjectileID.RainFriendly)
+                modifiers.FinalDamage /= 2;
+            if (projectile.type == ProjectileID.SoulDrain)
+                modifiers.FinalDamage *= 0.75f;
+        }
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(BuffID.Electrified, 60);
+            target.AddBuff(ModContent.BuffType<LightningRodBuff>(), 600);
+        }
+
+
+        public override void LoadSprites(NPC npc, bool recolor)
+        {
+            base.LoadSprites(npc, recolor);
+
+            LoadNPCSprite(recolor, npc.type);
+
+            LoadBossHeadSprite(recolor, 25);
+            LoadGore(recolor, 156);
+            for (int i = 1; i <= 3; i++)
+                LoadDest(recolor, i - 1);
+        }
     }
 
-    private static void MovementAI(
-      NPC npc,
-      Vector2 target,
-      float num15,
-      float num16,
-      float maxSpeed)
+    public class DestroyerSegment : EModeNPCBehaviour
     {
-      double x1 = (double) target.X;
-      float y = target.Y;
-      double x2 = (double) ((Entity) npc).Center.X;
-      float num1 = (float) (x1 - x2);
-      float num2 = y - ((Entity) npc).Center.Y;
-      Math.Sqrt((double) num1 * (double) num1 + (double) num2 * (double) num2);
-      float num3 = (float) Math.Sqrt((double) num1 * (double) num1 + (double) num2 * (double) num2);
-      float num4 = Math.Abs(num1);
-      float num5 = Math.Abs(num2);
-      float num6 = maxSpeed / num3;
-      float num7 = num1 * num6;
-      float num8 = num2 * num6;
-      if (((double) ((Entity) npc).velocity.X > 0.0 && (double) num7 > 0.0 || (double) ((Entity) npc).velocity.X < 0.0 && (double) num7 < 0.0) && ((double) ((Entity) npc).velocity.Y > 0.0 && (double) num8 > 0.0 || (double) ((Entity) npc).velocity.Y < 0.0 && (double) num8 < 0.0))
-      {
-        if ((double) ((Entity) npc).velocity.X < (double) num7)
-          ((Entity) npc).velocity.X += num16;
-        else if ((double) ((Entity) npc).velocity.X > (double) num7)
-          ((Entity) npc).velocity.X -= num16;
-        if ((double) ((Entity) npc).velocity.Y < (double) num8)
-          ((Entity) npc).velocity.Y += num16;
-        else if ((double) ((Entity) npc).velocity.Y > (double) num8)
-          ((Entity) npc).velocity.Y -= num16;
-      }
-      if ((double) ((Entity) npc).velocity.X > 0.0 && (double) num7 > 0.0 || (double) ((Entity) npc).velocity.X < 0.0 && (double) num7 < 0.0 || (double) ((Entity) npc).velocity.Y > 0.0 && (double) num8 > 0.0 || (double) ((Entity) npc).velocity.Y < 0.0 && (double) num8 < 0.0)
-      {
-        if ((double) ((Entity) npc).velocity.X < (double) num7)
-          ((Entity) npc).velocity.X += num15;
-        else if ((double) ((Entity) npc).velocity.X > (double) num7)
-          ((Entity) npc).velocity.X -= num15;
-        if ((double) ((Entity) npc).velocity.Y < (double) num8)
-          ((Entity) npc).velocity.Y += num15;
-        else if ((double) ((Entity) npc).velocity.Y > (double) num8)
-          ((Entity) npc).velocity.Y -= num15;
-        if ((double) Math.Abs(num8) < (double) maxSpeed * 0.20000000298023224 && ((double) ((Entity) npc).velocity.X > 0.0 && (double) num7 < 0.0 || (double) ((Entity) npc).velocity.X < 0.0 && (double) num7 > 0.0))
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(NPCID.TheDestroyerBody, NPCID.TheDestroyerTail);
+
+        public int ProjectileCooldownTimer;
+        public int AttackTimer;
+        public int ProbeReleaseTimer;
+        public int IntangibleTimer;
+        public bool GoIntangibleAfterCoil;
+
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
         {
-          if ((double) ((Entity) npc).velocity.Y > 0.0)
-            ((Entity) npc).velocity.Y += num15 * 2f;
-          else
-            ((Entity) npc).velocity.Y -= num15 * 2f;
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(ProjectileCooldownTimer);
+            binaryWriter.Write7BitEncodedInt(AttackTimer);
+            binaryWriter.Write7BitEncodedInt(ProbeReleaseTimer);
         }
-        if ((double) Math.Abs(num7) < (double) maxSpeed * 0.20000000298023224 && ((double) ((Entity) npc).velocity.Y > 0.0 && (double) num8 < 0.0 || (double) ((Entity) npc).velocity.Y < 0.0 && (double) num8 > 0.0))
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
         {
-          if ((double) ((Entity) npc).velocity.X > 0.0)
-            ((Entity) npc).velocity.X += num15 * 2f;
-          else
-            ((Entity) npc).velocity.X -= num15 * 2f;
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            ProjectileCooldownTimer = binaryReader.Read7BitEncodedInt();
+            AttackTimer = binaryReader.Read7BitEncodedInt();
+            ProbeReleaseTimer = binaryReader.Read7BitEncodedInt();
         }
-      }
-      else if ((double) num4 > (double) num5)
-      {
-        if ((double) ((Entity) npc).velocity.X < (double) num7)
-          ((Entity) npc).velocity.X += num15 * 1.1f;
-        else if ((double) ((Entity) npc).velocity.X > (double) num7)
-          ((Entity) npc).velocity.X -= num15 * 1.1f;
-        if ((double) Math.Abs(((Entity) npc).velocity.X) + (double) Math.Abs(((Entity) npc).velocity.Y) < (double) maxSpeed * 0.5)
+
+        public override void SetDefaults(NPC npc)
         {
-          if ((double) ((Entity) npc).velocity.Y > 0.0)
-            ((Entity) npc).velocity.Y += num15;
-          else
-            ((Entity) npc).velocity.Y -= num15;
+            base.SetDefaults(npc);
+
+            ProbeReleaseTimer = -Main.rand.Next(360);
         }
-      }
-      else
-      {
-        if ((double) ((Entity) npc).velocity.Y < (double) num8)
-          ((Entity) npc).velocity.Y += num15 * 1.1f;
-        else if ((double) ((Entity) npc).velocity.Y > (double) num8)
-          ((Entity) npc).velocity.Y -= num15 * 1.1f;
-        if ((double) Math.Abs(((Entity) npc).velocity.X) + (double) Math.Abs(((Entity) npc).velocity.Y) < (double) maxSpeed * 0.5)
+
+        public override void OnFirstTick(NPC npc)
         {
-          if ((double) ((Entity) npc).velocity.X > 0.0)
-            ((Entity) npc).velocity.X += num15;
-          else
-            ((Entity) npc).velocity.X -= num15;
+            base.OnFirstTick(npc);
+
+            npc.buffImmune[BuffID.Suffocation] = true;
+            npc.buffImmune[BuffID.Chilled] = false;
+            npc.buffImmune[ModContent.BuffType<TimeFrozenBuff>()] = false;
         }
-      }
-      npc.rotation = (float) Math.Atan2((double) ((Entity) npc).velocity.Y, (double) ((Entity) npc).velocity.X) + 1.57f;
-      npc.netUpdate = true;
-      npc.localAI[0] = 1f;
+
+        public override bool SafePreAI(NPC npc)
+        {
+            bool result = base.SafePreAI(npc);
+
+            if (IntangibleTimer > 0)
+                IntangibleTimer--;
+
+            if (IntangibleTimer > 20)
+            {
+                npc.alpha += 12;
+                if (npc.alpha > 255)
+                    npc.alpha = 255;
+            }
+            else
+            {
+                npc.alpha -= 12;
+                if (npc.alpha < 0)
+                    npc.alpha = 0;
+            }
+
+            //if (npc.whoAmI == NPC.FindFirstNPC(npc.type))
+                //Main.NewText($"{IntangibleTimer} {npc.alpha}");
+
+            NPC destroyer = FargoSoulsUtil.NPCExists(npc.realLife, NPCID.TheDestroyer);
+
+            if (destroyer == null || npc.life <= 0 || !destroyer.active || destroyer.life <= 0)
+            {
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    npc.life = 0;
+                    if (Main.netMode == NetmodeID.Server)
+                        NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, npc.whoAmI);
+                    npc.active = false;
+                }
+                return result;
+            }
+
+            Destroyer destroyerEmode = destroyer.GetGlobalNPC<Destroyer>();
+
+            npc.defense = npc.defDefense;
+            npc.localAI[0] = 0f; //disable vanilla lasers
+            npc.buffImmune[ModContent.BuffType<TimeFrozenBuff>()] = destroyer.buffImmune[ModContent.BuffType<TimeFrozenBuff>()];
+
+            if (destroyerEmode.IsCoiling) //spinning
+            {
+                npc.defense = 0;
+
+                ProjectileCooldownTimer = 180;
+                if (AttackTimer < 0)
+                    AttackTimer = 0; //cancel startup on any imminent projectiles
+                Vector2 pivot = Main.npc[npc.realLife].Center;
+                pivot += Vector2.Normalize(Main.npc[npc.realLife].velocity.RotatedBy(MathHelper.PiOver2 * destroyerEmode.RotationDirection)) * 600;
+                if (npc.Distance(pivot) < 600) //make sure body doesnt coil into the circling zone
+                    npc.Center = pivot + npc.DirectionFrom(pivot) * 600;
+
+                if (WorldSavingSystem.MasochistModeReal && Main.getGoodWorld)
+                    GoIntangibleAfterCoil = true;
+            }
+            else //not spinning
+            {
+                if (GoIntangibleAfterCoil)
+                {
+                    IntangibleTimer = 120;
+                    GoIntangibleAfterCoil = false;
+                }
+            }
+
+            if (destroyerEmode.InPhase2)
+                AttackTimer = 0; //just shut it off, fuck it
+
+            if (ProjectileCooldownTimer > 0) //no lasers or stars while or shortly after spinning
+            {
+                ProjectileCooldownTimer--;
+                if (AttackTimer > 1000)
+                    AttackTimer = 1000;
+            }
+
+            if (npc.ai[2] == 0) //shoot lasers
+            {
+                if (++ProbeReleaseTimer > 60)
+                {
+                    ProbeReleaseTimer = -Main.rand.Next(360);
+                    float lifeThreshold = WorldSavingSystem.MasochistModeReal ? 0.8f : 0.4f;
+                    if (Main.npc[npc.realLife].life < Main.npc[npc.realLife].lifeMax * lifeThreshold && NPC.CountNPCS(NPCID.Probe) < 10 && FargoSoulsUtil.HostCheck)
+                    {
+                        if (Main.rand.NextBool(WorldSavingSystem.MasochistModeReal ? 5 : 10)) //higher chance in maso
+                        {
+                            npc.ai[2] = 1;
+                            npc.HitEffect();
+                            npc.netUpdate = true;
+
+                            FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, NPCID.Probe);
+                        }
+                    }
+                }
+
+                AttackTimer += Main.rand.Next(6);
+                if (AttackTimer > Main.rand.Next(1200, 22000)) //replacement for vanilla lasers
+                {
+                    AttackTimer = 0;
+                    npc.TargetClosest();
+                    if (Collision.CanHit(npc.Center, 0, 0, Main.player[npc.target].Center, 0, 0) && FargoSoulsUtil.HostCheck)
+                    {
+                        float speed = 2f + npc.Distance(Main.player[npc.target].Center) / 360;
+                        if (speed > 16f)
+                            speed = 16f;
+                        int p = Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, speed * npc.SafeDirectionTo(Main.player[npc.target].Center), ProjectileID.DeathLaser, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer);
+                        if (p != Main.maxProjectiles)
+                            Main.projectile[p].timeLeft = Math.Min((int)(npc.Distance(Main.player[npc.target].Center) / speed) + 180, 600);
+                    }
+                    npc.netUpdate = true;
+                }
+            }
+            else //light is out, shoot Electric Orb
+            {
+                int cap = Main.npc[npc.realLife].lifeMax / Main.npc[npc.realLife].life;
+                if (cap > 20) //prevent meme scaling at super low life
+                    cap = 20;
+                AttackTimer += Main.rand.Next(2 + cap) + 1;
+                if (AttackTimer >= Main.rand.Next(3600, 36000))
+                {
+                    AttackTimer = 0;
+                    npc.TargetClosest();
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 distance = Main.player[npc.target].Center - npc.Center;
+
+                        float modifier = 28f * (1f - (float)Main.npc[npc.realLife].life / Main.npc[npc.realLife].lifeMax);
+                        if (modifier < 12)
+                            modifier = 12;
+
+                        int delay = (int)(distance.Length() / modifier) / 2;
+                        if (delay < 0)
+                            delay = 0;
+
+                        int type = ModContent.ProjectileType<MechElectricOrbHoming>();
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Normalize(distance) * modifier, type, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer, npc.target, -delay, ai2: MechElectricOrb.Blue);
+                    }
+                }
+            }
+
+            if (npc.buffType[0] != 0 && npc.buffType[0] != BuffID.Chilled && npc.buffType[0] != ModContent.BuffType<TimeFrozenBuff>())
+                npc.DelBuff(0);
+
+            return result;
+        }
+
+        public override bool CanHitPlayer(NPC npc, Player target, ref int CooldownSlot)
+        {
+            NPC destroyer = FargoSoulsUtil.NPCExists(npc.realLife, NPCID.TheDestroyer);
+
+            if (destroyer == null)
+                return base.CanHitPlayer(npc, target, ref CooldownSlot);
+
+            if (IntangibleTimer > 0)
+                return false;
+
+            Destroyer destroyerEmode = destroyer.GetGlobalNPC<Destroyer>(); //basically, don't hit player right around when a coil begins, segments inside radius may move eratically
+            if (destroyerEmode.IsCoiling)
+            {
+                if (destroyerEmode.AttackModeTimer < 15)
+                    return false;
+            }
+            else if (destroyerEmode.PrepareToCoil)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override void ModifyHitByAnything(NPC npc, Player player, ref NPC.HitModifiers modifiers)
+        {
+            base.ModifyHitByAnything(npc, player, ref modifiers);
+
+            NPC destroyer = FargoSoulsUtil.NPCExists(npc.realLife, NPCID.TheDestroyer);
+
+            if (destroyer == null)
+                return;
+
+            Destroyer destroyerEmode = destroyer.GetGlobalNPC<Destroyer>();
+
+            if (destroyerEmode.IsCoiling)
+            {
+                if (npc.life < npc.lifeMax / 10)
+                {
+                    float modifier = Math.Min(1f, destroyerEmode.AttackModeTimer / 480f);
+                    modifiers.FinalDamage *= modifier;
+                }
+                else
+                {
+                    modifiers.FinalDamage *= 0.1f;
+                }
+            }
+            else if (destroyerEmode.PrepareToCoil || destroyerEmode.AttackModeTimer >= Destroyer.P2_COIL_BEGIN_TIME - 120 || destroyer.life < destroyer.lifeMax / 10)
+            {
+                modifiers.FinalDamage *= 0.1f;
+            }
+
+            if (Main.npc.Count(n => n.active && n.type == npc.type && n.Distance(npc.Center) < npc.width * 0.75) > 4)
+            {
+                modifiers.Null();
+            }
+        }
+
+
+        public override void SafeModifyHitByProjectile(NPC npc, Projectile projectile, ref NPC.HitModifiers modifiers)
+        {
+            base.SafeModifyHitByProjectile(npc, projectile, ref modifiers);
+
+            if (projectile.numHits > 0 && !FargoSoulsUtil.IsSummonDamage(projectile))
+                modifiers.FinalDamage *= 2.0f / 3.0f + 1.0f / 3.0f * 1f / projectile.numHits;
+            if (projectile.type == ProjectileID.RainFriendly)
+                modifiers.FinalDamage /= 2;
+            if (projectile.type == ProjectileID.SoulDrain)
+                modifiers.FinalDamage *= 0.75f;
+            if (projectile.type == ModContent.ProjectileType<DecrepitAirstrikeNuke>() || projectile.type == ModContent.ProjectileType<DecrepitAirstrikeNukeSplinter>())
+                modifiers.FinalDamage *= 0.7f;
+
+            if (projectile.type == ProjectileID.MonkStaffT1 || projectile.type == ProjectileID.MonkStaffT1Explosion) // sleepy
+                modifiers.FinalDamage *= 0.3f;
+
+            if (projectile.FargoSouls().IsAHeldProj)
+                modifiers.FinalDamage *= 0.4f;
+
+            if (WorldSavingSystem.SwarmActive)
+                if (projectile.type == ModContent.ProjectileType<StyxGazer>() || projectile.type == ModContent.ProjectileType<StyxSickle>())
+                    modifiers.FinalDamage *= 0.001f;
+        }
+        public override void SafeModifyHitByItem(NPC npc, Player player, Item item, ref NPC.HitModifiers modifiers)
+        {
+            modifiers.FinalDamage *= 0.4f;
+        }
+        public override void SafeOnHitByProjectile(NPC npc, Projectile projectile, NPC.HitInfo hit, int damageDone)
+        {
+            if (!FargoSoulsUtil.IsSummonDamage(projectile) && !projectile.FargoSouls().IsAHeldProj && projectile.damage > 5)
+                projectile.damage = (int)Math.Min(projectile.damage - 1, projectile.damage * 0.75);
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(BuffID.Electrified, 60);
+            target.AddBuff(ModContent.BuffType<LightningRodBuff>(), 600);
+        }
+
+        public override void LoadSprites(NPC npc, bool recolor)
+        {
+            base.LoadSprites(npc, recolor);
+
+            LoadNPCSprite(recolor, npc.type);
+        }
     }
 
-    public override bool SafePreAI(NPC npc)
+    public class Probe : EModeNPCBehaviour
     {
-      EModeGlobalNPC.destroyBoss = ((Entity) npc).whoAmI;
-      if (WorldSavingSystem.SwarmActive)
-        return true;
-      if (!this.InPhase2)
-      {
-        if (npc.life < (int) ((double) npc.lifeMax * (WorldSavingSystem.MasochistModeReal ? 0.95 : 0.75)))
-        {
-          this.InPhase2 = true;
-          this.AttackModeTimer = 1920;
-          npc.netUpdate = true;
-          if (npc.HasPlayerTarget)
-            SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) Main.player[npc.target]).Center), (SoundUpdateCallback) null);
-        }
-        EModeUtils.DropSummon(npc, "MechWorm", NPC.downedMechBoss1, ref this.DroppedSummon, Main.hardMode);
-        return true;
-      }
-      if (npc.HasValidTarget && (!Main.dayTime || Main.remixWorld))
-      {
-        npc.timeLeft = 600;
-        if (this.IsCoiling)
-          this.CoilAI(npc);
-        else
-          this.NonCoilAI(npc);
-        if (Main.netMode == 2 && npc.netUpdate && --npc.netSpam < 0)
-        {
-          npc.netUpdate = false;
-          npc.netSpam = 5;
-          NetMessage.SendData(23, -1, -1, (NetworkText) null, ((Entity) npc).whoAmI, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-        }
-        return false;
-      }
-      ++((Entity) npc).velocity.Y;
-      if (npc.timeLeft > 60)
-        npc.timeLeft = 60;
-      return true;
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Probe);
 
-    public override void ModifyHitByAnything(
-      NPC npc,
-      Player player,
-      ref NPC.HitModifiers modifiers)
-    {
-      base.ModifyHitByAnything(npc, player, ref modifiers);
-      if (this.IsCoiling)
-      {
-        if (npc.life < npc.lifeMax / 10)
+        public int OrbitChangeTimer;
+        public int OrbitDirection;
+        public int AttackTimer;
+
+        public float TargetOrbitRotation;
+
+        public bool ShootLaser;
+
+
+
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
         {
-          float num = Math.Min(1f, (float) this.AttackModeTimer / 480f);
-          ref StatModifier local = ref modifiers.FinalDamage;
-          local = StatModifier.op_Multiply(local, num);
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(OrbitChangeTimer);
+            binaryWriter.Write7BitEncodedInt(OrbitDirection);
+            binaryWriter.Write7BitEncodedInt(AttackTimer);
+            binaryWriter.Write(TargetOrbitRotation);
+            bitWriter.WriteBit(ShootLaser);
         }
-        else
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
         {
-          ref StatModifier local = ref modifiers.FinalDamage;
-          local = StatModifier.op_Multiply(local, 0.1f);
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            OrbitChangeTimer = binaryReader.Read7BitEncodedInt();
+            OrbitDirection = binaryReader.Read7BitEncodedInt();
+            AttackTimer = binaryReader.Read7BitEncodedInt();
+            TargetOrbitRotation = binaryReader.ReadSingle();
+            ShootLaser = bitReader.ReadBit();
         }
-      }
-      else
-      {
-        if (!this.PrepareToCoil && this.AttackModeTimer < 1800 && npc.life >= npc.lifeMax / 10)
-          return;
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Multiply(local, 0.1f);
-      }
-    }
 
-    public override void SafeModifyHitByProjectile(
-      NPC npc,
-      Projectile projectile,
-      ref NPC.HitModifiers modifiers)
-    {
-      base.SafeModifyHitByProjectile(npc, projectile, ref modifiers);
-      if (projectile.numHits > 0 && !FargoSoulsUtil.IsSummonDamage(projectile))
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Multiply(local, (float) (0.66666668653488159 + 0.3333333432674408 / (double) projectile.numHits));
-      }
-      if (projectile.type == 239)
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Division(local, 2f);
-      }
-      if (projectile.type != 476)
-        return;
-      ref StatModifier local1 = ref modifiers.FinalDamage;
-      local1 = StatModifier.op_Multiply(local1, 0.75f);
-    }
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(144, 60, true, false);
-      target.AddBuff(ModContent.BuffType<LightningRodBuff>(), 600, true, false);
-    }
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.destroyBoss, NPCID.TheDestroyer))
+                npc.lifeMax = (int)(npc.lifeMax * 1.5);
+        }
 
-    public override void LoadSprites(NPC npc, bool recolor)
-    {
-      base.LoadSprites(npc, recolor);
-      EModeNPCBehaviour.LoadNPCSprite(recolor, npc.type);
-      EModeNPCBehaviour.LoadBossHeadSprite(recolor, 25);
-      EModeNPCBehaviour.LoadGore(recolor, 156);
-      for (int index = 1; index <= 3; ++index)
-        EModeNPCBehaviour.LoadDest(recolor, index - 1);
+        public override bool CanHitPlayer(NPC npc, Player target, ref int CooldownSlot)
+        {
+            return !FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.destroyBoss, NPCID.TheDestroyer)
+                || (WorldSavingSystem.MasochistModeReal && Main.getGoodWorld);
+        }
+
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
+
+            npc.buffImmune[BuffID.Suffocation] = true;
+
+            if (Main.rand.NextBool(4) && !LumUtils.AnyBosses() && npc.FargoSouls().CanHordeSplit)
+                EModeGlobalNPC.Horde(npc, 8);
+        }
+
+        public override bool SafePreAI(NPC npc)
+        {
+            bool result = base.SafePreAI(npc);
+
+            if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.destroyBoss, NPCID.TheDestroyer))
+                return result;
+
+            //bool isCoiling = Main.npc[EModeGlobalNPC.destroyBoss].GetGlobalNPC<Destroyer>().IsCoiling;
+
+            if (!(WorldSavingSystem.MasochistModeReal && Main.getGoodWorld))
+            {
+                if (npc.localAI[0] > 30) //disable vanilla lasers unless maso ftw
+                    npc.localAI[0] = -30;
+            }
+
+            if (WorldSavingSystem.MasochistModeReal && Main.getGoodWorld) //use vanilla movement unless shooting laser
+            {
+                if (!ShootLaser)
+                    return result;
+            }
+
+            if (++OrbitChangeTimer > 120) //choose a direction to orbit in
+            {
+                OrbitChangeTimer = 0;
+                OrbitDirection = Main.rand.NextBool() ? 1 : -1;
+
+                npc.netUpdate = true;
+                NetSync(npc);
+            }
+
+            if (Main.npc[EModeGlobalNPC.destroyBoss].GetGlobalNPC<Destroyer>().IsCoiling)
+                ShootLaser = false;
+
+            if (npc.HasValidTarget)
+            {
+                if (ShootLaser)
+                {
+                    if (AttackTimer == 0)
+                    {
+                        TargetOrbitRotation = Main.player[npc.target].SafeDirectionTo(npc.Center).ToRotation(); //when shooting laser, stop orbiting
+
+                        npc.netUpdate = true;
+                        NetSync(npc);
+                    }
+
+                    const int attackTime = 110;
+
+                    Vector2 towardsPlayer = 6f * npc.SafeDirectionTo(Main.player[npc.target].Center);
+                    int dustID = WorldSavingSystem.EternityMode && SoulConfig.Instance.BossRecolors ? DustID.GemSapphire : DustID.GemRuby;
+                    float dustScale = 0.5f + 2.5f * AttackTimer / attackTime;
+                    int d = Dust.NewDust(npc.position, npc.width, npc.height, dustID, 2f * towardsPlayer.X, 2f * towardsPlayer.Y, 0, default, dustScale);
+                    Main.dust[d].noGravity = true;
+
+                    if (++AttackTimer > attackTime)
+                    {
+                        if (FargoSoulsUtil.HostCheck)
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, towardsPlayer, ProjectileID.DeathLaser, (int)(1.1 * FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage)), 0f, Main.myPlayer);
+
+                        AttackTimer = 0;
+                        ShootLaser = false;
+
+                        npc.netUpdate = true;
+                        NetSync(npc);
+                    }
+                }
+
+                float orbitDistance = ShootLaser ? 440 : 220; //LAUGH
+                Vector2 vel = Main.player[npc.target].Center - npc.Center;
+                vel += orbitDistance * (ShootLaser ? Vector2.UnitX.RotatedBy(TargetOrbitRotation) : Main.player[npc.target].SafeDirectionTo(npc.Center).RotatedBy(MathHelper.ToRadians(22) * OrbitDirection));
+
+                npc.position += (Main.player[npc.target].position - Main.player[npc.target].oldPosition) / 3;
+
+                if (npc.Distance(Main.player[npc.target].Center) < 150) //snap away really fast if too close
+                {
+                    npc.velocity = vel / 20;
+                }
+                else //regular movement
+                {
+                    vel.Normalize();
+                    vel *= 12f;
+
+                    float moveSpeed = 0.7f;
+
+                    if (ShootLaser)
+                    {
+                        vel *= 1.5f;
+                        moveSpeed *= 1.5f;
+                    }
+
+                    if (npc.velocity.X < vel.X)
+                    {
+                        npc.velocity.X += moveSpeed;
+                        if (npc.velocity.X < 0 && vel.X > 0)
+                            npc.velocity.X += moveSpeed;
+                    }
+                    else if (npc.velocity.X > vel.X)
+                    {
+                        npc.velocity.X -= moveSpeed;
+                        if (npc.velocity.X > 0 && vel.X < 0)
+                            npc.velocity.X -= moveSpeed;
+                    }
+                    if (npc.velocity.Y < vel.Y)
+                    {
+                        npc.velocity.Y += moveSpeed;
+                        if (npc.velocity.Y < 0 && vel.Y > 0)
+                            npc.velocity.Y += moveSpeed;
+                    }
+                    else if (npc.velocity.Y > vel.Y)
+                    {
+                        npc.velocity.Y -= moveSpeed;
+                        if (npc.velocity.Y > 0 && vel.Y < 0)
+                            npc.velocity.Y -= moveSpeed;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public override bool CheckDead(NPC npc)
+        {
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.destroyBoss, NPCID.TheDestroyer))
+            {
+                npc.active = false;
+                if (npc.DeathSound != null)
+                    SoundEngine.PlaySound(npc.DeathSound.Value, npc.Center);
+                return false;
+            }
+
+            return base.CheckDead(npc);
+        }
+
+        public override void LoadSprites(NPC npc, bool recolor)
+        {
+            base.LoadSprites(npc, recolor);
+
+            LoadNPCSprite(recolor, npc.type);
+            LoadSpecial(recolor, ref TextureAssets.Probe, ref FargowiltasSouls.TextureBuffer.Probe, "Probe");
+        }
     }
-  }
 }

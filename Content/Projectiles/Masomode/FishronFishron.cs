@@ -1,9 +1,3 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.FishronFishron
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Bosses.MutantBoss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Globals;
@@ -12,123 +6,125 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class FishronFishron : MutantFishron
-  {
-    private bool firstTick;
-
-    public override string Texture => FargoSoulsUtil.VanillaTextureNPC(370);
-
-    public override void SetDefaults()
+    public class FishronFishron : MutantFishron
     {
-      base.SetDefaults();
-      this.Projectile.scale *= 0.75f;
-      this.CooldownSlot = -1;
-    }
+        bool firstTick = false;
+        public override string Texture => FargoSoulsUtil.VanillaTextureNPC(NPCID.DukeFishron);
 
-    public override bool CanHitPlayer(Player target) => true;
-
-    public override bool PreAI()
-    {
-      if (!this.firstTick)
-      {
-        this.Projectile.timeLeft = 150 + Main.rand.Next(10);
-        this.Projectile.netUpdate = true;
-        this.firstTick = true;
-      }
-      if ((double) this.Projectile.localAI[0] > 85.0)
-      {
-        int num = 7;
-        for (int index1 = 0; index1 < num; ++index1)
+        public override void SetDefaults()
         {
-          Vector2 vector2_1 = Vector2.op_Addition(Utils.RotatedBy(Vector2.op_Multiply(Vector2.op_Multiply(Vector2.Normalize(((Entity) this.Projectile).velocity), new Vector2((float) (((Entity) this.Projectile).width + 50) / 2f, (float) ((Entity) this.Projectile).height)), 0.75f), (double) (index1 - (num / 2 - 1)) * Math.PI / (double) num, new Vector2()), ((Entity) this.Projectile).Center);
-          Vector2 vector2_2 = Vector2.op_Multiply(Utils.ToRotationVector2((float) (Main.rand.NextDouble() * 3.14159274101257) - 1.57079637f), (float) Main.rand.Next(3, 8));
-          Vector2 vector2_3 = vector2_2;
-          int index2 = Dust.NewDust(Vector2.op_Addition(vector2_1, vector2_3), 0, 0, 172, vector2_2.X * 2f, vector2_2.Y * 2f, 100, new Color(), 1.4f);
-          Main.dust[index2].noGravity = true;
-          Main.dust[index2].noLight = true;
-          Dust dust1 = Main.dust[index2];
-          dust1.velocity = Vector2.op_Division(dust1.velocity, 4f);
-          Dust dust2 = Main.dust[index2];
-          dust2.velocity = Vector2.op_Subtraction(dust2.velocity, ((Entity) this.Projectile).velocity);
+            base.SetDefaults();
+            Projectile.scale *= 0.75f;
+            CooldownSlot = -1;
         }
-      }
-      return true;
-    }
 
-    public override void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600, true, false);
-      target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 1200, true, false);
-      target.FargoSouls().MaxLifeReduction += FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.fishBossEX, 370) ? 100 : 25;
-    }
-
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index = 0; index < 150; ++index)
-        Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 5, (float) (2 * ((Entity) this.Projectile).direction), -2f, 0, new Color(), 1f);
-      SoundStyle soundStyle = Utils.NextBool(Main.rand) ? SoundID.NPCDeath17 : SoundID.NPCDeath30;
-      ((SoundStyle) ref soundStyle).Volume = 0.75f;
-      ((SoundStyle) ref soundStyle).Pitch = 0.2f;
-      SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      if (!Main.dedServ)
-        Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, 20f), (float) ((Entity) this.Projectile).direction)), ((Entity) this.Projectile).velocity, 576, this.Projectile.scale);
-      if (!Main.dedServ)
-        Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.UnitY, 30f)), ((Entity) this.Projectile).velocity, 574, this.Projectile.scale);
-      if (!Main.dedServ)
-        Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, ((Entity) this.Projectile).velocity, 575, this.Projectile.scale);
-      if (!Main.dedServ)
-        Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, 20f), (float) ((Entity) this.Projectile).direction)), ((Entity) this.Projectile).velocity, 573, this.Projectile.scale);
-      if (!Main.dedServ)
-        Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.UnitY, 30f)), ((Entity) this.Projectile).velocity, 574, this.Projectile.scale);
-      if (Main.dedServ)
-        return;
-      Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, ((Entity) this.Projectile).velocity, 575, this.Projectile.scale);
-    }
-
-    public override bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      if ((double) this.Projectile.localAI[0] > 85.0)
-      {
-        for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index += 2)
+        public override bool CanHitPlayer(Player target)
         {
-          Color color = Color.op_Multiply(Color.Lerp(alpha, Color.Blue, 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-          Vector2 oldPo = this.Projectile.oldPos[index];
-          float num3 = this.Projectile.oldRot[index];
-          if (this.Projectile.spriteDirection < 0)
-            num3 += 3.14159274f;
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
+            return true;
         }
-      }
-      float rotation = this.Projectile.rotation;
-      if (this.Projectile.spriteDirection < 0)
-        rotation += 3.14159274f;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
-    }
 
-    public override Color? GetAlpha(Color lightColor)
-    {
-      float num1 = (float) ((int) byte.MaxValue - this.Projectile.alpha) / (float) byte.MaxValue;
-      float num2 = MathHelper.Lerp(num1, 1f, 0.25f);
-      if ((double) num2 > 1.0)
-        num2 = 1f;
-      return new Color?(new Color((int) ((double) ((Color) ref lightColor).R * (double) num1), (int) ((double) ((Color) ref lightColor).G * (double) num1), (int) ((double) ((Color) ref lightColor).B * (double) num2), (int) ((double) ((Color) ref lightColor).A * (double) num1)));
+        public override bool PreAI()
+        {
+            if (!firstTick)
+            {
+                Projectile.timeLeft = 150 + Main.rand.Next(10); //make them all die at slightly different times so no big audio pop on death
+                Projectile.netUpdate = true; //sync timeleft on first tick
+                firstTick = true;
+            }
+            if (Projectile.localAI[0] > 85) //dust during dash
+            {
+                int num22 = 7;
+                for (int index1 = 0; index1 < num22; ++index1)
+                {
+                    Vector2 vector2_1 = (Vector2.Normalize(Projectile.velocity) * new Vector2((Projectile.width + 50) / 2f, Projectile.height) * 0.75f).RotatedBy((index1 - (num22 / 2 - 1)) * Math.PI / num22, new Vector2()) + Projectile.Center;
+                    Vector2 vector2_2 = ((float)(Main.rand.NextDouble() * 3.14159274101257) - (float)Math.PI / 2).ToRotationVector2() * Main.rand.Next(3, 8);
+                    Vector2 vector2_3 = vector2_2;
+                    int index2 = Dust.NewDust(vector2_1 + vector2_3, 0, 0, DustID.DungeonWater, vector2_2.X * 2f, vector2_2.Y * 2f, 100, new Color(), 1.4f);
+                    Main.dust[index2].noGravity = true;
+                    Main.dust[index2].noLight = true;
+                    Main.dust[index2].velocity /= 4f;
+                    Main.dust[index2].velocity -= Projectile.velocity;
+                }
+            }
+            return true;
+        }
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600);
+            //target.AddBuff(BuffID.WitheredWeapon, 600);
+            target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 15 * 60);
+            target.FargoSouls().MaxLifeReduction += FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.fishBossEX, NPCID.DukeFishron) ? 100 : 25;
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            for (int num249 = 0; num249 < 150; num249++)
+            {
+                Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Blood, 2 * Projectile.direction, -2f);
+            }
+
+            SoundEngine.PlaySound((Main.rand.NextBool() ? SoundID.NPCDeath17 : SoundID.NPCDeath30) with { Volume = 0.75f, Pitch = 0.2f }, Projectile.Center);
+
+            if (!Main.dedServ)
+                Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center - Vector2.UnitX * 20f * Projectile.direction, Projectile.velocity, 576, Projectile.scale);
+            if (!Main.dedServ)
+                Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center - Vector2.UnitY * 30f, Projectile.velocity, 574, Projectile.scale);
+            if (!Main.dedServ)
+                Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, Projectile.velocity, 575, Projectile.scale);
+            if (!Main.dedServ)
+                Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center + Vector2.UnitX * 20f * Projectile.direction, Projectile.velocity, 573, Projectile.scale);
+            if (!Main.dedServ)
+                Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center - Vector2.UnitY * 30f, Projectile.velocity, 574, Projectile.scale);
+            if (!Main.dedServ)
+                Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, Projectile.velocity, 575, Projectile.scale);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects spriteEffects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            if (Projectile.localAI[0] > 85)
+            {
+                for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 2)
+                {
+                    Color color27 = Color.Lerp(color26, Color.Blue, 0.5f);
+                    color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                    Vector2 value4 = Projectile.oldPos[i];
+                    float num165 = Projectile.oldRot[i];
+                    if (Projectile.spriteDirection < 0)
+                        num165 += (float)Math.PI;
+                    Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, spriteEffects, 0);
+                }
+            }
+
+            float drawRotation = Projectile.rotation;
+            if (Projectile.spriteDirection < 0)
+                drawRotation += (float)Math.PI;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), drawRotation, origin2, Projectile.scale, spriteEffects, 0);
+            return false;
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            float ratio = (255 - Projectile.alpha) / 255f;
+            float blue = MathHelper.Lerp(ratio, 1f, 0.25f);
+            if (blue > 1f)
+                blue = 1f;
+            return new Color((int)(lightColor.R * ratio), (int)(lightColor.G * ratio), (int)(lightColor.B * blue), (int)(lightColor.A * ratio));
+        }
     }
-  }
 }

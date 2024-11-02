@@ -1,54 +1,68 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.AbomBoss.AbomSickle3
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.AbomBoss
 {
-  public class AbomSickle3 : AbomSickle
-  {
-    public virtual string Texture => "FargowiltasSouls/Content/Bosses/AbomBoss/AbomSickle";
-
-    public override void SetDefaults() => base.SetDefaults();
-
-    public override void AI()
+    public class AbomSickle3 : AbomSickle
     {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = ((Entity) this.Projectile).Center.X;
-        this.Projectile.localAI[1] = ((Entity) this.Projectile).Center.Y;
-        SoundEngine.PlaySound(ref SoundID.Item8, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      }
-      this.Projectile.rotation += 0.8f;
-      if ((double) this.Projectile.ai[1] == 0.0)
-      {
-        Player player = FargoSoulsUtil.PlayerExists(this.Projectile.ai[0]);
-        if (player == null)
-          return;
-        Vector2 vector2;
-        // ISSUE: explicit constructor call
-        ((Vector2) ref vector2).\u002Ector(this.Projectile.localAI[0], this.Projectile.localAI[1]);
-        if ((double) ((Entity) this.Projectile).Distance(vector2) <= (double) ((Entity) player).Distance(vector2) - 160.0)
-          return;
-        this.Projectile.ai[1] = 1f;
-        ((Vector2) ref ((Entity) this.Projectile).velocity).Normalize();
-        this.Projectile.timeLeft = 300;
-        this.Projectile.netUpdate = true;
-      }
-      else
-      {
-        if ((double) ++this.Projectile.ai[1] >= 60.0)
-          return;
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 1.065f);
-      }
+        public override string Texture => "FargowiltasSouls/Content/Bosses/AbomBoss/AbomSickle";
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+            //Projectile.timeLeft = 3600;
+        }
+
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = Projectile.Center.X;
+                Projectile.localAI[1] = Projectile.Center.Y;
+                SoundEngine.PlaySound(SoundID.Item8, Projectile.Center);
+            }
+            Projectile.rotation += 0.8f;
+            /*for (int i = 0; i < 6; i++)
+            {
+                Vector2 offset = new Vector2(0, -20).RotatedBy(Projectile.rotation);
+                offset = offset.RotatedByRandom(MathHelper.Pi / 6);
+                int d = Dust.NewDust(Projectile.Center, 0, 0, 87, 0f, 0f, 150);
+                Main.dust[d].position += offset;
+                float velrando = Main.rand.Next(20, 31) / 10;
+                Main.dust[d].velocity = Projectile.velocity / velrando;
+                Main.dust[d].noGravity = true;
+            }*/
+
+            if (Projectile.ai[1] == 0)
+            {
+                Player target = FargoSoulsUtil.PlayerExists(Projectile.ai[0]);
+                if (target != null)
+                {
+                    Vector2 spawnPoint = new(Projectile.localAI[0], Projectile.localAI[1]);
+                    if (Projectile.Distance(spawnPoint) > target.Distance(spawnPoint) - 160)// && FargoSoulsUtil.HostCheck)
+                    {
+                        Projectile.ai[1] = 1;
+                        Projectile.velocity.Normalize();
+                        Projectile.timeLeft = 300;
+                        Projectile.netUpdate = true;
+
+                        /*foreach (Projectile p in Main.Projectile.Where(p => p.active && p.hostile && p.type == Projectile.type && p.ai[1] == 0))
+                        {
+                            p.ai[1] = 1;
+                            p.velocity.Normalize();
+                            p.timeLeft = 300;
+                            p.netUpdate = true;
+                        }*/
+                    }
+                }
+            }
+            else
+            {
+                if (++Projectile.ai[1] < 60)
+                    Projectile.velocity *= 1.065f;
+            }
+        }
     }
-  }
 }

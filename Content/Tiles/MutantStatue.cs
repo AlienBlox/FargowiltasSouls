@@ -1,28 +1,34 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Tiles.MutantStatue
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ObjectData;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Tiles
 {
-  public class MutantStatue : ModTile
-  {
-    public virtual void SetStaticDefaults()
+    public class MutantStatue : ModTile
     {
-      Main.tileFrameImportant[(int) ((ModBlockType) this).Type] = true;
-      Main.tileObsidianKill[(int) ((ModBlockType) this).Type] = true;
-      Main.tileNoAttach[(int) ((ModBlockType) this).Type] = true;
-      TileObjectData.newTile.CopyFrom(TileObjectData.Style3x3);
-      TileObjectData.newTile.LavaDeath = true;
-      TileObjectData.addTile((int) ((ModBlockType) this).Type);
-      this.AddMapEntry(new Color(144, 144, 144), ((ModBlockType) this).CreateMapEntryName());
+        public override void SetStaticDefaults()
+        {
+            Main.tileFrameImportant[Type] = true;
+            Main.tileObsidianKill[Type] = true;
+            Main.tileNoAttach[Type] = true;
+
+            TileObjectData.newTile.CopyFrom(TileObjectData.Style3x3);
+            TileObjectData.newTile.LavaDeath = true;
+            //TileObjectData.newTile.Origin = new Point16(0, 1);
+            //TileObjectData.newTile.CoordinateHeights = new[] { 16, 18 };
+            TileObjectData.addTile(Type);
+
+            LocalizedText name = CreateMapEntryName();
+            // name.SetDefault("Mutant Statue");
+            AddMapEntry(new Color(144, 144, 144), name);
+        }
+        /*
+        public override void KillMultiTile(int i, int j, int frameX, int frameY)
+        {
+            Item.NewItem(new EntitySource_TileBreak(i, j), i * 16, j * 16, 48, 48, ModContent.ItemType<Items.Placables.MutantStatue>());
+        }
+        */
     }
-  }
 }

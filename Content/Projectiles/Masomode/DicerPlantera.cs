@@ -1,9 +1,3 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.DicerPlantera
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Core;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
@@ -12,152 +6,213 @@ using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class DicerPlantera : ModProjectile
-  {
-    private const float range = 200f;
-
-    public virtual string Texture => FargoSoulsUtil.VanillaTextureProjectile(277);
-
-    public virtual void SetDefaults()
+    public class DicerPlantera : ModProjectile
     {
-      ((Entity) this.Projectile).width = 20;
-      ((Entity) this.Projectile).height = 20;
-      this.Projectile.hostile = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.timeLeft = 1200;
-    }
+        public override string Texture => FargoSoulsUtil.VanillaTextureProjectile(ProjectileID.ThornBall);
 
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.Projectile.localAI[0]);
-      writer.Write(this.Projectile.localAI[1]);
-    }
+        private const float range = 160f;
 
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.Projectile.localAI[0] = reader.ReadSingle();
-      this.Projectile.localAI[1] = reader.ReadSingle();
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 20;
+            Projectile.height = 20;
+            Projectile.hostile = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = 1200;
+        }
 
-    public virtual bool? CanDamage() => new bool?(false);
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(Projectile.localAI[0]);
+            writer.Write(Projectile.localAI[1]);
+        }
 
-    public virtual void AI()
-    {
-      bool flag = SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
-      if (flag)
-        Lighting.AddLight(((Entity) this.Projectile).Center, 0.09803922f, 0.184313729f, 0.2509804f);
-      else
-        Lighting.AddLight(((Entity) this.Projectile).Center, 0.4f, 1.2f, 0.4f);
-      if ((double) this.Projectile.localAI[0] == 0.0)
-        this.Projectile.localAI[0] = Utils.NextBool(Main.rand) ? 1f : -1f;
-      if ((double) this.Projectile.localAI[1] >= 0.0)
-      {
-        if ((double) ++this.Projectile.localAI[1] <= 25.0)
-          return;
-        this.Projectile.localAI[1] = -1f;
-        if ((double) this.Projectile.ai[1] > 0.0)
+        public override void ReceiveExtraAI(BinaryReader reader)
         {
-          SoundEngine.PlaySound(ref SoundID.Grass, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, ((Entity) this.Projectile).velocity, this.Projectile.type, this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, this.Projectile.ai[0], this.Projectile.ai[1] - 1f, 0.0f);
-            if ((double) this.Projectile.ai[0] == 1.0)
-              Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Utils.RotatedBy(((Entity) this.Projectile).velocity, (double) MathHelper.ToRadians(120f), new Vector2()), this.Projectile.type, this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, this.Projectile.ai[1] - 1f, 0.0f);
-          }
+            Projectile.localAI[0] = reader.ReadSingle();
+            Projectile.localAI[1] = reader.ReadSingle();
         }
-        for (int index1 = 0; index1 < 20; ++index1)
+
+        public override bool? CanDamage()
         {
-          int num = flag ? (Utils.NextBool(Main.rand) ? 41 : 307) : (Utils.NextBool(Main.rand) ? 107 : 157);
-          Vector2 vector2 = Utils.NextVector2Circular(Main.rand, 4f, 4f);
-          int index2 = Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(((Entity) this.Projectile).Size, this.Projectile.scale), 2f)), (int) ((double) ((Entity) this.Projectile).width * (double) this.Projectile.scale), (int) ((double) ((Entity) this.Projectile).height * (double) this.Projectile.scale), num, vector2.X, vector2.Y, 0, new Color(), 2f);
-          Main.dust[index2].noGravity = true;
-          Dust dust = Main.dust[index2];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 5f);
+            return false;
         }
-        this.Projectile.localAI[0] = (float) (50.0 * ((double) this.Projectile.ai[1] % 3.0));
-        ((Entity) this.Projectile).velocity = Vector2.Zero;
-        this.Projectile.netUpdate = true;
-      }
-      else
-      {
-        this.Projectile.tileCollide = true;
-        --this.Projectile.localAI[0];
-        if ((double) this.Projectile.localAI[0] >= -30.0)
-          this.Projectile.scale = 1f;
-        if ((double) this.Projectile.localAI[0] < -30.0 && (double) this.Projectile.localAI[0] > -120.0)
+
+        public override void AI()
         {
-          this.Projectile.scale += 0.06f;
-          this.Projectile.rotation += 0.3f * this.Projectile.localAI[0];
-        }
-        else if ((double) this.Projectile.localAI[0] == -120.0)
-        {
-          for (int index3 = 0; index3 < 20; ++index3)
-          {
-            int num = flag ? (Utils.NextBool(Main.rand) ? 41 : 307) : (Utils.NextBool(Main.rand) ? 107 : 157);
-            Vector2 vector2 = Utils.NextVector2Circular(Main.rand, 4f, 4f);
-            int index4 = Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(((Entity) this.Projectile).Size, this.Projectile.scale), 2f)), (int) ((double) ((Entity) this.Projectile).width * (double) this.Projectile.scale), (int) ((double) ((Entity) this.Projectile).height * (double) this.Projectile.scale), num, vector2.X, vector2.Y, 0, new Color(), 2f);
-            Main.dust[index4].noGravity = true;
-            Dust dust = Main.dust[index4];
-            dust.velocity = Vector2.op_Multiply(dust.velocity, 5f);
-          }
-        }
-        else
-        {
-          if ((double) this.Projectile.localAI[0] >= -150.0)
-            return;
-          this.Projectile.localAI[0] = 0.0f;
-          this.Projectile.netUpdate = true;
-          SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          if (!FargoSoulsUtil.HostCheck)
-            return;
-          if ((NPC.plantBoss <= -1 || NPC.plantBoss >= Main.maxNPCs || !((Entity) Main.npc[NPC.plantBoss]).active ? 0 : (Main.npc[NPC.plantBoss].type == 262 ? 1 : 0)) == 0 || !Collision.CanHitLine(((Entity) this.Projectile).Center, 0, 0, Vector2.op_Addition(((Entity) Main.npc[NPC.plantBoss]).Center, Vector2.op_Division(Vector2.op_Subtraction(((Entity) this.Projectile).Center, ((Entity) Main.npc[NPC.plantBoss]).Center), 2f)), 0, 0))
-          {
-            this.Projectile.Kill();
-          }
-          else
-          {
-            float num1 = Utils.NextFloat(Main.rand, 6.28318548f);
-            for (int index5 = 0; index5 < 16; ++index5)
+            bool recolor = SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
+            if (recolor)
+                Lighting.AddLight(Projectile.Center, 25f / 255, 47f / 255, 64f / 255);
+            else
+                Lighting.AddLight(Projectile.Center, .4f, 1.2f, .4f);
+
+
+            if (Projectile.localAI[2] == 0) //random rotation direction
             {
-              int num2 = WorldSavingSystem.MasochistModeReal ? 276 : 275;
-              int index6 = Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.op_Multiply(12.5f, Utils.RotatedBy(Vector2.UnitX, Math.PI / 8.0 * (double) index5 + (double) num1, new Vector2())), num2, this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-              if (index6 != Main.maxProjectiles)
-                Main.projectile[index6].timeLeft = 16;
+                Projectile.localAI[2] = Main.rand.NextFloat(0.5f, 1f) * MathHelper.PiOver2;
+                Projectile.localAI[2] *= Main.rand.NextBool() ? 1f : -1f;
             }
-            if ((double) this.Projectile.localAI[1]-- >= -3.0)
-              return;
-            this.Projectile.Kill();
-          }
+
+            if (Projectile.localAI[1] >= 0)
+            {
+                /*for (int i = 0; i < 4; i++)
+                {
+                    int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, Main.rand.NextBool() ? 107 : 157);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity *= 0.2f;
+                    Main.dust[d].scale = 1.5f;
+                }*/
+
+                if (++Projectile.localAI[1] > 25)
+                {
+                    Projectile.localAI[1] = -1;
+
+                    if (Projectile.ai[1] > 0) //propagate
+                    {
+                        SoundEngine.PlaySound(SoundID.Grass, Projectile.Center);
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Projectile.velocity,
+                                Projectile.type, Projectile.damage, Projectile.knockBack, Projectile.owner, Projectile.ai[0], Projectile.ai[1] - 1);
+                            if (Projectile.ai[0] == 1)
+                            {
+                                Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Projectile.velocity.RotatedBy(MathHelper.ToRadians(120)),
+                                  Projectile.type, Projectile.damage, Projectile.knockBack, Projectile.owner, 0, Projectile.ai[1] - 1);
+                            }
+                        }
+                    }
+
+                    for (int index1 = 0; index1 < 20; ++index1)
+                    {
+                        int dustID = recolor ?
+                        (Main.rand.NextBool() ? DustID.GlowingMushroom : DustID.MushroomTorch) :
+                        (Main.rand.NextBool() ? DustID.TerraBlade : DustID.ChlorophyteWeapon);
+                        Vector2 vel = Main.rand.NextVector2Circular(4, 4);
+                        int index2 = Dust.NewDust(Projectile.Center - Projectile.Size * Projectile.scale / 2, (int)(Projectile.width * Projectile.scale), (int)(Projectile.height * Projectile.scale), dustID, vel.X, vel.Y, 0, new Color(), 2f);
+                        Main.dust[index2].noGravity = true;
+                        Main.dust[index2].velocity *= 5f;
+                    }
+
+                    Projectile.localAI[0] = 50 * (Projectile.ai[1] % 3);
+
+                    Projectile.velocity = Vector2.Zero;
+                    Projectile.netUpdate = true;
+                }
+            }
+            else
+            {
+                Projectile.tileCollide = true;
+
+                Projectile.localAI[0]--;
+                if (Projectile.localAI[0] >= -30) //delay
+                {
+                    Projectile.scale = 1f;
+                }
+                if (Projectile.localAI[0] < -30 && Projectile.localAI[0] > -120)
+                {
+                    Projectile.scale += 0.06f;
+                    Projectile.rotation += 0.2f * Projectile.localAI[2] * (float)Math.Sin(Projectile.localAI[0] / 60 * MathHelper.Pi + Projectile.localAI[2]);
+                }
+                else if (Projectile.localAI[0] == -120)
+                {
+                    for (int index1 = 0; index1 < 20; ++index1)
+                    {
+                        int dustID = recolor ?
+                        (Main.rand.NextBool() ? DustID.GlowingMushroom : DustID.MushroomTorch) :
+                        (Main.rand.NextBool() ? DustID.TerraBlade : DustID.ChlorophyteWeapon);
+                        Vector2 vel = Main.rand.NextVector2Circular(4, 4);
+                        int index2 = Dust.NewDust(Projectile.Center - Projectile.Size * Projectile.scale / 2, (int)(Projectile.width * Projectile.scale), (int)(Projectile.height * Projectile.scale), dustID, vel.X, vel.Y, 0, new Color(), 2f);
+                        Main.dust[index2].noGravity = true;
+                        Main.dust[index2].velocity *= 5f;
+                    }
+
+                    /*const int max = 30; //make some indicator dusts
+                    for (int i = 0; i < max; i++)
+                    {
+                        Vector2 vector6 = Vector2.UnitY * 5f;
+                        vector6 = vector6.RotatedBy((i - (max / 2 - 1)) * 6.28318548f / max) + Projectile.Center;
+                        Vector2 vector7 = vector6 - Projectile.Center;
+                        int d = Dust.NewDust(vector6 + vector7, 0, 0, 107, 0f, 0f, 0, default(Color), 2f);
+                        Main.dust[d].noGravity = true;
+                        Main.dust[d].velocity = vector7;
+                    }*/
+                }
+                else if (Projectile.localAI[0] < -150) //explode
+                {
+                    Projectile.localAI[0] = 0;
+                    Projectile.netUpdate = true;
+
+                    SoundEngine.PlaySound(SoundID.Item14, Projectile.Center); //spray
+
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        bool planteraAlive = NPC.plantBoss > -1 && NPC.plantBoss < Main.maxNPCs && Main.npc[NPC.plantBoss].active && Main.npc[NPC.plantBoss].type == NPCID.Plantera;
+                        //die after this many explosions, plantera is dead, or if i have no decent line of sight to plantera
+                        if (!planteraAlive || !Collision.CanHitLine(Projectile.Center, 0, 0, Main.npc[NPC.plantBoss].Center + (Projectile.Center - Main.npc[NPC.plantBoss].Center) / 2, 0, 0))
+                        {
+                            Projectile.Kill();
+                            return;
+                        }
+                        else //do the actual attack
+                        {
+                            const float time = 16f;
+                            const float max = 16f;
+                            float rotation = Main.rand.NextFloat(MathHelper.TwoPi);
+                            for (int i = 0; i < max; i++)
+                            {
+                                int type = ModContent.ProjectileType<DicerPlanteraSeed>();
+                                int p = Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, range / time * Vector2.UnitX.RotatedBy(Math.PI * 2f / max * i + rotation),
+                                    type, Projectile.damage, Projectile.knockBack, Projectile.owner);
+                                if (p != Main.maxProjectiles)
+                                    Main.projectile[p].timeLeft = (int)time;
+                            }
+                        }
+
+                        if (Projectile.localAI[1]-- < -3)
+                            Projectile.Kill();
+                    }
+                }
+            }
         }
-      }
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.NPCDeath1, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-    }
+        /*public override void OnHitPlayer(Player target, int damage, bool crit)
+        {
+            target.AddBuff(ModContent.BuffType<IvyVenom>(), 240);
+        }*/
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[277].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = (SpriteEffects) 0;
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.NPCDeath1, Projectile.Center);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[ProjectileID.ThornBall].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            SpriteEffects spriteEffects = SpriteEffects.None;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, spriteEffects, 0);
+            /*if (Projectile.localAI[0] < -120)
+            {
+                color26.A = 0;
+                Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, spriteEffects, 0);
+            }*/
+            return false;
+        }
     }
-  }
 }

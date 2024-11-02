@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.Retirang
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
@@ -13,138 +7,198 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class Retirang : ModProjectile
-  {
-    private int counter;
-
-    public virtual void SetStaticDefaults()
+    public class Retirang : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      this.Projectile.DamageType = DamageClass.Melee;
-      this.Projectile.friendly = true;
-      this.Projectile.light = 0.4f;
-      ((Entity) this.Projectile).width = 50;
-      ((Entity) this.Projectile).height = 50;
-      this.Projectile.penetrate = -1;
-      this.Projectile.aiStyle = -1;
-    }
-
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public virtual bool PreAI()
-    {
-      if (++this.counter > 15)
-      {
-        this.counter = 0;
-        if (this.Projectile.owner == Main.myPlayer)
+        public override void SetStaticDefaults()
         {
-          Vector2 vector2 = Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(Main.MouseWorld, ((Entity) this.Projectile).Center)), 20f);
-          SoundEngine.PlaySound(ref SoundID.Item12, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          int index = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, vector2, ModContent.ProjectileType<PrimeLaser>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-          if (index != Main.maxProjectiles)
-            Main.projectile[index].DamageType = DamageClass.Melee;
+            // DisplayName.SetDefault("Retirang");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-      }
-      if ((double) this.Projectile.ai[0] != 1.0)
-        return true;
-      ++this.Projectile.ai[1];
-      ((Entity) this.Projectile).position = ((Entity) this.Projectile).oldPosition;
-      Projectile projectile = this.Projectile;
-      ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 0.1f);
-      this.Projectile.rotation += (float) ((Entity) this.Projectile).direction * 0.4f;
-      this.counter += 2;
-      if ((double) this.Projectile.ai[1] > 15.0)
-        this.Projectile.ai[0] = 2f;
-      return false;
-    }
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.ai[0] == 0.0)
-      {
-        ++this.Projectile.ai[1];
-        if ((double) this.Projectile.ai[1] > 30.0)
+        public override void SetDefaults()
         {
-          this.Projectile.ai[0] = 1f;
-          this.Projectile.ai[1] = 0.0f;
-          this.Projectile.netUpdate = true;
+            Projectile.DamageType = DamageClass.Melee;
+            Projectile.friendly = true;
+            Projectile.light = 0.4f;
+
+            Projectile.width = 50;
+            Projectile.height = 50;
+            Projectile.penetrate = -1;
+            Projectile.aiStyle = -1;
         }
-      }
-      else if ((double) this.Projectile.ai[0] == 2.0)
-      {
-        float num = Math.Max(((Vector2) ref ((Entity) this.Projectile).velocity).Length() * 1.02f, 20f);
-        ((Entity) this.Projectile).velocity = Vector2.Normalize(Vector2.op_Subtraction(((Entity) Main.player[this.Projectile.owner]).Center, ((Entity) this.Projectile).Center));
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, num);
-        if ((double) ((Entity) this.Projectile).Distance(((Entity) Main.player[this.Projectile.owner]).Center) <= (double) num * 2.0)
-          this.Projectile.Kill();
-      }
-      this.Projectile.rotation += (float) ((Entity) this.Projectile).direction * 0.4f;
-      int index = Dust.NewDust(new Vector2(((Entity) this.Projectile).position.X, ((Entity) this.Projectile).position.Y + 2f), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height + 5, 60, ((Entity) this.Projectile).velocity.X * 0.2f, ((Entity) this.Projectile).velocity.Y * 0.2f, 100, new Color(), 2f);
-      Main.dust[index].noGravity = true;
-      if ((double) this.Projectile.ai[0] != 1.0)
-        return;
-      this.Projectile.localAI[0] += 0.1f;
-      Projectile projectile1 = this.Projectile;
-      ((Entity) projectile1).position = Vector2.op_Addition(((Entity) projectile1).position, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) Main.player[this.Projectile.owner]).Center), this.Projectile.localAI[0]));
-      if ((double) ((Entity) this.Projectile).Distance(((Entity) Main.player[this.Projectile.owner]).Center) > (double) this.Projectile.localAI[0])
-        return;
-      this.Projectile.Kill();
-    }
 
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      if ((double) this.Projectile.ai[0] == 0.0)
-      {
-        this.Projectile.ai[0] = 1f;
-        this.Projectile.ai[1] = 0.0f;
-      }
-      this.Projectile.tileCollide = false;
-      return false;
-    }
+        public override bool? CanDamage()
+        {
+            return false;
+        }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-    }
+        int counter;
 
-    public virtual bool TileCollideStyle(
-      ref int width,
-      ref int height,
-      ref bool fallThrough,
-      ref Vector2 hitboxCenterFrac)
-    {
-      width = 22;
-      height = 22;
-      return true;
-    }
+        public override bool PreAI()
+        {
+            //fire lasers at cursor
+            if (++counter > 15)
+            {
+                counter = 0;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(alpha, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+                if (Projectile.owner == Main.myPlayer)
+                {
+                    Vector2 cursor = Main.MouseWorld;
+                    Vector2 velocity = Vector2.Normalize(cursor - Projectile.Center) * 20;
+
+                    SoundEngine.PlaySound(SoundID.Item12, Projectile.Center);
+
+                    int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, velocity, ModContent.ProjectileType<PrimeLaser>(), Projectile.damage, Projectile.knockBack, Projectile.owner);
+                    if (p != Main.maxProjectiles)
+                    {
+                        Main.projectile[p].DamageType = DamageClass.Melee;
+                    }
+                }
+            }
+
+            if (Projectile.ai[0] == 1)
+            {
+                Projectile.ai[1]++;
+
+                //stay in place
+                Projectile.position = Projectile.oldPosition;
+                Projectile.velocity *= 0.1f;
+                Projectile.rotation += Projectile.direction * 0.4f;
+
+                counter += 2;
+
+                if (Projectile.ai[1] > 15)
+                {
+                    Projectile.ai[0] = 2;
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public override void AI()
+        {
+            //travelling out
+            if (Projectile.ai[0] == 0)
+            {
+                Projectile.ai[1]++;
+
+                if (Projectile.ai[1] > 30)
+                {
+                    Projectile.ai[0] = 1;
+                    Projectile.ai[1] = 0;
+                    Projectile.netUpdate = true;
+                }
+            }
+            //travel back to player
+            else if (Projectile.ai[0] == 2)
+            {
+                float speed = Math.Max(Projectile.velocity.Length() * 1.02f, 20f);
+                Projectile.velocity = Vector2.Normalize(Main.player[Projectile.owner].Center - Projectile.Center);
+                Projectile.velocity *= speed;
+
+                //kill when back to player
+                if (Projectile.Distance(Main.player[Projectile.owner].Center) <= speed * 2)
+                    Projectile.Kill();
+            }
+
+            //spin
+            Projectile.rotation += Projectile.direction * 0.4f;
+
+            //dust!
+            int dustId = Dust.NewDust(new Vector2(Projectile.position.X, Projectile.position.Y + 2f), Projectile.width, Projectile.height + 5, DustID.RedTorch, Projectile.velocity.X * 0.2f, Projectile.velocity.Y * 0.2f, 100, default, 2f);
+            Main.dust[dustId].noGravity = true;
+
+            if (Projectile.ai[0] == 1)
+            {
+                Projectile.localAI[0] += 0.1f;
+                Projectile.position += Projectile.SafeDirectionTo(Main.player[Projectile.owner].Center) * Projectile.localAI[0];
+
+                if (Projectile.Distance(Main.player[Projectile.owner].Center) <= Projectile.localAI[0])
+                    Projectile.Kill();
+            }
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            if (Projectile.ai[0] == 0)
+            {
+                Projectile.ai[0] = 1;
+                Projectile.ai[1] = 0;
+            }
+            Projectile.tileCollide = false;
+
+            return false;
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            /*if (!hitSomething)
+            {
+                hitSomething = true;
+                if (Projectile.owner == Main.myPlayer)
+                {
+                    for (int k = 0; k < Main.maxNPCs; k++)
+                    {
+                        if (k == target.whoAmI)
+                            continue;
+
+                        NPC npc = Main.npc[k];
+                        float distance = Vector2.Distance(npc.Center, Projectile.Center);
+
+                        if ((distance < 500) && Collision.CanHitLine(Projectile.position, Projectile.width, Projectile.height, npc.position, npc.width, npc.height))
+                        {
+                            Vector2 velocity = (npc.Center - Projectile.Center) * 20;
+
+                            int p = Projectile.NewProjectile(Projectile.Center, velocity, ProjectileID.PurpleLaser, Projectile.damage, 0, Projectile.owner);
+                            if (p != Main.maxProjectiles)
+                            {
+                                Main.Projectile[p].melee = true;
+                                Main.Projectile[p].magic = false;
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }*/
+        }
+
+        public override bool TileCollideStyle(ref int width, ref int height, ref bool fallThrough, ref Vector2 hitboxCenterFrac)
+        {
+            //smaller tile hitbox
+            width = 22;
+            height = 22;
+            return true;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color26;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, SpriteEffects.None, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

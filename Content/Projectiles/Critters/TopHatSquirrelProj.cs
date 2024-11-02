@@ -1,97 +1,93 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Critters.TopHatSquirrelProj
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Critters
 {
-  internal class TopHatSquirrelProj : ModProjectile
-  {
-    public int Counter = 1;
-
-    public virtual string Texture
+    internal class TopHatSquirrelProj : ModProjectile
     {
-      get => "FargowiltasSouls/Content/Items/Weapons/Misc/TophatSquirrelWeapon";
-    }
+        public int Counter = 1;
 
-    public virtual void SetStaticDefaults()
-    {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 15;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public override string Texture => "FargowiltasSouls/Content/Items/Weapons/Misc/TophatSquirrelWeapon";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 20;
-      ((Entity) this.Projectile).height = 20;
-      this.Projectile.friendly = true;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.DamageType = DamageClass.Magic;
-      this.Projectile.scale = 0.5f;
-      this.Projectile.timeLeft = 100;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Top Hat Squirrel");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 15;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+        }
 
-    public virtual void AI()
-    {
-      this.Projectile.spriteDirection = Math.Sign(((Entity) this.Projectile).velocity.X);
-      this.Projectile.rotation += 0.2f * (float) this.Projectile.spriteDirection;
-      this.Projectile.scale += 0.02f;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 20;
+            Projectile.height = 20;
+            Projectile.friendly = true;
+            Projectile.aiStyle = -1;
+            //Projectile.penetrate = -1;
+            Projectile.DamageType = DamageClass.Magic;
+            Projectile.scale = 0.5f;
+            Projectile.timeLeft = 100;
+        }
 
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      ((Entity) this.Projectile).velocity = oldVelocity;
-      return true;
-    }
+        public override void AI()
+        {
+            Projectile.spriteDirection = System.Math.Sign(Projectile.velocity.X);
+            Projectile.rotation += 0.2f * Projectile.spriteDirection;
+            Projectile.scale += .02f;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.NPCDeath52, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      if (this.Projectile.owner != Main.myPlayer)
-        return;
-      int type = ModContent.ProjectileType<TopHatSquirrelLaser>();
-      FargoSoulsUtil.XWay(16, ((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, type, ((Vector2) ref ((Entity) this.Projectile).velocity).Length() * 2f, this.Projectile.damage * 4, this.Projectile.knockBack);
-      int num = Main.player[this.Projectile.owner].ownedProjectileCounts[type] >= 50 ? 25 : 50;
-      for (int index = 0; index < num; ++index)
-      {
-        Vector2 vector2 = Vector2.op_Addition(Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.Normalize(((Entity) this.Projectile).velocity), Utils.NextFloat(Main.rand, 600f, 1800f))), Vector2.op_Multiply(Vector2.Normalize(Utils.RotatedBy(((Entity) this.Projectile).velocity, 1.5707963705062866, new Vector2())), Utils.NextFloat(Main.rand, -900f, 900f)));
-        Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), vector2, Vector2.op_Multiply(Vector2.op_UnaryNegation(((Entity) this.Projectile).velocity), Utils.NextFloat(Main.rand, 2f, 3f)), type, this.Projectile.damage * 4, this.Projectile.knockBack, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      }
-    }
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            Projectile.velocity = oldVelocity;
+            return true;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 1 : (SpriteEffects) 0;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index += 3)
-      {
-        Color color;
-        // ISSUE: explicit constructor call
-        ((Color) ref color).\u002Ector(93, (int) byte.MaxValue, 241, 0);
-        color = Color.op_Multiply(color, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale * 1.1f, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.NPCDeath52, Projectile.Center);
+
+            if (Projectile.owner == Main.myPlayer)
+            {
+                int proj2 = ModContent.ProjectileType<TopHatSquirrelLaser>();
+
+                FargoSoulsUtil.XWay(16, Projectile.GetSource_FromThis(), Projectile.Center, proj2, Projectile.velocity.Length() * 2f, Projectile.damage * 4, Projectile.knockBack);
+
+                int max = Main.player[Projectile.owner].ownedProjectileCounts[proj2] >= 50 ? 25 : 50;
+                for (int i = 0; i < max; i++)
+                {
+                    Vector2 pos = Projectile.Center + Vector2.Normalize(Projectile.velocity) * Main.rand.NextFloat(600, 1800) +
+                        Vector2.Normalize(Projectile.velocity.RotatedBy(MathHelper.Pi / 2)) * Main.rand.NextFloat(-900, 900);
+
+                    Projectile.NewProjectile(Projectile.GetSource_FromThis(), pos, -Projectile.velocity * Main.rand.NextFloat(2f, 3f), proj2,
+                        Projectile.damage * 4, Projectile.knockBack, Main.myPlayer);
+                }
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 3)
+            {
+                Color color27 = new(93, 255, 241, 0);
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale * 1.1f, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

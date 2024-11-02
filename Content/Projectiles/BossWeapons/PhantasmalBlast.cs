@@ -1,99 +1,120 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.PhantasmalBlast
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Masomode;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class PhantasmalBlast : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_645";
-
-    public virtual void SetStaticDefaults()
+    public class PhantasmalBlast : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = Main.projFrames[645];
-    }
+        public override string Texture => "Terraria/Images/Projectile_645";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 100;
-      ((Entity) this.Projectile).height = 100;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Melee;
-      this.Projectile.tileCollide = false;
-      this.Projectile.penetrate = -1;
-      this.Projectile.scale = 1f;
-      this.Projectile.alpha = 0;
-      this.Projectile.FargoSouls().CanSplit = false;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
-
-    public virtual void AI()
-    {
-      if (Utils.HasNaNs(((Entity) this.Projectile).position))
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if (++this.Projectile.frameCounter >= 3)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.frameCounter = 0;
-          if (++this.Projectile.frame >= Main.projFrames[this.Projectile.type])
-          {
-            --this.Projectile.frame;
-            this.Projectile.Kill();
-          }
+            // DisplayName.SetDefault("Phantasmal Blast");
+            Main.projFrames[Projectile.type] = Main.projFrames[ProjectileID.LunarFlare];
         }
-        if ((double) this.Projectile.localAI[0] != 0.0)
-          return;
-        this.Projectile.localAI[0] = 1f;
-        SoundEngine.PlaySound(ref SoundID.Item88, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        this.Projectile.scale *= Utils.NextFloat(Main.rand, 1f, 3f);
-        this.Projectile.rotation = Utils.NextFloat(Main.rand, 6.28318548f);
-      }
-    }
 
-    public virtual bool? CanDamage() => new bool?(this.Projectile.frame < 4);
+        public override void SetDefaults()
+        {
+            Projectile.width = 100;
+            Projectile.height = 100;
+            Projectile.aiStyle = -1;
+            //AIType = ProjectileID.LunarFlare;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Melee;
+            Projectile.tileCollide = false;
+            //Projectile.extraUpdates = 5;
+            Projectile.penetrate = -1;
+            Projectile.scale = 1f;
+            Projectile.alpha = 0;
+            Projectile.FargoSouls().CanSplit = false;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+        }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600, false);
-      target.immune[this.Projectile.owner] = 1;
-    }
+        public override void AI()
+        {
+            if (Projectile.position.HasNaNs())
+            {
+                Projectile.Kill();
+                return;
+            }
+            /*Dust dust = Main.dust[Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 229, 0f, 0f, 0, new Color(), 1f)];
+            dust.position = Projectile.Center;
+            dust.velocity = Vector2.Zero;
+            dust.noGravity = true;
+            dust.noLight = true;*/
 
-    public virtual void OnKill(int timeLeft)
-    {
-    }
+            if (++Projectile.frameCounter >= 3)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame >= Main.projFrames[Projectile.type])
+                {
+                    Projectile.frame--;
+                    Projectile.Kill();
+                }
+            }
+            //if (++Projectile.ai[0] > Main.projFrames[Projectile.type] * 3) Projectile.Kill();
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, (int) sbyte.MaxValue), this.Projectile.Opacity));
-    }
+            if (Projectile.localAI[0] == 0f)
+            {
+                Projectile.localAI[0] = 1f;
+                SoundEngine.PlaySound(SoundID.Item88, Projectile.Center);
+                Projectile.scale *= Main.rand.NextFloat(1f, 3f);
+                Projectile.rotation = Main.rand.NextFloat(MathHelper.TwoPi);
+            }
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+        public override bool? CanDamage()
+        {
+            return Projectile.frame < 4;
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600);
+            target.immune[Projectile.owner] = 1;
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            //for (int i = 0; i < 4; ++i)
+            //    Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 31, 0f, 0f, 100, new Color(), 1.5f);
+            /*for (int i = 0; i < 4; ++i)
+            {
+                int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 229, 0f, 0f, 0, new Color(), 2.5f);
+                Main.dust[d].velocity *= 3f;
+                Main.dust[d].noGravity = true;
+                Main.dust[d].noLight = true;
+                d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 229, 0f, 0f, 100, new Color(), 1.5f);
+                Main.dust[d].velocity *= 2f;
+                Main.dust[d].noGravity = true;
+                Main.dust[d].noLight = true;
+            }*/
+            /*int i2 = Gore.NewGore(Projectile.position + new Vector2(Projectile.width * Main.rand.Next(100) / 100f, Projectile.height * Main.rand.Next(100) / 100f) - Vector2.One * 10f, new Vector2(), Main.rand.Next(61, 64), 1f);
+            Main.gore[i2].velocity *= 0.3f;
+            Main.gore[i2].velocity.X += Main.rand.Next(-10, 11) * 0.05f;
+            Main.gore[i2].velocity.Y += Main.rand.Next(-10, 11) * 0.05f;*/
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(255, 255, 255, 127) * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }
+

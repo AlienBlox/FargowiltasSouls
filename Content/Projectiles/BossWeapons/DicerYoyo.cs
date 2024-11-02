@@ -1,55 +1,63 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.DicerYoyo
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  internal class DicerYoyo : ModProjectile
-  {
-    public int Counter = 1;
-
-    public virtual void SetStaticDefaults()
+    internal class DicerYoyo : ModProjectile
     {
-      ProjectileID.Sets.YoyosLifeTimeMultiplier[this.Projectile.type] = 16f;
-      ProjectileID.Sets.YoyosMaximumRange[this.Projectile.type] = 400f;
-      ProjectileID.Sets.YoyosTopSpeed[this.Projectile.type] = 15f;
-    }
+        public int Counter = 1;
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(554);
-      this.Projectile.extraUpdates = 0;
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 30;
-      this.Projectile.aiStyle = 99;
-      this.Projectile.friendly = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.DamageType = DamageClass.Melee;
-      this.Projectile.scale = 1f;
-      this.Projectile.extraUpdates = 1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
+        public override void SetStaticDefaults()
+        {
+            // Vanilla values range from 3f(Wood) to 16f(Chik), and defaults to -1f. Leaving as -1 will make the time infinite.
+            ProjectileID.Sets.YoyosLifeTimeMultiplier[Projectile.type] = 16f;
+            // Vanilla values range from 130f(Wood) to 400f(Terrarian), and defaults to 200f
+            ProjectileID.Sets.YoyosMaximumRange[Projectile.type] = 400;
+            // Vanilla values range from 9f(Wood) to 17.5f(Terrarian), and defaults to 10f
+            ProjectileID.Sets.YoyosTopSpeed[Projectile.type] = 15f;
+        }
 
-    public virtual void AI()
-    {
-      if (++this.Counter < 60)
-        return;
-      this.Counter = 0;
-      if (this.Projectile.owner != Main.myPlayer)
-        return;
-      int num = ModContent.ProjectileType<DicerMine>();
-      Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center.X, ((Entity) this.Projectile).Center.Y, 0.0f, 0.0f, num, this.Projectile.damage, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.Kraken);
+            Projectile.extraUpdates = 0;
+            Projectile.width = 30;
+            Projectile.height = 30;
+            //yoyo ai
+            Projectile.aiStyle = 99;
+            Projectile.friendly = true;
+            Projectile.penetrate = -1;
+            Projectile.DamageType = DamageClass.Melee;
+            Projectile.scale = 1f;
 
-    public virtual void PostAI()
-    {
+            Projectile.extraUpdates = 1;
+
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+        }
+
+        public override void AI()
+        {
+            if (++Counter >= 60)
+            {
+                Counter = 0;
+
+                if (Projectile.owner == Main.myPlayer)
+                {
+                    int proj2 = ModContent.ProjectileType<DicerMine>();
+                    Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center.X, Projectile.Center.Y, 0f, 0f, proj2, Projectile.damage, 0, Main.myPlayer);
+                }
+            }
+        }
+
+        public override void PostAI()
+        {
+            /*if (Main.rand.NextBool())
+            {
+                int dustIndex = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 16, 0f, 0f, 0, default(Color), 1f);
+                Main.dust[dustIndex].noGravity = true;
+                Main.dust[dustIndex].scale = 1.6f;
+            }*/
+        }
     }
-  }
 }

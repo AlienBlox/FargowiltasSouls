@@ -1,124 +1,194 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.AbomBoss.AbomStyxGazer
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Boss;
-using FargowiltasSouls.Content.Buffs.Masomode;
-using FargowiltasSouls.Core.Systems;
+﻿using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.AbomBoss
 {
-  public class AbomStyxGazer : ModProjectile
-  {
-    private const int maxTime = 60;
-
-    public virtual string Texture
+    public class AbomStyxGazer : ModProjectile
     {
-      get => "FargowiltasSouls/Content/Items/Weapons/FinalUpgrades/StyxGazer";
-    }
+        public override string Texture => "FargowiltasSouls/Content/Items/Weapons/FinalUpgrades/StyxGazer";
 
-    public virtual void SetStaticDefaults()
-    {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 60;
-      ((Entity) this.Projectile).height = 60;
-      this.Projectile.scale = 1f;
-      this.Projectile.hostile = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.timeLeft = 60;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.penetrate = -1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.hide = true;
-      this.CooldownSlot = 1;
-    }
-
-    public virtual void AI()
-    {
-      this.Projectile.hide = false;
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0], ModContent.NPCType<FargowiltasSouls.Content.Bosses.AbomBoss.AbomBoss>());
-      if (npc != null)
-      {
-        if ((double) npc.ai[0] == 0.0)
-          this.Projectile.extraUpdates = 1;
-        if ((double) this.Projectile.localAI[0] == 0.0)
-          this.Projectile.localAI[1] = this.Projectile.ai[1] / 60f;
-        ((Entity) this.Projectile).velocity = Utils.RotatedBy(((Entity) this.Projectile).velocity, (double) this.Projectile.ai[1], new Vector2());
-        this.Projectile.ai[1] -= this.Projectile.localAI[1];
-        ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply(Utils.RotatedBy(new Vector2(60f, 60f), (double) Utils.ToRotation(((Entity) this.Projectile).velocity) - 0.78539818525314331, new Vector2()), this.Projectile.scale));
-        if ((double) this.Projectile.localAI[0] == 0.0)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.localAI[0] = 1f;
-          SoundEngine.PlaySound(ref SoundID.Item71, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
+            // DisplayName.SetDefault("Styx Gazer");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-        this.Projectile.Opacity = (float) Math.Min(1.0, (double) (2 - this.Projectile.extraUpdates) * Math.Sin(Math.PI * (double) (60 - this.Projectile.timeLeft) / 60.0));
-        ((Entity) this.Projectile).direction = this.Projectile.spriteDirection = Math.Sign(this.Projectile.ai[1]);
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + MathHelper.ToRadians(((Entity) this.Projectile).direction < 0 ? 135f : 45f);
-      }
-      else
-        this.Projectile.Kill();
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-    }
+        public static int TelegraphTime => WorldSavingSystem.MasochistModeReal ? 30 : 30;
+        public const int maxTime = 60;
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.AddBuff(ModContent.BuffType<AbomFangBuff>(), 300, true, false);
-        target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 120, true, false);
-      }
-      target.AddBuff(30, 600, true, false);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 60;
+            Projectile.height = 60;
+            Projectile.scale = 1f;
+            Projectile.hostile = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = 60 * 60;
+            //Projectile.alpha = 250;
+            Projectile.aiStyle = -1;
+            Projectile.penetrate = -1;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      Color color = Color.op_Multiply(lightColor, this.Projectile.Opacity);
-      ((Color) ref color).A = (byte) ((double) byte.MaxValue * (double) this.Projectile.Opacity);
-      return new Color?(color);
-    }
+            Projectile.hide = true;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(alpha, 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      Main.EntitySpriteDraw(ModContent.Request<Texture2D>("FargowiltasSouls/Content/Items/Weapons/FinalUpgrades/StyxGazer_glow", (AssetRequestMode) 1).Value, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.op_Multiply(Color.White, this.Projectile.Opacity), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+            CooldownSlot = 1;
+        }
+        public ref float TelegraphTimer => ref Projectile.ai[2];
+        public ref float RotationTimer => ref Projectile.localAI[2];
+        public ref float Rotation => ref Projectile.localAI[1];
+        public static int Direction = 1;
+        public override void AI()
+        {
+            Projectile.hide = false; //to avoid edge case tick 1 wackiness
+
+            //the important part
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[0], ModContent.NPCType<AbomBoss>());
+            if (npc != null)
+            {
+                if (npc.ai[0] == 0) Projectile.extraUpdates = 1;
+
+                if (!npc.HasValidTarget || !Main.player[npc.target].Alive())
+                {
+                    Projectile.Kill();
+                    return;
+                }
+                Player player = Main.player[npc.target];
+                float toPlayer = npc.DirectionTo(player.Center).ToRotation();
+                float idleRot = MathHelper.Pi * 0.7f * -Math.Sign(Projectile.ai[1]);
+
+                if (TelegraphTimer < TelegraphTime)
+                {
+                    TelegraphTimer += 1f / Projectile.MaxUpdates;
+                    Rotation = MathHelper.SmoothStep(toPlayer, toPlayer + idleRot, MathF.Pow(TelegraphTimer / TelegraphTime, 0.5f));
+
+
+                    float fadein = 15;
+                    if (TelegraphTimer <= fadein)
+                        Projectile.Opacity = TelegraphTimer / fadein;
+                }
+                else
+                {
+                    RotationTimer++;
+                    Rotation = MathHelper.SmoothStep(toPlayer + idleRot, toPlayer - idleRot, MathF.Pow(RotationTimer / maxTime, 0.5f));
+
+
+                    float fadeout = 15;
+                    if (RotationTimer >= maxTime - fadeout)
+                        Projectile.Opacity = 1 - ((RotationTimer - (maxTime - fadeout)) / fadeout);
+
+                    if (RotationTimer >= maxTime)
+                        Projectile.Kill();
+                }
+                Projectile.Center = npc.Center + new Vector2(60, 60).RotatedBy(Projectile.velocity.ToRotation() - MathHelper.PiOver4) * Projectile.scale;
+            }
+            else
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            if (Projectile.localAI[0] == 0 && TelegraphTimer >= TelegraphTime)
+            {
+                Projectile.localAI[0] = 1;
+
+                /*Vector2 basePos = Projectile.Center - Projectile.velocity * 141 / 2 * Projectile.scale;
+                for (int i = 0; i < 40; i++)
+                {
+                    int d = Dust.NewDust(basePos + Projectile.velocity * Main.rand.NextFloat(127) * Projectile.scale, 0, 0, 87, Scale: 3f);
+                    Main.dust[d].velocity *= 4.5f;
+                    Main.dust[d].noGravity = true;
+                }*/
+
+                SoundEngine.PlaySound(SoundID.Item71, Projectile.Center);
+            }
+
+            /*if (Projectile.timeLeft == maxTime - 20)
+            {
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    int p = Player.FindClosest(Projectile.Center, 0, 0);
+                    if (p != -1)
+                    {
+                        Vector2 vel = Main.rand.NextFloat(MathHelper.TwoPi).ToRotationVector2() * 30f;
+                        int max = 8;
+                        for (int i = 0; i < max; i++)
+                        {
+                            Projectile.NewProjectile(Projectile.InheritSource(Projectile), Projectile.Center, vel.RotatedBy(MathHelper.TwoPi / max * i), ModContent.ProjectileType<AbomSickle3>(), Projectile.damage, Projectile.knockBack, Projectile.owner, p);
+                        }
+                    }
+                }
+            }*/
+
+            Projectile.velocity = Rotation.ToRotationVector2();
+            Projectile.direction = Projectile.spriteDirection = Math.Sign(Projectile.ai[1]);
+            Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.ToRadians(Projectile.direction < 0 ? 135 : 45);
+            //Main.NewText(MathHelper.ToDegrees(Projectile.velocity.ToRotation()) + " " + MathHelper.ToDegrees(Projectile.ai[1]));
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            /*Vector2 basePos = Projectile.Center - Projectile.velocity * 141 / 2 * Projectile.scale;
+            for (int i = 0; i < 40; i++)
+            {
+                int d = Dust.NewDust(basePos + Projectile.velocity * Main.rand.NextFloat(127) * Projectile.scale, 0, 0, 87, Scale: 3f);
+                Main.dust[d].velocity *= 4.5f;
+                Main.dust[d].noGravity = true;
+            }*/
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+            {
+                //target.AddBuff(ModContent.BuffType<MutantNibble>(), 300);
+                target.AddBuff(ModContent.BuffType<Buffs.Boss.AbomFangBuff>(), 300);
+                //target.AddBuff(ModContent.BuffType<Unstable>(), 240);
+                target.AddBuff(ModContent.BuffType<Buffs.Masomode.BerserkedBuff>(), 120);
+            }
+            target.AddBuff(BuffID.Bleeding, 600);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            Color color = lightColor * Projectile.Opacity;
+            color.A = (byte)(255 * Projectile.Opacity);
+            return color;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color26 * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            Texture2D texture2D14 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Items/Weapons/FinalUpgrades/StyxGazer_glow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            Main.EntitySpriteDraw(texture2D14, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Color.White * Projectile.Opacity, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

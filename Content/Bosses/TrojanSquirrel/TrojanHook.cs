@@ -1,13 +1,6 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.TrojanSquirrel.TrojanHook
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using System.IO;
 using Terraria;
@@ -17,219 +10,236 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.TrojanSquirrel
 {
-  public class TrojanHook : ModProjectile
-  {
-    private NPC npc;
-    private Vector2 offset;
-    private int dir;
-
-    public virtual string Texture => "Terraria/Images/Projectile_13";
-
-    public virtual void SetStaticDefaults()
+    public class TrojanHook : ModProjectile
     {
-      ProjectileID.Sets.DrawScreenCheckFluff[this.Projectile.type] = 8000;
-    }
+        public override string Texture => "Terraria/Images/Projectile_13";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 18;
-      ((Entity) this.Projectile).height = 18;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-    }
-
-    public virtual void OnSpawn(IEntitySource source)
-    {
-      if (!(source is EntitySource_Parent entitySourceParent) || !(entitySourceParent.Entity is NPC entity))
-        return;
-      this.npc = entity;
-      this.offset = Vector2.op_Subtraction(((Entity) this.Projectile).Center, ((Entity) this.npc).Center);
-      this.dir = ((Entity) entity).direction;
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.npc != null ? ((Entity) this.npc).whoAmI : -1);
-      Utils.WritePackedVector2(writer, this.offset);
-      writer.Write((byte) this.dir);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.npc = FargoSoulsUtil.NPCExists(reader.ReadInt32(), Array.Empty<int>());
-      this.offset = Utils.ReadPackedVector2(reader);
-      this.dir = (int) reader.ReadByte();
-    }
-
-    public virtual void PostAI()
-    {
-      if (this.npc == null || this.dir == ((Entity) this.npc).direction)
-        return;
-      this.dir = ((Entity) this.npc).direction;
-      this.offset.X *= -1f;
-    }
-
-    public virtual void AI()
-    {
-      if (this.npc != null)
-        this.npc = FargoSoulsUtil.NPCExists(((Entity) this.npc).whoAmI, Array.Empty<int>());
-      if (this.npc == null)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if ((double) this.Projectile.localAI[0] == 0.0)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.localAI[0] = 1f;
-          SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
+            // DisplayName.SetDefault("Squirrel Hook");
+            ProjectileID.Sets.DrawScreenCheckFluff[Projectile.type] = 8000;
         }
-        this.Projectile.extraUpdates = WorldSavingSystem.EternityMode ? 1 : 0;
-        if ((double) this.Projectile.ai[0] == 0.0)
+
+        public override void SetDefaults()
         {
-          if (!Collision.SolidTiles(((Entity) this.Projectile).Center, 0, 0))
-            this.Projectile.tileCollide = true;
+            Projectile.width = 18;
+            Projectile.height = 18;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
         }
-        else if ((double) this.Projectile.ai[0] == 1.0)
+
+        NPC npc;
+        Vector2 offset;
+        int dir;
+
+        public override void OnSpawn(IEntitySource source)
         {
-          this.Projectile.tileCollide = false;
-          ((Entity) this.Projectile).velocity = Vector2.Zero;
-          this.Projectile.ai[0] = 2f;
-          this.Projectile.netUpdate = true;
-        }
-        if ((double) this.Projectile.ai[0] == 2.0)
-        {
-          ++this.Projectile.extraUpdates;
-          this.Projectile.tileCollide = false;
-          ((Entity) this.Projectile).velocity = Vector2.op_Multiply(12f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, this.ChainOrigin));
-          Projectile projectile = this.Projectile;
-          ((Entity) projectile).position = Vector2.op_Addition(((Entity) projectile).position, Vector2.op_Division(Vector2.op_Subtraction(((Entity) this.npc).position, ((Entity) this.npc).oldPosition), 2f));
-          if ((double) ((Entity) this.Projectile).Distance(this.ChainOrigin) < 12.0)
-            this.Projectile.Kill();
-        }
-        else if ((double) ((Entity) this.Projectile).Distance(this.ChainOrigin) > 1600.0)
-        {
-          this.Projectile.ai[0] = 2f;
-          this.Projectile.netUpdate = true;
-        }
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).DirectionFrom(this.ChainOrigin)) + 1.57079637f;
-      }
-    }
-
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      SoundEngine.PlaySound(ref SoundID.Dig, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      this.Projectile.ai[0] = 1f;
-      return false;
-    }
-
-    private Vector2 ChainOrigin
-    {
-      get
-      {
-        return this.npc != null ? Vector2.op_Addition(((Entity) this.npc).Center, this.offset) : ((Entity) this.Projectile).Center;
-      }
-    }
-
-    public virtual bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      return this.npc == null || !WorldSavingSystem.EternityMode ? base.Colliding(projHitbox, targetHitbox) : new bool?(Collision.CheckAABBvLineCollision(Utils.TopLeft(targetHitbox), Utils.Size(targetHitbox), this.ChainOrigin, ((Entity) this.Projectile).Center));
-    }
-
-    protected virtual bool flashingZapEffect => false;
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D lightningTexture = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/TrojanSquirrel/TrojanHookLightning", (AssetRequestMode) 2).Value;
-      int lightningFrames = 5;
-      if (this.npc != null && TextureAssets.Chain.IsLoaded)
-      {
-        Texture2D texture2D = TextureAssets.Chain.Value;
-        Vector2 position = ((Entity) this.Projectile).Center;
-        Vector2 chainOrigin = this.ChainOrigin;
-        Rectangle? nullable = new Rectangle?();
-        Vector2 vector2_1;
-        // ISSUE: explicit constructor call
-        ((Vector2) ref vector2_1).\u002Ector((float) texture2D.Width * 0.5f, (float) texture2D.Height * 0.5f);
-        float height = (float) texture2D.Height;
-        Vector2 vector2_2 = Vector2.op_Subtraction(chainOrigin, position);
-        float rotation = (float) Math.Atan2((double) vector2_2.Y, (double) vector2_2.X) - 1.57f;
-        bool flag = true;
-        if (float.IsNaN(position.X) && float.IsNaN(position.Y))
-          flag = false;
-        if (float.IsNaN(vector2_2.X) && float.IsNaN(vector2_2.Y))
-          flag = false;
-        while (flag)
-        {
-          if ((double) ((Vector2) ref vector2_2).Length() < (double) height + 1.0)
-          {
-            flag = false;
-          }
-          else
-          {
-            Vector2 vector2_3 = vector2_2;
-            ((Vector2) ref vector2_3).Normalize();
-            position = Vector2.op_Addition(position, Vector2.op_Multiply(vector2_3, height));
-            vector2_2 = Vector2.op_Subtraction(chainOrigin, position);
-            Color color1 = Lighting.GetColor((int) position.X / 16, (int) ((double) position.Y / 16.0));
-            Color color2 = this.flashingZapEffect ? Color.op_Multiply(Color.White, this.Projectile.Opacity) : this.Projectile.GetAlpha(color1);
-            Main.EntitySpriteDraw(texture2D, Vector2.op_Subtraction(position, Main.screenPosition), nullable, color2, rotation, vector2_1, 1f, (SpriteEffects) 0, 0.0f);
-            int num = Utils.NextBool(Main.rand) ? 1 : 0;
-            if (num != 0)
-              DrawLightning(position, lightColor, rotation);
-            if (this.flashingZapEffect)
+            if (source is EntitySource_Parent parent && parent.Entity is NPC sourceNPC)
             {
-              ((Color) ref color2).A = (byte) 0;
-              Main.EntitySpriteDraw(texture2D, Vector2.op_Subtraction(position, Main.screenPosition), nullable, color2, rotation, vector2_1, 1f, (SpriteEffects) 0, 0.0f);
+                npc = sourceNPC;
+                offset = Projectile.Center - npc.Center;
+                dir = sourceNPC.direction;
             }
-            if (num == 0)
-              DrawLightning(position, lightColor, rotation);
-          }
         }
-      }
-      Texture2D texture2D1 = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D1.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = (SpriteEffects) 0;
-      Color color = this.flashingZapEffect ? Color.op_Multiply(Color.White, this.Projectile.Opacity) : this.Projectile.GetAlpha(lightColor);
-      int num3 = Utils.NextBool(Main.rand) ? 1 : 0;
-      if (num3 != 0)
-        DrawLightning(((Entity) this.Projectile).Center, lightColor, this.Projectile.rotation);
-      Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      if (this.flashingZapEffect)
-      {
-        ((Color) ref color).A = (byte) 0;
-        Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      if (num3 == 0)
-        DrawLightning(((Entity) this.Projectile).Center, lightColor, this.Projectile.rotation);
-      return false;
 
-      Rectangle GetRandomLightningFrame()
-      {
-        int num1 = lightningTexture.Height / lightningFrames;
-        int num2 = Main.rand.Next(lightningFrames);
-        return new Rectangle(0, num1 * num2, lightningTexture.Width, num1);
-      }
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(npc is NPC ? npc.whoAmI : -1);
+            writer.WritePackedVector2(offset);
+            writer.Write((byte)dir);
+        }
 
-      void DrawLightning(Vector2 position, Color color, float rotation)
-      {
-        if (!Utils.NextBool(Main.rand, 4))
-          return;
-        Rectangle randomLightningFrame = GetRandomLightningFrame();
-        Vector2 vector2 = Vector2.op_Division(Utils.Size(randomLightningFrame), 2f);
-        Main.EntitySpriteDraw(lightningTexture, Vector2.op_Subtraction(position, Main.screenPosition), new Rectangle?(randomLightningFrame), Color.White, rotation, vector2, 1f, (SpriteEffects) 0, 0.0f);
-      }
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            npc = FargoSoulsUtil.NPCExists(reader.ReadInt32());
+            offset = reader.ReadPackedVector2();
+            dir = reader.ReadByte();
+        }
+
+        public override void PostAI()
+        {
+            if (npc != null && dir != npc.direction)
+            {
+                dir = npc.direction;
+                offset.X *= -1;
+            }
+        }
+
+        public override void AI()
+        {
+            if (npc != null)
+                npc = FargoSoulsUtil.NPCExists(npc.whoAmI);
+
+            if (npc == null)
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = 1;
+                SoundEngine.PlaySound(SoundID.Item92, Projectile.Center);
+            }
+
+            Projectile.extraUpdates = WorldSavingSystem.EternityMode ? 1 : 0;
+
+            if (Projectile.ai[0] == 0)
+            {
+                if (!Collision.SolidTiles(Projectile.Center, 0, 0))
+                    Projectile.tileCollide = true;
+            }
+            else if (Projectile.ai[0] == 1f)
+            {
+                Projectile.tileCollide = false;
+                Projectile.velocity = Vector2.Zero;
+
+                //if (++Projectile.localAI[1] > 60 || !WorldSavingSystem.EternityMode)
+                //{
+                Projectile.ai[0] = 2f;
+                Projectile.netUpdate = true;
+                //}
+            }
+
+            if (Projectile.ai[0] == 2f)
+            {
+                Projectile.extraUpdates++;
+
+                Projectile.tileCollide = false;
+
+                const float speed = 12;
+                Projectile.velocity = speed * Projectile.SafeDirectionTo(ChainOrigin);
+
+                Projectile.position += (npc.position - npc.oldPosition) / 2f;
+
+                if (Projectile.Distance(ChainOrigin) < speed)
+                    Projectile.Kill();
+            }
+            else if (Projectile.Distance(ChainOrigin) > 1600f)
+            {
+                Projectile.ai[0] = 2f;
+                Projectile.netUpdate = true;
+            }
+
+            Projectile.rotation = Projectile.DirectionFrom(ChainOrigin).ToRotation() + MathHelper.PiOver2;
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            SoundEngine.PlaySound(SoundID.Dig, Projectile.Center);
+            Projectile.ai[0] = 1f;
+            return false;
+        }
+
+        Vector2 ChainOrigin => npc == null ? Projectile.Center : npc.Center + offset;
+
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
+        {
+            if (npc == null || !WorldSavingSystem.EternityMode)
+                return base.Colliding(projHitbox, targetHitbox);
+
+            return Collision.CheckAABBvLineCollision(targetHitbox.TopLeft(), targetHitbox.Size(), ChainOrigin, Projectile.Center);
+        }
+
+        protected virtual bool flashingZapEffect => false; //WorldSavingSystem.EternityMode && Projectile.timeLeft % 10 < 5;
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D lightningTexture = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/TrojanSquirrel/TrojanHookLightning").Value;
+            int lightningFrames = 5;
+
+            Rectangle GetRandomLightningFrame()
+            {
+                int frameHeight = lightningTexture.Height / lightningFrames;
+                int frame = Main.rand.Next(lightningFrames);
+                return new(0, frameHeight * frame, lightningTexture.Width, frameHeight);
+            }
+            void DrawLightning(Vector2 position, Color color, float rotation)
+            {
+                if (!Main.rand.NextBool(4))
+                    return;
+                Rectangle lightningRect = GetRandomLightningFrame();
+                Vector2 lightningOrigin = lightningRect.Size() / 2f;
+                Main.EntitySpriteDraw(lightningTexture, position - Main.screenPosition, lightningRect, Color.White, rotation, lightningOrigin, 1f, SpriteEffects.None, 0);
+            }
+            if (npc != null && TextureAssets.Chain.IsLoaded)
+            {
+                Texture2D texture = TextureAssets.Chain.Value;
+                Vector2 position = Projectile.Center;
+                Vector2 mountedCenter = ChainOrigin;
+                Rectangle? sourceRectangle = new Rectangle?();
+                Vector2 origin = new(texture.Width * 0.5f, texture.Height * 0.5f);
+                float num1 = texture.Height;
+                Vector2 vector24 = mountedCenter - position;
+                float rotation = (float)Math.Atan2(vector24.Y, vector24.X) - 1.57f;
+                bool flag = true;
+                if (float.IsNaN(position.X) && float.IsNaN(position.Y))
+                    flag = false;
+                if (float.IsNaN(vector24.X) && float.IsNaN(vector24.Y))
+                    flag = false;
+                while (flag)
+                    if (vector24.Length() < num1 + 1.0)
+                    {
+                        flag = false;
+                    }
+                    else
+                    {
+                        Vector2 vector21 = vector24;
+                        vector21.Normalize();
+                        position += vector21 * num1;
+                        vector24 = mountedCenter - position;
+                        Color color2 = Lighting.GetColor((int)position.X / 16, (int)(position.Y / 16.0));
+                        color2 = flashingZapEffect ? Color.White * Projectile.Opacity : Projectile.GetAlpha(color2);
+                        Main.EntitySpriteDraw(texture, position - Main.screenPosition, sourceRectangle, color2, rotation, origin, 1f, SpriteEffects.None, 0);
+
+                        bool lightningBehind2 = Main.rand.NextBool();
+                        if (lightningBehind2)
+                        {
+                            DrawLightning(position, lightColor, rotation);
+                        }
+                        if (flashingZapEffect)
+                        {
+                            color2.A = 0;
+                            Main.EntitySpriteDraw(texture, position - Main.screenPosition, sourceRectangle, color2, rotation, origin, 1f, SpriteEffects.None, 0);
+                        }
+                        if (!lightningBehind2)
+                        {
+                            DrawLightning(position, lightColor, rotation);
+                        }
+
+                    }
+            }
+
+            Texture2D texture2D13 = TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            SpriteEffects effects = SpriteEffects.None;
+            Color color = flashingZapEffect ? Color.White * Projectile.Opacity : Projectile.GetAlpha(lightColor);
+
+            bool lightningBehind = Main.rand.NextBool();
+            if (lightningBehind)
+            {
+                DrawLightning(Projectile.Center, lightColor, Projectile.rotation);
+            }
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            if (flashingZapEffect)
+            {
+                color.A = 0;
+                Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            }
+            if (!lightningBehind)
+            {
+                DrawLightning(Projectile.Center, lightColor, Projectile.rotation);
+            }
+
+            return false;
+        }
     }
-  }
 }

@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.FishStickShark
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.DataStructures;
@@ -12,95 +6,107 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  internal class FishStickShark : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_408";
-
-    public virtual void SetStaticDefaults()
+    internal class FishStickShark : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = Main.projFrames[408];
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public override string Texture => "Terraria/Images/Projectile_408";
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(408);
-      this.AIType = 408;
-      this.Projectile.penetrate = 1;
-      this.Projectile.timeLeft = 180;
-      this.Projectile.tileCollide = false;
-      this.Projectile.minion = false;
-      this.Projectile.DamageType = DamageClass.Ranged;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Shark");
+            Main.projFrames[Projectile.type] = Main.projFrames[ProjectileID.MiniSharkron];
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+        }
 
-    public virtual void OnSpawn(IEntitySource source) => this.Projectile.ArmorPenetration += 20;
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.MiniSharkron);
+            AIType = ProjectileID.MiniSharkron;
+            Projectile.penetrate = 1;
+            Projectile.timeLeft = 180;
+            //Projectile.extraUpdates = 1;
 
-    public virtual void AI()
-    {
-      Projectile projectile = this.Projectile;
-      ((Entity) projectile).position = Vector2.op_Addition(((Entity) projectile).position, Vector2.op_Multiply(((Entity) this.Projectile).velocity, 0.5f));
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[2]);
-      if (npc != null && Vector2.op_Inequality(((Entity) this.Projectile).velocity, Vector2.Zero) && npc.CanBeChasedBy((object) null, false))
-        ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center), ((Vector2) ref ((Entity) this.Projectile).velocity).Length());
-      else
-        this.Projectile.ai[2] = -1f;
-    }
+            Projectile.tileCollide = false;
+            Projectile.minion = false;
+            Projectile.DamageType = DamageClass.Ranged;
+        }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      this.Projectile.timeLeft = 0;
-    }
+        public override void OnSpawn(IEntitySource source)
+        {
+            Projectile.ArmorPenetration += 20;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index1 = 0; index1 < 15; ++index1)
-      {
-        int index2 = Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.One, 10f)), 50, 50, 5, 0.0f, -2f, 0, new Color(), 1f);
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Division(dust.velocity, 2f);
-      }
-      int num = 10;
-      if (Utils.NextBool(Main.rand, 10))
-      {
-        int index = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, 0.8f), 584, 1f);
-        Main.gore[index].timeLeft /= num;
-      }
-      if (Utils.NextBool(Main.rand, 10))
-      {
-        int index = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, 0.9f), 585, 1f);
-        Main.gore[index].timeLeft /= num;
-      }
-      if (!Utils.NextBool(Main.rand, 10))
-        return;
-      int index3 = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, 1f), 586, 1f);
-      Main.gore[index3].timeLeft /= num;
-    }
+        public override void AI()
+        {
+            Projectile.position += Projectile.velocity * 0.5f;
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[2]);
+            if (npc != null && Projectile.velocity != Vector2.Zero && npc.CanBeChasedBy())
+            {
+                Projectile.velocity = Projectile.SafeDirectionTo(npc.Center) * Projectile.velocity.Length();
+            }
+            else
+            {
+                Projectile.ai[2] = -1; //cancel homing
+            }
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      float num3 = 0.0f;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(Color.White, this.Projectile.Opacity), 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num4 = this.Projectile.oldRot[index] + num3;
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num4, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation + num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            Projectile.timeLeft = 0;
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            for (int num321 = 0; num321 < 15; num321++)
+            {
+                int num322 = Dust.NewDust(Projectile.Center - Vector2.One * 10f, 50, 50, DustID.Blood, 0f, -2f, 0, default, 1f);
+                Main.dust[num322].velocity /= 2f;
+            }
+            int num323 = 10;
+            if (Main.rand.NextBool(10))
+            {
+                int num324 = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, Projectile.velocity * 0.8f, 584, 1f);
+                Main.gore[num324].timeLeft /= num323;
+            }
+            if (Main.rand.NextBool(10))
+            {
+                int num324 = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, Projectile.velocity * 0.9f, 585, 1f);
+                Main.gore[num324].timeLeft /= num323;
+            }
+            if (Main.rand.NextBool(10))
+            {
+                int num324 = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, Projectile.velocity * 1f, 586, 1f);
+                Main.gore[num324].timeLeft /= num323;
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+            float rotationModifier = 0;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = Color.White * Projectile.Opacity * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i] + rotationModifier;
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation + rotationModifier, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

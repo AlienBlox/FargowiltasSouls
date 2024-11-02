@@ -1,193 +1,200 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.CreeperGutted
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Accessories.Masomode;
-using FargowiltasSouls.Content.Projectiles;
+﻿using FargowiltasSouls.Content.Items.Accessories.Masomode;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
 using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria;
-using Terraria.Audio;
 using Terraria.GameContent.Bestiary;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs
 {
-  public class CreeperGutted : ModNPC
-  {
-    public virtual void SetStaticDefaults()
+    public class CreeperGutted : ModNPC
     {
-      Main.npcFrameCount[this.NPC.type] = 3;
-      NPCID.Sets.CantTakeLunchMoney[this.Type] = true;
-      NPCID.Sets.ImmuneToAllBuffs[this.Type] = true;
-    }
-
-    public virtual void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
-    {
-      bestiaryEntry.UIInfoProvider = (IBestiaryUICollectionInfoProvider) new CommonEnemyUICollectionInfoProvider(ContentSamples.NpcBestiaryCreditIdsByNpcNetIds[266], true);
-      bestiaryEntry.Info.AddRange((IEnumerable<IBestiaryInfoElement>) new \u003C\u003Ez__ReadOnlyArray<IBestiaryInfoElement>(new IBestiaryInfoElement[2]
-      {
-        (IBestiaryInfoElement) BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.TheCrimson,
-        (IBestiaryInfoElement) new FlavorTextBestiaryInfoElement("Mods.FargowiltasSouls.Bestiary.GuttedCreeper")
-      }));
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.NPC).width = 30;
-      ((Entity) this.NPC).height = 30;
-      this.NPC.damage = 20;
-      this.NPC.defense = 0;
-      this.NPC.lifeMax = 30;
-      this.NPC.friendly = true;
-      this.NPC.dontCountMe = true;
-      this.NPC.netAlways = true;
-      this.NPC.HitSound = new SoundStyle?(SoundID.NPCHit9);
-      this.NPC.DeathSound = new SoundStyle?(SoundID.NPCDeath11);
-      this.NPC.noGravity = true;
-      this.NPC.noTileCollide = true;
-      this.NPC.knockBackResist = 0.8f;
-      this.NPC.lavaImmune = true;
-      this.NPC.aiStyle = -1;
-    }
-
-    public virtual void AI()
-    {
-      if ((double) this.NPC.localAI[0] == 0.0)
-      {
-        this.NPC.localAI[0] = 1f;
-        this.NPC.lifeMax *= (int) this.NPC.ai[2];
-        this.NPC.defDamage *= (int) this.NPC.ai[2];
-        this.NPC.defDefense *= (int) this.NPC.ai[2];
-        this.NPC.life = this.NPC.lifeMax;
-      }
-      this.NPC.damage = this.NPC.defDamage;
-      this.NPC.defense = this.NPC.defDefense;
-      Player player = Main.player[(int) this.NPC.ai[0]];
-      if ((((Entity) player).whoAmI != Main.myPlayer || !player.HasEffect<GuttedHeartMinions>()) && (!((Entity) player).active || player.dead))
-      {
-        int whoAmI = ((Entity) this.NPC).whoAmI;
-        this.NPC.SimpleStrikeNPC(this.NPC.lifeMax * 2, 0, false, 0.0f, (DamageClass) null, false, 0.0f, false);
-        if (!FargoSoulsUtil.HostCheck)
-          return;
-        NetMessage.SendData(23, -1, -1, (NetworkText) null, whoAmI, 9999f, 0.0f, 0.0f, 0, 0, 0);
-      }
-      else
-      {
-        Vector2 vector2 = Utils.RotatedBy(Vector2.op_Subtraction(((Entity) player).Center, ((Entity) this.NPC).Center), (double) this.NPC.ai[3], new Vector2());
-        float num = ((Vector2) ref vector2).Length();
-        if ((double) num > 1000.0)
+        public override void SetStaticDefaults()
         {
-          ((Entity) this.NPC).Center = ((Entity) player).Center;
-          ((Entity) this.NPC).velocity = Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitX, 2.0 * Math.PI), 8f);
+            // DisplayName.SetDefault("Gutted Creeper");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "爬行者");
+            Main.npcFrameCount[NPC.type] = 3;
+            NPCID.Sets.CantTakeLunchMoney[Type] = true;
+            NPCID.Sets.ImmuneToAllBuffs[Type] = true;
+            this.ExcludeFromBestiary();
         }
-        else if ((double) num > 40.0)
+
+        public override void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
         {
-          vector2 = Vector2.op_Division(vector2, 10f);
-          ((Entity) this.NPC).velocity = Vector2.op_Division(Vector2.op_Addition(Vector2.op_Multiply(((Entity) this.NPC).velocity, 15f), vector2), 16f);
+            /*
+            bestiaryEntry.UIInfoProvider = new CommonEnemyUICollectionInfoProvider(
+                    ContentSamples.NpcBestiaryCreditIdsByNpcNetIds[NPCID.BrainofCthulhu],
+                    quickUnlock: true
+                );
+            bestiaryEntry.Info.AddRange([
+                BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.TheCrimson,
+                new FlavorTextBestiaryInfoElement("Mods.FargowiltasSouls.Bestiary.GuttedCreeper")
+            ]);
+            */
         }
-        else if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < 8.0)
+
+        public override void SetDefaults()
         {
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 1.05f);
+            NPC.width = 30;
+            NPC.height = 30;
+            NPC.damage = 20;
+            NPC.defense = 0;
+            NPC.lifeMax = 30;
+            NPC.friendly = true;
+            NPC.dontCountMe = true;
+            NPC.netAlways = true;
+            NPC.HitSound = SoundID.NPCHit9;
+            NPC.DeathSound = SoundID.NPCDeath11;
+            NPC.noGravity = true;
+            NPC.noTileCollide = true;
+            NPC.knockBackResist = 0.8f;
+            NPC.lavaImmune = true;
+            NPC.aiStyle = -1;
         }
-        if ((double) this.NPC.ai[1]++ > 52.0)
+
+        public override void AI()
         {
-          this.NPC.ai[1] = 0.0f;
-          this.NPC.ai[3] = MathHelper.ToRadians(Utils.NextFloat(Main.rand, -15f, 15f));
-          if (((Entity) player).whoAmI == Main.myPlayer && !player.HasEffect<GuttedHeartMinions>())
-          {
-            int whoAmI = ((Entity) this.NPC).whoAmI;
-            this.NPC.SimpleStrikeNPC(this.NPC.lifeMax * 2, 0, false, 0.0f, (DamageClass) null, false, 0.0f, false);
-            if (!FargoSoulsUtil.HostCheck)
-              return;
-            NetMessage.SendData(23, -1, -1, (NetworkText) null, whoAmI, 9999f, 0.0f, 0.0f, 0, 0, 0);
-            return;
-          }
+            if (NPC.localAI[0] == 0f)
+            {
+                NPC.localAI[0] = 1f;
+                NPC.lifeMax *= (int)NPC.ai[2];
+                NPC.defDamage *= (int)NPC.ai[2];
+                NPC.defDefense *= (int)NPC.ai[2];
+                NPC.life = NPC.lifeMax;
+            }
+
+            NPC.damage = NPC.defDamage;
+            NPC.defense = NPC.defDefense;
+
+            Player player = Main.player[(int)NPC.ai[0]];
+            if ((player.whoAmI != Main.myPlayer || !player.HasEffect<GuttedHeartMinions>()) && (!player.active || player.dead))
+            {
+                int n = NPC.whoAmI;
+                NPC.SimpleStrikeNPC(NPC.lifeMax * 2, 0);
+                if (FargoSoulsUtil.HostCheck)
+                    NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n, 9999f);
+                return;
+            }
+
+            Vector2 distance = (player.Center - NPC.Center).RotatedBy(NPC.ai[3]);
+            float length = distance.Length();
+            if (length > 1000f)
+            {
+                NPC.Center = player.Center;
+                NPC.velocity = Vector2.UnitX.RotatedByRandom(2 * Math.PI) * 8;
+            }
+            else if (length > 40f)
+            {
+                distance /= 10f;
+                NPC.velocity = (NPC.velocity * 15f + distance) / 16f;
+            }
+            else
+            {
+                if (NPC.velocity.Length() < 8)
+                    NPC.velocity *= 1.05f;
+            }
+
+            if (NPC.ai[1]++ > 52f)
+            {
+                NPC.ai[1] = 0f;
+                NPC.ai[3] = MathHelper.ToRadians(Main.rand.NextFloat(-15, 15));
+                //NPC.velocity = NPC.velocity.RotatedByRandom(2 * Math.PI);
+
+                if (player.whoAmI == Main.myPlayer && !player.HasEffect<GuttedHeartMinions>())
+                {
+                    int n = NPC.whoAmI;
+                    NPC.SimpleStrikeNPC(NPC.lifeMax * 2, 0);
+                    if (FargoSoulsUtil.HostCheck)
+                        NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n, 9999f);
+                    return;
+                }
+            }
+
+            NPC.position += player.position - player.oldPosition;
+
+            const float IdleAccel = 0.05f;
+            foreach (NPC n in Main.npc.Where(n => n.active && n.ai[0] == NPC.ai[0] && n.type == NPC.type && n.whoAmI != NPC.whoAmI && NPC.Distance(n.Center) < NPC.width))
+            {
+                NPC.velocity.X += IdleAccel * (NPC.Center.X < n.Center.X ? -1 : 1);
+                NPC.velocity.Y += IdleAccel * (NPC.Center.Y < n.Center.Y ? -1 : 1);
+                n.velocity.X += IdleAccel * (n.Center.X < NPC.Center.X ? -1 : 1);
+                n.velocity.Y += IdleAccel * (n.Center.Y < NPC.Center.Y ? -1 : 1);
+            }
+
         }
-        NPC npc1 = this.NPC;
-        ((Entity) npc1).position = Vector2.op_Addition(((Entity) npc1).position, Vector2.op_Subtraction(((Entity) player).position, ((Entity) player).oldPosition));
-        foreach (NPC npc2 in ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && (double) n.ai[0] == (double) this.NPC.ai[0] && n.type == this.NPC.type && ((Entity) n).whoAmI != ((Entity) this.NPC).whoAmI && (double) ((Entity) this.NPC).Distance(((Entity) n).Center) < (double) ((Entity) this.NPC).width)))
+
+        public override void FindFrame(int frameHeight)
         {
-          ((Entity) this.NPC).velocity.X += (float) (0.05000000074505806 * ((double) ((Entity) this.NPC).Center.X < (double) ((Entity) npc2).Center.X ? -1.0 : 1.0));
-          ((Entity) this.NPC).velocity.Y += (float) (0.05000000074505806 * ((double) ((Entity) this.NPC).Center.Y < (double) ((Entity) npc2).Center.Y ? -1.0 : 1.0));
-          ((Entity) npc2).velocity.X += (float) (0.05000000074505806 * ((double) ((Entity) npc2).Center.X < (double) ((Entity) this.NPC).Center.X ? -1.0 : 1.0));
-          ((Entity) npc2).velocity.Y += (float) (0.05000000074505806 * ((double) ((Entity) npc2).Center.Y < (double) ((Entity) this.NPC).Center.Y ? -1.0 : 1.0));
+            if (NPC.ai[2] <= 1)
+                NPC.frame.Y = 0;
+            else if (NPC.ai[2] <= 2)
+                NPC.frame.Y = frameHeight;
+            else
+                NPC.frame.Y = frameHeight * 2;
         }
-      }
+        public override void ModifyHitByProjectile(Projectile projectile, ref NPC.HitModifiers modifiers)
+        {
+            modifiers.FinalDamage *= 3;
+        }
+
+        public override bool? CanBeHitByProjectile(Projectile projectile)
+        {
+            switch (projectile.type)
+            {
+                case ProjectileID.RottenEgg:
+                    return false;
+
+                case ProjectileID.AshBallFalling:
+                case ProjectileID.CrimsandBallFalling:
+                case ProjectileID.DirtBall:
+                case ProjectileID.EbonsandBallFalling:
+                case ProjectileID.MudBall:
+                case ProjectileID.PearlSandBallFalling:
+                case ProjectileID.SandBallFalling:
+                case ProjectileID.SiltBall:
+                case ProjectileID.SlushBall:
+                    if (projectile.velocity.X == 0)
+                        return false;
+                    break;
+
+                default:
+                    break;
+            }
+
+            return null;
+        }
+        public override void OnHitByProjectile(Projectile projectile, NPC.HitInfo hit, int damageDone)
+        {
+            if (FargoSoulsUtil.CanDeleteProjectile(projectile))
+            {
+                projectile.timeLeft = 0;
+                projectile.FargoSouls().canHurt = false; //so ml projs, etc. splash damage wont hrut
+            }
+        }
+
+        public override void HitEffect(NPC.HitInfo hit)
+        {
+            int heart = NPC.ai[2] > 1 ? 1 : 0; //pure heart and above (1), or not (0)
+
+            Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<Projectiles.CreeperHitbox>(), NPC.damage, 6f, (int)NPC.ai[0], heart);
+
+            if (NPC.life <= 0)
+            {
+                //SoundEngine.PlaySound(NPC.DeathSound, NPC.Center);
+                for (int i = 0; i < 20; i++)
+                {
+                    int d = Dust.NewDust(NPC.position, NPC.width, NPC.height, DustID.Blood);
+                    Main.dust[d].velocity *= 2.5f;
+                    Main.dust[d].scale += 0.5f;
+                }
+            }
+        }
+
+        public override bool CheckActive() => false;
+
+        public override bool PreKill() => false;
     }
-
-    public virtual void FindFrame(int frameHeight)
-    {
-      if ((double) this.NPC.ai[2] <= 1.0)
-        this.NPC.frame.Y = 0;
-      else if ((double) this.NPC.ai[2] <= 2.0)
-        this.NPC.frame.Y = frameHeight;
-      else
-        this.NPC.frame.Y = frameHeight * 2;
-    }
-
-    public virtual void ModifyHitByProjectile(Projectile projectile, ref NPC.HitModifiers modifiers)
-    {
-      ref StatModifier local = ref modifiers.FinalDamage;
-      local = StatModifier.op_Multiply(local, 3f);
-    }
-
-    public virtual bool? CanBeHitByProjectile(Projectile projectile)
-    {
-      switch (projectile.type)
-      {
-        case 17:
-        case 31:
-        case 39:
-        case 40:
-        case 56:
-        case 67:
-        case 71:
-        case 179:
-        case 241:
-          if ((double) ((Entity) projectile).velocity.X == 0.0)
-            return new bool?(false);
-          break;
-        case 318:
-          return new bool?(false);
-      }
-      return new bool?();
-    }
-
-    public virtual void OnHitByProjectile(Projectile projectile, NPC.HitInfo hit, int damageDone)
-    {
-      if (!FargoSoulsUtil.CanDeleteProjectile(projectile))
-        return;
-      projectile.timeLeft = 0;
-      projectile.FargoSouls().canHurt = false;
-    }
-
-    public virtual void HitEffect(NPC.HitInfo hit)
-    {
-      int num = (double) this.NPC.ai[2] > 1.0 ? 1 : 0;
-      Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<CreeperHitbox>(), this.NPC.damage, 6f, (int) this.NPC.ai[0], (float) num, 0.0f, 0.0f);
-      if (this.NPC.life > 0)
-        return;
-      for (int index1 = 0; index1 < 20; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height, 5, 0.0f, 0.0f, 0, new Color(), 1f);
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 2.5f);
-        Main.dust[index2].scale += 0.5f;
-      }
-    }
-
-    public virtual bool CheckActive() => false;
-
-    public virtual bool PreKill() => false;
-  }
 }

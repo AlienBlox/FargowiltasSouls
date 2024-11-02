@@ -1,128 +1,125 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.GolemSpikyBall
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class GolemSpikyBall : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_185";
-
-    public virtual void SetStaticDefaults()
+    public class GolemSpikyBall : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public override string Texture => "Terraria/Images/Projectile_185";
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(185);
-      this.AIType = 185;
-      this.Projectile.DamageType = DamageClass.Default;
-      this.Projectile.hostile = true;
-      this.Projectile.friendly = false;
-      this.Projectile.trap = false;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.penetrate = 1;
-    }
-
-    public virtual bool? CanDamage() => new bool?(this.Projectile.alpha == 0);
-
-    public virtual void AI()
-    {
-      if (this.Projectile.alpha > 0)
-      {
-        this.Projectile.alpha -= 2;
-        if (this.Projectile.alpha < 0)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.alpha = 0;
-          for (int index1 = 0; index1 < 7; ++index1)
-          {
-            int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 246, (float) (-(double) ((Entity) this.Projectile).velocity.X * 0.20000000298023224), (float) (-(double) ((Entity) this.Projectile).velocity.Y * 0.20000000298023224), 100, new Color(), 2f);
-            Main.dust[index2].noGravity = true;
-            Dust dust1 = Main.dust[index2];
-            dust1.velocity = Vector2.op_Multiply(dust1.velocity, 1.5f);
-            int index3 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 246, (float) (-(double) ((Entity) this.Projectile).velocity.X * 0.20000000298023224), (float) (-(double) ((Entity) this.Projectile).velocity.Y * 0.20000000298023224), 100, new Color(), 1f);
-            Dust dust2 = Main.dust[index3];
-            dust2.velocity = Vector2.op_Multiply(dust2.velocity, 1.5f);
-          }
+            // DisplayName.SetDefault("Spiky Ball");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-      }
-      Tile tileSafely = Framing.GetTileSafely(((Entity) this.Projectile).Center);
-      if (!Tile.op_Inequality(tileSafely, (ArgumentException) null) || ((Tile) ref tileSafely).WallType != (ushort) 87)
-        return;
-      ((Entity) this.Projectile).velocity.Y -= 0.4f;
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Item10, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-      for (int index1 = 0; index1 < 7; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 246, (float) (-(double) ((Entity) this.Projectile).velocity.X * 0.20000000298023224), (float) (-(double) ((Entity) this.Projectile).velocity.Y * 0.20000000298023224), 100, new Color(), 2f);
-        Main.dust[index2].noGravity = true;
-        Dust dust1 = Main.dust[index2];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 1.5f);
-        int index3 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 246, (float) (-(double) ((Entity) this.Projectile).velocity.X * 0.20000000298023224), (float) (-(double) ((Entity) this.Projectile).velocity.Y * 0.20000000298023224), 100, new Color(), 1f);
-        Dust dust2 = Main.dust[index3];
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 1.5f);
-      }
-    }
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.SpikyBallTrap);
+            AIType = ProjectileID.SpikyBallTrap;
+            Projectile.DamageType = DamageClass.Default;
+            Projectile.hostile = true;
+            Projectile.friendly = false;
+            Projectile.trap = false;
+            Projectile.alpha = 255;
+            Projectile.penetrate = 1;
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(36, 600, true, false);
-      target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600, true, false);
-      target.AddBuff(195, 600, true, false);
-    }
+        public override bool? CanDamage()
+        {
+            return Projectile.alpha == 0;
+        }
 
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      if ((double) ((Entity) this.Projectile).velocity.X != (double) oldVelocity.X)
-        ((Entity) this.Projectile).velocity.X = (float) (-(double) oldVelocity.X * 0.89999997615814209);
-      if ((double) ((Entity) this.Projectile).velocity.Y != (double) oldVelocity.Y && (double) Math.Abs(oldVelocity.Y) > 1.0)
-        ((Entity) this.Projectile).velocity.Y = (float) (-(double) oldVelocity.Y * ((double) Math.Abs(oldVelocity.Y) > 8.0 ? 0.75 : 0.98000001907348633));
-      return false;
-    }
+        public override void AI()
+        {
+            if (Projectile.alpha > 0)
+            {
+                Projectile.alpha -= 2;
+                if (Projectile.alpha < 0)
+                {
+                    Projectile.alpha = 0;
+                    for (int index1 = 0; index1 < 7; ++index1)
+                    {
+                        int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.GoldCoin, -Projectile.velocity.X * 0.2f, -Projectile.velocity.Y * 0.2f, 100, new Color(), 2f);
+                        Main.dust[index2].noGravity = true;
+                        Main.dust[index2].velocity *= 1.5f;
+                        int index3 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.GoldCoin, -Projectile.velocity.X * 0.2f, -Projectile.velocity.Y * 0.2f, 100, new Color(), 1f);
+                        Main.dust[index3].velocity *= 1.5f;
+                    }
+                }
+            }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, this.Projectile.alpha == 0 ? 0 : (int) byte.MaxValue), this.Projectile.Opacity));
-    }
+            Tile tile = Framing.GetTileSafely(Projectile.Center);
+            if (tile != null && tile.WallType == WallID.LihzahrdBrickUnsafe)
+            {
+                Projectile.velocity.Y -= 0.2f * 2; //reverse gravity in lihzahrd temple
+            }
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = (SpriteEffects) 0;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(alpha, this.Projectile.Opacity), 0.75f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.Item10, Projectile.position);
+            for (int index1 = 0; index1 < 7; ++index1)
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.GoldCoin, -Projectile.velocity.X * 0.2f, -Projectile.velocity.Y * 0.2f, 100, new Color(), 2f);
+                Main.dust[index2].noGravity = true;
+                Main.dust[index2].velocity *= 1.5f;
+                int index3 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.GoldCoin, -Projectile.velocity.X * 0.2f, -Projectile.velocity.Y * 0.2f, 100, new Color(), 1f);
+                Main.dust[index3].velocity *= 1.5f;
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            //target.AddBuff(BuffID.BrokenArmor, 600);
+            target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600);
+            //target.AddBuff(BuffID.WitheredArmor, 600);
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            if (Projectile.velocity.X != oldVelocity.X)
+                Projectile.velocity.X = -oldVelocity.X * 0.9f;
+            if (Projectile.velocity.Y != oldVelocity.Y && System.Math.Abs(oldVelocity.Y) > 1)
+                Projectile.velocity.Y = -oldVelocity.Y * (System.Math.Abs(oldVelocity.Y) > 8 ? 0.75f : 0.98f);
+            return false;
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(255, 255, 255, Projectile.alpha == 0 ? 0 : 255) * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = SpriteEffects.None;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color26 * Projectile.Opacity * 0.75f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

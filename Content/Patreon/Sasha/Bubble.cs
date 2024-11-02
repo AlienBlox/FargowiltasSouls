@@ -1,45 +1,43 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.Sasha.Bubble
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.Sasha
 {
-  public class Bubble : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class Bubble : ModProjectile
     {
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Bubble");
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(410);
-      this.AIType = 410;
-      this.Projectile.DamageType = DamageClass.Magic;
-      this.Projectile.penetrate = -1;
-      this.Projectile.scale = 2f;
-      this.Projectile.extraUpdates = 1;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.Bubble);
+            AIType = ProjectileID.Bubble;
+            Projectile.DamageType = DamageClass.Magic;
+            Projectile.penetrate = -1;
+            Projectile.scale = 2f;
+            Projectile.extraUpdates = 1;
+        }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.immune[this.Projectile.owner] = 7;
-    }
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.immune[Projectile.owner] = 7;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      if (this.Projectile.owner != Main.myPlayer)
-        return;
-      Vector2 vector2 = Vector2.op_Multiply(5f, Utils.RotatedByRandom(Vector2.UnitX, 2.0 * Math.PI));
-      for (int index = 0; index < 4; ++index)
-        Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Utils.RotatedBy(vector2, Math.PI / 2.0 * (double) index, new Vector2()), 22, this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
+        public override void OnKill(int timeLeft)
+        {
+            if (Projectile.owner == Main.myPlayer)
+            {
+                Vector2 speed = 5f * Vector2.UnitX.RotatedByRandom(2 * Math.PI);
+                for (int i = 0; i < 4; i++)
+                {
+                    Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, speed.RotatedBy(2 * Math.PI / 4 * i), ProjectileID.WaterStream, Projectile.damage, Projectile.knockBack, Projectile.owner);
+                }
+            }
+        }
     }
-  }
 }

@@ -1,68 +1,84 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.LumpOfFlesh
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
-using FargowiltasSouls.Content.Buffs.Minions;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Items.Materials;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  [AutoloadEquip]
-  public class LumpOfFlesh : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    [AutoloadEquip(EquipType.Shield)]
+    public class LumpOfFlesh : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 7;
-      this.Item.value = Item.sellPrice(0, 7, 0, 0);
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[80] = true;
-      player.buffImmune[163] = true;
-      player.buffImmune[160] = true;
-      ref StatModifier local = ref player.GetDamage(DamageClass.Generic);
-      local = StatModifier.op_Addition(local, 0.15f);
-      player.aggro -= 400;
-      player.FargoSouls().SkullCharm = true;
-      player.FargoSouls().LumpOfFlesh = true;
-      player.AddEffect<PungentEyeballCursor>(this.Item);
-      player.FargoSouls().PungentEyeball = true;
-      if (player.AddEffect<PungentMinion>(this.Item))
-      {
-        player.buffImmune[ModContent.BuffType<CrystalSkullBuff>()] = true;
-        player.AddBuff(ModContent.BuffType<PungentEyeballBuff>(), 5, true, false);
-      }
-      player.buffImmune[ModContent.BuffType<AnticoagulationBuff>()] = true;
-      player.noKnockback = true;
-      player.AddEffect<DreadShellEffect>(this.Item);
-      player.buffImmune[32] = true;
-      player.buffImmune[47] = true;
-      player.AddEffect<DeerclawpsDive>(this.Item);
-      player.AddEffect<DeerclawpsEffect>(this.Item);
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Lime;
+            Item.value = Item.sellPrice(0, 7);
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.ItemType<PungentEyeball>(), 1).AddIngredient(ModContent.ItemType<SkullCharm>(), 1).AddIngredient(ModContent.ItemType<DreadShell>(), 1).AddIngredient(ModContent.ItemType<Deerclawps>(), 1).AddIngredient(3261, 10).AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 10).AddTile(134).Register();
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[BuffID.Blackout] = true;
+            player.buffImmune[BuffID.Obstructed] = true;
+            player.buffImmune[BuffID.Dazed] = true;
+            player.GetDamage(DamageClass.Generic) += 0.15f;
+            player.aggro -= 400;
+            player.FargoSouls().SkullCharm = true;
+            player.FargoSouls().LumpOfFlesh = true;
+            /*if (!player.ZoneDungeon)
+            {
+                player.npcTypeNoAggro[NPCID.SkeletonSniper] = true;
+                player.npcTypeNoAggro[NPCID.SkeletonCommando] = true;
+                player.npcTypeNoAggro[NPCID.TacticalSkeleton] = true;
+                player.npcTypeNoAggro[NPCID.DiabolistRed] = true;
+                player.npcTypeNoAggro[NPCID.DiabolistWhite] = true;
+                player.npcTypeNoAggro[NPCID.Necromancer] = true;
+                player.npcTypeNoAggro[NPCID.NecromancerArmored] = true;
+                player.npcTypeNoAggro[NPCID.RaggedCaster] = true;
+                player.npcTypeNoAggro[NPCID.RaggedCasterOpenCoat] = true;
+            }*/
+            player.AddEffect<PungentEyeballCursor>(Item);
+            player.FargoSouls().PungentEyeball = true;
+            if (player.AddEffect<PungentMinion>(Item))
+            {
+                player.buffImmune[ModContent.BuffType<Buffs.Minions.CrystalSkullBuff>()] = true;
+                player.AddBuff(ModContent.BuffType<Buffs.Minions.PungentEyeballBuff>(), 5);
+            }
+
+            player.buffImmune[ModContent.BuffType<AnticoagulationBuff>()] = true;
+            player.noKnockback = true;
+            player.AddEffect<DreadShellEffect>(Item);
+
+            player.buffImmune[BuffID.Slow] = true;
+            player.buffImmune[BuffID.Frozen] = true;
+            player.AddEffect<DeerclawpsDive>(Item);
+            player.AddEffect<DeerclawpsEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ModContent.ItemType<PungentEyeball>())
+            .AddIngredient(ModContent.ItemType<SkullCharm>())
+            .AddIngredient(ModContent.ItemType<DreadShell>())
+            .AddIngredient(ModContent.ItemType<Deerclawps>())
+            .AddIngredient(ItemID.SpectreBar, 10)
+            .AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 10)
+
+            .AddTile(TileID.MythrilAnvil)
+
+            .Register();
+        }
     }
-  }
 }

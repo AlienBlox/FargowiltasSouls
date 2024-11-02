@@ -1,117 +1,121 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.BetsyFury
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class BetsyFury : ModProjectile
-  {
-    private Vector2 spawn;
-
-    public virtual string Texture => "Terraria/Images/Projectile_709";
-
-    public virtual void SetStaticDefaults()
+    public class BetsyFury : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = Main.projFrames[709];
-    }
+        public override string Texture => "Terraria/Images/Projectile_709";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 30;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.timeLeft = 300;
-      this.Projectile.hostile = true;
-      this.Projectile.scale = 1.2f;
-      this.Projectile.penetrate = -1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 1;
-    }
+        Vector2 spawn;
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        SoundEngine.PlaySound(ref SoundID.DD2_SkyDragonsFuryShot, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        this.spawn = ((Entity) this.Projectile).Center;
-      }
-      if ((double) ((Entity) this.Projectile).Distance(this.spawn) > 1200.0)
-        this.Projectile.Kill();
-      if ((double) ++this.Projectile.localAI[0] < 120.0)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 1.03f);
-      }
-      this.Projectile.alpha -= 30;
-      if (this.Projectile.alpha < 0)
-        this.Projectile.alpha = 0;
-      if (++this.Projectile.frameCounter >= 3)
-      {
-        this.Projectile.frameCounter = 0;
-        if (++this.Projectile.frame >= 3)
-          this.Projectile.frame = 0;
-      }
-      Lighting.AddLight((int) ((Entity) this.Projectile).Center.X / 16, (int) ((Entity) this.Projectile).Center.Y / 16, 0.4f, 0.85f, 0.9f);
-      this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Sky Dragon's Fury");
+            Main.projFrames[Projectile.type] = Main.projFrames[ProjectileID.MonkStaffT3_AltShot];
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(195, 300, true, false);
-      target.AddBuff(196, 300, true, false);
-      target.AddBuff(144, 300, true, false);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 30;
+            Projectile.height = 30;
+            Projectile.aiStyle = -1;
+            Projectile.alpha = 255;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.timeLeft = 300;
+            Projectile.hostile = true;
+            Projectile.scale = 1.2f;
+            Projectile.penetrate = -1;
+            Projectile.FargoSouls().DeletionImmuneRank = 1;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      int num1 = 3;
-      int num2 = 10;
-      for (int index1 = 0; index1 < num1; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 100, new Color(), 1.5f);
-        Main.dust[index2].position = Vector2.op_Addition(Vector2.op_Multiply(Utils.RotatedBy(new Vector2((float) (((Entity) this.Projectile).width / 2), 0.0f), 6.28318548202515 * Main.rand.NextDouble(), new Vector2()), (float) Main.rand.NextDouble()), ((Entity) this.Projectile).Center);
-      }
-      for (int index3 = 0; index3 < num2; ++index3)
-      {
-        int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 226, 0.0f, 0.0f, 0, new Color(), 1.5f);
-        Main.dust[index4].position = Vector2.op_Addition(Vector2.op_Multiply(Utils.RotatedBy(new Vector2((float) (((Entity) this.Projectile).width / 2), 0.0f), 6.28318548202515 * Main.rand.NextDouble(), new Vector2()), (float) Main.rand.NextDouble()), ((Entity) this.Projectile).Center);
-        Main.dust[index4].noGravity = true;
-      }
-      if (FargoSoulsUtil.HostCheck)
-        Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, ((Entity) this.Projectile).velocity, ModContent.ProjectileType<BetsyElectrosphere>(), this.Projectile.damage, 0.0f, Main.myPlayer, this.spawn.X, this.spawn.Y, 0.0f);
-      SoundEngine.PlaySound(ref SoundID.DD2_SkyDragonsFuryCircle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-    }
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0)
+            {
+                SoundEngine.PlaySound(SoundID.DD2_SkyDragonsFuryShot, Projectile.Center);
+                spawn = Projectile.Center;
+            }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
+            if (Projectile.Distance(spawn) > 1200)
+                Projectile.Kill();
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      this.Projectile.GetAlpha(lightColor);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+            if (++Projectile.localAI[0] < 120)
+                Projectile.velocity *= 1.03f;
+
+            Projectile.alpha = Projectile.alpha - 30;
+            if (Projectile.alpha < 0)
+                Projectile.alpha = 0;
+
+            if (++Projectile.frameCounter >= 3)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame >= 3)
+                    Projectile.frame = 0;
+            }
+            Lighting.AddLight((int)Projectile.Center.X / 16, (int)Projectile.Center.Y / 16, 0.4f, 0.85f, 0.9f);
+
+            Projectile.rotation = Projectile.velocity.ToRotation();
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            //target.AddBuff(BuffID.OnFire, 600);
+            //target.AddBuff(BuffID.Ichor, 600);
+            target.AddBuff(BuffID.WitheredArmor, 300);
+            target.AddBuff(BuffID.WitheredWeapon, 300);
+            target.AddBuff(BuffID.Electrified, 300);
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            int num1 = 3;
+            int num2 = 10;
+
+            for (int index1 = 0; index1 < num1; ++index1)
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0.0f, 0.0f, 100, default, 1.5f);
+                Main.dust[index2].position = new Vector2(Projectile.width / 2, 0.0f).RotatedBy(6.28318548202515 * Main.rand.NextDouble()) * (float)Main.rand.NextDouble() + Projectile.Center;
+            }
+            for (int index1 = 0; index1 < num2; ++index1)
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Electric, 0.0f, 0.0f, 0, default, 1.5f);
+                Main.dust[index2].position = new Vector2(Projectile.width / 2, 0.0f).RotatedBy(6.28318548202515 * Main.rand.NextDouble()) * (float)Main.rand.NextDouble() + Projectile.Center;
+                Main.dust[index2].noGravity = true;
+            }
+
+            if (FargoSoulsUtil.HostCheck)
+            {
+                Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Projectile.velocity, ModContent.ProjectileType<BetsyElectrosphere>(),
+                    Projectile.damage, 0f, Main.myPlayer, spawn.X, spawn.Y);
+            }
+
+            SoundEngine.PlaySound(SoundID.DD2_SkyDragonsFuryCircle, Projectile.Center);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

@@ -1,27 +1,24 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.BloodDrinkerBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class BloodDrinkerBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class BloodDrinkerBuff : ModBuff
     {
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Blood Drinker");
+            // Description.SetDefault("30% increased damage");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      ref StatModifier local = ref player.GetDamage(DamageClass.Generic);
-      local = StatModifier.op_Addition(local, 0.3f);
-    }
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.GetDamage(DamageClass.Generic) += 0.30f;
+        }
 
-    public virtual void Update(NPC npc, ref int buffIndex) => npc.FargoSouls().BloodDrinker = true;
-  }
+        public override void Update(NPC npc, ref int buffIndex)
+        {
+            npc.FargoSouls().BloodDrinker = true;
+        }
+    }
 }

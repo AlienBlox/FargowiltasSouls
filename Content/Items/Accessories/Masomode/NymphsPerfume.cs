@@ -1,54 +1,64 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.NymphsPerfume
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class NymphsPerfume : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class NymphsPerfume : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 1;
-      this.Item.value = Item.sellPrice(0, 4, 0, 0);
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void UpdateInventory(Player player)
-    {
-      player.FargoSouls().NymphsPerfumeRespawn = true;
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Blue;
+            Item.value = Item.sellPrice(0, 4);
+        }
 
-    public virtual void UpdateVanity(Player player)
-    {
-      player.FargoSouls().NymphsPerfumeRespawn = true;
-    }
+        public override void UpdateInventory(Player player)
+        {
+            FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+            fargoPlayer.NymphsPerfumeRespawn = true;
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[119] = true;
-      player.buffImmune[ModContent.BuffType<LovestruckBuff>()] = true;
-      player.buffImmune[ModContent.BuffType<HexedBuff>()] = true;
-      player.buffImmune[120] = true;
-      player.FargoSouls().NymphsPerfumeRespawn = true;
-      player.AddEffect<NymphPerfumeEffect>(this.Item);
+        public override void UpdateVanity(Player player)
+        {
+            FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+            fargoPlayer.NymphsPerfumeRespawn = true;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[BuffID.Lovestruck] = true;
+            player.buffImmune[ModContent.BuffType<LovestruckBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<HexedBuff>()] = true;
+            player.buffImmune[BuffID.Stinky] = true;
+            FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+            fargoPlayer.NymphsPerfumeRespawn = true;
+            player.AddEffect<NymphPerfumeEffect>(Item);
+        }
     }
-  }
+    public class NymphPerfumeEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<BionomicHeader>();
+        public override int ToggleItemType => ModContent.ItemType<NymphsPerfume>();
+        public override bool ExtraAttackEffect => true;
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            modPlayer.NymphsPerfume = true;
+            if (modPlayer.NymphsPerfumeCD > 0)
+                modPlayer.NymphsPerfumeCD -= modPlayer.MasochistSoul ? 10 : 1;
+        }
+    }
 }

@@ -1,81 +1,166 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Night.DemonEyes
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Content.Projectiles.Masomode;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
 using System;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Night
 {
-  public class DemonEyes : EModeNPCBehaviour
-  {
-    public int AttackTimer;
-
-    public override NPCMatcher CreateMatcher()
+    public class DemonEyes : EModeNPCBehaviour
     {
-      return new NPCMatcher().MatchTypeRange(2, -43, 317, 318, 190, -38, 191, -39, 192, -40, 193, -41, 194, -42);
+        public override NPCMatcher CreateMatcher() =>
+            new NPCMatcher().MatchTypeRange(
+                NPCID.DemonEye,
+                NPCID.DemonEye2,
+                NPCID.DemonEyeOwl,
+                NPCID.DemonEyeSpaceship,
+                NPCID.CataractEye,
+                NPCID.CataractEye2,
+                NPCID.SleepyEye,
+                NPCID.SleepyEye2,
+                NPCID.DialatedEye,
+                NPCID.DialatedEye2,
+                NPCID.GreenEye,
+                NPCID.GreenEye2,
+                NPCID.PurpleEye,
+                NPCID.PurpleEye2
+            );
+
+        public int AttackTimer;
+
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(AttackTimer);
+        }
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+        {
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            AttackTimer = binaryReader.Read7BitEncodedInt();
+        }
+
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
+
+            if (Main.hardMode && Main.rand.NextBool(4))
+                npc.Transform(NPCID.WanderingEye);
+        }
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+            AttackTimer++;
+            if (AttackTimer == 360) //warning dust
+            {
+                FargoSoulsUtil.DustRing(npc.Center, 32, DustID.Torch, 5f, scale: 1.5f);
+                npc.netUpdate = true;
+                NetSync(npc);
+            }
+            else if (AttackTimer >= 420)
+            {
+                npc.TargetClosest();
+
+                Vector2 velocity = Vector2.Normalize(Main.player[npc.target].Center - npc.Center) * 10;
+                npc.velocity = velocity;
+
+                AttackTimer = Main.rand.Next(-300, 0);
+                npc.netUpdate = true;
+                NetSync(npc);
+            }
+
+            if (Math.Abs(npc.velocity.Y) > 5 || Math.Abs(npc.velocity.X) > 5)
+            {
+                int dustId = Dust.NewDust(new Vector2(npc.position.X, npc.position.Y + 2f), npc.width, npc.height + 5, DustID.Stone, npc.velocity.X * 0.2f,
+                    npc.velocity.Y * 0.2f, 100, default, 1f);
+                Main.dust[dustId].noGravity = true;
+                int dustId3 = Dust.NewDust(new Vector2(npc.position.X, npc.position.Y + 2f), npc.width, npc.height + 5, DustID.Stone, npc.velocity.X * 0.2f,
+                    npc.velocity.Y * 0.2f, 100, default, 1f);
+                Main.dust[dustId3].noGravity = true;
+            }
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            //target.AddBuff(BuffID.Obstructed, 15);
+            target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 300);
+        }
     }
 
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    public class WanderingEye : DemonEyes
     {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.AttackTimer);
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.WanderingEye);
+
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
+
+            npc.lifeMax *= 2;
+        }
+
+        public override void OnFirstTick(NPC npc) { }
+
+        public override void AI(NPC npc)
+        {
+            if (npc.life < npc.lifeMax / 2)
+            {
+                npc.knockBackResist = 0f;
+                if (++AttackTimer > 20)
+                {
+                    AttackTimer = 0;
+                    if (FargoSoulsUtil.HostCheck)
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Normalize(npc.velocity), ModContent.ProjectileType<BloodScythe>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer, ai2: 1);
+                }
+            }
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 120);
+        }
     }
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+    public class ServantofCthulhu : DemonEyes
     {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.AttackTimer = binaryReader.Read7BitEncodedInt();
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.ServantofCthulhu);
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      if (!Main.hardMode || !Utils.NextBool(Main.rand, 4))
-        return;
-      npc.Transform(133);
-    }
+        public override void OnFirstTick(NPC npc) { }
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      ++this.AttackTimer;
-      if (this.AttackTimer == 360)
-      {
-        FargoSoulsUtil.DustRing(((Entity) npc).Center, 32, 6, 5f, new Color(), 1.5f);
-        npc.netUpdate = true;
-        EModeNPCBehaviour.NetSync(npc);
-      }
-      else if (this.AttackTimer >= 420)
-      {
-        npc.TargetClosest(true);
-        Vector2 vector2 = Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(((Entity) Main.player[npc.target]).Center, ((Entity) npc).Center)), 10f);
-        ((Entity) npc).velocity = vector2;
-        this.AttackTimer = Main.rand.Next(-300, 0);
-        npc.netUpdate = true;
-        EModeNPCBehaviour.NetSync(npc);
-      }
-      if ((double) Math.Abs(((Entity) npc).velocity.Y) <= 5.0 && (double) Math.Abs(((Entity) npc).velocity.X) <= 5.0)
-        return;
-      int index1 = Dust.NewDust(new Vector2(((Entity) npc).position.X, ((Entity) npc).position.Y + 2f), ((Entity) npc).width, ((Entity) npc).height + 5, 1, ((Entity) npc).velocity.X * 0.2f, ((Entity) npc).velocity.Y * 0.2f, 100, new Color(), 1f);
-      Main.dust[index1].noGravity = true;
-      int index2 = Dust.NewDust(new Vector2(((Entity) npc).position.X, ((Entity) npc).position.Y + 2f), ((Entity) npc).width, ((Entity) npc).height + 5, 1, ((Entity) npc).velocity.X * 0.2f, ((Entity) npc).velocity.Y * 0.2f, 100, new Color(), 1f);
-      Main.dust[index2].noGravity = true;
-    }
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 300, true, false);
+            npc.lifeMax *= 2;
+        }
+
+        public override void AI(NPC npc)
+        {
+            npc.position += npc.velocity;
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 120);
+        }
+
+        public override void LoadSprites(NPC npc, bool recolor)
+        {
+            base.LoadSprites(npc, recolor);
+
+            LoadNPCSprite(recolor, npc.type);
+        }
     }
-  }
 }

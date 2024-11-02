@@ -1,133 +1,137 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.DeviBoss.DeviSparklingLoveSmall
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.DeviBoss
 {
-  public class DeviSparklingLoveSmall : ModProjectile
-  {
-    private const int maxTime = 60;
-
-    public virtual string Texture
+    public class DeviSparklingLoveSmall : ModProjectile
     {
-      get => "FargowiltasSouls/Content/Items/Weapons/FinalUpgrades/SparklingLove";
-    }
+        public override string Texture => "FargowiltasSouls/Content/Items/Weapons/FinalUpgrades/SparklingLove";
 
-    public virtual void SetStaticDefaults()
-    {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 80;
-      ((Entity) this.Projectile).height = 80;
-      this.Projectile.scale = 1.5f;
-      this.Projectile.hostile = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.timeLeft = 60;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.penetrate = -1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.hide = true;
-    }
-
-    public virtual void AI()
-    {
-      this.Projectile.hide = false;
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0], ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>());
-      if (npc != null)
-      {
-        if ((double) this.Projectile.localAI[0] == 0.0)
-          this.Projectile.localAI[1] = this.Projectile.ai[1] / 60f;
-        ((Entity) this.Projectile).velocity = Utils.RotatedBy(((Entity) this.Projectile).velocity, (double) this.Projectile.ai[1], new Vector2());
-        this.Projectile.ai[1] -= this.Projectile.localAI[1];
-        ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply(Utils.RotatedBy(new Vector2(50f, 50f), (double) Utils.ToRotation(((Entity) this.Projectile).velocity) - 0.78539818525314331, new Vector2()), this.Projectile.scale));
-        if ((double) this.Projectile.localAI[0] == 0.0)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.localAI[0] = 1f;
-          Vector2 vector2 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Division(Vector2.op_Multiply(((Entity) this.Projectile).velocity, 141f), 2f), this.Projectile.scale));
-          for (int index1 = 0; index1 < 40; ++index1)
-          {
-            int index2 = Dust.NewDust(Vector2.op_Addition(vector2, Vector2.op_Multiply(Vector2.op_Multiply(((Entity) this.Projectile).velocity, Utils.NextFloat(Main.rand, 141f)), this.Projectile.scale)), 0, 0, 86, 0.0f, 0.0f, 0, new Color(), 3f);
-            Dust dust = Main.dust[index2];
-            dust.velocity = Vector2.op_Multiply(dust.velocity, 4.5f);
-            Main.dust[index2].noGravity = true;
-          }
-          SoundEngine.PlaySound(ref SoundID.Item1, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
+            // DisplayName.SetDefault("Sparkling Love");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-        ((Entity) this.Projectile).direction = this.Projectile.spriteDirection = Math.Sign(this.Projectile.ai[1]);
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + MathHelper.ToRadians(((Entity) this.Projectile).direction < 0 ? 135f : 45f);
-      }
-      else
-        this.Projectile.Kill();
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      Vector2 vector2 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Division(Vector2.op_Multiply(((Entity) this.Projectile).velocity, 141f), 2f), this.Projectile.scale));
-      for (int index1 = 0; index1 < 40; ++index1)
-      {
-        int index2 = Dust.NewDust(Vector2.op_Addition(vector2, Vector2.op_Multiply(Vector2.op_Multiply(((Entity) this.Projectile).velocity, Utils.NextFloat(Main.rand, 141f)), this.Projectile.scale)), 0, 0, 86, 0.0f, 0.0f, 0, new Color(), 3f);
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 4.5f);
-        Main.dust[index2].noGravity = true;
-      }
-    }
+        const int maxTime = 60;
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 240, true, false);
-      target.AddBuff(ModContent.BuffType<MutantNibbleBuff>(), 240, true, false);
-      target.AddBuff(ModContent.BuffType<GuiltyBuff>(), 240, true, false);
-      target.AddBuff(ModContent.BuffType<LovestruckBuff>(), 240, true, false);
-      target.AddBuff(ModContent.BuffType<RottingBuff>(), 240, true, false);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 80;
+            Projectile.height = 80;
+            Projectile.scale = 1.5f;
+            Projectile.hostile = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = maxTime;
+            //Projectile.alpha = 250;
+            Projectile.aiStyle = -1;
+            Projectile.penetrate = -1;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      Color color = Color.op_Multiply(lightColor, this.Projectile.Opacity);
-      ((Color) ref color).A = (byte) Math.Min((double) byte.MaxValue, (double) byte.MaxValue * Math.Sin(Math.PI * (double) (60 - this.Projectile.timeLeft) / 60.0) * 1.0);
-      return new Color?(color);
-    }
+            Projectile.hide = true;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(alpha, 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      Main.EntitySpriteDraw(ModContent.Request<Texture2D>("FargowiltasSouls/Content/Items/Weapons/FinalUpgrades/SparklingLove_glow", (AssetRequestMode) 1).Value, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.op_Multiply(Color.White, this.Projectile.Opacity), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override void AI()
+        {
+            Projectile.hide = false; //to avoid edge case tick 1 wackiness
+
+            //the important part
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[0], ModContent.NPCType<DeviBoss>());
+            if (npc != null)
+            {
+                if (Projectile.localAI[0] == 0)
+                    Projectile.localAI[1] = Projectile.ai[1] / maxTime; //do this first
+
+                Projectile.velocity = Projectile.velocity.RotatedBy(Projectile.ai[1]);
+                Projectile.ai[1] -= Projectile.localAI[1];
+                Projectile.Center = npc.Center + new Vector2(50, 50).RotatedBy(Projectile.velocity.ToRotation() - MathHelper.PiOver4) * Projectile.scale;
+            }
+            else
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = 1;
+                Vector2 basePos = Projectile.Center - Projectile.velocity * 141 / 2 * Projectile.scale;
+                for (int i = 0; i < 40; i++)
+                {
+                    int d = Dust.NewDust(basePos + Projectile.velocity * Main.rand.NextFloat(141) * Projectile.scale, 0, 0, DustID.GemAmethyst, Scale: 3f);
+                    Main.dust[d].velocity *= 4.5f;
+                    Main.dust[d].noGravity = true;
+                }
+                SoundEngine.PlaySound(FargosSoundRegistry.DeviSwing, Projectile.Center);
+            }
+
+            Projectile.direction = Projectile.spriteDirection = Math.Sign(Projectile.ai[1]);
+            Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.ToRadians(Projectile.direction < 0 ? 135 : 45);
+            //Main.NewText(MathHelper.ToDegrees(Projectile.velocity.ToRotation()) + " " + MathHelper.ToDegrees(Projectile.ai[1]));
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            Vector2 basePos = Projectile.Center - Projectile.velocity * 141 / 2 * Projectile.scale;
+            for (int i = 0; i < 40; i++)
+            {
+                int d = Dust.NewDust(basePos + Projectile.velocity * Main.rand.NextFloat(141) * Projectile.scale, 0, 0, DustID.GemAmethyst, Scale: 3f);
+                Main.dust[d].velocity *= 4.5f;
+                Main.dust[d].noGravity = true;
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 240);
+            target.AddBuff(ModContent.BuffType<MutantNibbleBuff>(), 240);
+            target.AddBuff(ModContent.BuffType<GuiltyBuff>(), 240);
+            target.AddBuff(ModContent.BuffType<LovestruckBuff>(), 240);
+            target.AddBuff(ModContent.BuffType<RottingBuff>(), 240);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            Color color = lightColor * Projectile.Opacity;
+            color.A = (byte)Math.Min(255, 255 * Math.Sin(Math.PI * (maxTime - Projectile.timeLeft) / maxTime) * 1f);
+            return color;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color26 * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            Texture2D texture2D14 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Items/Weapons/FinalUpgrades/SparklingLove_glow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            Main.EntitySpriteDraw(texture2D14, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Color.White * Projectile.Opacity, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

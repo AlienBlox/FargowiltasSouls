@@ -1,354 +1,378 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.LunarCultist
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Bosses.VanillaEternity;
 using FargowiltasSouls.Content.Projectiles.Masomode;
 using FargowiltasSouls.Core.Globals;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class LunarCultist : ModProjectile
-  {
-    private Vector2 target;
-
-    public virtual void SetStaticDefaults()
+    public class LunarCultist : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 12;
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 9;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        Vector2 target;
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.netImportant = true;
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 60;
-      this.Projectile.timeLeft *= 5;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.minion = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 10;
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.Projectile.localAI[0]);
-      writer.Write(this.Projectile.localAI[1]);
-      Utils.WriteVector2(writer, this.target);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.Projectile.localAI[0] = reader.ReadSingle();
-      this.Projectile.localAI[1] = reader.ReadSingle();
-      this.target = Utils.ReadVector2(reader);
-    }
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      if (((Entity) player).active && !player.dead && player.FargoSouls().LunarCultist)
-        this.Projectile.timeLeft = 2;
-      if ((double) this.Projectile.ai[0] >= 0.0 && (double) this.Projectile.ai[0] < (double) Main.maxNPCs)
-      {
-        NPC minionAttackTargetNpc = this.Projectile.OwnerMinionAttackTargetNPC;
-        if (minionAttackTargetNpc != null && (double) this.Projectile.ai[0] != (double) ((Entity) minionAttackTargetNpc).whoAmI && minionAttackTargetNpc.CanBeChasedBy((object) null, false))
-          this.Projectile.ai[0] = (float) ((Entity) minionAttackTargetNpc).whoAmI;
-        ++this.Projectile.localAI[0];
-        NPC npc1 = Main.npc[(int) this.Projectile.ai[0]];
-        if (npc1.CanBeChasedBy((object) null, false))
+        public override void SetStaticDefaults()
         {
-          if ((double) this.Projectile.ai[1] % 2.0 != 0.0)
-          {
-            NPC npc2 = FargoSoulsUtil.NPCExists(EModeGlobalNPC.moonBoss, new int[1]
+            // DisplayName.SetDefault("Lunar Cultist");
+            Main.projFrames[Projectile.type] = 12;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 9;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+            //ProjectileID.Sets.MinionTargettingFeature[Projectile.type] = true;
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.netImportant = true;
+            Projectile.width = 30;
+            Projectile.height = 60;
+            Projectile.timeLeft *= 5;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.minion = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 10;
+        }
+
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(Projectile.localAI[0]);
+            writer.Write(Projectile.localAI[1]);
+            writer.WriteVector2(target);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            Projectile.localAI[0] = reader.ReadSingle();
+            Projectile.localAI[1] = reader.ReadSingle();
+            target = reader.ReadVector2();
+        }
+
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            if (player.active && !player.dead && player.FargoSouls().LunarCultist)
+                Projectile.timeLeft = 2;
+
+            if (Projectile.ai[0] >= 0 && Projectile.ai[0] < Main.maxNPCs) //has target
             {
-              398
-            });
-            if (npc2 != null)
-            {
-              switch (npc2.GetGlobalNPC<MoonLordCore>().VulnerabilityState)
-              {
-                case 0:
-                  this.Projectile.ai[1] = 1f;
-                  break;
-                case 1:
-                  this.Projectile.ai[1] = 3f;
-                  break;
-                case 2:
-                  this.Projectile.ai[1] = 5f;
-                  break;
-                case 3:
-                  this.Projectile.ai[1] = 7f;
-                  break;
-              }
+                NPC minionAttackTargetNpc = Projectile.OwnerMinionAttackTargetNPC;
+                if (minionAttackTargetNpc != null && Projectile.ai[0] != minionAttackTargetNpc.whoAmI && minionAttackTargetNpc.CanBeChasedBy())
+                    Projectile.ai[0] = minionAttackTargetNpc.whoAmI;
+
+                Projectile.localAI[0]++;
+                NPC npc = Main.npc[(int)Projectile.ai[0]];
+                if (npc.CanBeChasedBy())
+                {
+                    if (Projectile.ai[1] % 2 != 0) //when attacking, check for emode ml
+                    {
+                        NPC moonLord = FargoSoulsUtil.NPCExists(EModeGlobalNPC.moonBoss, NPCID.MoonLordCore);
+                        if (moonLord != null)
+                        {
+                            switch (moonLord.GetGlobalNPC<MoonLordCore>().VulnerabilityState)
+                            {
+                                case 0: Projectile.ai[1] = 1; break;
+                                case 1: Projectile.ai[1] = 3; break;
+                                case 2: Projectile.ai[1] = 5; break;
+                                case 3: Projectile.ai[1] = 7; break;
+                                default: break;
+                            }
+                        }
+                    }
+
+                    Projectile.localAI[1] = Projectile.ai[1] + 1;
+                    switch ((int)Projectile.ai[1])
+                    {
+                        case 0: //chase
+                            Projectile.localAI[0] = 0f;
+                            Projectile.velocity = target - Projectile.Center;
+                            float length = Projectile.velocity.Length();
+                            if (length > 1000f) //too far, lose target
+                            {
+                                Projectile.ai[0] = -1f;
+                                Projectile.ai[1] = 1f;
+                                Projectile.netUpdate = true;
+                            }
+                            else if (length > 24f)
+                            {
+                                Projectile.velocity.Normalize();
+                                Projectile.velocity *= 24f;
+                            }
+                            else
+                            {
+                                Projectile.ai[1]++;
+                            }
+                            break;
+
+                        case 1: //shoot fireballs
+                            Projectile.velocity = Vector2.Zero;
+                            if (Projectile.localAI[0] <= 30 && Projectile.localAI[0] % 10 == 0)
+                            {
+                                SoundEngine.PlaySound(SoundID.Item34, Projectile.position);
+                                Vector2 spawn = Projectile.Center;
+                                spawn.X -= 30 * Projectile.spriteDirection;
+                                spawn.Y += 12f;
+                                Vector2 vel = (npc.Center - spawn).RotatedByRandom(Math.PI / 6);
+                                vel.Normalize();
+                                vel *= Main.rand.NextFloat(6f, 10f);
+                                if (Projectile.owner == Main.myPlayer)
+                                {
+                                    int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), spawn, vel, ModContent.ProjectileType<LunarCultistFireball>(), Projectile.damage, 9f, Projectile.owner, 0f, Projectile.ai[0]);
+                                    if (p != Main.maxProjectiles)
+                                        Main.projectile[p].CritChance = (int)player.ActualClassCrit(DamageClass.Melee);
+                                }
+                            }
+                            if (Projectile.localAI[0] > 60f)
+                            {
+                                Projectile.ai[1]++;
+                                target = npc.Center;
+                                target.Y -= npc.height + 100;
+                            }
+                            break;
+
+                        case 2: goto case 0;
+                        case 3: //lightning orb
+                            Projectile.velocity = Vector2.Zero;
+                            if (Projectile.localAI[0] == 15f)
+                            {
+                                SoundEngine.PlaySound(SoundID.Item121, Projectile.position);
+                                Vector2 spawn = Projectile.Center;
+                                spawn.Y -= 100;
+                                if (Projectile.owner == Main.myPlayer)
+                                {
+                                    int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), spawn, Vector2.Zero, ModContent.ProjectileType<LunarCultistLightningOrb>(), Projectile.damage, 8f, Projectile.owner, Projectile.whoAmI);
+                                    if (p != Main.maxProjectiles)
+                                        Main.projectile[p].CritChance = (int)player.ActualClassCrit(DamageClass.Ranged);
+                                }
+                            }
+                            if (Projectile.localAI[0] > 90f)
+                            {
+                                Projectile.ai[1]++;
+                                target = npc.Center;
+                                target.Y -= npc.height + 100;
+                            }
+                            break;
+
+                        case 4: goto case 0;
+                        case 5: //ice mist
+                            Projectile.velocity = Vector2.Zero;
+                            if (Projectile.localAI[0] == 20f)
+                            {
+                                Vector2 spawn = Projectile.Center;
+                                spawn.X -= 30 * Projectile.spriteDirection;
+                                spawn.Y += 12f;
+                                Vector2 vel = npc.Center - spawn;
+                                vel.Normalize();
+                                vel *= 4.25f;
+                                if (Projectile.owner == Main.myPlayer)
+                                {
+                                    int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), spawn, vel, ModContent.ProjectileType<LunarCultistIceMist>(), Projectile.damage, Projectile.knockBack * 2f, Projectile.owner);
+                                    if (p != Main.maxProjectiles)
+                                        Main.projectile[p].CritChance = (int)player.ActualClassCrit(DamageClass.Magic);
+                                }
+                            }
+                            if (Projectile.localAI[0] > 60f)
+                            {
+                                Projectile.ai[1]++;
+                                target = npc.Center;
+                                target.Y -= npc.height + 100;
+                            }
+                            break;
+
+                        case 6: goto case 0;
+                        case 7: //ancient visions
+                            Projectile.velocity = Vector2.Zero;
+                            if (Projectile.localAI[0] == 30f)
+                            {
+                                Vector2 spawn = Projectile.Center;
+                                spawn.Y -= Projectile.height;
+                                if (Projectile.owner == Main.myPlayer)
+                                    Projectile.NewProjectile(Projectile.GetSource_FromThis(), spawn, Vector2.UnitX * -Projectile.spriteDirection * 12f, ModContent.ProjectileType<AncientVisionLunarCultist>(), Projectile.damage, Projectile.knockBack * 3f, Projectile.owner);
+                            }
+                            if (Projectile.localAI[0] > 90f)
+                            {
+                                Projectile.ai[1]++;
+                                target = npc.Center;
+                                target.Y -= npc.height + 100;
+                            }
+                            break;
+
+                        /*case 8: goto case 0;
+                        case 9: //ancient light
+                            Projectile.velocity = Vector2.Zero;
+                            if (Projectile.localAI[0] == 30f)
+                            {
+                                Vector2 spawn = Projectile.Center;
+                                spawn.X -= 30 * Projectile.spriteDirection;
+                                spawn.Y += 12f;
+                                Vector2 vel = npc.Center - spawn;
+                                vel.Normalize();
+                                vel *= 9f;
+                                for (int i = -2; i <= 2; i++)
+                                {
+                                    if (Projectile.owner == Main.myPlayer)
+                                        Projectile.NewProjectile(Projectile.GetSource_FromThis(), spawn, vel.RotatedBy(Math.PI / 7 * i), ModContent.ProjectileType<LunarCultistLight>(), Projectile.damage, Projectile.knockBack, Projectile.owner, 0f, (Main.rand.NextFloat() - 0.5f) * 0.3f * 6.28318548202515f / 60f);
+                                }
+                            }
+                            if (Projectile.localAI[0] > 60f)
+                            {
+                                Projectile.ai[1]++;
+                                target = npc.Center;
+                                target.Y -= npc.height + 100;
+                            }
+                            break;*/
+
+                        default:
+                            Projectile.ai[1] = 0f;
+                            goto case 0;
+                    }
+
+                    if (Projectile.velocity.X == 0)
+                    {
+                        float distance = npc.Center.X - Projectile.Center.X;
+                        if (distance != 0)
+                            Projectile.spriteDirection = distance < 0 ? 1 : -1;
+                    }
+                    else
+                    {
+                        Projectile.spriteDirection = Projectile.velocity.X < 0 ? 1 : -1;
+                    }
+                }
+                else //forget target
+                {
+                    TargetEnemies();
+                }
             }
-          }
-          this.Projectile.localAI[1] = this.Projectile.ai[1] + 1f;
-          switch ((int) this.Projectile.ai[1])
-          {
-            case 0:
-            case 2:
-            case 4:
-            case 6:
-              this.Projectile.localAI[0] = 0.0f;
-              ((Entity) this.Projectile).velocity = Vector2.op_Subtraction(this.target, ((Entity) this.Projectile).Center);
-              float num1 = ((Vector2) ref ((Entity) this.Projectile).velocity).Length();
-              if ((double) num1 > 1000.0)
-              {
-                this.Projectile.ai[0] = -1f;
-                this.Projectile.ai[1] = 1f;
-                this.Projectile.netUpdate = true;
-                break;
-              }
-              if ((double) num1 > 24.0)
-              {
-                ((Vector2) ref ((Entity) this.Projectile).velocity).Normalize();
-                Projectile projectile = this.Projectile;
-                ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 24f);
-                break;
-              }
-              ++this.Projectile.ai[1];
-              break;
-            case 1:
-              ((Entity) this.Projectile).velocity = Vector2.Zero;
-              if ((double) this.Projectile.localAI[0] <= 30.0 && (double) this.Projectile.localAI[0] % 10.0 == 0.0)
-              {
-                SoundEngine.PlaySound(ref SoundID.Item34, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-                Vector2 center = ((Entity) this.Projectile).Center;
-                center.X -= (float) (30 * this.Projectile.spriteDirection);
-                center.Y += 12f;
-                Vector2 vector2 = Utils.RotatedByRandom(Vector2.op_Subtraction(((Entity) npc1).Center, center), Math.PI / 6.0);
-                ((Vector2) ref vector2).Normalize();
-                vector2 = Vector2.op_Multiply(vector2, Utils.NextFloat(Main.rand, 6f, 10f));
-                if (this.Projectile.owner == Main.myPlayer)
+            else //no target
+            {
+                if (Projectile.ai[1] == 0f) //follow player
                 {
-                  int index = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), center, vector2, ModContent.ProjectileType<LunarCultistFireball>(), this.Projectile.damage, 9f, this.Projectile.owner, 0.0f, this.Projectile.ai[0], 0.0f);
-                  if (index != Main.maxProjectiles)
-                    Main.projectile[index].CritChance = (int) player.ActualClassCrit(DamageClass.Melee);
+                    if (target == Vector2.Zero)
+                    {
+                        target = Main.player[Projectile.owner].Center;
+                        target.Y -= 100f;
+                    }
+
+                    Projectile.velocity = target - Projectile.Center;
+                    float length = Projectile.velocity.Length();
+                    if (length > 1500f) //teleport when too far away
+                    {
+                        Projectile.Center = Main.player[Projectile.owner].Center;
+                        Projectile.velocity = Vector2.Zero;
+                        Projectile.ai[1] = 1f;
+                    }
+                    else if (length > 24f)
+                    {
+                        Projectile.velocity.Normalize();
+                        Projectile.velocity *= 24f;
+                    }
+                    else //in close enough range to stop
+                    {
+                        Projectile.ai[1] = 1f;
+                    }
                 }
-              }
-              if ((double) this.Projectile.localAI[0] > 60.0)
-              {
-                ++this.Projectile.ai[1];
-                this.target = ((Entity) npc1).Center;
-                this.target.Y -= (float) (((Entity) npc1).height + 100);
-                break;
-              }
-              break;
-            case 3:
-              ((Entity) this.Projectile).velocity = Vector2.Zero;
-              if ((double) this.Projectile.localAI[0] == 15.0)
-              {
-                SoundEngine.PlaySound(ref SoundID.Item121, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-                Vector2 center = ((Entity) this.Projectile).Center;
-                center.Y -= 100f;
-                if (this.Projectile.owner == Main.myPlayer)
+                else //now above player, wait
                 {
-                  int index = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), center, Vector2.Zero, ModContent.ProjectileType<LunarCultistLightningOrb>(), this.Projectile.damage, 8f, this.Projectile.owner, (float) ((Entity) this.Projectile).whoAmI, 0.0f, 0.0f);
-                  if (index != Main.maxProjectiles)
-                    Main.projectile[index].CritChance = (int) player.ActualClassCrit(DamageClass.Ranged);
+                    Projectile.velocity = Vector2.Zero;
+
+                    Projectile.localAI[0]++;
+                    if (Projectile.localAI[0] > 30)
+                    {
+                        TargetEnemies();
+                        Projectile.localAI[0] = 0f;
+                    }
                 }
-              }
-              if ((double) this.Projectile.localAI[0] > 90.0)
-              {
-                ++this.Projectile.ai[1];
-                this.target = ((Entity) npc1).Center;
-                this.target.Y -= (float) (((Entity) npc1).height + 100);
-                break;
-              }
-              break;
-            case 5:
-              ((Entity) this.Projectile).velocity = Vector2.Zero;
-              if ((double) this.Projectile.localAI[0] == 20.0)
-              {
-                Vector2 center = ((Entity) this.Projectile).Center;
-                center.X -= (float) (30 * this.Projectile.spriteDirection);
-                center.Y += 12f;
-                Vector2 vector2 = Vector2.op_Subtraction(((Entity) npc1).Center, center);
-                ((Vector2) ref vector2).Normalize();
-                vector2 = Vector2.op_Multiply(vector2, 4.25f);
-                if (this.Projectile.owner == Main.myPlayer)
+
+                if (Projectile.velocity.X == 0)
                 {
-                  int index = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), center, vector2, ModContent.ProjectileType<LunarCultistIceMist>(), this.Projectile.damage, this.Projectile.knockBack * 2f, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-                  if (index != Main.maxProjectiles)
-                    Main.projectile[index].CritChance = (int) player.ActualClassCrit(DamageClass.Magic);
+                    float distance = Main.player[Projectile.owner].Center.X - Projectile.Center.X;
+                    if (distance != 0)
+                        Projectile.spriteDirection = distance < 0 ? 1 : -1;
                 }
-              }
-              if ((double) this.Projectile.localAI[0] > 60.0)
-              {
-                ++this.Projectile.ai[1];
-                this.target = ((Entity) npc1).Center;
-                this.target.Y -= (float) (((Entity) npc1).height + 100);
-                break;
-              }
-              break;
-            case 7:
-              ((Entity) this.Projectile).velocity = Vector2.Zero;
-              if ((double) this.Projectile.localAI[0] == 30.0)
-              {
-                Vector2 center = ((Entity) this.Projectile).Center;
-                center.Y -= (float) ((Entity) this.Projectile).height;
-                if (this.Projectile.owner == Main.myPlayer)
-                  Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), center, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, (float) -this.Projectile.spriteDirection), 12f), ModContent.ProjectileType<AncientVisionLunarCultist>(), this.Projectile.damage, this.Projectile.knockBack * 3f, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-              }
-              if ((double) this.Projectile.localAI[0] > 90.0)
-              {
-                ++this.Projectile.ai[1];
-                this.target = ((Entity) npc1).Center;
-                this.target.Y -= (float) (((Entity) npc1).height + 100);
-                break;
-              }
-              break;
-            default:
-              this.Projectile.ai[1] = 0.0f;
-              goto case 0;
-          }
-          if ((double) ((Entity) this.Projectile).velocity.X == 0.0)
-          {
-            float num2 = ((Entity) npc1).Center.X - ((Entity) this.Projectile).Center.X;
-            if ((double) num2 != 0.0)
-              this.Projectile.spriteDirection = (double) num2 < 0.0 ? 1 : -1;
-          }
-          else
-            this.Projectile.spriteDirection = (double) ((Entity) this.Projectile).velocity.X < 0.0 ? 1 : -1;
-        }
-        else
-          this.TargetEnemies();
-      }
-      else
-      {
-        if ((double) this.Projectile.ai[1] == 0.0)
-        {
-          if (Vector2.op_Equality(this.target, Vector2.Zero))
-          {
-            this.target = ((Entity) Main.player[this.Projectile.owner]).Center;
-            this.target.Y -= 100f;
-          }
-          ((Entity) this.Projectile).velocity = Vector2.op_Subtraction(this.target, ((Entity) this.Projectile).Center);
-          float num = ((Vector2) ref ((Entity) this.Projectile).velocity).Length();
-          if ((double) num > 1500.0)
-          {
-            ((Entity) this.Projectile).Center = ((Entity) Main.player[this.Projectile.owner]).Center;
-            ((Entity) this.Projectile).velocity = Vector2.Zero;
-            this.Projectile.ai[1] = 1f;
-          }
-          else if ((double) num > 24.0)
-          {
-            ((Vector2) ref ((Entity) this.Projectile).velocity).Normalize();
-            Projectile projectile = this.Projectile;
-            ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 24f);
-          }
-          else
-            this.Projectile.ai[1] = 1f;
-        }
-        else
-        {
-          ((Entity) this.Projectile).velocity = Vector2.Zero;
-          ++this.Projectile.localAI[0];
-          if ((double) this.Projectile.localAI[0] > 30.0)
-          {
-            this.TargetEnemies();
-            this.Projectile.localAI[0] = 0.0f;
-          }
-        }
-        if ((double) ((Entity) this.Projectile).velocity.X == 0.0)
-        {
-          float num = ((Entity) Main.player[this.Projectile.owner]).Center.X - ((Entity) this.Projectile).Center.X;
-          if ((double) num != 0.0)
-            this.Projectile.spriteDirection = (double) num < 0.0 ? 1 : -1;
-        }
-        else
-          this.Projectile.spriteDirection = (double) ((Entity) this.Projectile).velocity.X < 0.0 ? 1 : -1;
-      }
-      ++this.Projectile.frameCounter;
-      if (this.Projectile.frameCounter <= 6)
-        return;
-      this.Projectile.frameCounter = 0;
-      this.Projectile.frame = (this.Projectile.frame + 1) % 3;
-      if ((double) this.Projectile.ai[0] <= -1.0 || (double) this.Projectile.ai[0] >= 200.0)
-        return;
-      switch (this.Projectile.ai[1])
-      {
-        case 1f:
-          this.Projectile.frame += 6;
-          break;
-        case 3f:
-          this.Projectile.frame += 3;
-          break;
-        case 5f:
-          this.Projectile.frame += 6;
-          break;
-        case 7f:
-          this.Projectile.frame += 3;
-          break;
-        case 9f:
-          this.Projectile.frame += 6;
-          break;
-      }
-    }
+                else
+                {
+                    Projectile.spriteDirection = Projectile.velocity.X < 0 ? 1 : -1;
+                }
+            }
 
-    private void TargetEnemies()
-    {
-      this.Projectile.ai[0] = (float) FargoSoulsUtil.FindClosestHostileNPCPrioritizingMinionFocus(this.Projectile, 1000f, true, ((Entity) Main.player[this.Projectile.owner]).Center);
-      if ((double) this.Projectile.ai[0] != -1.0)
-      {
-        this.target = ((Entity) Main.npc[(int) this.Projectile.ai[0]]).Center;
-        this.target.Y -= (float) (((Entity) Main.npc[(int) this.Projectile.ai[0]]).height + 100);
-        this.Projectile.ai[1] = this.Projectile.localAI[1];
-        if ((double) this.Projectile.ai[1] % 2.0 != 0.0)
-          --this.Projectile.ai[1];
-      }
-      else
-      {
-        this.target = ((Entity) Main.player[this.Projectile.owner]).Center;
-        this.target.Y -= (float) (((Entity) Main.player[this.Projectile.owner]).height + 100);
-        this.Projectile.ai[1] = 0.0f;
-      }
-      this.Projectile.netUpdate = true;
-    }
+            Projectile.frameCounter++;
+            if (Projectile.frameCounter > 6)
+            {
+                Projectile.frameCounter = 0;
+                Projectile.frame = (Projectile.frame + 1) % 3;
+                if (Projectile.ai[0] > -1f && Projectile.ai[0] < 200f)
+                {
+                    switch ((int)Projectile.ai[1])
+                    {
+                        case 1: Projectile.frame += 6; break;
+                        case 3: Projectile.frame += 3; break;
+                        case 5: Projectile.frame += 6; break;
+                        case 7: Projectile.frame += 3; break;
+                        case 9: Projectile.frame += 6; break;
+                        default: break;
+                    }
+                }
+            }
+        }
 
-    public virtual bool? CanCutTiles() => new bool?(false);
+        private void TargetEnemies()
+        {
+            Projectile.ai[0] = FargoSoulsUtil.FindClosestHostileNPCPrioritizingMinionFocus(Projectile, 1000f, true, Main.player[Projectile.owner].Center);
+            if (Projectile.ai[0] != -1)
+            {
+                target = Main.npc[(int)Projectile.ai[0]].Center;
+                target.Y -= Main.npc[(int)Projectile.ai[0]].height + 100;
+                Projectile.ai[1] = Projectile.localAI[1];
+                if (Projectile.ai[1] % 2 != 0)
+                    Projectile.ai[1]--;
+            }
+            else
+            {
+                target = Main.player[Projectile.owner].Center;
+                target.Y -= Main.player[Projectile.owner].height + 100;
+                Projectile.ai[1] = 0f;
+            }
+            Projectile.netUpdate = true;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D1 = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D1.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      Texture2D texture2D2 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/Minions/LunarCultistTrail", (AssetRequestMode) 1).Value;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index += 3)
-      {
-        Color color = Color.op_Multiply(alpha, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1, 0.0f);
-      return false;
+        public override bool? CanCutTiles()
+        {
+            return false;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            Texture2D texture2D14 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/Minions/LunarCultistTrail", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 3)
+            {
+                Color color27 = color26;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D14, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally, 0);
+            return false;
+        }
     }
-  }
 }

@@ -1,27 +1,60 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.WaterEnemies
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Terraria;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies
 {
-  public class WaterEnemies : EModeNPCBehaviour
-  {
-    public override NPCMatcher CreateMatcher()
+    public class WaterEnemies : EModeNPCBehaviour
     {
-      return new NPCMatcher().MatchTypeRange(63, 67, 64, 58, 220, 65, 221, 102, 157, 241, 242, 256, 103, 55, 57, 465, 33, 361, 445, 485, 486, 487, 616, 617, 625, 362, 363, 364, 365, 608, 609, 615, 602, 603);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.BlueJellyfish,
+            NPCID.Crab,
+            NPCID.PinkJellyfish,
+            NPCID.Piranha,
+            NPCID.SeaSnail,
+            NPCID.Shark,
+            NPCID.Squid,
+            NPCID.AnglerFish,
+            NPCID.Arapaima,
+            NPCID.BloodFeeder,
+            NPCID.BloodJelly,
+            NPCID.FungoFish,
+            NPCID.GreenJellyfish,
+            NPCID.Goldfish,
+            NPCID.CorruptGoldfish,
+            NPCID.CrimsonGoldfish,
+            NPCID.WaterSphere,
+            NPCID.Frog,
+            NPCID.GoldFrog,
+            NPCID.Grubby,
+            NPCID.Sluggy,
+            NPCID.Buggy,
+            NPCID.Turtle,
+            NPCID.TurtleJungle,
+            NPCID.SeaTurtle,
+            NPCID.Duck,
+            NPCID.Duck2,
+            NPCID.DuckWhite,
+            NPCID.DuckWhite2,
+            NPCID.Grebe,
+            NPCID.Grebe2,
+            NPCID.Dolphin,
+            NPCID.Seagull,
+            NPCID.Seagull2,
+            NPCID.Penguin,
+            NPCID.PenguinBlack,
+            NPCID.CorruptPenguin,
+            NPCID.CrimsonPenguin,
+            NPCID.CreatureFromTheDeep
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      npc.Eternity().isWaterEnemy = true;
+        );
+
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
+
+            npc.Eternity().isWaterEnemy = true;
+        }
     }
-  }
 }

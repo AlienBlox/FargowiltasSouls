@@ -1,88 +1,82 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.Challengers.DecrepitAirstrikeRemote
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Items.BossBags;
 using FargowiltasSouls.Content.Projectiles;
 using FargowiltasSouls.Content.Projectiles.ChallengerItems;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.Challengers
 {
-  public class DecrepitAirstrikeRemote : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class DecrepitAirstrikeRemote : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 375;
-      this.Item.DamageType = DamageClass.Summon;
-      this.Item.mana = 50;
-      ((Entity) this.Item).width = 82;
-      ((Entity) this.Item).height = 24;
-      this.Item.useTime = 45;
-      this.Item.useAnimation = 45;
-      this.Item.useStyle = 5;
-      this.Item.knockBack = 15f;
-      this.Item.value = Item.sellPrice(0, 5, 0, 0);
-      this.Item.rare = 4;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item66);
-      this.Item.autoReuse = false;
-      this.Item.shoot = ModContent.ProjectileType<DecrepitAirstrike>();
-      this.Item.shootSpeed = 1f;
-      this.Item.noMelee = true;
-    }
-
-    public virtual Vector2? HoldoutOffset() => new Vector2?(new Vector2(0.0f, 0.0f));
-
-    public virtual bool CanUseItem(Player player)
-    {
-      return player.ownedProjectileCounts[this.Item.shoot] < 1;
-    }
-
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      Vector2 mouseWorld = Main.MouseWorld;
-      for (int index = 0; index < Main.maxProjectiles; ++index)
-      {
-        Projectile projectile = Main.projectile[index];
-        if (((Entity) projectile).active && projectile.owner == ((Entity) player).whoAmI && projectile.sentry)
+        public override void SetStaticDefaults()
         {
-          ((Entity) projectile).active = false;
-          projectile.Kill();
+
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
         }
-      }
-      for (int index = 0; index < player.maxTurrets; ++index)
-        Projectile.NewProjectile((IEntitySource) source, mouseWorld.X, mouseWorld.Y, 0.0f, 0.0f, type, damage, knockback, ((Entity) player).whoAmI, (float) (index != 0 ? 1 : 0), 0.0f, (float) player.maxTurrets);
-      Projectile.NewProjectile((IEntitySource) source, mouseWorld.X, mouseWorld.Y, 0.0f, 0.0f, ModContent.ProjectileType<GlowRingHollow>(), damage, knockback, ((Entity) player).whoAmI, 14f, 150f, 0.0f);
-      player.UpdateMaxTurrets();
-      return false;
-    }
 
-    public virtual bool? UseItem(Player player) => base.UseItem(player);
+        public override void SetDefaults()
+        {
+            Item.damage = 375;
+            Item.DamageType = DamageClass.Summon;
+            Item.mana = 50;
+            Item.width = 82;
+            Item.height = 24;
+            Item.useTime = 45;
+            Item.useAnimation = 45;
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.knockBack = 15;
+            Item.value = Item.sellPrice(0, 5);
+            Item.rare = ItemRarityID.LightRed;
+            Item.UseSound = SoundID.Item66;
+            Item.autoReuse = false;
+            Item.shoot = ModContent.ProjectileType<DecrepitAirstrike>();
+            Item.shootSpeed = 1f;
+            //Item.sentry = true;
+            Item.noMelee = true;
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient<BanishedBaronBag>(2).AddTile(220).DisableDecraft().Register();
+        public override Vector2? HoldoutOffset()
+        {
+            return new Vector2(-0, -0);
+        }
+
+        public override bool CanUseItem(Player player)
+        {
+            return player.ownedProjectileCounts[Item.shoot] < 1;
+        }
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            Vector2 mouse = Main.MouseWorld;
+            //int CurrentSentries = 0;
+            for (int i = 0; i < Main.maxProjectiles; i++)
+            {
+                Projectile proj = Main.projectile[i];
+                if (proj.active && proj.owner == player.whoAmI && proj.sentry)
+                {
+                    proj.active = false;
+                    proj.Kill();
+                }
+            }
+            for (int i = 0; i < player.maxTurrets; i++)
+            {
+                Projectile.NewProjectile(source, mouse.X, mouse.Y, 0f, 0f, type, damage, knockback, player.whoAmI, i == 0 ? 0 : 1, ai2: player.maxTurrets); //ai0 sets first turret as the real one
+            }
+            Projectile.NewProjectile(source, mouse.X, mouse.Y, 0f, 0f, ModContent.ProjectileType<GlowRingHollow>(), damage, knockback, player.whoAmI, 14, 60 * 2 + 30);
+            player.UpdateMaxTurrets();
+            return false;
+        }
+        public override bool? UseItem(Player player)
+        {
+
+            return base.UseItem(player);
+        }
+        public override void AddRecipes()
+        {
+            CreateRecipe().AddIngredient<BanishedBaronBag>(2).AddTile(TileID.Solidifier).DisableDecraft().Register();
+        }
     }
-  }
 }

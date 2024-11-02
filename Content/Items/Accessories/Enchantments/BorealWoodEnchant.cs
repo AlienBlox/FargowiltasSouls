@@ -1,37 +1,102 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.BorealWoodEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Projectiles;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
+using System;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
+using static FargowiltasSouls.Content.Items.Accessories.Forces.TimberForce;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class BorealWoodEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(139, 116, 100);
-
-    public override void SetDefaults()
+    public class BorealWoodEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 1;
-      this.Item.value = 10000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<BorealEffect>(this.Item);
-    }
+        public override Color nameColor => new(139, 116, 100);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(2509, 1).AddIngredient(2510, 1).AddIngredient(2511, 1).AddIngredient(2358, 1).AddIngredient(4295, 1).AddIngredient(949, 300).AddTile(26).Register();
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Blue;
+            Item.value = 10000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<BorealEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ItemID.BorealWoodHelmet)
+            .AddIngredient(ItemID.BorealWoodBreastplate)
+            .AddIngredient(ItemID.BorealWoodGreaves)
+            .AddIngredient(ItemID.Shiverthorn)
+            .AddIngredient(ItemID.Plum)
+            .AddIngredient(ItemID.Snowball, 300)
+
+            .AddTile(TileID.DemonAltar)
+            .Register();
+        }
     }
-  }
+    public class BorealEffect : AccessoryEffect
+    {
+
+        public override Header ToggleHeader => Header.GetHeader<TimberHeader>();
+        public override int ToggleItemType => ModContent.ItemType<BorealWoodEnchant>();
+        public override bool ExtraAttackEffect => true;
+
+        public override void TryAdditionalAttacks(Player player, int damage, DamageClass damageType)
+        {
+            if (player.HasEffect<TimberEffect>())
+            {
+                return;
+            }
+            BorealSnowballs(player, damage);
+        }
+        public override void OnHitNPCEither(Player player, NPC target, NPC.HitInfo hitInfo, DamageClass damageClass, int baseDamage, Projectile projectile, Item item)
+        {
+            if (player.HasEffect<TimberEffect>())
+            {
+                if (player.Distance(target.Center) > ShadewoodEffect.Range(player, true))
+                    return;
+                if (projectile != null && projectile.type == ProjectileID.SnowBallFriendly)
+                    return;
+                int damage = hitInfo.SourceDamage;
+                damage = (int)(damage * 0.35f);
+                damage = (int)MathHelper.Clamp(0, 800, damage); // big sting could be roughly 1700 here
+                BorealSnowballs(player, damage);
+            }
+                
+        }
+        public void BorealSnowballs(Player player, int damage)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (modPlayer.BorealCD <= 0 && player.whoAmI == Main.myPlayer)
+            {
+                Item item = EffectItem(player);
+                bool forceEffect = modPlayer.ForceEffect(item.type);
+                modPlayer.BorealCD = forceEffect ? 30 : 60;
+                if (player.HasEffect<TimberEffect>())
+                    modPlayer.BorealCD = 90;
+
+                Vector2 vel = Vector2.Normalize(Main.MouseWorld - player.Center) * 17f;
+                int snowballDamage = damage / 2;
+                if (!player.HasEffect<TimberEffect>() && !modPlayer.TerrariaSoul)
+                    snowballDamage = Math.Min(snowballDamage, FargoSoulsUtil.HighestDamageTypeScaling(player, forceEffect ? 300 : 30));
+                int p = Projectile.NewProjectile(player.GetSource_Accessory(item), player.Center, vel, ProjectileID.SnowBallFriendly, snowballDamage, 1, Main.myPlayer);
+
+                int numSnowballs = forceEffect ? 7 : 3;
+                if (p != Main.maxProjectiles)
+                    FargoSoulsGlobalProjectile.SplitProj(Main.projectile[p], numSnowballs, MathHelper.Pi / 10, 1);
+            }
+        }
+    }
 }

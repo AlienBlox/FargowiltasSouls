@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.MutantBoss.MutantFishronRitual
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Boss;
+﻿using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
@@ -12,106 +6,128 @@ using System;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.MutantBoss
 {
-  public class MutantFishronRitual : ModProjectile
-  {
-    private const int safeRange = 150;
-
-    public virtual string Texture => "FargowiltasSouls/Content/Projectiles/Masomode/FishronRitual";
-
-    public virtual void SetStaticDefaults()
+    public class MutantFishronRitual : ModProjectile
     {
-    }
+        public override string Texture => "FargowiltasSouls/Content/Projectiles/Masomode/FishronRitual";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 320;
-      ((Entity) this.Projectile).height = 320;
-      this.Projectile.hostile = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.timeLeft = 600;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.penetrate = -1;
-      this.CooldownSlot = -1;
-      this.Projectile.FargoSouls().GrazeCheck = (Func<Projectile, bool>) (projectile =>
-      {
-        bool? nullable = base.CanDamage();
-        bool flag = true;
-        if (!(nullable.GetValueOrDefault() == flag & nullable.HasValue))
-          return false;
-        Vector2 vector2 = Vector2.op_Subtraction(((Entity) Main.LocalPlayer).Center, ((Entity) this.Projectile).Center);
-        return (double) Math.Abs(((Vector2) ref vector2).Length() - 150f) < 42.0 + (double) Main.LocalPlayer.FargoSouls().GrazeRadius;
-      });
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
+        private const int safeRange = 150;
 
-    public virtual bool? CanDamage()
-    {
-      return new bool?((double) this.Projectile.alpha == 0.0 && Main.player[this.Projectile.owner].ownedProjectileCounts[ModContent.ProjectileType<MutantBomb>()] > 0);
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Fish Nuke");
+        }
 
-    public virtual bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      Vector2 vector2 = Vector2.op_Subtraction(Utils.ToVector2(((Rectangle) ref projHitbox).Center), Utils.ToVector2(((Rectangle) ref targetHitbox).Center));
-      if ((double) ((Vector2) ref vector2).Length() < 150.0)
-        return new bool?(false);
-      int num1 = ((Rectangle) ref projHitbox).Center.X - ((Rectangle) ref targetHitbox).Center.X;
-      int num2 = ((Rectangle) ref projHitbox).Center.Y - ((Rectangle) ref targetHitbox).Center.Y;
-      if (Math.Abs(num1) > targetHitbox.Width / 2)
-        num1 = targetHitbox.Width / 2 * Math.Sign(num1);
-      if (Math.Abs(num2) > targetHitbox.Height / 2)
-        num2 = targetHitbox.Height / 2 * Math.Sign(num2);
-      int num3 = ((Rectangle) ref projHitbox).Center.X - ((Rectangle) ref targetHitbox).Center.X - num1;
-      int num4 = ((Rectangle) ref projHitbox).Center.Y - ((Rectangle) ref targetHitbox).Center.Y - num2;
-      return new bool?(Math.Sqrt((double) (num3 * num3 + num4 * num4)) <= 1200.0);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 320;
+            Projectile.height = 320;
+            Projectile.hostile = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = 600;
+            Projectile.alpha = 255;
+            Projectile.penetrate = -1;
+            CooldownSlot = -1;
 
-    public virtual void AI()
-    {
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0], ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>());
-      if (npc != null && (double) npc.ai[0] == 34.0)
-      {
-        this.Projectile.alpha -= 7;
-        this.Projectile.timeLeft = 300;
-        ((Entity) this.Projectile).Center = ((Entity) npc).Center;
-        ((Entity) this.Projectile).position.Y -= 100f;
-      }
-      else
-        this.Projectile.alpha += 17;
-      if (this.Projectile.alpha < 0)
-        this.Projectile.alpha = 0;
-      if (this.Projectile.alpha > (int) byte.MaxValue)
-      {
-        this.Projectile.alpha = (int) byte.MaxValue;
-        this.Projectile.Kill();
-      }
-      else
-      {
-        this.Projectile.scale = (float) (1.0 - (double) this.Projectile.alpha / (double) byte.MaxValue);
-        this.Projectile.rotation += (float) Math.PI / 70f;
-        Lighting.AddLight(((Entity) this.Projectile).Center, 0.4f, 0.9f, 1.1f);
-        if (this.Projectile.FargoSouls().GrazeCD <= 10)
-          return;
-        this.Projectile.FargoSouls().GrazeCD = 10;
-      }
-    }
+            Projectile.FargoSouls().GrazeCheck =
+                projectile =>
+                {
+                    return CanDamage() == true && Math.Abs((Main.LocalPlayer.Center - Projectile.Center).Length() - safeRange) < Player.defaultHeight + Main.LocalPlayer.FargoSouls().GrazeRadius;
+                };
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.FargoSouls().MaxLifeReduction += 100;
-        target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400, true, false);
-        target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180, true, false);
-      }
-      target.AddBuff(ModContent.BuffType<MutantNibbleBuff>(), 900, true, false);
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 900, true, false);
-    }
+            Projectile.FargoSouls().TimeFreezeImmune = true;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+        }
 
-    public virtual Color? GetAlpha(Color lightColor) => new Color?(Color.White);
-  }
+        public override bool? CanDamage()
+        {
+            return Projectile.alpha == 0f && Main.player[Projectile.owner].ownedProjectileCounts[ModContent.ProjectileType<MutantBomb>()] > 0;
+        }
+
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
+        {
+            if ((projHitbox.Center.ToVector2() - targetHitbox.Center.ToVector2()).Length() < safeRange)
+                return false;
+
+            int clampedX = projHitbox.Center.X - targetHitbox.Center.X;
+            int clampedY = projHitbox.Center.Y - targetHitbox.Center.Y;
+
+            if (Math.Abs(clampedX) > targetHitbox.Width / 2)
+                clampedX = targetHitbox.Width / 2 * Math.Sign(clampedX);
+            if (Math.Abs(clampedY) > targetHitbox.Height / 2)
+                clampedY = targetHitbox.Height / 2 * Math.Sign(clampedY);
+
+            int dX = projHitbox.Center.X - targetHitbox.Center.X - clampedX;
+            int dY = projHitbox.Center.Y - targetHitbox.Center.Y - clampedY;
+
+            return Math.Sqrt(dX * dX + dY * dY) <= 1200;
+        }
+
+        public override void AI()
+        {
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[0], ModContent.NPCType<MutantBoss>());
+            if (npc != null && npc.ai[0] == 34)
+            {
+                Projectile.alpha -= 7;
+                Projectile.timeLeft = 300;
+                Projectile.Center = npc.Center;
+                Projectile.position.Y -= 100;
+            }
+            else
+            {
+                Projectile.alpha += 17;
+            }
+
+            if (Projectile.alpha < 0)
+                Projectile.alpha = 0;
+            if (Projectile.alpha > 255)
+            {
+                Projectile.alpha = 255;
+                Projectile.Kill();
+                return;
+            }
+            Projectile.scale = 1f - Projectile.alpha / 255f;
+            Projectile.rotation += (float)Math.PI / 70f;
+
+            /*int num1 = (300 - Projectile.timeLeft) / 60;
+            float num2 = Projectile.scale * 0.4f;
+            float num3 = Main.rand.Next(1, 3);
+            Vector2 vector2 = new Vector2(Main.rand.Next(-10, 11), Main.rand.Next(-10, 11));
+            vector2.Normalize();
+            int index2 = Dust.NewDust(Projectile.Center, 0, 0, 135, 0f, 0f, 100, new Color(), 2f);
+            Main.dust[index2].noGravity = true;
+            Main.dust[index2].noLight = true;
+            Main.dust[index2].velocity = vector2 * num3;
+            if (Main.rand.NextBool())
+            {
+                Main.dust[index2].velocity *= 2f;
+                Main.dust[index2].scale += 0.5f;
+            }
+            Main.dust[index2].fadeIn = 2f;*/
+
+            Lighting.AddLight(Projectile.Center, 0.4f, 0.9f, 1.1f);
+
+            if (Projectile.FargoSouls().GrazeCD > 10)
+                Projectile.FargoSouls().GrazeCD = 10;
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.FargoSouls().MaxLifeReduction += 100;
+                target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400);
+                target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180);
+            }
+            target.AddBuff(ModContent.BuffType<MutantNibbleBuff>(), 900);
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 900);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White;
+        }
+    }
 }

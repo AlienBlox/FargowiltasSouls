@@ -1,69 +1,126 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.GoblinInvasion.Goblins
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Projectiles.Masomode;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.GoblinInvasion
 {
-  public class Goblins : EModeNPCBehaviour
-  {
-    public override NPCMatcher CreateMatcher()
+    public class Goblins : EModeNPCBehaviour
     {
-      return new NPCMatcher().MatchTypeRange(111, 26, 73, 29, 471, 27, 28);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.GoblinArcher,
+            NPCID.GoblinPeon,
+            NPCID.GoblinScout,
+            NPCID.GoblinSorcerer,
+            NPCID.GoblinSummoner,
+            NPCID.GoblinThief,
+            NPCID.GoblinWarrior
+        );
 
-    public virtual void SetDefaults(NPC npc)
-    {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(npc);
-      if (npc.type != 28)
-        return;
-      npc.knockBackResist /= 10f;
-    }
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      if (WorldSavingSystem.DownedAnyBoss || npc.type != 28 && npc.type != 27 && npc.type != 111 || NPC.CountNPCS(npc.type) <= 3)
-        return;
-      npc.Transform(26);
-    }
+            if (npc.type == NPCID.GoblinWarrior)
+                npc.knockBackResist /= 10;
+        }
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      if (Main.hardMode)
-        target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300, true, false);
-      if (npc.type != 27)
-        return;
-      target.AddBuff(ModContent.BuffType<MidasBuff>(), 600, true, false);
-    }
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
 
-    public virtual void OnKill(NPC npc)
-    {
-      base.OnKill(npc);
-      if (FargoSoulsUtil.HostCheck)
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, new Vector2(Utils.NextFloat(Main.rand, -2f, 2f), -5f), ModContent.ProjectileType<GoblinSpikyBall>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      if (!NPC.downedGoblins || WorldSavingSystem.HaveForcedAbomFromGoblins)
-        return;
-      WorldSavingSystem.HaveForcedAbomFromGoblins = true;
-      ModNPC modNpc;
-      if (!ModContent.TryFind<ModNPC>("Fargowiltas", "Abominationn", ref modNpc) || NPC.AnyNPCs(modNpc.Type))
-        return;
-      int closest = (int) Player.FindClosest(((Entity) npc).Center, 0, 0);
-      if (closest == -1)
-        return;
-      NPC.SpawnOnPlayer(closest, modNpc.Type);
+            if (!WorldSavingSystem.DownedAnyBoss && (npc.type == NPCID.GoblinWarrior || npc.type == NPCID.GoblinThief || npc.type == NPCID.GoblinArcher) && NPC.CountNPCS(npc.type) > 3)
+            {
+                npc.Transform(NPCID.GoblinPeon);
+            }
+        }
+
+        //public override void AI(NPC npc)
+        //{
+        //    base.AI(npc);
+
+        //    if (npc.type != NPCID.GoblinSummoner)
+        //    {
+        //        if (npc.HasPlayerTarget && (!Main.player[npc.target].active || Main.player[npc.target].dead))
+        //        {
+        //            npc.TargetClosest();
+        //            if (npc.HasPlayerTarget && (!Main.player[npc.target].active || Main.player[npc.target].dead))
+        //            {
+        //                npc.noTileCollide = true;
+        //            }
+        //        }
+        //        if (npc.noTileCollide) //fall through the floor
+        //        {
+        //            npc.position.Y++;
+        //            npc.velocity.Y++;
+        //        }
+        //    }
+        //}
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            if (Main.hardMode)
+                target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300);
+
+            if (npc.type == NPCID.GoblinThief)
+            {
+                target.AddBuff(ModContent.BuffType<MidasBuff>(), 600);
+
+                //if (target.whoAmI == Main.myPlayer && target.HasBuff(ModContent.BuffType<LoosePockets>()))
+                //{
+                //    //try stealing mouse item, then selected item
+                //    bool stolen = EModeGlobalNPC.StealFromInventory(target, ref Main.mouseItem);
+                //    if (!stolen)
+                //        stolen = EModeGlobalNPC.StealFromInventory(target, ref target.inventory[target.selectedItem]);
+
+                //    if (stolen)
+                //    {
+                //        string text = Language.GetTextValue($"Mods.{mod.Name}.Message.ItemStolen");
+                //        Main.NewText(text, new Color(255, 50, 50));
+                //        CombatText.NewText(target.Hitbox, new Color(255, 50, 50), text, true);
+                //    }
+
+                //    /*byte extraTries = 30;
+                //    for (int i = 0; i < 3; i++)
+                //    {
+                //        bool successfulSteal = StealFromInventory(target, ref target.inventory[Main.rand.Next(target.inventory.Length)]);
+
+                //        if (!successfulSteal && extraTries > 0)
+                //        {
+                //            extraTries--;
+                //            i--;
+                //        }
+                //    }*/
+                //}
+                //target.AddBuff(ModContent.BuffType<LoosePockets>(), 240);
+            }
+        }
+
+        public override void OnKill(NPC npc)
+        {
+            base.OnKill(npc);
+
+            if (FargoSoulsUtil.HostCheck)
+                Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, new Vector2(Main.rand.NextFloat(-2f, 2f), -5), ModContent.ProjectileType<GoblinSpikyBall>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0, Main.myPlayer);
+
+            if (NPC.downedGoblins && !WorldSavingSystem.HaveForcedAbomFromGoblins)
+            {
+                WorldSavingSystem.HaveForcedAbomFromGoblins = true;
+
+                if (ModContent.TryFind("Fargowiltas", "Abominationn", out ModNPC modNPC) && !NPC.AnyNPCs(modNPC.Type))
+                {
+                    int p = Player.FindClosest(npc.Center, 0, 0);
+                    if (p != -1)
+                        NPC.SpawnOnPlayer(p, modNPC.Type);
+                }
+            }
+        }
     }
-  }
 }

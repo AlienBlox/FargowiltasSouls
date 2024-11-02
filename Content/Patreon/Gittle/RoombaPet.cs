@@ -1,32 +1,35 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.Gittle.RoombaPet
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.Gittle
 {
-  public class RoombaPet : PatreonModItem
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public virtual void SetDefaults()
+    public class RoombaPet : PatreonModItem
     {
-      this.Item.CloneDefaults(2420);
-      this.Item.shoot = ModContent.ProjectileType<RoombaPetProj>();
-      this.Item.buffType = ModContent.BuffType<RoombaPetBuff>();
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
 
-    public virtual void UseStyle(Player player, Rectangle heldItemFrame)
-    {
-      if (((Entity) player).whoAmI != Main.myPlayer || player.itemTime != 0)
-        return;
-      player.AddBuff(this.Item.buffType, 3600, true, false);
+            // DisplayName.SetDefault("Roomba");
+            // Tooltip.SetDefault("Summons a Roomba to follow you around in hopes of cleaning the whole world");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "扫地机器人");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "召唤一个扫地机器人跟随你,它希望清洁整个世界");
+        }
+
+        public override void SetDefaults()
+        {
+            Item.CloneDefaults(ItemID.ZephyrFish);
+            Item.shoot = ModContent.ProjectileType<RoombaPetProj>();
+            Item.buffType = ModContent.BuffType<RoombaPetBuff>();
+        }
+
+        public override void UseStyle(Player player, Rectangle heldItemFrame)
+        {
+            if (player.whoAmI == Main.myPlayer && player.itemTime == 0)
+            {
+                player.AddBuff(Item.buffType, 3600, true);
+            }
+        }
     }
-  }
 }

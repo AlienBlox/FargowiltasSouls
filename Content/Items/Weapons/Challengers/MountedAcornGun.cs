@@ -1,52 +1,49 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.Challengers.MountedAcornGun
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.BossBags;
+﻿using FargowiltasSouls.Content.Items.BossBags;
 using FargowiltasSouls.Content.Projectiles.ChallengerItems;
 using Terraria;
-using Terraria.Audio;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.Challengers
 {
-  public class MountedAcornGun : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class MountedAcornGun : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Mounted Acorn Gun");
+            // Tooltip.SetDefault("Uses acorns as ammo\n50% chance to not consume ammo\nShoots acorns that sprout on enemies");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "安装好的橡果枪");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "使用橡实作为弹药\n50%的几率不消耗弹药\n向敌怪射出会发芽的橡果");
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 16;
-      this.Item.DamageType = DamageClass.Ranged;
-      ((Entity) this.Item).width = 54;
-      ((Entity) this.Item).height = 26;
-      this.Item.useTime = 64;
-      this.Item.useAnimation = 64;
-      this.Item.useStyle = 5;
-      this.Item.knockBack = 0.5f;
-      this.Item.value = Item.sellPrice(0, 0, 50, 0);
-      this.Item.rare = 1;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item61);
-      this.Item.autoReuse = true;
-      this.Item.shoot = ModContent.ProjectileType<SproutingAcorn>();
-      this.Item.shootSpeed = 16f;
-      this.Item.useAmmo = 27;
-      this.Item.noMelee = true;
-    }
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual bool CanConsumeAmmo(Item ammo, Player player) => Utils.NextBool(Main.rand);
+        public override void SetDefaults()
+        {
+            Item.damage = 16;
+            Item.DamageType = DamageClass.Ranged;
+            Item.width = 54;
+            Item.height = 26;
+            Item.useTime = 64;
+            Item.useAnimation = 64;
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.knockBack = 0.5f;
+            Item.value = Item.sellPrice(0, 0, 50);
+            Item.rare = ItemRarityID.Blue;
+            Item.UseSound = SoundID.Item61;
+            Item.autoReuse = true;
+            Item.shoot = ModContent.ProjectileType<SproutingAcorn>();
+            Item.shootSpeed = 16f;
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient<TrojanSquirrelBag>(2).AddTile(220).DisableDecraft().Register();
+            Item.useAmmo = ItemID.Acorn;
+            Item.noMelee = true;
+        }
+
+        public override bool CanConsumeAmmo(Item ammo, Player player) => Main.rand.NextBool();
+
+        public override void AddRecipes()
+        {
+            CreateRecipe().AddIngredient<TrojanSquirrelBag>(2).AddTile(TileID.Solidifier).DisableDecraft().Register();
+        }
     }
-  }
 }

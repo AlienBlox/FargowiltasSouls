@@ -1,30 +1,27 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Boss.AbomFangBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
-using Terraria.ID;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Boss
 {
-  public class AbomFangBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class AbomFangBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Abominable Fang");
+            // Description.SetDefault("The power of Eternity Mode compels you");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "憎恶毒牙");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "永恒模式的力量压迫着你");
+            Main.debuff[Type] = true;
+            Terraria.ID.BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.ichor = true;
-      player.onFire2 = true;
-      player.electrified = true;
-      player.moonLeech = true;
+        public override void Update(Player player, ref int buffIndex)
+        {
+            //FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+            player.ichor = true;
+            player.onFire2 = true;
+            player.electrified = true;
+            player.moonLeech = true;
+        }
     }
-  }
 }

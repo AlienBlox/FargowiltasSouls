@@ -1,29 +1,24 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.GladiatorBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Items.Accessories.Enchantments;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs
 {
-  public class GladiatorBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class GladiatorBuff : ModBuff
     {
-      Main.buffNoSave[this.Type] = true;
-      Main.buffNoTimeDisplay[this.Type] = true;
+        public override void SetStaticDefaults()
+        {
+            Main.buffNoSave[Type] = true;
+            Main.buffNoTimeDisplay[Type] = true;
+        }
+        public override void Update(Player player, ref int buffIndex)
+        {
+            float stats = 0.05f;
+            if (player.FargoSouls().ForceEffect<GladiatorEnchant>())
+                stats = 0.1f;
+            player.GetDamage(DamageClass.Generic) += stats;
+            player.endurance += stats;
+            player.noKnockback = true;
+        }
     }
-
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      ref StatModifier local = ref player.GetDamage(DamageClass.Generic);
-      local = StatModifier.op_Addition(local, 0.05f);
-      player.endurance += 0.05f;
-      player.noKnockback = true;
-    }
-  }
 }

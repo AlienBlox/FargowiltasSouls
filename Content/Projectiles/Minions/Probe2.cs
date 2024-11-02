@@ -1,104 +1,107 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.Probe2
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class Probe2 : ModProjectile
-  {
-    private bool followMouse;
-
-    public virtual string Texture => "Terraria/Images/NPC_139";
-
-    public virtual void SetStaticDefaults()
+    public class Probe2 : ModProjectile
     {
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-    }
+        public override string Texture => "Terraria/Images/NPC_139";
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.netImportant = true;
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 30;
-      this.Projectile.timeLeft *= 5;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.minion = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 10;
-    }
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      if (((Entity) player).active && !player.dead && player.FargoSouls().Probes)
-        this.Projectile.timeLeft = 2;
-      this.Projectile.ai[0] -= (float) Math.PI / 60f;
-      ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) player).Center, Utils.RotatedBy(new Vector2(-60f, 0.0f), (double) this.Projectile.ai[0], new Vector2()));
-      if ((double) this.Projectile.ai[1] > 0.0)
-      {
-        --this.Projectile.ai[1];
-        if ((double) this.Projectile.ai[1] % 10.0 != 5.0)
-          return;
-        List<NPC> list = ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => n.CanBeChasedBy((object) null, false) && (double) ((Entity) this.Projectile).Distance(((Entity) n).Center) < 1200.0 && Collision.CanHitLine(((Entity) this.Projectile).Center, 0, 0, ((Entity) n).Center, 0, 0))).ToList<NPC>();
-        if (list.Count <= 0)
-          return;
-        this.Projectile.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) Utils.Next<NPC>(Main.rand, (IList<NPC>) list)).Center));
-        int index = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Utils.RotatedByRandom(Utils.RotatedBy(new Vector2(16f, 0.0f), (double) this.Projectile.rotation, new Vector2()), 0.39269909262657166), ModContent.ProjectileType<LightningArc>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, this.Projectile.rotation, (float) Main.rand.Next(100), 0.0f);
-        if (index != Main.maxProjectiles)
-          Main.projectile[index].DamageType = this.Projectile.DamageType;
-        this.Projectile.rotation += 3.14159274f;
-      }
-      else
-      {
-        if ((double) ++this.Projectile.localAI[1] > 20.0)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.localAI[1] = player.FargoSouls().MasochistSoul ? 10f : 0.0f;
-          this.followMouse = true;
-          int prioritizingMinionFocus = FargoSoulsUtil.FindClosestHostileNPCPrioritizingMinionFocus(this.Projectile, 1000f, true, new Vector2());
-          if (prioritizingMinionFocus != -1 && prioritizingMinionFocus != Main.maxNPCs)
-          {
-            this.followMouse = false;
-            this.Projectile.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) Main.npc[prioritizingMinionFocus]).Center));
-            Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Utils.RotatedBy(new Vector2(8f, 0.0f), (double) this.Projectile.rotation, new Vector2()), ModContent.ProjectileType<ProbeLaser>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-            this.Projectile.rotation += 3.14159274f;
-          }
-          this.Projectile.netUpdate = true;
+            // DisplayName.SetDefault("Probe");
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
         }
-        if (!this.followMouse || this.Projectile.owner != Main.myPlayer)
-          return;
-        this.Projectile.rotation = Utils.ToRotation(Vector2.op_Subtraction(Main.MouseWorld, ((Entity) this.Projectile).Center)) + 3.14159274f;
-      }
-    }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+        public override void SetDefaults()
+        {
+            Projectile.netImportant = true;
+            Projectile.width = 30;
+            Projectile.height = 30;
+            Projectile.timeLeft *= 5;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.minion = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 10;
+        }
+
+        bool followMouse;
+
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            if (player.active && !player.dead && player.FargoSouls().Probes)
+                Projectile.timeLeft = 2;
+
+            Projectile.ai[0] -= (float)Math.PI / 60f;
+            Projectile.Center = player.Center + new Vector2(-60, 0).RotatedBy(Projectile.ai[0]);
+
+            if (Projectile.ai[1] > 0)
+            {
+                Projectile.ai[1]--;
+
+                if (Projectile.ai[1] % 10 == 5)
+                {
+                    List<NPC> npcs = Main.npc.Where(n => n.CanBeChasedBy() && Projectile.Distance(n.Center) < 1200 && Collision.CanHitLine(Projectile.Center, 0, 0, n.Center, 0, 0)).ToList();
+                    if (npcs.Count > 0)
+                    {
+                        NPC npc = Main.rand.Next(npcs);
+                        Projectile.rotation = Projectile.SafeDirectionTo(npc.Center).ToRotation();
+                        int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, new Vector2(16f, 0f).RotatedBy(Projectile.rotation).RotatedByRandom(MathHelper.PiOver4 / 2),
+                            ModContent.ProjectileType<LightningArc>(), Projectile.damage, Projectile.knockBack, Projectile.owner, Projectile.rotation, Main.rand.Next(100));
+                        if (p != Main.maxProjectiles)
+                            Main.projectile[p].DamageType = Projectile.DamageType;
+                        Projectile.rotation += MathHelper.Pi;
+                    }
+                }
+            }
+            else
+            {
+                if (++Projectile.localAI[1] > 20f)
+                {
+                    Projectile.localAI[1] = player.FargoSouls().MasochistSoul ? 10f : player.FargoSouls().DubiousCircuitry ? -20f : 0f;
+                    followMouse = true;
+
+                    int n = FargoSoulsUtil.FindClosestHostileNPCPrioritizingMinionFocus(Projectile, 1000f, true);
+                    if (n != -1 && n != Main.maxNPCs)
+                    {
+                        followMouse = false;
+
+                        Projectile.rotation = Projectile.SafeDirectionTo(Main.npc[n].Center).ToRotation();
+                        Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, new Vector2(8f, 0f).RotatedBy(Projectile.rotation),
+                            ModContent.ProjectileType<ProbeLaser>(), Projectile.damage, Projectile.knockBack, Projectile.owner);
+                        Projectile.rotation += MathHelper.Pi;
+                    }
+
+                    Projectile.netUpdate = true;
+                }
+
+                if (followMouse && Projectile.owner == Main.myPlayer)
+                    Projectile.rotation = (Main.MouseWorld - Projectile.Center).ToRotation() + (float)Math.PI;
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

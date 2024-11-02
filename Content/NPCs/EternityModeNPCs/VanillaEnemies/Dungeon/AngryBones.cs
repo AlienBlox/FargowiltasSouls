@@ -1,62 +1,76 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Dungeon.AngryBones
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.Masomode;
+﻿using FargowiltasSouls.Content.Projectiles.Masomode;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Dungeon
 {
-  public class AngryBones : EModeNPCBehaviour
-  {
-    public int BabyTimer;
-
-    public override NPCMatcher CreateMatcher()
+    public class AngryBones : EModeNPCBehaviour
     {
-      return new NPCMatcher().MatchTypeRange(31, 294, 296, 295);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.AngryBones,
+            NPCID.AngryBonesBig,
+            NPCID.AngryBonesBigHelmet,
+            NPCID.AngryBonesBigMuscle
+        );
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      if (npc.justHit)
-        this.BabyTimer += 20;
-      if (++this.BabyTimer <= 300)
-        return;
-      this.BabyTimer = 0;
-      if (!FargoSoulsUtil.HostCheck || !npc.HasValidTarget || !Collision.CanHitLine(((Entity) npc).Center, 0, 0, ((Entity) Main.player[npc.target]).Center, 0, 0))
-        return;
-      Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center), ModContent.ProjectileType<SkeletronGuardian2>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-    }
+        //public int BoneSprayTimer;
+        public int BabyTimer;
 
-    public virtual void OnKill(NPC npc)
-    {
-      base.OnKill(npc);
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      if (Utils.NextBool(Main.rand, 5))
-        FargoSoulsUtil.NewNPCEasy(((Entity) npc).GetSource_FromAI((string) null), ((Entity) npc).Center, 34, velocity: new Vector2());
-      for (int index = 0; index < 15; ++index)
-      {
-        Vector2 vector2;
-        // ISSUE: explicit constructor call
-        ((Vector2) ref vector2).\u002Ector((float) Main.rand.Next(-50, 51), (float) Main.rand.Next(-100, 1));
-        ((Vector2) ref vector2).Normalize();
-        vector2 = Vector2.op_Multiply(vector2, Utils.NextFloat(Main.rand, 3f, 6f));
-        vector2.Y -= Math.Abs(vector2.X) * 0.2f;
-        vector2.Y -= 3f;
-        vector2.Y *= Utils.NextFloat(Main.rand, 1.5f);
-        if (FargoSoulsUtil.HostCheck)
-          Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, vector2, 471, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      }
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            //if (--BoneSprayTimer > 0 && BoneSprayTimer % 6 == 0) //spray bones
+            //{
+            //    Vector2 speed = new Vector2(Main.rand.Next(-100, 101), Main.rand.Next(-100, 101));
+            //    speed.Normalize();
+            //    speed *= 5f;
+            //    speed.Y -= Math.Abs(speed.X) * 0.2f;
+            //    speed.Y -= 3f;
+            //    if (FargoSoulsUtil.HostCheck)
+            //        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, speed, ProjectileID.SkeletonBone, FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+            //}
+
+            if (npc.justHit)
+            {
+                //BoneSprayTimer = 120;
+                BabyTimer += 20;
+            }
+
+            if (++BabyTimer > 300) //shoot baby guardians
+            {
+                BabyTimer = 0;
+                if (FargoSoulsUtil.HostCheck && npc.HasValidTarget && Collision.CanHitLine(npc.Center, 0, 0, Main.player[npc.target].Center, 0, 0))
+                    Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, npc.SafeDirectionTo(Main.player[npc.target].Center), ModContent.ProjectileType<SkeletronGuardian2>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer);
+            }
+        }
+
+        public override void OnKill(NPC npc)
+        {
+            base.OnKill(npc);
+
+            if (FargoSoulsUtil.HostCheck)
+            {
+                if (Main.rand.NextBool(5))
+                    FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, NPCID.CursedSkull);
+
+                for (int i = 0; i < 15; i++)
+                {
+                    Vector2 speed = new(Main.rand.Next(-50, 51), Main.rand.Next(-100, 1));
+                    speed.Normalize();
+                    speed *= Main.rand.NextFloat(3f, 6f);
+                    speed.Y -= Math.Abs(speed.X) * 0.2f;
+                    speed.Y -= 3f;
+                    speed.Y *= Main.rand.NextFloat(1.5f);
+                    if (FargoSoulsUtil.HostCheck)
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, speed, ProjectileID.SkeletonBone, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer);
+                }
+            }
+        }
     }
-  }
 }

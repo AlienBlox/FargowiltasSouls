@@ -1,97 +1,114 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.SparklingLoveEnergyHeart
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Assets.Sounds;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class SparklingLoveEnergyHeart : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class SparklingLoveEnergyHeart : ModProjectile
     {
-      ProjectileID.Sets.MinionShot[this.Projectile.type] = true;
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Energy Heart");
+            ProjectileID.Sets.MinionShot[Projectile.type] = true;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 30;
-      this.Projectile.penetrate = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.timeLeft = 90;
-      this.Projectile.extraUpdates = 1;
-      this.Projectile.FargoSouls().CanSplit = false;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 30;
+            Projectile.height = 30;
+            Projectile.penetrate = -1;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.aiStyle = -1;
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = ((Entity) this.Projectile).Center.X;
-        this.Projectile.localAI[1] = ((Entity) this.Projectile).Center.Y;
-        SoundEngine.PlaySound(ref SoundID.Item44, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      }
-      this.Projectile.rotation = this.Projectile.ai[0];
-      float num = ((Vector2) ref ((Entity) this.Projectile).velocity).Length() + this.Projectile.ai[1];
-      ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) this.Projectile).velocity), num);
-    }
+            Projectile.timeLeft = 90;
+            Projectile.extraUpdates = 1;
 
-    public virtual void OnKill(int timeLeft)
-    {
-      FargoSoulsUtil.HeartDust(((Entity) this.Projectile).Center, this.Projectile.rotation + 1.57079637f, new Vector2());
-      if (this.Projectile.owner != Main.myPlayer)
-        return;
-      Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Utils.RotatedBy(Vector2.UnitX, (double) this.Projectile.rotation, new Vector2()), ModContent.ProjectileType<SparklingLoveDeathray2>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-      Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Utils.RotatedBy(Vector2.UnitX, (double) this.Projectile.rotation + 3.1415927410125732, new Vector2()), ModContent.ProjectileType<SparklingLoveDeathray2>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-      Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), new Vector2(this.Projectile.localAI[0], this.Projectile.localAI[1]), Utils.RotatedBy(Vector2.UnitX, (double) this.Projectile.rotation - 1.5707963705062866, new Vector2()), ModContent.ProjectileType<SparklingLoveDeathray2>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-    }
+            Projectile.FargoSouls().CanSplit = false;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+        }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.immune[this.Projectile.owner] = 1;
-      target.AddBuff(119, 300, false);
-    }
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = Projectile.Center.X;
+                Projectile.localAI[1] = Projectile.Center.Y;
+                SoundEngine.PlaySound(SoundID.Item44, Projectile.Center);
+            }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
+            Projectile.rotation = Projectile.ai[0];
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index += 2)
-      {
-        Color color = Color.op_Multiply(alpha, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+            float speed = Projectile.velocity.Length();
+            speed += Projectile.ai[1];
+            Projectile.velocity = Vector2.Normalize(Projectile.velocity) * speed;
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            FargoSoulsUtil.HeartDust(Projectile.Center, Projectile.rotation + MathHelper.PiOver2);
+            SoundEngine.PlaySound(FargosSoundRegistry.DeviHeartExplosion, Projectile.Center);
+
+            /*for (int i = 0; i < 10; i++)
+            {
+                int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 86, 0f, 0f, 0, default(Color), 2f);
+                Main.dust[d].noGravity = true;
+                Main.dust[d].velocity *= 8f;
+            }*/
+
+            if (Projectile.owner == Main.myPlayer)
+            {
+                Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, Vector2.UnitX.RotatedBy(Projectile.rotation),
+                        ModContent.ProjectileType<SparklingLoveDeathray2>(), Projectile.damage, Projectile.knockBack, Projectile.owner);
+                Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, Vector2.UnitX.RotatedBy(Projectile.rotation + (float)Math.PI),
+                        ModContent.ProjectileType<SparklingLoveDeathray2>(), Projectile.damage, Projectile.knockBack, Projectile.owner);
+
+                Projectile.NewProjectile(Projectile.GetSource_FromThis(), new Vector2(Projectile.localAI[0], Projectile.localAI[1]), Vector2.UnitX.RotatedBy(Projectile.rotation - (float)Math.PI / 2),
+                    ModContent.ProjectileType<SparklingLoveDeathray2>(), Projectile.damage, Projectile.knockBack, Projectile.owner);
+            }
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.immune[Projectile.owner] = 1;
+            target.AddBuff(BuffID.Lovestruck, 300);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 2)
+            {
+                Color color27 = color26;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, SpriteEffects.None, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

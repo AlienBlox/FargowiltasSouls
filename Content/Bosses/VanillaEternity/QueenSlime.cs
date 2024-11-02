@@ -1,10 +1,5 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.VanillaEternity.QueenSlime
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Common.Utilities;
+using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.NPCs.EternityModeNPCs;
 using FargowiltasSouls.Content.Projectiles;
 using FargowiltasSouls.Core.Globals;
@@ -19,378 +14,696 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.VanillaEternity
 {
-  public class QueenSlime : EModeNPCBehaviour
-  {
-    public int StompTimer;
-    public int StompCounter;
-    public int RainTimer;
-    public int SpikeCounter;
-    public float StompVelocityX;
-    public float StompVelocityY;
-    public bool SpawnedMinions1;
-    public bool SpawnedMinions2;
-    public bool GelatinSubjectDR;
-    public int RainDirection;
-    public bool DroppedSummon;
-    private const float StompTravelTime = 60f;
-    private const float StompGravity = 1.6f;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(657);
-
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    public class QueenSlime : EModeNPCBehaviour
     {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.StompTimer);
-      binaryWriter.Write7BitEncodedInt(this.StompCounter);
-      binaryWriter.Write7BitEncodedInt(this.RainTimer);
-      binaryWriter.Write(this.StompVelocityX);
-      binaryWriter.Write(this.StompVelocityY);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.QueenSlimeBoss);
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.StompTimer = binaryReader.Read7BitEncodedInt();
-      this.StompCounter = binaryReader.Read7BitEncodedInt();
-      this.RainTimer = binaryReader.Read7BitEncodedInt();
-      this.StompVelocityX = binaryReader.ReadSingle();
-      this.StompVelocityY = binaryReader.ReadSingle();
-    }
+        public int StompTimer;
+        public int StompCounter;
+        public int RainTimer;
+        public int SpikeCounter;
 
-    public virtual void SetDefaults(NPC npc)
-    {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(npc);
-      npc.lifeMax = (int) Math.Round((double) npc.lifeMax * 1.25, (MidpointRounding) 0);
-      this.StompTimer = -360;
-    }
+        public int SummonCooldown;
 
-    private bool Stompy(NPC npc)
-    {
-      if (this.StompTimer == 0)
-      {
-        this.StompTimer = 1;
-        SoundEngine.PlaySound(ref SoundID.ForceRoarPitched, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-        if (FargoSoulsUtil.HostCheck)
-          Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0.0f, Main.myPlayer, (float) ((Entity) npc).whoAmI, 114f, 0.0f);
-        npc.netUpdate = true;
-        EModeNPCBehaviour.NetSync(npc);
-        return false;
-      }
-      if (this.StompTimer > 0 && this.StompTimer < 30)
-      {
-        ++this.StompTimer;
-        npc.rotation = 0.0f;
-        if (QueenSlime.NPCInAnyTiles(npc))
-          ((Entity) npc).position.Y -= 16f;
-        return false;
-      }
-      if (this.StompTimer == 30)
-      {
-        if (!npc.HasValidTarget)
-          npc.TargetClosest(false);
-        if (npc.HasValidTarget && this.StompCounter++ < 3)
+        public float StompVelocityX;
+        public float StompVelocityY;
+
+        public bool SpawnedMinions1;
+        public bool SpawnedMinions2;
+        public bool GelatinSubjectDR;
+        public int RainDirection;
+
+        public bool DroppedSummon;
+
+        private const float StompTravelTime = 60;
+        private const float StompGravity = 1.6f;
+
+        public static int MaxMinions => WorldSavingSystem.MasochistModeReal ? 3 : 2;
+
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
         {
-          ++this.StompTimer;
-          npc.ai[1] = 1f;
-          Vector2 center = ((Entity) Main.player[npc.target]).Center;
-          for (int index = 0; index < 3; ++index)
-          {
-            Tile tileSafely = Framing.GetTileSafely(center);
-            if (!((Tile) ref tileSafely).HasUnactuatedTile || !Main.tileSolid[(int) ((Tile) ref tileSafely).TileType] && !Main.tileSolidTop[(int) ((Tile) ref tileSafely).TileType])
-              center.Y += 16f;
-            else
-              break;
-          }
-          center.Y -= 42f;
-          Vector2 vector2 = Vector2.op_Subtraction(center, ((Entity) npc).Bottom);
-          if (this.StompCounter == 1 || this.StompCounter == 2)
-            vector2.X += 300f * (float) Math.Sign(((Entity) Main.player[npc.target]).Center.X - ((Entity) npc).Center.X);
-          float num = 60f;
-          if (this.StompCounter < 0)
-            num /= 2f;
-          vector2.X /= num;
-          vector2.Y = (float) ((double) vector2.Y / (double) num - 0.800000011920929 * (double) num);
-          this.StompVelocityX = vector2.X;
-          this.StompVelocityY = vector2.Y;
-          SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-          npc.netUpdate = true;
-          EModeNPCBehaviour.NetSync(npc);
-          return false;
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(StompTimer);
+            binaryWriter.Write7BitEncodedInt(StompCounter);
+            binaryWriter.Write7BitEncodedInt(RainTimer);
+            binaryWriter.Write7BitEncodedInt(SummonCooldown);
+            binaryWriter.Write(StompVelocityX);
+            binaryWriter.Write(StompVelocityY);
         }
-        this.StompCounter = 0;
-        this.StompTimer = -360;
-        ((Entity) npc).velocity.X = 0.0f;
-        npc.ai[1] = 2000f;
-        npc.ai[2] = 1f;
-        npc.netUpdate = true;
-        EModeNPCBehaviour.NetSync(npc);
-      }
-      else if (this.StompTimer > 30)
-      {
-        npc.rotation = 0.0f;
-        npc.noTileCollide = true;
-        float num1 = 60f;
-        if (this.StompCounter < 0)
-          num1 /= 2f;
-        if ((double) ++this.StompTimer > (double) num1 + 30.0)
-        {
-          npc.noTileCollide = false;
-          if ((double) ((Entity) npc).velocity.Y == 0.0 || QueenSlime.NPCInAnyTiles(npc) || (double) this.StompTimer >= (double) num1 * 2.0 + 25.0)
-          {
-            ((Entity) npc).velocity = Vector2.Zero;
-            this.StompTimer = !WorldSavingSystem.MasochistModeReal ? 15 : 25;
-            if (npc.DeathSound.HasValue)
-            {
-              SoundStyle soundStyle = npc.DeathSound.Value;
-              SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-            }
-            if (FargoSoulsUtil.HostCheck)
-            {
-              int num2 = !WorldSavingSystem.MasochistModeReal || !Main.getGoodWorld ? 0 : FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage);
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, 922, num2, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-              for (int index1 = -1; index1 <= 1; index1 += 2)
-              {
-                Vector2 vector2_1 = Utils.RotatedBy(Vector2.UnitX, (double) MathHelper.ToRadians(Utils.NextFloat(Main.rand, 10f) * (float) index1), new Vector2());
-                for (int index2 = 0; index2 < 12; ++index2)
-                {
-                  Vector2 vector2_2 = Vector2.op_Multiply(Vector2.op_Multiply(Utils.NextFloat(Main.rand, 5f, 15f) * (float) index1, Utils.RotatedBy(vector2_1, 0.052359879016876221 * (double) index2 * (double) -index1, new Vector2())), WorldSavingSystem.MasochistModeReal ? 2f : 1.5f);
-                  Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, vector2_2, 920, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                }
-              }
-            }
-            return false;
-          }
-        }
-        float num3 = this.StompVelocityY - ((Entity) npc).velocity.Y;
-        if ((double) num3 > 1.6000000238418579)
-          ((Entity) npc).position.Y += num3;
-        ((Entity) npc).velocity.X = this.StompVelocityX;
-        ((Entity) npc).velocity.Y = this.StompVelocityY;
-        this.StompVelocityY += 1.6f;
-        return false;
-      }
-      return true;
-    }
 
-    public override bool SafePreAI(NPC npc)
-    {
-      EModeGlobalNPC.queenSlimeBoss = ((Entity) npc).whoAmI;
-      if (WorldSavingSystem.SwarmActive)
-        return true;
-      TrySpawnMinions(ref this.SpawnedMinions1, 0.75);
-      TrySpawnMinions(ref this.SpawnedMinions2, 0.25);
-      this.GelatinSubjectDR = NPC.AnyNPCs(ModContent.NPCType<GelatinSubject>());
-      npc.HitSound = new SoundStyle?(this.GelatinSubjectDR ? SoundID.Item27 : SoundID.NPCHit1);
-      if ((double) npc.ai[0] == 5.0)
-      {
-        if (NPC.AnyNPCs(ModContent.NPCType<GelatinSubject>()))
-          npc.ai[1] -= 0.5f;
-        if ((double) npc.ai[1] == 45.0 && --this.SpikeCounter < 0)
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
         {
-          this.SpikeCounter = 4;
-          EModeNPCBehaviour.NetSync(npc);
-          SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 center = ((Entity) Main.player[npc.target]).Center;
-            for (int index = 0; index < 50; ++index)
-            {
-              Tile tileSafely = Framing.GetTileSafely(center);
-              if (!((Tile) ref tileSafely).HasUnactuatedTile || !Main.tileSolid[(int) ((Tile) ref tileSafely).TileType] && !Main.tileSolidTop[(int) ((Tile) ref tileSafely).TileType])
-                center.Y += 16f;
-              else
-                break;
-            }
-            center.Y -= 21f;
-            for (int index = -5; index <= 5; ++index)
-            {
-              Vector2 vector2_1 = center;
-              vector2_1.X += (float) (330 * index);
-              float ai0 = 60f + (float) Main.rand.Next(30);
-              float ai1 = 0.4f;
-              Vector2 vector2_2 = Vector2.op_Subtraction(vector2_1, ((Entity) npc).Center);
-              vector2_2.X /= ai0;
-              vector2_2.Y = (float) ((double) vector2_2.Y / (double) ai0 - 0.5 * (double) ai1 * (double) ai0);
-              FargoSoulsUtil.NewNPCEasy(((Entity) npc).GetSource_FromAI((string) null), ((Entity) npc).Center, ModContent.NPCType<GelatinSlime>(), ((Entity) npc).whoAmI, ai0, ai1, vector2_2.X, vector2_2.Y, npc.target, new Vector2());
-            }
-          }
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            StompTimer = binaryReader.Read7BitEncodedInt();
+            StompCounter = binaryReader.Read7BitEncodedInt();
+            RainTimer = binaryReader.Read7BitEncodedInt();
+            SummonCooldown = binaryReader.Read7BitEncodedInt();
+            StompVelocityX = binaryReader.ReadSingle();
+            StompVelocityY = binaryReader.ReadSingle();
         }
-      }
-      if (npc.life > npc.lifeMax / 2)
-      {
-        if (this.StompTimer > 0 || (double) npc.ai[0] == 0.0 && (double) ((Entity) npc).velocity.Y == 0.0)
+
+        public override void SetDefaults(NPC npc)
         {
-          if (this.StompTimer < 0)
-            ++this.StompTimer;
-          else
-            npc.ai[0] = 4f;
-          if (!this.Stompy(npc))
-            return false;
+            base.SetDefaults(npc);
+
+            npc.lifeMax = (int)Math.Round(npc.lifeMax * 1.35, MidpointRounding.ToEven);
+
+            StompTimer = -360;
         }
-      }
-      else
-      {
-        npc.defense = npc.defDefense / 2;
-        if (this.RainTimer < 0)
-          ++this.RainTimer;
-        if (this.RainTimer <= 0 && this.StompTimer < 0)
-          ++this.StompTimer;
-        if ((double) npc.ai[0] == 0.0)
+
+        private bool Stompy(NPC npc)
         {
-          if (this.RainTimer == 0)
-          {
-            if ((double) ((Entity) npc).velocity.Y < 0.0)
-              ((Entity) npc).position.Y += ((Entity) npc).velocity.Y;
-            --npc.ai[1];
-            if (npc.HasValidTarget && (double) Math.Abs(((Entity) npc).Center.Y - (((Entity) Main.player[npc.target]).Center.Y - 250f)) < 32.0)
+            if (StompTimer == 0) //ready to super stomp
             {
-              this.RainTimer = 1;
-              EModeNPCBehaviour.NetSync(npc);
-              npc.netUpdate = true;
-              SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-              if (FargoSoulsUtil.HostCheck)
-                Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0.0f, Main.myPlayer, (float) ((Entity) npc).whoAmI, -16f, 0.0f);
-            }
-          }
-          else if (this.RainTimer > 0)
-          {
-            ((Entity) npc).velocity.X *= 0.9f;
-            --npc.ai[1];
-            ++this.RainTimer;
-            int num = this.RainTimer - 45 - 45;
-            if (num < 0)
-              num = 0;
-            if (this.RainTimer == 45)
-              this.RainDirection = Math.Sign(((Entity) Main.player[npc.target]).Center.X - ((Entity) npc).Center.X);
-            if (this.RainTimer > 45 && this.RainTimer < 525 && this.RainTimer % 5 == 0)
-            {
-              Vector2 vector2_3;
-              // ISSUE: explicit constructor call
-              ((Vector2) ref vector2_3).\u002Ector(((Entity) npc).Center.X, Math.Min(((Entity) npc).Center.Y, ((Entity) Main.player[npc.target]).Center.Y));
-              vector2_3.X += 200f * (float) this.RainDirection * (float) Math.Sin(Math.PI / 240.0 * (double) num * 1.5);
-              vector2_3.Y -= 500f;
-              for (int index = -4; index <= 4; ++index)
-              {
-                Vector2 vector2_4 = Vector2.op_Addition(vector2_3, Utils.NextVector2Circular(Main.rand, 32f, 32f));
-                vector2_4.X += (float) (330 * index);
+                StompTimer = 1;
+
+                SoundEngine.PlaySound(SoundID.ForceRoarPitched, npc.Center);
+
                 if (FargoSoulsUtil.HostCheck)
-                  Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), vector2_4, Vector2.op_Multiply(8f, Vector2.UnitY), 920, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-              }
+                    Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, npc.whoAmI, NPCID.WallofFleshEye);
+
+                npc.netUpdate = true;
+                NetSync(npc);
+                return false;
             }
-            bool flag = this.RainTimer > 615;
-            if ((double) ((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center) > 1200.0)
+            else if (StompTimer > 0 && StompTimer < 30) //give time to react
             {
-              flag = true;
-              this.StompTimer = 0;
-              this.StompCounter = -3;
+                StompTimer++;
+
+                npc.rotation = 0;
+
+                if (NPCInAnyTiles(npc))
+                    npc.position.Y -= 16;
+
+                return false;
             }
-            if (!npc.HasValidTarget)
+            else if (StompTimer == 30)
             {
-              npc.TargetClosest(false);
-              if (!npc.HasValidTarget)
-                flag = true;
+                if (!npc.HasValidTarget)
+                    npc.TargetClosest(false);
+
+                if (npc.HasValidTarget && StompCounter++ < 3)
+                {
+                    StompTimer++;
+
+                    npc.ai[1] = 1f;
+
+                    Vector2 target = Main.player[npc.target].Center;
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Tile tile = Framing.GetTileSafely(target);
+                        if (tile.HasUnactuatedTile && (Main.tileSolid[tile.TileType] || Main.tileSolidTop[tile.TileType]))
+                            break;
+                        target.Y += 16f;
+                    }
+                    target.Y -= Player.defaultHeight;
+
+                    Vector2 distance = target - npc.Bottom;
+                    if (StompCounter == 1 || StompCounter == 2)
+                        distance.X += 300f * Math.Sign(Main.player[npc.target].Center.X - npc.Center.X);
+                    float time = StompTravelTime;
+                    if (StompCounter < 0) //enraged
+                        time /= 2;
+                    distance.X /= time;
+                    distance.Y = distance.Y / time - 0.5f * StompGravity * time;
+                    StompVelocityX = distance.X;
+                    StompVelocityY = distance.Y;
+
+                    SoundEngine.PlaySound(SoundID.Item92, npc.Center);
+
+                    npc.netUpdate = true;
+                    NetSync(npc);
+                    return false;
+                }
+                else //done enough stomps
+                {
+                    StompCounter = 0;
+                    StompTimer = -360;
+
+                    npc.velocity.X = 0;
+
+                    npc.ai[1] = 2000f; //proceed to next thing immediately
+                    npc.ai[2] = 1f;
+                    npc.netUpdate = true;
+                    NetSync(npc);
+                }
             }
-            if (flag)
+            else if (StompTimer > 30)
             {
-              this.RainTimer = -1000;
-              npc.netUpdate = true;
-              EModeNPCBehaviour.NetSync(npc);
-              if (this.StompTimer == 0)
-              {
-                npc.ai[0] = 4f;
-                npc.ai[1] = 0.0f;
-              }
+                npc.rotation = 0;
+                npc.noTileCollide = true;
+
+                float time = StompTravelTime;
+                if (StompCounter < 0) //enraged
+                    time /= 2;
+
+                if (++StompTimer > time + 30)
+                {
+                    npc.noTileCollide = false;
+
+                    //when landed on a surface
+                    if (npc.velocity.Y == 0 || NPCInAnyTiles(npc) || StompTimer >= time * 2 + 25)
+                    {
+                        npc.velocity = Vector2.Zero;
+
+                        if (WorldSavingSystem.MasochistModeReal)
+                        {
+                            StompTimer = 25;
+                        }
+                        else
+                        {
+                            StompTimer = /*NPC.AnyNPCs(ModContent.NPCType<GelatinSlime>()) ? 1 :*/ 15;
+                        }
+
+                        if (npc.DeathSound != null)
+                            SoundEngine.PlaySound(npc.DeathSound.Value, npc.Center);
+
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            int smashDamage = WorldSavingSystem.MasochistModeReal && Main.getGoodWorld
+                                ? FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage) : 0;
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ProjectileID.QueenSlimeSmash, smashDamage, 0f, Main.myPlayer);
+
+                            for (int j = -1; j <= 1; j += 2) //spray spikes
+                            {
+                                Vector2 baseVel = Vector2.UnitX.RotatedBy(MathHelper.ToRadians(Main.rand.NextFloat(10) * j));
+                                const int max = 12;
+                                for (int i = 0; i < max; i++)
+                                {
+                                    Vector2 vel = Main.rand.NextFloat(5f, 15f) * j * baseVel.RotatedBy(MathHelper.PiOver4 * 0.8f / max * i * -j);
+                                    vel *= WorldSavingSystem.MasochistModeReal ? 2f : 1.5f;
+                                    Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, vel, ProjectileID.QueenSlimeMinionBlueSpike, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer);
+                                }
+                            }
+                        }
+
+                        return false;
+                    }
+                }
+
+                //damn queen slime ai glitching out and not fastfalling properly sometimes
+                float correction = StompVelocityY - npc.velocity.Y;
+                if (correction > StompGravity)
+                    npc.position.Y += correction;
+
+                npc.velocity.X = StompVelocityX;
+                npc.velocity.Y = StompVelocityY;
+                StompVelocityY += StompGravity;
+
+                return false;
             }
-          }
-          else
-            ++npc.ai[1];
+
+            return true;
         }
-        else if ((double) npc.ai[0] == 4.0)
+
+        public override bool SafePreAI(NPC npc)
         {
-          if (!this.Stompy(npc))
-            return false;
-          if (!WorldSavingSystem.MasochistModeReal)
-          {
-            if ((double) npc.ai[1] == 0.0)
-              SoundEngine.PlaySound(ref npc.DeathSound, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-            if ((double) npc.ai[1] < 70.0)
+            EModeGlobalNPC.queenSlimeBoss = npc.whoAmI;
+
+            void TrySpawnMinions(ref bool check, double threshold)
             {
-              float num = (float) (1.0 - (double) npc.ai[1] / 70.0);
-              ((Entity) npc).position.Y -= ((Entity) npc).velocity.Y * num;
+                if (!check && npc.life < npc.lifeMax * threshold)
+                {
+                    check = true;
+
+                    FargoSoulsUtil.PrintLocalization($"Mods.{Mod.Name}.NPCs.EMode.GelatinSubjects", new Color(175, 75, 255));
+
+                    for (int i = 0; i < 7; i++)
+                    {
+                        FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, ModContent.NPCType<GelatinSubject>(), npc.whoAmI, target: npc.target,
+                            velocity: Main.rand.NextFloat(8f) * npc.DirectionFrom(Main.player[npc.target].Center).RotatedByRandom(MathHelper.PiOver2));
+                    }
+
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, npc.whoAmI, npc.type);
+                    }
+                }
             }
-          }
+
+            TrySpawnMinions(ref SpawnedMinions1, 0.75);
+            TrySpawnMinions(ref SpawnedMinions2, 0.25);
+
+            GelatinSubjectDR = NPC.AnyNPCs(ModContent.NPCType<GelatinSubject>());
+            npc.HitSound = GelatinSubjectDR ? SoundID.Item27 : SoundID.NPCHit1;
+
+            if (SummonCooldown > 0)
+                SummonCooldown--;
+
+            //ai0
+            //0 = default
+            //3 = chase?
+            //4 = stomp
+            //5 = shooty gels
+
+            if (npc.ai[0] == 5) //when shooting, p1 and p2
+            {
+                if (NPC.AnyNPCs(ModContent.NPCType<GelatinSubject>()))
+                    npc.ai[1] -= 0.5f;
+
+                if (npc.ai[1] == 45 && --SpikeCounter < 0) //every few shots
+                {
+                    SpikeCounter = 4;
+                    NetSync(npc);
+
+                    SoundEngine.PlaySound(SoundID.Roar, npc.Center);
+
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 focus = Main.player[npc.target].Center;
+                        for (int i = 0; i < 50; i++)
+                        {
+                            Tile tile = Framing.GetTileSafely(focus);
+                            if (tile.HasUnactuatedTile && (Main.tileSolid[tile.TileType] || Main.tileSolidTop[tile.TileType]))
+                                break;
+                            focus.Y += 16f;
+                        }
+                        focus.Y -= Player.defaultHeight / 2f;
+
+                        for (int i = -5; i <= 5; i++)
+                        {
+                            Vector2 targetPos = focus;
+                            targetPos.X += 330 * i;
+
+                            float minionTravelTime = StompTravelTime + Main.rand.Next(30);
+                            float minionGravity = 0.4f;
+                            Vector2 vel = targetPos - npc.Center;
+                            vel.X /= minionTravelTime;
+                            vel.Y = vel.Y / minionTravelTime - 0.5f * minionGravity * minionTravelTime;
+
+                            FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, ModContent.NPCType<GelatinSlime>(), npc.whoAmI, minionTravelTime, minionGravity, vel.X, vel.Y, target: npc.target);
+                        }
+                    }
+                }
+            }
+
+            if (npc.life > npc.lifeMax / 2) //phase 1
+            {
+                if (StompTimer > 0 || npc.ai[0] == 0 && npc.velocity.Y == 0)
+                {
+                    if (StompTimer < 0)
+                        StompTimer++;
+                    else
+                        npc.ai[0] = 4; //activates trail visual
+
+                    if (!Stompy(npc))
+                        return false;
+                }
+
+                // minion spawns
+                if (!NPC.AnyNPCs(ModContent.NPCType<GelatinSubject>()) && SummonCooldown <= 0)
+                {
+                    bool condition1 = npc.ai[0] == 3 && npc.ai[1] == -20;
+                    bool condition2 = npc.ai[0] == 0 && npc.ai[1] == 40;
+                    if (condition1 || condition2)
+                    {
+                        if (FargoSoulsUtil.HostCheck && NPC.CountNPCS(ModContent.NPCType<GelatinBouncer>()) < MaxMinions)
+                            FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, ModContent.NPCType<GelatinBouncer>(), npc.whoAmI, target: npc.target,
+                                velocity: Main.rand.NextFloat(8f) * npc.DirectionFrom(Main.player[npc.target].Center).RotatedByRandom(MathHelper.PiOver2));
+
+                        SummonCooldown = LumUtils.SecondsToFrames(8);
+                    }
+                }
+            }
+            else //phase 2
+            {
+                npc.defense = npc.defDefense / 2;
+
+                if (!NPC.AnyNPCs(ModContent.NPCType<GelatinSubject>()) && RainTimer < 0)
+                {
+                    bool condition1 = npc.ai[0] == 0 && npc.ai[1] == 20;
+                    if (condition1)
+                    {
+                        if (FargoSoulsUtil.HostCheck && NPC.CountNPCS(ModContent.NPCType<GelatinFlyer>()) < MaxMinions)
+                            FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, ModContent.NPCType<GelatinFlyer>(), npc.whoAmI, target: npc.target,
+                                velocity: 16f * npc.DirectionFrom(Main.player[npc.target].Center).RotatedBy(MathHelper.PiOver2 * 0.3f * (Main.rand.NextBool() ? 1 : -1)));
+                    }
+                }
+
+                if (RainTimer < 0)
+                    RainTimer++;
+
+                if (RainTimer <= 0 && StompTimer < 0) //dont run timer during rain attack
+                    StompTimer++;
+
+                if (npc.ai[0] == 0) //basic flying ai
+                {
+                    if (RainTimer == 0)
+                    {
+                        if (npc.velocity.Y < 0)
+                            npc.position.Y += npc.velocity.Y;
+
+                        npc.ai[1] -= 1; //dont progress to next ai
+
+                        if (npc.HasValidTarget && Math.Abs(npc.Center.Y - (Main.player[npc.target].Center.Y - 250)) < 32)
+                        {
+                            RainTimer = 1; //begin attack
+                            NetSync(npc);
+
+                            npc.netUpdate = true;
+
+                            SoundEngine.PlaySound(SoundID.Roar, npc.Center);
+
+                            if (FargoSoulsUtil.HostCheck)
+                                Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, npc.whoAmI, -16);
+                        }
+                    }
+                    else if (RainTimer > 0) //actually doing rain
+                    {
+                        npc.velocity.X *= 0.9f;
+
+                        npc.ai[1] -= 1f; //dont progress ai
+
+                        RainTimer++;
+
+                        const int delay = 45;
+                        const int timeBeforeStreamsMove = 45;
+                        const int maxAttackTime = 480;
+                        int attackTimer = RainTimer - delay - timeBeforeStreamsMove;
+                        if (attackTimer < 0)
+                            attackTimer = 0;
+
+                        if (RainTimer == delay)
+                            RainDirection = Math.Sign(Main.player[npc.target].Center.X - npc.Center.X);
+
+                        if (RainTimer > delay && RainTimer < delay + maxAttackTime) // actually attacking
+                        {
+                            if (RainTimer % 5 == 0) // projectiles
+                            {
+                                const float maxWavy = 200;
+                                Vector2 focusPoint = new(npc.Center.X, Math.Min(npc.Center.Y, Main.player[npc.target].Center.Y));
+                                focusPoint.X += maxWavy * RainDirection * (float)Math.Sin(Math.PI * 2f / maxAttackTime * attackTimer * 1.5f);
+                                focusPoint.Y -= 500;
+
+                                for (int i = -4; i <= 4; i++)
+                                {
+                                    Vector2 spawnPos = focusPoint + Main.rand.NextVector2Circular(32, 32);
+                                    spawnPos.X += 330 * i;
+                                    if (FargoSoulsUtil.HostCheck)
+                                    {
+                                        Projectile.NewProjectile(npc.GetSource_FromThis(), spawnPos, 8f * Vector2.UnitY,
+                                          ProjectileID.QueenSlimeMinionBlueSpike, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer);
+                                    }
+                                }
+                            }
+                            if (RainTimer % 50 == 0 && RainTimer > delay * 2) // minion spawns
+                            {
+
+                                if (!NPC.AnyNPCs(ModContent.NPCType<GelatinSubject>()))
+                                {
+                                    if (NPC.CountNPCS(ModContent.NPCType<GelatinFlyer>()) < MaxMinions)
+                                    {
+                                        SoundEngine.PlaySound(SoundID.Item155, npc.Center);
+                                        FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, ModContent.NPCType<GelatinFlyer>(), npc.whoAmI, target: npc.target,
+                                            velocity: 16f * npc.DirectionFrom(Main.player[npc.target].Center).RotatedBy(MathHelper.PiOver2 * 0.3f * (Main.rand.NextBool() ? 1 : -1)));
+                                    }
+
+                                }
+                            }
+                        }
+
+                        bool endAttack = RainTimer > delay + maxAttackTime + 90;
+                        if (npc.Distance(Main.player[npc.target].Center) > 1200)
+                        {
+                            endAttack = true;
+
+                            StompTimer = 0;
+                            StompCounter = -3; //enraged super stomps
+                        }
+
+                        if (!npc.HasValidTarget)
+                        {
+                            npc.TargetClosest(false);
+                            if (!npc.HasValidTarget)
+                                endAttack = true;
+                        }
+
+                        if (endAttack)
+                        {
+                            RainTimer = -1000;
+                            npc.netUpdate = true;
+                            NetSync(npc);
+
+                            if (StompTimer == 0) //transition directly to stompy if ready
+                            {
+                                npc.ai[0] = 4f;
+                                npc.ai[1] = 0f;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        npc.ai[1] += 1; //proceed to next ais faster
+                    }
+                }
+                else if (npc.ai[0] == 4) //stompy
+                {
+                    if (!Stompy(npc))
+                        return false;
+
+                    if (!WorldSavingSystem.MasochistModeReal)
+                    {
+                        if (npc.ai[1] == 0)
+                            SoundEngine.PlaySound(npc.DeathSound, npc.Center);
+
+                        if (npc.ai[1] < 70) //artificial startup on this stupid no-telegraph dive
+                        {
+                            float ratio = 1f - npc.ai[1] / 70;
+                            npc.position.Y -= npc.velocity.Y * ratio;
+                        }
+                    }
+                }
+                else if (npc.ai[0] == 5) //when shooting
+                {
+                    //be careful to stay above player
+                    if (npc.HasValidTarget && npc.Bottom.Y > Main.player[npc.target].Top.Y - 80 && npc.velocity.Y > -8f)
+                        npc.velocity.Y -= 0.8f;
+                }
+            }
+
+            //FargoSoulsUtil.PrintAI(npc);
+
+            EModeUtils.DropSummon(npc, "JellyCrystal", NPC.downedQueenSlime, ref DroppedSummon, Main.hardMode);
+
+            return true;
         }
-        else if ((double) npc.ai[0] == 5.0 && npc.HasValidTarget && (double) ((Entity) npc).Bottom.Y > (double) ((Entity) Main.player[npc.target]).Top.Y - 80.0 && (double) ((Entity) npc).velocity.Y > -8.0)
-          ((Entity) npc).velocity.Y -= 0.8f;
-      }
-      EModeUtils.DropSummon(npc, "JellyCrystal", NPC.downedQueenSlime, ref this.DroppedSummon, Main.hardMode);
-      return true;
 
-      void TrySpawnMinions(ref bool check, double threshold)
-      {
-        if (check || (double) npc.life >= (double) npc.lifeMax * threshold)
-          return;
-        check = true;
-        FargoSoulsUtil.PrintLocalization("Mods." + ((ModType) this).Mod.Name + ".NPCs.EMode.GelatinSubjects", new Color(175, 75, (int) byte.MaxValue));
-        for (int index = 0; index < 7; ++index)
-          FargoSoulsUtil.NewNPCEasy(((Entity) npc).GetSource_FromAI((string) null), ((Entity) npc).Center, ModContent.NPCType<GelatinSubject>(), ((Entity) npc).whoAmI, target: npc.target, velocity: Vector2.op_Multiply(Utils.NextFloat(Main.rand, 8f), Utils.RotatedByRandom(((Entity) npc).DirectionFrom(((Entity) Main.player[npc.target]).Center), 1.5707963705062866)));
-        if (!FargoSoulsUtil.HostCheck)
-          return;
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0.0f, Main.myPlayer, (float) ((Entity) npc).whoAmI, (float) npc.type, 0.0f);
-      }
-    }
-
-    private static bool NPCInAnyTiles(NPC npc)
-    {
-      bool flag = false;
-      for (int index = 0; index < ((Entity) npc).width; index += 16)
-      {
-        for (float num = (float) (((Entity) npc).height / 2); (double) num < (double) ((Entity) npc).height; num += 16f)
+        private static bool NPCInAnyTiles(NPC npc)
         {
-          Tile tileSafely = Framing.GetTileSafely((int) ((double) ((Entity) npc).position.X + (double) index) / 16, (int) ((double) ((Entity) npc).position.Y + (double) num) / 16);
-          if (((Tile) ref tileSafely).HasUnactuatedTile && (Main.tileSolid[(int) ((Tile) ref tileSafely).TileType] || Main.tileSolidTop[(int) ((Tile) ref tileSafely).TileType]))
-          {
-            flag = true;
-            break;
-          }
+            //WHERE'S TJHE FKC IJNGI METHOD FOR HTIS? ITS NOT COLLISION.SOLKIDCOLLIOSOM ITS NOPT COLLISON.SOLDITILES I HATE 1.4 IHATE TMODLAOREI I HATE THIS FUSPTID FUCKIGN GNAME SOFU KIGN MCUCH FUCK FUCK FUCK
+            bool isInTilesIncludingPlatforms = false;
+            for (int x = 0; x < npc.width; x += 16)
+            {
+                for (float y = npc.height / 2; y < npc.height; y += 16)
+                {
+                    Tile tile = Framing.GetTileSafely((int)(npc.position.X + x) / 16, (int)(npc.position.Y + y) / 16);
+                    if (tile.HasUnactuatedTile && (Main.tileSolid[tile.TileType] || Main.tileSolidTop[tile.TileType]))
+                    {
+                        isInTilesIncludingPlatforms = true;
+                        break;
+                    }
+                }
+            }
+
+            return isInTilesIncludingPlatforms;
         }
-      }
-      return flag;
+
+        public override void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
+        {
+            if (npc.lifeRegen >= 0)
+                return;
+            if (npc.life < npc.lifeMax / 2)
+                modifiers.FinalDamage *= 0.8f;
+
+            if (GelatinSubjectDR)
+                modifiers.FinalDamage *= 0.1f;
+
+            base.ModifyIncomingHit(npc, ref modifiers);
+        }
+        public override void UpdateLifeRegen(NPC npc, ref int damage)
+        {
+            if (npc.lifeRegen < 0)
+            {
+                if (npc.life < npc.lifeMax / 2)
+                {
+                    npc.lifeRegen = (int)Math.Round(npc.lifeRegen * 0.8f);
+                    damage = (int)(Math.Round(damage *0.8f));
+                }
+                    
+                if (GelatinSubjectDR)
+                {
+                    npc.lifeRegen /= 10;
+                    damage /= 10;
+                }
+            }
+        }
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(BuffID.Slimed, 240);
+        }
+
+        public override void LoadSprites(NPC npc, bool recolor)
+        {
+            base.LoadSprites(npc, recolor);
+
+            LoadBossHeadSprite(recolor, 38);
+            LoadGore(recolor, 1258);
+            LoadGore(recolor, 1259);
+            LoadExtra(recolor, 177);
+            LoadExtra(recolor, 180);
+            LoadExtra(recolor, 185);
+            LoadExtra(recolor, 186);
+            LoadProjectile(recolor, ProjectileID.QueenSlimeGelAttack);
+            LoadProjectile(recolor, ProjectileID.QueenSlimeMinionPinkBall);
+            LoadProjectile(recolor, ProjectileID.QueenSlimeMinionBlueSpike);
+
+        }
     }
 
-    public virtual void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
+    public class QueenSlimeMinion : EModeNPCBehaviour
     {
-      if (npc.life < npc.lifeMax / 2)
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Multiply(local, 0.8f);
-      }
-      if (this.GelatinSubjectDR)
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Multiply(local, 0.25f);
-      }
-      base.ModifyIncomingHit(npc, ref modifiers);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.QueenSlimeMinionBlue,
+            NPCID.QueenSlimeMinionPink,
+            NPCID.QueenSlimeMinionPurple
+        );
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(137, 240, true, false);
-    }
+        public bool TimeToFly;
+        public bool Landed;
 
-    public override void LoadSprites(NPC npc, bool recolor)
-    {
-      base.LoadSprites(npc, recolor);
-      EModeNPCBehaviour.LoadBossHeadSprite(recolor, 38);
-      EModeNPCBehaviour.LoadGore(recolor, 1258);
-      EModeNPCBehaviour.LoadGore(recolor, 1259);
-      EModeNPCBehaviour.LoadExtra(recolor, 177);
-      EModeNPCBehaviour.LoadExtra(recolor, 180);
-      EModeNPCBehaviour.LoadExtra(recolor, 185);
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            bitWriter.WriteBit(TimeToFly);
+        }
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+        {
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            TimeToFly = bitReader.ReadBit();
+        }
+
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
+
+            if (WorldSavingSystem.MasochistModeReal)
+                npc.knockBackResist = 0;
+        }
+
+        public override void OnFirstTick(NPC npc)
+        {
+            if (NPC.AnyNPCs(NPCID.QueenSlimeBoss))
+            {
+                npc.life = 0;
+                npc.active = false;
+                npc.timeLeft = 0;
+                npc = null;
+                return;
+            }
+        }
+        public override void AI(NPC npc)
+        {
+            if (NPC.AnyNPCs(NPCID.QueenSlimeBoss))
+            {
+                npc.life = 0;
+                npc.active = false;
+                npc.timeLeft = 0;
+                npc = null;
+                return;
+            }
+            base.AI(npc);
+
+            if (WorldSavingSystem.MasochistModeReal)
+            {
+                if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.queenSlimeBoss, NPCID.QueenSlimeBoss))
+                {
+                    Vector2 target = Main.player[Main.npc[EModeGlobalNPC.queenSlimeBoss].target].Top;
+                    if (TimeToFly)
+                    {
+
+                        npc.velocity = Math.Min(npc.velocity.Length(), 20f) * npc.SafeDirectionTo(target);
+                        npc.position += 8f * npc.SafeDirectionTo(target);
+
+                        if (npc.Distance(target) < 300f)
+                        {
+                            TimeToFly = false;
+                            NetSync(npc);
+
+                            npc.velocity += 8f * npc.SafeDirectionTo(target).RotatedByRandom(MathHelper.PiOver4);
+                            npc.netUpdate = true;
+                        }
+                    }
+                    else if (npc.Distance(target) > 900f)
+                    {
+                        TimeToFly = true;
+                        NetSync(npc);
+                    }
+                }
+                else
+                {
+                    TimeToFly = false;
+                }
+
+                npc.noTileCollide = TimeToFly;
+            }
+            else
+            {
+                npc.localAI[0] = 30f; //prevent firing
+
+                if (npc.type == NPCID.QueenSlimeMinionPurple)
+                {
+                    npc.position -= npc.velocity * 0.5f;
+                }
+                else
+                {
+                    if (!Landed) //tl;dr dont fall on the player
+                    {
+                        if (npc.velocity.Y == 0)
+                            Landed = true;
+
+                        Player p = FargoSoulsUtil.PlayerExists(Player.FindClosest(npc.Center, 0, 0));
+                        if (p != null)
+                        {
+                            const float minDist = 16 * 8;
+                            float dist = npc.Center.X - p.Center.X;
+                            if (Math.Abs(dist) < minDist)
+                            {
+                                npc.velocity.X *= 0.95f;
+                                npc.velocity.X += (minDist - Math.Abs(dist)) * Math.Sign(dist) * 0.05f;
+                            }
+                        }
+                    }
+                }
+            }
+
+            //if (npc.velocity.Y != 0)
+            //    npc.localAI[0] = 25f;
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(BuffID.Slimed, 180);
+            target.AddBuff(ModContent.BuffType<SmiteBuff>(), 360);
+        }
+
+        public override void LoadSprites(NPC npc, bool recolor)
+        {
+            base.LoadSprites(npc, recolor);
+
+            LoadNPCSprite(recolor, npc.type);
+            LoadGore(recolor, 1260);
+        }
     }
-  }
+   
 }

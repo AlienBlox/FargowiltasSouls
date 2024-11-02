@@ -1,52 +1,62 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Spirit.SpiritHeal
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Spirit
 {
-  public class SpiritHeal : SpiritSpirit
-  {
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public override void AI()
+    public class SpiritHeal : SpiritSpirit
     {
-      if ((double) --this.Projectile.ai[1] < 0.0 && (double) this.Projectile.ai[1] > -300.0)
-      {
-        NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0], ModContent.NPCType<SpiritChampion>());
-        if (npc.TypeAlive<SpiritChampion>())
+        public override bool? CanDamage()
         {
-          if ((double) ((Entity) this.Projectile).Distance(((Entity) npc).Center) > 50.0)
-          {
-            for (int index = 0; index < 3; ++index)
-            {
-              Vector2 vector2 = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center), 3f);
-              ((Entity) this.Projectile).velocity = Vector2.op_Division(Vector2.op_Addition(Vector2.op_Multiply(((Entity) this.Projectile).velocity, 29f), vector2), 30f);
-            }
-          }
-          else if (FargoSoulsUtil.HostCheck)
-          {
-            npc.life += this.Projectile.damage;
-            npc.HealEffect(this.Projectile.damage, true);
-            if (npc.life > npc.lifeMax)
-              npc.life = npc.lifeMax;
-            this.Projectile.Kill();
-          }
+            return false;
         }
-        else
-          this.Projectile.Kill();
-      }
-      for (int index = 0; index < 3; ++index)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).position = Vector2.op_Addition(((Entity) projectile).position, ((Entity) this.Projectile).velocity);
-      }
+
+        public override void AI()
+        {
+            if (--Projectile.ai[1] < 0 && Projectile.ai[1] > -300)
+            {
+                NPC n = FargoSoulsUtil.NPCExists(Projectile.ai[0], ModContent.NPCType<SpiritChampion>());
+                if (n.TypeAlive<SpiritChampion>())
+                {
+                    if (Projectile.Distance(n.Center) > 50) //stop homing when in certain range
+                    {
+                        for (int i = 0; i < 3; i++) //make up for real spectre bolt having 3 extraUpdates
+                        {
+                            Vector2 change = Projectile.SafeDirectionTo(n.Center) * 3f;
+                            Projectile.velocity = (Projectile.velocity * 29f + change) / 30f;
+                        }
+                    }
+                    else //die and feed it
+                    {
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            n.life += Projectile.damage;
+                            n.HealEffect(Projectile.damage);
+                            if (n.life > n.lifeMax)
+                                n.life = n.lifeMax;
+                            Projectile.Kill();
+                        }
+                    }
+                }
+                else
+                {
+                    Projectile.Kill();
+                }
+            }
+
+            for (int i = 0; i < 3; i++) //make up for real spectre bolt having 3 extraUpdates
+            {
+                Projectile.position += Projectile.velocity;
+
+                /*for (int j = 0; j < 5; ++j)
+                {
+                    Vector2 vel = Projectile.velocity * 0.2f * j;
+                    int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 175, 0f, 0f, 100, default, 1.3f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity = Vector2.Zero;
+                    Main.dust[d].position -= vel;
+                }*/
+            }
+        }
     }
-  }
 }

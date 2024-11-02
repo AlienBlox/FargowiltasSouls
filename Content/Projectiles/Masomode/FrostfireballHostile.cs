@@ -1,130 +1,124 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.FrostfireballHostile
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
+﻿using FargowiltasSouls.Assets.ExtraTextures;
 
-using FargowiltasSouls.Assets.ExtraTextures;
-using FargowiltasSouls.Content.Buffs.Masomode;
+
 using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class FrostfireballHostile : ModProjectile, IPixelatedPrimitiveRenderer
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_253";
-
-    public virtual void SetStaticDefaults()
+	public class FrostfireballHostile : ModProjectile, IPixelatedPrimitiveRenderer
     {
-      ProjectileID.Sets.TrailingMode[this.Type] = 1;
-      ProjectileID.Sets.TrailCacheLength[this.Type] = 20;
-    }
+        public override string Texture => "Terraria/Images/Projectile_253";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 16;
-      ((Entity) this.Projectile).height = 16;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.timeLeft = 600;
-      this.Projectile.coldDamage = true;
-    }
-
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = 1f;
-        SoundEngine.PlaySound(ref SoundID.Item8, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      }
-      if ((double) --this.Projectile.ai[1] > -60.0 && (double) this.Projectile.ai[1] < 0.0)
-      {
-        Player player = FargoSoulsUtil.PlayerExists(this.Projectile.ai[0]);
-        if (player != null && ((Entity) player).active && !player.dead)
+        public override void SetStaticDefaults()
         {
-          Vector2 vector2 = Vector2.op_Subtraction(((Entity) player).Center, ((Entity) this.Projectile).Center);
-          ((Vector2) ref vector2).Normalize();
-          vector2 = Vector2.op_Multiply(vector2, 8f);
-          ((Entity) this.Projectile).velocity.X = (float) (((double) ((Entity) this.Projectile).velocity.X * 40.0 + (double) vector2.X) / 41.0);
-          ((Entity) this.Projectile).velocity.Y = (float) (((double) ((Entity) this.Projectile).velocity.Y * 40.0 + (double) vector2.Y) / 41.0);
+            // DisplayName.SetDefault("Frostfireball");
+            ProjectileID.Sets.TrailingMode[Type] = 1;
+            ProjectileID.Sets.TrailCacheLength[Type] = 20;
         }
-        else
+
+        public override void SetDefaults()
         {
-          this.Projectile.ai[0] = -1f;
-          this.Projectile.netUpdate = true;
+            Projectile.width = 16;
+            Projectile.height = 16;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.timeLeft = 600;
+            Projectile.coldDamage = true;
         }
-      }
-      this.Projectile.spriteDirection = ((Entity) this.Projectile).direction = (double) ((Entity) this.Projectile).velocity.X > 0.0 ? 1 : -1;
-      this.Projectile.rotation += 0.3f * (float) ((Entity) this.Projectile).direction;
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Item10, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-      for (int index1 = 0; index1 < 10; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 135, (float) (-(double) ((Entity) this.Projectile).velocity.X * 0.20000000298023224), (float) (-(double) ((Entity) this.Projectile).velocity.Y * 0.20000000298023224), 100, new Color(), 2f);
-        Main.dust[index2].noGravity = true;
-        Dust dust1 = Main.dust[index2];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 2f);
-        int index3 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 135, (float) (-(double) ((Entity) this.Projectile).velocity.X * 0.20000000298023224), (float) (-(double) ((Entity) this.Projectile).velocity.Y * 0.20000000298023224), 100, new Color(), 1f);
-        Dust dust2 = Main.dust[index3];
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 2f);
-      }
-    }
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0f)
+            {
+                Projectile.localAI[0] = 1f;
+                SoundEngine.PlaySound(SoundID.Item8, Projectile.Center);
+            }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(44, 180, true, false);
-      target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 600, true, false);
-    }
+            //int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 135, Projectile.velocity.X * 0.2f, Projectile.velocity.Y * 0.2f, 100, new Color(), 2f);
+            //Main.dust[index2].noGravity = true;
+            //Main.dust[index2].velocity.X *= 0.3f;
+            //Main.dust[index2].velocity.Y *= 0.3f;
 
-    public virtual Color? GetAlpha(Color lightColor) => new Color?(new Color(200, 200, 200, 25));
+            if (--Projectile.ai[1] > -60f && Projectile.ai[1] < 0f) //homing for 1sec, with delay
+            {
+                Player player = FargoSoulsUtil.PlayerExists(Projectile.ai[0]);
+                if (player != null && player.active && !player.dead)
+                {
+                    Vector2 dist = player.Center - Projectile.Center;
+                    dist.Normalize();
+                    dist *= 8f;
+                    Projectile.velocity.X = (Projectile.velocity.X * 40 + dist.X) / 41;
+                    Projectile.velocity.Y = (Projectile.velocity.Y * 40 + dist.Y) / 41;
+                }
+                else
+                {
+                    Projectile.ai[0] = -1f;
+                    Projectile.netUpdate = true;
+                }
+            }
 
-    public float WidthFunction(float completionRatio)
-    {
-      return MathHelper.SmoothStep((float) ((double) this.Projectile.scale * (double) ((Entity) this.Projectile).width * 1.2999999523162842), 3.5f, completionRatio);
-    }
+            Projectile.spriteDirection = Projectile.direction = Projectile.velocity.X > 0 ? 1 : -1;
+            Projectile.rotation += 0.3f * Projectile.direction;
+        }
 
-    public static Color ColorFunction(float completionRatio)
-    {
-      return Color.op_Multiply(Color.Lerp(new Color(0, 204, 244), Color.Transparent, completionRatio), 0.7f);
-    }
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.Item10, Projectile.position);
+            for (int index1 = 0; index1 < 10; ++index1)
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.IceTorch, -Projectile.velocity.X * 0.2f, -Projectile.velocity.Y * 0.2f, 100, new Color(), 2f);
+                Main.dust[index2].noGravity = true;
+                Main.dust[index2].velocity *= 2f;
+                int index3 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.IceTorch, -Projectile.velocity.X * 0.2f, -Projectile.velocity.Y * 0.2f, 100, new Color(), 1f);
+                Main.dust[index3].velocity *= 2f;
+            }
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.White, this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
-    }
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(BuffID.Frostburn, 180);
+            target.AddBuff(ModContent.BuffType<Buffs.Masomode.HypothermiaBuff>(), 600);
+        }
 
-    public void RenderPixelatedPrimitives(SpriteBatch spriteBatch)
-    {
-      ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.BlobTrail");
-      FargosTextureRegistry.FadedStreak.Value.SetTexture1();
-      // ISSUE: method pointer
-      // ISSUE: reference to a compiler-generated field
-      // ISSUE: reference to a compiler-generated field
-      // ISSUE: method pointer
-      // ISSUE: method pointer
-      PrimitiveRenderer.RenderTrail((IEnumerable<Vector2>) this.Projectile.oldPos, new PrimitiveSettings(new PrimitiveSettings.VertexWidthFunction((object) this, __methodptr(WidthFunction)), FrostfireballHostile.\u003C\u003EO.\u003C0\u003E__ColorFunction ?? (FrostfireballHostile.\u003C\u003EO.\u003C0\u003E__ColorFunction = new PrimitiveSettings.VertexColorFunction((object) null, __methodptr(ColorFunction))), new PrimitiveSettings.VertexOffsetFunction((object) this, __methodptr(\u003CRenderPixelatedPrimitives\u003Eb__11_0)), true, true, shader, new int?(), new int?(), false, new (Vector2, Vector2)?()), new int?(44));
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(200, 200, 200, 25);
+        }
+
+        public float WidthFunction(float completionRatio)
+        {
+            float baseWidth = Projectile.scale * Projectile.width * 1.3f;
+            return MathHelper.SmoothStep(baseWidth, 3.5f, completionRatio);
+        }
+
+        public static Color ColorFunction(float completionRatio)
+        {
+            return Color.Lerp(new(0, 204, 244), Color.Transparent, completionRatio) * 0.7f;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Color.White, Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
+        public void RenderPixelatedPrimitives(SpriteBatch spriteBatch)
+        {
+            ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.BlobTrail");
+            FargoSoulsUtil.SetTexture1(FargosTextureRegistry.FadedStreak.Value);
+            PrimitiveRenderer.RenderTrail(Projectile.oldPos, new(WidthFunction, ColorFunction, _ => Projectile.Size * 0.5f, Pixelate: true, Shader: shader), 44);
+        }
     }
-  }
 }

@@ -1,37 +1,84 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.OrichalcumEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Items.Accessories.Forces;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class OrichalcumEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(235, 50, 145);
-
-    public override void SetDefaults()
+    public class OrichalcumEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 5;
-      this.Item.value = 100000;
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
+
+        public override Color nameColor => new(235, 50, 145);
+
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Pink;
+            Item.value = 100000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<OrichalcumEffect>(Item);
+        }
+
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddRecipeGroup("FargowiltasSouls:AnyOriHead")
+            .AddIngredient(ItemID.OrichalcumBreastplate)
+            .AddIngredient(ItemID.OrichalcumLeggings)
+            .AddIngredient(ItemID.FlowerofFire)
+            .AddIngredient(ItemID.FlowerofFrost)
+            .AddIngredient(ItemID.CursedFlames)
+
+            .AddTile(TileID.CrystalBall)
+            .Register();
+        }
     }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
+    public class OrichalcumEffect : AccessoryEffect
     {
-      player.AddEffect<OrichalcumEffect>(this.Item);
-    }
+        public override Header ToggleHeader => Header.GetHeader<EarthHeader>();
+        public override int ToggleItemType => ModContent.ItemType<OrichalcumEnchant>();
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddRecipeGroup("FargowiltasSouls:AnyOriHead", 1).AddIngredient(1213, 1).AddIngredient(1214, 1).AddIngredient(112, 1).AddIngredient(1264, 1).AddIngredient(519, 1).AddTile(125).Register();
+        public override bool ExtraAttackEffect => true;
+
+        public static float OriDotModifier(NPC npc, FargoSoulsPlayer modPlayer)
+        {
+            float multiplier = 2.5f;
+
+            if (modPlayer.Player.ForceEffect<OrichalcumEffect>())
+            {
+                multiplier = 3.5f;
+            }
+            return multiplier;
+        }
+
+        public override void PostUpdateEquips(Player player)
+        {
+            if (player.HasEffect<EarthForceEffect>())
+                return;
+            player.onHitPetal = true;
+        }
+
+        public override void OnHitNPCWithProj(Player player, Projectile proj, NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            if (proj.type == ProjectileID.FlowerPetal)
+            {
+                target.AddBuff(ModContent.BuffType<Content.Buffs.Souls.OriPoisonBuff>(), 300);
+                target.immune[proj.owner] = 2;
+            }
+        }
     }
-  }
 }

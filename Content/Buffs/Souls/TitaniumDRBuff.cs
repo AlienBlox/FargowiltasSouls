@@ -1,30 +1,37 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Souls.TitaniumDRBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Souls
 {
-  public class TitaniumDRBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults() => Main.buffNoSave[this.Type] = true;
-
-    public virtual void Update(Player player, ref int buffIndex)
+    public class TitaniumDRBuff : ModBuff
     {
-      player.FargoSouls().TitaniumDRBuff = true;
-      if (player.buffTime[buffIndex] != 2)
-        return;
-      for (int index = 0; index < Main.maxProjectiles; ++index)
-      {
-        Projectile projectile = Main.projectile[index];
-        if (((Entity) projectile).active && projectile.type == 908 && projectile.owner == ((Entity) player).whoAmI)
-          projectile.Kill();
-      }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Titanium Shield");
+            // Description.SetDefault("You have extra damage resistance in close range and resist most debuffs");
+            Main.buffNoSave[Type] = true;
+        }
+
+        public override void Update(Player player, ref int buffIndex)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            modPlayer.TitaniumDRBuff = true;
+            
+            //kill all shards before running out
+            if (player.buffTime[buffIndex] == 2 && player.HasBuff<TitaniumCDBuff>())
+            {
+                for (int i = 0; i < Main.maxProjectiles; i++)
+                {
+                    Projectile proj = Main.projectile[i];
+
+                    if (proj.active && proj.type == ProjectileID.TitaniumStormShard && proj.owner == player.whoAmI)
+                    {
+                        proj.Kill();
+                    }
+                }
+            }
+            
+        }
     }
-  }
 }

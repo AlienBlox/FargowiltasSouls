@@ -1,78 +1,115 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Souls.Snowstorm
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+﻿using FargowiltasSouls.Content.Items.Accessories.Enchantments;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Souls
 {
-  public class Snowstorm : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class Snowstorm : ModProjectile
     {
-    }
-
-    public virtual string Texture => FargoSoulsUtil.EmptyTexture;
-
-    public virtual void SetDefaults()
-    {
-      this.Projectile.aiStyle = -1;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft = 2;
-      ((Entity) this.Projectile).width = 1;
-      ((Entity) this.Projectile).height = 1;
-    }
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      ++this.Projectile.timeLeft;
-      if (player.dead || !((Entity) player).active || !player.HasEffect<SnowEffect>())
-        this.Projectile.Kill();
-      if (player == Main.LocalPlayer)
-        ((Entity) this.Projectile).Center = Main.MouseWorld;
-      int num1 = 50;
-      if ((fargoSoulsPlayer.ForceEffect<SnowEnchant>() ? 1 : (fargoSoulsPlayer.ForceEffect<FrostEnchant>() ? 1 : 0)) != 0)
-        num1 = 100;
-      for (int index = 0; index < 15; ++index)
-      {
-        Vector2 vector2 = new Vector2();
-        double num2 = Main.rand.NextDouble() * 2.0 * Math.PI;
-        vector2.X += (float) Math.Sin(num2) * (float) Main.rand.Next(num1 + 1);
-        vector2.Y += (float) Math.Cos(num2) * (float) Main.rand.Next(num1 + 1);
-        Main.dust[Dust.NewDust(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2), new Vector2(4f, 4f)), 0, 0, 76, 0.0f, 0.0f, 100, Color.White, 0.75f)].noGravity = true;
-      }
-      for (int index = 0; index < Main.maxProjectiles; ++index)
-      {
-        Projectile projectile = Main.projectile[index];
-        if (((Entity) projectile).active && projectile.hostile && projectile.damage > 0 && (double) ((Entity) this.Projectile).Distance(FargoSoulsUtil.ClosestPointInHitbox((Entity) projectile, ((Entity) this.Projectile).Center)) < (double) num1 && FargoSoulsUtil.CanDeleteProjectile(projectile))
+        public override void SetStaticDefaults()
         {
-          FargoSoulsGlobalProjectile globalProjectile = projectile.FargoSouls();
-          globalProjectile.ChilledProj = true;
-          globalProjectile.ChilledTimer = 15;
-          this.Projectile.netUpdate = true;
+            // DisplayName.SetDefault("Snowstorm");
         }
-      }
-      for (int index = 0; index < Main.maxNPCs; ++index)
-      {
-        NPC npc = Main.npc[index];
-        if (((Entity) npc).active && !npc.friendly && npc.damage > 0 && (double) ((Entity) this.Projectile).Distance(FargoSoulsUtil.ClosestPointInHitbox((Entity) npc, ((Entity) this.Projectile).Center)) < (double) num1 && !npc.dontTakeDamage)
+
+        public override string Texture => FargoSoulsUtil.EmptyTexture;
+
+        public override void SetDefaults()
         {
-          npc.FargoSouls().SnowChilled = true;
-          npc.FargoSouls().SnowChilledTimer = 15;
-          npc.netUpdate = true;
+            Projectile.aiStyle = -1;
+
+            Projectile.penetrate = -1;
+            Projectile.timeLeft = 2;
+            Projectile.width = 1;
+            Projectile.height = 1;
         }
-      }
+
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            Projectile.timeLeft++;
+
+            if (player.dead || !player.active || !player.HasEffect<SnowEffect>())
+                Projectile.Kill();
+
+            if (player == Main.LocalPlayer)
+            {
+                Projectile.Center = Main.MouseWorld;
+            }
+
+            //dust
+            int dist = 50;
+
+            bool forceEffect = modPlayer.ForceEffect<SnowEnchant>() || modPlayer.ForceEffect<FrostEnchant>();
+            if (forceEffect)
+            {
+                dist = 100;
+            }
+
+
+            for (int i = 0; i < 15; i++)
+            {
+                Vector2 offset = new();
+                double angle = Main.rand.NextDouble() * 2d * Math.PI;
+                offset.X += (float)(Math.Sin(angle) * Main.rand.Next(dist + 1));
+                offset.Y += (float)(Math.Cos(angle) * Main.rand.Next(dist + 1));
+                Dust dust = Main.dust[Dust.NewDust(
+                    Projectile.Center + offset - new Vector2(4, 4), 0, 0,
+                    DustID.Snow, 0, 0, 100, Color.White, .75f)];
+
+                dust.noGravity = true;
+            }
+
+            //for (int i = 0; i < 20; i++)
+            //{
+            //    Vector2 offset = new Vector2();
+            //    double angle = Main.rand.NextDouble() * 2d * Math.PI;
+            //    offset.X += (float)(Math.Sin(angle) * dist);
+            //    offset.Y += (float)(Math.Cos(angle) * dist);
+            //    if (!Collision.SolidCollision(Projectile.Center + offset - new Vector2(4, 4), 0, 0))
+            //    {
+            //        Dust dust = Main.dust[Dust.NewDust(
+            //          Projectile.Center + offset - new Vector2(4, 4), 0, 0,
+            //          76, 0, 0, 100, Color.White, 1f
+            //          )];
+            //        dust.velocity = Projectile.velocity;
+            //        dust.noGravity = true;
+            //    }
+            //}
+
+
+
+            for (int i = 0; i < Main.maxProjectiles; i++)
+            {
+                Projectile proj = Main.projectile[i];
+
+
+                if (proj.active && proj.hostile && proj.damage > 0 && Projectile.Distance(FargoSoulsUtil.ClosestPointInHitbox(proj, Projectile.Center)) < dist && FargoSoulsUtil.CanDeleteProjectile(proj))
+                {
+                    FargoSoulsGlobalProjectile globalProj = proj.FargoSouls();
+                    globalProj.ChilledProj = true;
+                    globalProj.ChilledTimer = 15;
+                    Projectile.netUpdate = true;
+                }
+            }
+
+
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                NPC npc = Main.npc[i];
+
+                if (npc.active && !npc.friendly && npc.damage > 0 && Projectile.Distance(FargoSoulsUtil.ClosestPointInHitbox(npc, Projectile.Center)) < dist && !npc.dontTakeDamage)
+                {
+                    npc.FargoSouls().SnowChilled = true;
+                    npc.FargoSouls().SnowChilledTimer = 15;
+                    npc.netUpdate = true;
+                }
+            }
+        }
     }
-  }
 }

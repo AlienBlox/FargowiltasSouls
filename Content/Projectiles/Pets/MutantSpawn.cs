@@ -1,153 +1,171 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Pets.MutantSpawn
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
+﻿using FargowiltasSouls.Content.Bosses.MutantBoss;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
-using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Pets
 {
-  public class MutantSpawn : ModProjectile
-  {
-    public bool yFlip;
-    public float notlocalai1;
-
-    public virtual void SetStaticDefaults()
+    public class MutantSpawn : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 12;
-      Main.projPet[this.Projectile.type] = true;
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
+        public bool yFlip; //used to suppress y velocity (pet fastfalls with an extra update per tick otherwise)
+        public float notlocalai1 = 0f;
+
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Mutant Spawn");
+            Main.projFrames[Projectile.type] = 12;
+            Main.projPet[Projectile.type] = true;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.width = 30;
+            Projectile.height = 36;
+            Projectile.ignoreWater = true;
+            Projectile.aiStyle = 26;
+            AIType = ProjectileID.BlackCat;
+            Projectile.netImportant = true;
+            Projectile.friendly = true;
+
+            Projectile.extraUpdates = 1;
+        }
+
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(notlocalai1);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            notlocalai1 = reader.ReadSingle();
+        }
+
+        public override bool PreAI()
+        {
+            Main.player[Projectile.owner].blackCat = false;
+            return true;
+        }
+
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (player.dead)
+            {
+                modPlayer.MutantSpawn = false;
+            }
+            if (modPlayer.MutantSpawn)
+            {
+                Projectile.timeLeft = 2;
+            }
+
+            if (Projectile.tileCollide && Projectile.velocity.Y > 0) //pet updates twice per tick, this is called every tick; effectively gives it normal gravity when tangible
+            {
+                yFlip = !yFlip;
+                if (yFlip)
+                    Projectile.position.Y -= Projectile.velocity.Y;
+            }
+
+            if (player.velocity == Vector2.Zero) //run code when not moving
+                BeCompanionCube();
+        }
+
+        public void BeCompanionCube()
+        {
+            Player player = Main.player[Projectile.owner];
+            Color color;
+            color = Lighting.GetColor((int)Projectile.Center.X / 16, (int)Projectile.Center.Y / 16);
+            Vector3 vector3_1 = color.ToVector3();
+            color = Lighting.GetColor((int)player.Center.X / 16, (int)player.Center.Y / 16);
+            Vector3 vector3_2 = color.ToVector3();
+
+            if (vector3_1.Length() < 0.15f && vector3_2.Length() < 0.15)
+            {
+                notlocalai1 += 1;
+            }
+            else if (notlocalai1 > 0)
+            {
+                notlocalai1 -= 1;
+            }
+
+            notlocalai1 = MathHelper.Clamp(notlocalai1, -3600f, 600);
+
+            if (notlocalai1 > Main.rand.Next(300, 600) && !player.immune)
+            {
+                notlocalai1 = Main.rand.Next(30) * -10 - 300;
+
+                switch (Main.rand.Next(3))
+                {
+                    case 0: //stab
+                        if (Projectile.owner == Main.myPlayer)
+                        {
+                            SoundEngine.PlaySound(SoundID.Item1, Projectile.Center);
+                            // TODO: figure out old args
+                            player.Hurt(Terraria.DataStructures.PlayerDeathReason.ByOther(6), 777, 0, false, false, -1, false);
+                            player.immune = false;
+                            player.immuneTime = 0;
+                        }
+                        break;
+
+                    case 1: //spawn mutant
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            FargoSoulsUtil.NewNPCEasy(Projectile.GetSource_FromThis(), Projectile.Center, ModContent.NPCType<MutantBoss>());
+                            FargoSoulsUtil.PrintLocalization("Announcement.HasAwoken", new Color(175, 75, 255), Language.GetTextValue($"Mods.{Mod.Name}.NPCs.MutantBoss.DisplayName"));
+                        }
+                        break;
+
+                    default:
+                        if (Projectile.owner == Main.myPlayer)
+                        {
+                            CombatText.NewText(Projectile.Hitbox, Color.LimeGreen, Language.GetTextValue($"Mods.{Mod.Name}.Items.SpawnSack.NotSafe"));
+                        }
+                        break;
+                }
+            }
+        }
+
+        public override bool TileCollideStyle(ref int width, ref int height, ref bool fallThrough, ref Vector2 hitboxCenterFrac)
+        {
+            fallThrough = Main.player[Projectile.owner].position.Y > Projectile.Center.Y;
+            return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            return false;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            SpriteEffects spriteEffects = Projectile.spriteDirection < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+
+            Texture2D texture2D14 = ModContent.Request<Texture2D>($"FargowiltasSouls/Content/Projectiles/Pets/{Name}_Glow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            /*float scale = ((Main.mouseTextColor / 200f - 0.35f) * 0.3f + 0.9f) * Projectile.scale;
+            Main.EntitySpriteDraw(texture2D14, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Color.White * Projectile.Opacity, Projectile.rotation, origin2, scale, spriteEffects, 0);*/
+            for (int i = 1; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = Color.White * Projectile.Opacity * 0.6f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D14, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, spriteEffects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, spriteEffects, 0);
+            return false;
+        }
     }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 36;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.aiStyle = 26;
-      this.AIType = 319;
-      this.Projectile.netImportant = true;
-      this.Projectile.friendly = true;
-      this.Projectile.extraUpdates = 1;
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer) => writer.Write(this.notlocalai1);
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.notlocalai1 = reader.ReadSingle();
-    }
-
-    public virtual bool PreAI()
-    {
-      Main.player[this.Projectile.owner].blackCat = false;
-      return true;
-    }
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (player.dead)
-        fargoSoulsPlayer.MutantSpawn = false;
-      if (fargoSoulsPlayer.MutantSpawn)
-        this.Projectile.timeLeft = 2;
-      if (this.Projectile.tileCollide && (double) ((Entity) this.Projectile).velocity.Y > 0.0)
-      {
-        this.yFlip = !this.yFlip;
-        if (this.yFlip)
-          ((Entity) this.Projectile).position.Y -= ((Entity) this.Projectile).velocity.Y;
-      }
-      if (!Vector2.op_Equality(((Entity) player).velocity, Vector2.Zero))
-        return;
-      this.BeCompanionCube();
-    }
-
-    public void BeCompanionCube()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      Color color1 = Lighting.GetColor((int) ((Entity) this.Projectile).Center.X / 16, (int) ((Entity) this.Projectile).Center.Y / 16);
-      Vector3 vector3_1 = ((Color) ref color1).ToVector3();
-      Color color2 = Lighting.GetColor((int) ((Entity) player).Center.X / 16, (int) ((Entity) player).Center.Y / 16);
-      Vector3 vector3_2 = ((Color) ref color2).ToVector3();
-      if ((double) ((Vector3) ref vector3_1).Length() < 0.15000000596046448 && (double) ((Vector3) ref vector3_2).Length() < 0.15)
-        ++this.notlocalai1;
-      else if ((double) this.notlocalai1 > 0.0)
-        --this.notlocalai1;
-      this.notlocalai1 = MathHelper.Clamp(this.notlocalai1, -3600f, 600f);
-      if ((double) this.notlocalai1 <= (double) Main.rand.Next(300, 600) || player.immune)
-        return;
-      this.notlocalai1 = (float) (Main.rand.Next(30) * -10 - 300);
-      switch (Main.rand.Next(3))
-      {
-        case 0:
-          if (this.Projectile.owner != Main.myPlayer)
-            break;
-          SoundEngine.PlaySound(ref SoundID.Item1, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          player.Hurt(PlayerDeathReason.ByOther(6, -1), 777, 0, false, false, -1, false, 0.0f, 0.0f, 4.5f);
-          player.immune = false;
-          player.immuneTime = 0;
-          break;
-        case 1:
-          if (!FargoSoulsUtil.HostCheck)
-            break;
-          FargoSoulsUtil.NewNPCEasy(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>(), velocity: new Vector2());
-          FargoSoulsUtil.PrintLocalization("Announcement.HasAwoken", new Color(175, 75, (int) byte.MaxValue), (object) Language.GetTextValue("Mods." + ((ModType) this).Mod.Name + ".NPCs.MutantBoss.DisplayName"));
-          break;
-        default:
-          if (this.Projectile.owner != Main.myPlayer)
-            break;
-          CombatText.NewText(((Entity) this.Projectile).Hitbox, Color.LimeGreen, Language.GetTextValue("Mods." + ((ModType) this).Mod.Name + ".Items.SpawnSack.NotSafe"), false, false);
-          break;
-      }
-    }
-
-    public virtual bool TileCollideStyle(
-      ref int width,
-      ref int height,
-      ref bool fallThrough,
-      ref Vector2 hitboxCenterFrac)
-    {
-      fallThrough = (double) ((Entity) Main.player[this.Projectile.owner]).position.Y > (double) ((Entity) this.Projectile).Center.Y;
-      return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
-    }
-
-    public virtual bool OnTileCollide(Vector2 oldVelocity) => false;
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D1 = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D1.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection < 0 ? (SpriteEffects) 1 : (SpriteEffects) 0;
-      Texture2D texture2D2 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/Pets/" + ((ModType) this).Name + "_Glow", (AssetRequestMode) 1).Value;
-      for (int index = 1; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(Color.White, this.Projectile.Opacity), 0.6f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
-    }
-  }
 }

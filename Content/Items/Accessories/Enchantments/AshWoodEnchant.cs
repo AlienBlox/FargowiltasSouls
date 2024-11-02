@@ -1,47 +1,114 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.AshWoodEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Content.Items.Accessories.Forces;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
+using System;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class AshWoodEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(139, 116, 100);
-
-    public override void SetDefaults()
+    public class AshWoodEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 1;
-      this.Item.value = 10000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public static void PassiveEffect(Player player)
+        public override Color nameColor => new(139, 116, 100);
+
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Blue;
+            Item.value = 10000;
+        }
+        public static void PassiveEffect(Player player)
+        {
+            //player.FargoSouls().fireNoDamage = true;
+        }
+        public override void UpdateInventory(Player player) => PassiveEffect(player);
+        public override void UpdateVanity(Player player) => PassiveEffect(player);
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            PassiveEffect(player);
+            player.AddEffect<AshWoodEffect>(Item);
+            player.AddEffect<AshWoodFireballs>(Item);
+        }
+
+
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ItemID.AshWoodHelmet)
+            .AddIngredient(ItemID.AshWoodBreastplate)
+            .AddIngredient(ItemID.AshWoodGreaves)
+            .AddIngredient(ItemID.Fireblossom)
+            .AddIngredient(ItemID.SpicyPepper)
+            .AddIngredient(ItemID.Gel, 50)
+            .AddTile(TileID.DemonAltar)
+            .Register();
+        }
+    }
+    public class AshWoodEffect : AccessoryEffect
     {
+        public override Header ToggleHeader => null;
+
+        public override void PostUpdateEquips(Player player)
+        {
+            AshWoodEnchant.PassiveEffect(player);
+            player.buffImmune[ModContent.BuffType<OiledBuff>()] = true;
+            player.ashWoodBonus = true;
+        }
     }
-
-    public virtual void UpdateInventory(Player player) => AshWoodEnchant.PassiveEffect(player);
-
-    public virtual void UpdateVanity(Player player) => AshWoodEnchant.PassiveEffect(player);
-
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
+    public class AshWoodFireballs : AccessoryEffect
     {
-      AshWoodEnchant.PassiveEffect(player);
-      player.AddEffect<AshWoodEffect>(this.Item);
-      player.AddEffect<AshWoodFireballs>(this.Item);
-    }
+        public override Header ToggleHeader => Header.GetHeader<TerraHeader>();
+        public override int ToggleItemType => ModContent.ItemType<AshWoodEnchant>();
+        public override bool ExtraAttackEffect => true;
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (modPlayer.AshwoodCD > 0)
+                modPlayer.AshwoodCD--;
+        }
+        public override void TryAdditionalAttacks(Player player, int damage, DamageClass damageType)
+        {
+            if (player.HasEffect<TerraLightningEffect>())
+                return;
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            bool debuffed = false;
+            for (int i = 0; i < Player.MaxBuffs; i++)
+            {
+                int type = player.buffType[i];
+                if (type > 0 && type is not BuffID.PotionSickness or BuffID.ManaSickness or BuffID.WaterCandle && Main.debuff[type])
+                    debuffed = true;
+            }
+            if (modPlayer.AshwoodCD <= 0 && (debuffed || player.HasEffect<ObsidianProcEffect>()))
+            {
+                modPlayer.AshwoodCD = modPlayer.ForceEffect<AshWoodEnchant>() ? 20 : player.HasEffect<ObsidianProcEffect>() ? 25 : 35;
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(5279, 1).AddIngredient(5280, 1).AddIngredient(5281, 1).AddIngredient(318, 1).AddIngredient(5277, 1).AddIngredient(23, 50).AddTile(26).Register();
+                int cap = 60;
+                int effectItemType = EffectItem(player).type;
+                int ashwood = ModContent.ItemType<AshWoodEnchant>();
+                int obsidian = ModContent.ItemType<ObsidianEnchant>();
+                if (!player.ForceEffect<AshWoodFireballs>() && (effectItemType == ashwood || effectItemType == obsidian))
+                    cap = 30;
+
+                int fireballDamage = damage;
+                Vector2 vel = Vector2.Normalize(Main.MouseWorld - player.Center) * 17f;
+                vel = vel.RotatedByRandom(Math.PI / 10);
+                if (!modPlayer.TerrariaSoul)
+                    fireballDamage = Math.Min(fireballDamage, FargoSoulsUtil.HighestDamageTypeScaling(player, cap));
+
+                if (player.whoAmI == Main.myPlayer)
+                    Projectile.NewProjectile(GetSource_EffectItem(player), player.Center, vel, ProjectileID.BallofFire, fireballDamage, 1, Main.myPlayer);
+            }
+        }
     }
-  }
 }

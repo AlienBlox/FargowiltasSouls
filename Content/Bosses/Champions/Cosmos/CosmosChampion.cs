@@ -1,10 +1,5 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Cosmos.CosmosChampion
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Fargowiltas.NPCs;
+﻿using Fargowiltas.NPCs;
+using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Content.Bosses.MutantBoss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Buffs.Souls;
@@ -14,1579 +9,1961 @@ using FargowiltasSouls.Content.Items.Materials;
 using FargowiltasSouls.Content.Items.Placables.Relics;
 using FargowiltasSouls.Content.Items.Placables.Trophies;
 using FargowiltasSouls.Content.Projectiles;
-using FargowiltasSouls.Content.Projectiles.BossWeapons;
-using FargowiltasSouls.Content.Projectiles.Masomode;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.ItemDropRules;
 using FargowiltasSouls.Core.Systems;
 using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Terraria;
 using Terraria.Audio;
-using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.GameContent.Bestiary;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Cosmos
 {
-  [AutoloadBossHead]
-  public class CosmosChampion : ModNPC
-  {
-    private bool hitChildren;
-    private float epicMe;
-
-    public virtual void SetStaticDefaults()
+    [AutoloadBossHead]
+    public class CosmosChampion : ModNPC
     {
-      Main.npcFrameCount[this.NPC.type] = 9;
-      NPCID.Sets.TrailCacheLength[this.NPC.type] = 6;
-      NPCID.Sets.TrailingMode[this.NPC.type] = 1;
-      NPCID.Sets.NoMultiplayerSmoothingByType[this.NPC.type] = true;
-      NPCID.Sets.MPAllowedEnemies[this.Type] = true;
-      NPCID.Sets.BossBestiaryPriority.Add(this.NPC.type);
-      NPC npc = this.NPC;
-      List<int> debuffs = new List<int>();
-      CollectionsMarshal.SetCount<int>(debuffs, 9);
-      Span<int> span = CollectionsMarshal.AsSpan<int>(debuffs);
-      int num1 = 0;
-      span[num1] = 31;
-      int num2 = num1 + 1;
-      span[num2] = 46;
-      int num3 = num2 + 1;
-      span[num3] = 24;
-      int num4 = num3 + 1;
-      span[num4] = 68;
-      int num5 = num4 + 1;
-      span[num5] = 119;
-      int num6 = num5 + 1;
-      span[num6] = ModContent.BuffType<LethargicBuff>();
-      int num7 = num6 + 1;
-      span[num7] = ModContent.BuffType<ClippedWingsBuff>();
-      int num8 = num7 + 1;
-      span[num8] = ModContent.BuffType<TimeFrozenBuff>();
-      int num9 = num8 + 1;
-      span[num9] = ModContent.BuffType<LightningRodBuff>();
-      int num10 = num9 + 1;
-      npc.AddDebuffImmunities(debuffs);
-      Dictionary<int, NPCID.Sets.NPCBestiaryDrawModifiers> bestiaryDrawOffset = NPCID.Sets.NPCBestiaryDrawOffset;
-      int type = this.NPC.type;
-      NPCID.Sets.NPCBestiaryDrawModifiers bestiaryDrawModifiers1;
-      // ISSUE: explicit constructor call
-      ((NPCID.Sets.NPCBestiaryDrawModifiers) ref bestiaryDrawModifiers1).\u002Ector();
-      bestiaryDrawModifiers1.Hide = false;
-      bestiaryDrawModifiers1.Position = new Vector2(8f, 16f);
-      bestiaryDrawModifiers1.PortraitScale = new float?(1f);
-      bestiaryDrawModifiers1.PortraitPositionXOverride = new float?(0.0f);
-      bestiaryDrawModifiers1.PortraitPositionYOverride = new float?(8f);
-      NPCID.Sets.NPCBestiaryDrawModifiers bestiaryDrawModifiers2 = bestiaryDrawModifiers1;
-      bestiaryDrawOffset.Add(type, bestiaryDrawModifiers2);
-    }
+        bool hitChildren;
+        float epicMe;
 
-    public virtual void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
-    {
-      bestiaryEntry.Info.AddRange((IEnumerable<IBestiaryInfoElement>) new \u003C\u003Ez__ReadOnlyArray<IBestiaryInfoElement>(new IBestiaryInfoElement[2]
-      {
-        (IBestiaryInfoElement) BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.Sky,
-        (IBestiaryInfoElement) new FlavorTextBestiaryInfoElement("Mods.FargowiltasSouls.Bestiary." + ((ModType) this).Name)
-      }));
-    }
-
-    public virtual Color? GetAlpha(Color drawColor)
-    {
-      return this.NPC.IsABestiaryIconDummy ? new Color?(this.NPC.GetBestiaryEntryColor()) : base.GetAlpha(drawColor);
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.NPC).width = 80;
-      ((Entity) this.NPC).height = 100;
-      this.NPC.damage = 150;
-      this.NPC.defense = 70;
-      this.NPC.lifeMax = 600000;
-      this.NPC.HitSound = new SoundStyle?(SoundID.NPCHit4);
-      this.NPC.DeathSound = new SoundStyle?(SoundID.NPCDeath7);
-      this.NPC.noGravity = true;
-      this.NPC.noTileCollide = true;
-      this.NPC.knockBackResist = 0.0f;
-      this.NPC.lavaImmune = true;
-      this.NPC.aiStyle = -1;
-      this.NPC.value = (float) Item.buyPrice(3, 0, 0, 0);
-      this.NPC.boss = true;
-      Mod mod;
-      this.Music = Terraria.ModLoader.ModLoader.TryGetMod("FargowiltasMusic", ref mod) ? MusicLoader.GetMusicSlot(((ModType) this).Mod, "Assets/Sounds/Silent") : 84;
-      this.SceneEffectPriority = (SceneEffectPriority) 6;
-      this.NPC.scale *= 1.5f;
-      this.NPC.dontTakeDamage = true;
-      this.NPC.alpha = (int) byte.MaxValue;
-      this.NPC.trapImmune = true;
-    }
-
-    public virtual void ApplyDifficultyAndPlayerScaling(
-      int numPlayers,
-      float balance,
-      float bossAdjustment)
-    {
-      this.NPC.lifeMax = (int) ((double) this.NPC.lifeMax * (double) balance);
-    }
-
-    public virtual bool CanHitPlayer(Player target, ref int CooldownSlot)
-    {
-      CooldownSlot = 1;
-      return true;
-    }
-
-    private ref float Animation => ref this.NPC.ai[0];
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.NPC.localAI[0]);
-      writer.Write(this.NPC.localAI[1]);
-      writer.Write(this.NPC.localAI[2]);
-      writer.Write(this.NPC.localAI[3]);
-      writer.Write(this.hitChildren);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.NPC.localAI[0] = reader.ReadSingle();
-      this.NPC.localAI[1] = reader.ReadSingle();
-      this.NPC.localAI[2] = reader.ReadSingle();
-      this.NPC.localAI[3] = reader.ReadSingle();
-      this.hitChildren = reader.ReadBoolean();
-    }
-
-    public virtual void AI()
-    {
-      EModeGlobalNPC.championBoss = ((Entity) this.NPC).whoAmI;
-      if ((double) this.NPC.localAI[3] == 0.0)
-      {
-        if (!this.NPC.HasValidTarget)
-          this.NPC.TargetClosest(false);
-        if ((double) this.NPC.ai[1] == 0.0)
+        public override void SetStaticDefaults()
         {
-          ((Entity) this.NPC).Center = Vector2.op_Subtraction(((Entity) Main.player[this.NPC.target]).Center, Vector2.op_Multiply(250f, Vector2.UnitY));
-          if (FargoSoulsUtil.HostCheck)
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<CosmosVortex>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
+            // DisplayName.SetDefault("Eridanus, Champion of Cosmos");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "厄里达诺斯, 宇宙英灵");
+
+            Main.npcFrameCount[NPC.type] = 9;
+            NPCID.Sets.TrailCacheLength[NPC.type] = 6;
+            NPCID.Sets.TrailingMode[NPC.type] = 1;
+            NPCID.Sets.NoMultiplayerSmoothingByType[NPC.type] = true;
+            NPCID.Sets.MPAllowedEnemies[Type] = true;
+
+            NPCID.Sets.BossBestiaryPriority.Add(NPC.type);
+
+            NPC.AddDebuffImmunities(
+            [
+                BuffID.Confused,
+                BuffID.Chilled,
+                BuffID.OnFire,
+                BuffID.Suffocation,
+                BuffID.Lovestruck,
+                ModContent.BuffType<LethargicBuff>(),
+                ModContent.BuffType<ClippedWingsBuff>(),
+                ModContent.BuffType<TimeFrozenBuff>(),
+                ModContent.BuffType<LightningRodBuff>()
+            ]);
+
+            NPCID.Sets.NPCBestiaryDrawOffset.Add(NPC.type, new NPCID.Sets.NPCBestiaryDrawModifiers()
+            {
+                Hide = false,
+                Position = new Vector2(8, 16),
+                PortraitScale = 1f,
+                PortraitPositionXOverride = 0,
+                PortraitPositionYOverride = 8
+            });
         }
-        if ((double) this.NPC.ai[1] == 117.0)
+
+        public override void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
         {
-          Mod mod;
-          if (Terraria.ModLoader.ModLoader.TryGetMod("FargowiltasMusic", ref mod))
-            this.Music = MusicLoader.GetMusicSlot(mod, "Assets/Music/PlatinumStar");
-          else
-            this.Music = 84;
+            bestiaryEntry.Info.AddRange([
+                BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.Sky,
+                new FlavorTextBestiaryInfoElement($"Mods.FargowiltasSouls.Bestiary.{Name}")
+            ]);
         }
-        if ((double) this.NPC.ai[1] > 117.0)
-          Main.musicFade[Main.curMusic] += 0.2f;
-        if ((double) ++this.NPC.ai[1] <= 120.0)
-          return;
-        this.NPC.netUpdate = true;
-        this.NPC.ai[1] = 0.0f;
-        this.NPC.localAI[3] = 1f;
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Utils.RotatedByRandom(((Entity) this.NPC).DirectionFrom(((Entity) Main.player[this.NPC.target]).Center), 1.5707963705062866), 20f);
-      }
-      else
-      {
-        this.NPC.alpha = 0;
-        Player player = Main.player[this.NPC.target];
-        if (this.NPC.HasValidTarget && (double) ((Entity) this.NPC).Distance(((Entity) player).Center) < 2500.0 || (double) this.NPC.localAI[3] == 0.0)
-          this.NPC.timeLeft = 600;
-        ((Entity) this.NPC).direction = this.NPC.spriteDirection = (double) ((Entity) this.NPC).Center.X < (double) ((Entity) player).Center.X ? 1 : -1;
-        if ((double) this.NPC.localAI[2] == 0.0 && (double) this.Animation != -1.0 && (double) this.NPC.life < (double) this.NPC.lifeMax * (WorldSavingSystem.EternityMode ? 0.8 : 5.0))
+        public override Color? GetAlpha(Color drawColor)
         {
-          if ((double) this.Animation == 15.0 && (double) this.NPC.ai[1] < 270.0)
-          {
-            this.NPC.life = (int) ((double) this.NPC.lifeMax * (WorldSavingSystem.EternityMode ? 0.8 : 5.0));
-          }
-          else
-          {
-            float num = this.Animation;
-            this.Animation = -1f;
-            this.NPC.ai[1] = 0.0f;
-            this.NPC.ai[2] = 0.0f;
-            this.NPC.ai[3] = num;
-            this.NPC.netUpdate = true;
-            FargoSoulsUtil.ClearHostileProjectiles(2, ((Entity) this.NPC).whoAmI);
-          }
+            if (NPC.IsABestiaryIconDummy)
+            {
+                // This is required because we have NPC.alpha = 255, in the bestiary it would look transparent
+                return NPC.GetBestiaryEntryColor();
+            }
+            return base.GetAlpha(drawColor);
         }
-        if (WorldSavingSystem.EternityMode && (double) this.NPC.localAI[2] < 2.0 && (double) this.Animation != -2.0 && (double) this.NPC.life < (double) this.NPC.lifeMax * 0.2)
+
+        public override void SetDefaults()
         {
-          if ((double) this.Animation == 15.0 && (double) this.NPC.ai[1] < 270.0)
-          {
-            this.NPC.life = (int) ((double) this.NPC.lifeMax * 0.2);
-          }
-          else
-          {
-            this.Animation = -2f;
-            this.NPC.ai[1] = 0.0f;
-            this.NPC.ai[2] = 0.0f;
-            this.NPC.ai[3] = 0.0f;
-            this.NPC.localAI[0] = 0.0f;
-            this.NPC.localAI[1] = 0.0f;
-            this.NPC.netUpdate = true;
-            FargoSoulsUtil.ClearHostileProjectiles(2, ((Entity) this.NPC).whoAmI);
-          }
+            NPC.width = 80;
+            NPC.height = 100;
+            NPC.damage = 150;
+            NPC.defense = 70;
+            NPC.lifeMax = 600000;
+            NPC.HitSound = SoundID.NPCHit4;
+            NPC.DeathSound = SoundID.NPCDeath7;
+            NPC.noGravity = true;
+            NPC.noTileCollide = true;
+            NPC.knockBackResist = 0f;
+            NPC.lavaImmune = true;
+            NPC.aiStyle = -1;
+            NPC.value = Item.buyPrice(10);
+            NPC.boss = true;
+
+            Music = ModLoader.TryGetMod("FargowiltasMusic", out Mod musicMod)
+                ? MusicLoader.GetMusicSlot(Mod, "Assets/Sounds/Silent") : MusicID.OtherworldlyLunarBoss;
+            SceneEffectPriority = SceneEffectPriority.BossLow;
+
+            NPC.scale *= 1.5f;
+
+            NPC.dontTakeDamage = true;
+            NPC.alpha = 255;
+
+            NPC.trapImmune = true;
         }
-        this.NPC.dontTakeDamage = false;
-        Vector2 targetPos1;
-        switch (this.Animation)
+
+        public override void ApplyDifficultyAndPlayerScaling(int numPlayers, float balance, float bossAdjustment)
         {
-          case -4f:
-            this.NPC.timeLeft = 600;
-            int n1 = (int) this.NPC.ai[2];
-            if ((double) ++this.NPC.ai[3] < 420.0 && n1 > -1 && n1 < Main.maxNPCs && IsDeviantt(n1))
+            //NPC.damage = (int)(FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 4f * 0.5f));
+            NPC.lifeMax = (int)(NPC.lifeMax * balance);
+        }
+
+        public override bool CanHitPlayer(Player target, ref int CooldownSlot)
+        {
+            CooldownSlot = 1;
+            return true;
+        }
+
+        /*public override bool? CanBeHitByProjectile(Projectile projectile)
+        {
+            if (Animation == 15 && NPC.ai[1] > 90 && NPC.ai[1] < 210) //intangible during timestop
+                return false;
+            return null;
+        }*/
+        ref float Animation => ref NPC.ai[0];
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(NPC.localAI[0]);
+            writer.Write(NPC.localAI[1]);
+            writer.Write(NPC.localAI[2]);
+            writer.Write(NPC.localAI[3]);
+            writer.Write(hitChildren);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            NPC.localAI[0] = reader.ReadSingle();
+            NPC.localAI[1] = reader.ReadSingle();
+            NPC.localAI[2] = reader.ReadSingle();
+            NPC.localAI[3] = reader.ReadSingle();
+            hitChildren = reader.ReadBoolean();
+        }
+
+        public override void AI()
+        {
+            EModeGlobalNPC.championBoss = NPC.whoAmI;
+
+            if (NPC.localAI[3] == 0) //just spawned
             {
-              Vector2 center = ((Entity) Main.npc[n1]).Center;
-              ((Entity) this.NPC).direction = this.NPC.spriteDirection = (double) ((Entity) this.NPC).Center.X < (double) center.X ? 1 : -1;
-              center.X += (float) (((Entity) this.NPC).width / 4 * ((double) ((Entity) this.NPC).Center.X < (double) center.X ? -1 : 1));
-              if ((double) ((Entity) this.NPC).Distance(center) > (double) (((Entity) this.NPC).width / 4))
-                this.Movement(center, 1.6f, 64f);
-              if ((double) this.NPC.localAI[1] == 0.0)
-              {
-                this.NPC.localAI[1] = 1f;
-                SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-              }
-              if ((double) ++this.NPC.localAI[0] <= 5.0)
-              {
-                this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) Main.npc[n1]).Center));
-                if (((Entity) this.NPC).direction < 0)
-                  this.NPC.rotation += 3.14159274f;
-                if ((double) this.NPC.localAI[0] == 5.0)
+                if (!NPC.HasValidTarget)
+                    NPC.TargetClosest(false);
+
+                if (NPC.ai[1] == 0)
                 {
-                  this.NPC.netUpdate = true;
-                  if (FargoSoulsUtil.HostCheck)
-                  {
-                    Vector2 unitX = Vector2.UnitX;
-                    if (((Entity) this.NPC).direction < 0)
-                      unitX.X *= -1f;
-                    Vector2 vector2 = Utils.RotatedBy(unitX, (double) Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) Main.npc[n1]).Center)), new Vector2());
-                    int num = Math.Sign(((Entity) this.NPC).Center.Y - ((Entity) Main.npc[n1]).Center.Y);
-                    Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(Vector2.op_Addition(((Entity) this.NPC).Center, vector2), Vector2.op_Multiply(Vector2.op_Multiply(3000f, ((Entity) this.NPC).DirectionFrom(((Entity) Main.npc[n1]).Center)), (float) num)), Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) Main.npc[n1]).Center), (float) num), ModContent.ProjectileType<CosmosDeathray>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                    break;
-                  }
-                  break;
-                }
-                break;
-              }
-              if ((double) this.NPC.localAI[0] > 10.0)
-              {
-                this.NPC.localAI[0] = 0.0f;
-                this.NPC.netUpdate = true;
-                break;
-              }
-              break;
-            }
-            if ((double) this.NPC.ai[3] >= 420.0)
-              this.hitChildren = true;
-            this.Animation = this.NPC.ai[1];
-            this.NPC.ai[1] = 0.0f;
-            this.NPC.ai[2] = 0.0f;
-            this.NPC.ai[3] = 0.0f;
-            this.NPC.localAI[0] = 0.0f;
-            this.NPC.localAI[1] = 0.0f;
-            this.NPC.netUpdate = true;
-            break;
-          case -3f:
-            if (!((Entity) player).active || player.dead || (double) Vector2.Distance(((Entity) this.NPC).Center, ((Entity) player).Center) > 2500.0 || (double) ((Entity) player).Center.Y / 16.0 > Main.worldSurface)
-            {
-              this.NPC.TargetClosest(false);
-              if (this.NPC.timeLeft > 30)
-                this.NPC.timeLeft = 30;
-              --((Entity) this.NPC).velocity.Y;
-              break;
-            }
-            this.NPC.rotation = 0.0f;
-            NPC npc1 = this.NPC;
-            ((Entity) npc1).velocity = Vector2.op_Multiply(((Entity) npc1).velocity, 0.9f);
-            player.wingTime = (float) player.wingTimeMax;
-            if ((double) this.NPC.ai[1] == 0.0)
-            {
-              this.NPC.ai[1] = 1f;
-              if (!Main.dedServ && ((Entity) Main.LocalPlayer).active)
-                ScreenShakeSystem.StartShake(10f, 6.28318548f, new Vector2?(), 0.333333343f);
-              SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-              if (FargoSoulsUtil.HostCheck)
-              {
-                if (WorldSavingSystem.EternityMode)
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<CosmosRitual>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, (float) ((Entity) this.NPC).whoAmI, 0.0f);
-                int num1 = 2;
-                float num2 = Utils.ToRotation(((Entity) this.NPC).DirectionFrom(((Entity) player).Center)) + 1.57079637f;
-                if (WorldSavingSystem.MasochistModeReal)
-                {
-                  num1 = 3;
-                  num2 = Utils.ToRotation(((Entity) this.NPC).DirectionFrom(((Entity) player).Center));
-                }
-                for (int index = 0; index < num1; ++index)
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<CosmosMoon>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage, 1.14285719f), 0.0f, Main.myPlayer, 6.28318548f / (float) num1 * (float) index + num2, (float) ((Entity) this.NPC).whoAmI, 0.0f);
-                this.epicMe = 1f;
-              }
-              Vector2 vector2_1;
-              // ISSUE: explicit constructor call
-              ((Vector2) ref vector2_1).\u002Ector(500f, 500f);
-              Vector2 center = ((Entity) this.NPC).Center;
-              center.X -= vector2_1.X / 2f;
-              center.Y -= vector2_1.Y / 2f;
-              for (int index1 = 0; index1 < 30; ++index1)
-              {
-                int index2 = Dust.NewDust(center, (int) vector2_1.X, (int) vector2_1.Y, 31, 0.0f, 0.0f, 100, new Color(), 1.5f);
-                Dust dust = Main.dust[index2];
-                dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
-              }
-              for (int index3 = 0; index3 < 50; ++index3)
-              {
-                int index4 = Dust.NewDust(center, (int) vector2_1.X, (int) vector2_1.Y, 6, 0.0f, 0.0f, 100, new Color(), 3.5f);
-                Main.dust[index4].noGravity = true;
-                Dust dust1 = Main.dust[index4];
-                dust1.velocity = Vector2.op_Multiply(dust1.velocity, 7f);
-                int index5 = Dust.NewDust(center, (int) vector2_1.X, (int) vector2_1.Y, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-                Dust dust2 = Main.dust[index5];
-                dust2.velocity = Vector2.op_Multiply(dust2.velocity, 3f);
-              }
-              for (int index6 = 0; index6 < 2; ++index6)
-              {
-                float num = 0.4f;
-                if (index6 == 1)
-                  num = 0.8f;
-                int index7 = Gore.NewGore(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-                Gore gore1 = Main.gore[index7];
-                gore1.velocity = Vector2.op_Multiply(gore1.velocity, num);
-                ++Main.gore[index7].velocity.X;
-                ++Main.gore[index7].velocity.Y;
-                int index8 = Gore.NewGore(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-                Gore gore2 = Main.gore[index8];
-                gore2.velocity = Vector2.op_Multiply(gore2.velocity, num);
-                --Main.gore[index8].velocity.X;
-                ++Main.gore[index8].velocity.Y;
-                int index9 = Gore.NewGore(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-                Gore gore3 = Main.gore[index9];
-                gore3.velocity = Vector2.op_Multiply(gore3.velocity, num);
-                ++Main.gore[index9].velocity.X;
-                --Main.gore[index9].velocity.Y;
-                int index10 = Gore.NewGore(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-                Gore gore4 = Main.gore[index10];
-                gore4.velocity = Vector2.op_Multiply(gore4.velocity, num);
-                --Main.gore[index10].velocity.X;
-                --Main.gore[index10].velocity.Y;
-              }
-              for (int index11 = 0; index11 < 20; ++index11)
-              {
-                Vector2 vector2_2 = center;
-                vector2_2.X += (float) Main.rand.Next((int) vector2_1.X);
-                vector2_2.Y += (float) Main.rand.Next((int) vector2_1.Y);
-                for (int index12 = 0; index12 < 20; ++index12)
-                {
-                  int index13 = Dust.NewDust(vector2_2, 32, 32, 31, 0.0f, 0.0f, 100, new Color(), 3f);
-                  Dust dust = Main.dust[index13];
-                  dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
-                }
-                for (int index14 = 0; index14 < 10; ++index14)
-                {
-                  int index15 = Dust.NewDust(vector2_2, 32, 32, 6, 0.0f, 0.0f, 100, new Color(), 3.5f);
-                  Main.dust[index15].noGravity = true;
-                  Dust dust3 = Main.dust[index15];
-                  dust3.velocity = Vector2.op_Multiply(dust3.velocity, 7f);
-                  int index16 = Dust.NewDust(vector2_2, 32, 32, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-                  Dust dust4 = Main.dust[index16];
-                  dust4.velocity = Vector2.op_Multiply(dust4.velocity, 3f);
-                }
-                float num = 0.5f;
-                for (int index17 = 0; index17 < 2; ++index17)
-                {
-                  int index18 = Gore.NewGore(((Entity) this.NPC).GetSource_FromThis((string) null), vector2_2, new Vector2(), Main.rand.Next(61, 64), 1f);
-                  Gore gore = Main.gore[index18];
-                  gore.velocity = Vector2.op_Multiply(gore.velocity, num);
-                  ++Main.gore[index18].velocity.X;
-                  ++Main.gore[index18].velocity.Y;
-                }
-              }
-            }
-            if ((double) ++this.NPC.ai[2] > 200.0 || (double) this.NPC.ai[2] == 100.0)
-            {
-              if ((double) this.NPC.ai[2] > 200.0)
-                this.NPC.ai[2] = 0.0f;
-              this.NPC.netUpdate = true;
-              SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-              if (!Main.dedServ && ((Entity) Main.LocalPlayer).active)
-                ScreenShakeSystem.StartShake(10f, 6.28318548f, new Vector2?(), 0.333333343f);
-              if ((double) this.NPC.ai[3] == 0.0)
-              {
-                ++this.NPC.ai[3];
-                if (FargoSoulsUtil.HostCheck)
-                {
-                  float num3 = (float) this.NPC.life / ((float) this.NPC.lifeMax * 0.2f);
-                  if ((double) num3 < 0.0)
-                    num3 = 0.0f;
-                  if ((double) num3 > 1.0)
-                    num3 = 1f;
-                  float num4 = (float) (11.0 + 4.0 * (double) num3);
-                  for (int index = 0; index < 12; ++index)
-                    Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply(num4, Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center), Math.PI / 6.0 * (double) index, new Vector2())), ModContent.ProjectileType<CosmosFireball2>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 30f, 90f, 0.0f);
-                  break;
-                }
-                break;
-              }
-              if ((double) this.NPC.ai[3] == 1.0)
-              {
-                ++this.NPC.ai[3];
-                if (FargoSoulsUtil.HostCheck)
-                {
-                  if (!Main.dedServ)
-                  {
-                    SoundStyle soundStyle;
-                    // ISSUE: explicit constructor call
-                    ((SoundStyle) ref soundStyle).\u002Ector("FargowiltasSouls/Assets/Sounds/Thunder", (SoundType) 0);
-                    ((SoundStyle) ref soundStyle).Volume = 0.8f;
-                    ((SoundStyle) ref soundStyle).Pitch = 0.5f;
-                    SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-                  }
-                  for (int index = 0; index < 16; ++index)
-                  {
-                    Vector2 vector2 = Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center), 0.39269909262657166 * (double) index, new Vector2());
-                    Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Division(Vector2.op_Multiply(vector2, (float) ((Entity) this.NPC).width), 120f), ModContent.ProjectileType<LightningVortexHostile>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 1f, Utils.ToRotation(vector2), 0.0f);
-                  }
-                  break;
-                }
-                break;
-              }
-              if ((double) this.NPC.ai[3] == 2.0)
-              {
-                ++this.NPC.ai[3];
-                if (FargoSoulsUtil.HostCheck)
-                {
-                  for (int index19 = -1; index19 <= 1; ++index19)
-                  {
-                    if (index19 != 0)
-                    {
-                      Vector2 vector2 = Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) Main.player[this.NPC.target]).Center), (double) MathHelper.ToRadians(30f) * (double) index19, new Vector2());
-                      for (int index20 = 0; index20 < 15; ++index20)
-                        Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply(6f, Utils.RotatedBy(vector2, (double) MathHelper.ToRadians(8f) * (double) index19 * (double) index20, new Vector2())), ModContent.ProjectileType<CosmosNebulaBlaze>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.009f, 0.0f, 0.0f);
-                    }
-                  }
-                  break;
-                }
-                break;
-              }
-              this.NPC.ai[3] = 0.0f;
-              if (FargoSoulsUtil.HostCheck)
-              {
-                for (int index = 0; index < 18; ++index)
-                {
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Utils.RotatedBy(Vector2.UnitX, Math.PI / 9.0 * (double) index, new Vector2()), ModContent.ProjectileType<CosmosInvader>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 180f, 0.04f, 0.0f);
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Utils.RotatedBy(Vector2.UnitX, Math.PI / 9.0 * ((double) index + 0.5), new Vector2()), ModContent.ProjectileType<CosmosInvader>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 180f, 0.025f, 0.0f);
-                }
-                for (int index = 0; index < 5; ++index)
-                {
-                  Vector2 vector2 = Vector2.op_UnaryNegation(Utils.RotatedBy(Vector2.UnitY, 1.2566370964050293 * (double) index, new Vector2()));
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, vector2, ModContent.ProjectileType<CosmosGlowything>(), 0, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                }
-                SoundEngine.PlaySound(ref SoundID.Item25, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-                break;
-              }
-              break;
-            }
-            break;
-          case -2f:
-            this.NPC.rotation = 0.0f;
-            this.NPC.dontTakeDamage = true;
-            this.NPC.localAI[2] = 2f;
-            Vector2 center1 = ((Entity) player).Center;
-            center1.X += (float) (600 * ((double) ((Entity) this.NPC).Center.X < (double) center1.X ? -1 : 1));
-            this.Movement(center1, 0.8f, 32f);
-            if ((double) --this.NPC.ai[2] < 0.0)
-            {
-              this.NPC.ai[2] = (float) Main.rand.Next(5);
-              if (FargoSoulsUtil.HostCheck)
-              {
-                Vector2 vector2 = Vector2.op_Addition(((Entity) this.NPC).position, new Vector2((float) Main.rand.Next(((Entity) this.NPC).width), (float) Main.rand.Next(((Entity) this.NPC).height)));
-                int num = ModContent.ProjectileType<PhantasmalBlast>();
-                Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), vector2, Vector2.Zero, num, 0, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-              }
-            }
-            if ((double) ++this.NPC.ai[1] > 150.0)
-            {
-              this.NPC.TargetClosest(true);
-              --this.Animation;
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.netUpdate = true;
-              break;
-            }
-            break;
-          case -1f:
-            this.NPC.rotation = 0.0f;
-            this.NPC.dontTakeDamage = true;
-            NPC npc2 = this.NPC;
-            ((Entity) npc2).velocity = Vector2.op_Multiply(((Entity) npc2).velocity, 0.9f);
-            if ((double) ++this.NPC.ai[1] == 120.0)
-            {
-              SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-              this.NPC.localAI[2] = 1f;
-              this.epicMe = 1f;
-              break;
-            }
-            if ((double) this.NPC.ai[1] > 180.0)
-            {
-              this.NPC.TargetClosest(true);
-              this.Animation = this.NPC.ai[3];
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.netUpdate = true;
-              break;
-            }
-            break;
-          case 0.0f:
-          case 4f:
-          case 8f:
-          case 12f:
-            this.NPC.rotation = 0.0f;
-            if ((!((Entity) player).active || player.dead || (double) Vector2.Distance(((Entity) this.NPC).Center, ((Entity) player).Center) > 2500.0 || (double) ((Entity) player).Center.Y / 16.0 > Main.worldSurface) && (double) this.NPC.localAI[3] != 0.0)
-            {
-              this.NPC.TargetClosest(false);
-              if (this.NPC.timeLeft > 30)
-                this.NPC.timeLeft = 30;
-              --((Entity) this.NPC).velocity.Y;
-              break;
-            }
-            Vector2 targetPos2 = Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(((Entity) this.NPC).DirectionFrom(((Entity) player).Center), 500f));
-            if ((double) ((Entity) this.NPC).Distance(targetPos2) > 50.0)
-              this.Movement(targetPos2, 0.8f, 32f);
-            if ((double) this.NPC.ai[1] == 0.0 && (double) this.NPC.localAI[2] != 0.0 && Main.expertMode && (double) this.Animation != 5.0 && FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, -23f, 0.0f);
-            if ((double) ++this.NPC.ai[1] > 60.0)
-            {
-              float num = this.Animation;
-              this.NPC.TargetClosest(true);
-              this.Animation += (double) this.NPC.localAI[2] == 0.0 || !Main.expertMode ? 2f : 1f;
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.netUpdate = true;
-              if (!this.hitChildren)
-              {
-                for (int n2 = 0; n2 < Main.maxNPCs; ++n2)
-                {
-                  if (((Entity) Main.npc[n2]).active && (double) ((Entity) this.NPC).Distance(((Entity) Main.npc[n2]).Center) < 2000.0 && (double) ((Entity) player).Distance(((Entity) Main.npc[n2]).Center) < 2000.0 && IsDeviantt(n2))
-                  {
-                    this.Animation = -4f;
-                    this.NPC.ai[1] = num;
-                    this.NPC.ai[2] = (float) n2;
-                    break;
-                  }
-                }
-                break;
-              }
-              break;
-            }
-            break;
-          case 1f:
-            Vector2 center2 = ((Entity) player).Center;
-            center2.X += (float) (300 * ((double) ((Entity) this.NPC).Center.X < (double) center2.X ? -1 : 1));
-            if ((double) ((Entity) this.NPC).Distance(center2) > 50.0)
-              this.Movement(center2, 0.8f, 32f);
-            if ((double) this.NPC.ai[1] == 1.0)
-              SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            if ((double) ++this.NPC.ai[2] <= 6.0)
-            {
-              this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-              if (((Entity) this.NPC).direction < 0)
-                this.NPC.rotation += 3.14159274f;
-              this.NPC.ai[3] = (double) ((Entity) this.NPC).Center.X < (double) ((Entity) player).Center.X ? 1f : -1f;
-              if ((double) this.NPC.ai[2] == 6.0)
-              {
-                this.NPC.netUpdate = true;
-                if ((double) this.NPC.ai[1] > 50.0)
-                {
-                  if (FargoSoulsUtil.HostCheck)
-                  {
-                    Vector2 unitX = Vector2.UnitX;
-                    if (((Entity) this.NPC).direction < 0)
-                      unitX.X *= -1f;
-                    Vector2 vector2 = Utils.RotatedBy(unitX, (double) Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center)), new Vector2());
-                    int num = Math.Sign(((Entity) this.NPC).Center.Y - ((Entity) player).Center.Y);
-                    Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(Vector2.op_Addition(((Entity) this.NPC).Center, vector2), Vector2.op_Multiply(Vector2.op_Multiply(3000f, ((Entity) this.NPC).DirectionFrom(((Entity) player).Center)), (float) num)), Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center), (float) num), ModContent.ProjectileType<CosmosDeathray>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage, 1.25f), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                  }
-                }
-                else
-                  this.NPC.ai[2] = 0.0f;
-              }
-            }
-            else
-            {
-              ((Entity) this.NPC).direction = this.NPC.spriteDirection = Math.Sign(this.NPC.ai[3]);
-              if ((double) this.NPC.ai[2] > 12.0)
-              {
-                this.NPC.ai[2] = 0.0f;
-                this.NPC.ai[3] = 0.0f;
-                this.NPC.netUpdate = true;
-              }
-            }
-            if ((double) ++this.NPC.ai[1] > 240.0)
-            {
-              this.NPC.TargetClosest(true);
-              ++this.Animation;
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.netUpdate = true;
-              break;
-            }
-            break;
-          case 2f:
-          case 6f:
-            if ((double) this.Animation != 10.0)
-            {
-              this.NPC.rotation = 0.0f;
-              targetPos1 = Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(((Entity) this.NPC).DirectionFrom(((Entity) player).Center), 500f));
-              if ((double) ((Entity) this.NPC).Distance(targetPos1) > 50.0)
-                this.Movement(targetPos1, 0.8f, 32f);
-            }
-            if ((!((Entity) player).active || player.dead || (double) Vector2.Distance(((Entity) this.NPC).Center, ((Entity) player).Center) > 2500.0) && (double) this.NPC.localAI[3] != 0.0)
-            {
-              this.NPC.TargetClosest(false);
-              if (this.NPC.timeLeft > 30)
-                this.NPC.timeLeft = 30;
-              --((Entity) this.NPC).velocity.Y;
-              break;
-            }
-            if ((double) ++this.NPC.ai[1] > 60.0)
-            {
-              float num = this.Animation;
-              this.NPC.TargetClosest(true);
-              ++this.Animation;
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.netUpdate = true;
-              if (!this.hitChildren)
-              {
-                for (int n3 = 0; n3 < Main.maxNPCs; ++n3)
-                {
-                  if (((Entity) Main.npc[n3]).active && IsDeviantt(n3) && (double) ((Entity) this.NPC).Distance(((Entity) Main.npc[n3]).Center) < 1200.0 && (double) ((Entity) player).Distance(((Entity) Main.npc[n3]).Center) < 1200.0)
-                  {
-                    this.Animation = -4f;
-                    this.NPC.ai[1] = num;
-                    this.NPC.ai[2] = (float) n3;
-                    break;
-                  }
-                }
-                break;
-              }
-              break;
-            }
-            break;
-          case 3f:
-            if ((double) this.NPC.ai[1] == 1.0 && FargoSoulsUtil.HostCheck)
-            {
-              float num5 = 0.7853982f;
-              int num6 = FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage);
-              for (int index = 0; index < 8; ++index)
-              {
-                Vector2 vector2 = Vector2.op_Addition(((Entity) this.NPC).Center, Utils.RotatedBy(new Vector2(120f, 0.0f), (double) num5 * (double) index, new Vector2()));
-                Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), vector2, Vector2.Zero, ModContent.ProjectileType<CosmosFireball>(), num6, 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, num5 * (float) index, 0.0f);
-              }
-            }
-            int num7 = 70;
-            if ((double) ++this.NPC.ai[2] <= (double) num7)
-            {
-              Vector2 center3 = ((Entity) player).Center;
-              center3.X += (float) (600 * ((double) ((Entity) this.NPC).Center.X < (double) center3.X ? -1 : 1));
-              center3.Y += (float) (300 * ((double) ((Entity) this.NPC).Center.Y < (double) center3.Y ? -1 : 1));
-              this.Movement(center3, 1.6f, 24f);
-              this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-              if (((Entity) this.NPC).direction < 0)
-                this.NPC.rotation += 3.14159274f;
-              if ((double) this.NPC.ai[2] == (double) num7)
-              {
-                ((Entity) this.NPC).velocity = Vector2.op_Multiply(42f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-                this.NPC.netUpdate = true;
-              }
-            }
-            else
-            {
-              ((Entity) this.NPC).direction = this.NPC.spriteDirection = Math.Sign(((Entity) this.NPC).velocity.X);
-              if ((double) this.NPC.ai[2] > (double) (num7 + 30))
-              {
-                this.NPC.ai[2] = 0.0f;
-                this.NPC.netUpdate = true;
-                if (WorldSavingSystem.EternityMode && (double) this.NPC.localAI[2] != 0.0)
-                {
-                  if (!Main.dedServ && ((Entity) Main.LocalPlayer).active)
-                    ScreenShakeSystem.StartShake(10f, 6.28318548f, new Vector2?(), 0.333333343f);
-                  if (FargoSoulsUtil.HostCheck)
-                  {
-                    Vector2 vector2_3 = Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center);
-                    for (int index = 0; index < 6; ++index)
-                    {
-                      Vector2 vector2_4 = Vector2.op_Multiply((float) (((Entity) this.NPC).height / 2), Utils.RotatedBy(vector2_3, Math.PI / 3.0 * (double) index, new Vector2()));
-                      float num8 = index <= 1 || index == 5 ? 32f : 8f;
-                      Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, Utils.NextVector2Circular(Main.rand, (float) (((Entity) this.NPC).width / 2), (float) (((Entity) this.NPC).height / 2))), Vector2.Zero, ModContent.ProjectileType<MoonLordSunBlast>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, MathHelper.WrapAngle(Utils.ToRotation(vector2_4)), num8, 0.0f);
-                    }
-                  }
-                }
-              }
-            }
-            if ((double) ++this.NPC.ai[1] > 330.0)
-            {
-              this.NPC.TargetClosest(true);
-              ++this.Animation;
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.netUpdate = true;
-              break;
-            }
-            break;
-          case 5f:
-            if ((double) this.NPC.ai[1] == 1.0)
-              SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            if ((double) ++this.NPC.ai[2] <= 75.0)
-            {
-              Vector2 center4 = ((Entity) player).Center;
-              center4.X += (float) (350 * ((double) ((Entity) this.NPC).Center.X < (double) center4.X ? -1 : 1));
-              center4.Y -= 700f;
-              this.Movement(center4, 1.6f, 32f);
-              this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-              if (((Entity) this.NPC).direction < 0)
-                this.NPC.rotation += 3.14159274f;
-              this.NPC.localAI[0] = (double) ((Entity) this.NPC).Center.X < (double) ((Entity) player).Center.X ? 1f : -1f;
-              if ((double) this.NPC.ai[2] == 75.0)
-              {
-                ((Entity) this.NPC).velocity = Vector2.op_Multiply(42f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-                this.NPC.netUpdate = true;
-                if (FargoSoulsUtil.HostCheck)
-                {
-                  int num9 = Math.Sign(((Entity) this.NPC).Center.Y - ((Entity) player).Center.Y);
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(Vector2.op_Multiply(3000f, ((Entity) this.NPC).DirectionFrom(((Entity) player).Center)), (float) num9)), Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center), (float) num9), ModContent.ProjectileType<CosmosDeathray2>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage, 1.25f), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                  for (int index = -3; index <= 3; ++index)
-                    Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply(0.5f, Vector2.op_UnaryNegation(Utils.RotatedBy(Vector2.UnitY, 0.52359879016876221 * (double) index, new Vector2()))), ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                }
-                this.NPC.ai[3] = (float) Main.rand.Next(4);
-              }
-            }
-            else
-            {
-              ((Entity) this.NPC).direction = this.NPC.spriteDirection = Math.Sign(this.NPC.localAI[0]);
-              if ((double) ++this.NPC.ai[3] > 4.0)
-              {
-                this.NPC.ai[3] = 0.0f;
-                if (FargoSoulsUtil.HostCheck)
-                {
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply(0.5f, Vector2.UnitX), ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply(-0.5f, Vector2.UnitX), ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                }
-              }
-            }
-            if ((double) ++this.NPC.ai[1] > 240.0 || (double) this.NPC.ai[2] > 60.0 && (double) ((Entity) this.NPC).Center.Y > (double) ((Entity) player).Center.Y + 700.0)
-            {
-              ((Entity) this.NPC).velocity.Y = 0.0f;
-              if (FargoSoulsUtil.HostCheck)
-              {
-                for (int index = -3; index <= 3; ++index)
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply(0.5f, Utils.RotatedBy(Vector2.UnitY, 0.52359879016876221 * (double) index, new Vector2())), ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-              }
-              this.NPC.TargetClosest(true);
-              ++this.Animation;
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.localAI[0] = 0.0f;
-              this.NPC.netUpdate = true;
-              break;
-            }
-            break;
-          case 7f:
-            Vector2 targetPos3 = Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(((Entity) this.NPC).DirectionFrom(((Entity) player).Center), 500f));
-            if ((double) ((Entity) this.NPC).Distance(((Entity) player).Center) < 200.0 || (double) ((Entity) this.NPC).Distance(((Entity) player).Center) > 600.0)
-            {
-              if ((double) ((Entity) this.NPC).Distance(targetPos3) > 50.0)
-                this.Movement(targetPos3, 0.6f, 32f);
-            }
-            else
-            {
-              NPC npc3 = this.NPC;
-              ((Entity) npc3).velocity = Vector2.op_Multiply(((Entity) npc3).velocity, 0.97f);
-            }
-            if ((double) this.NPC.ai[1] == 30.0)
-            {
-              SoundEngine.PlaySound(ref SoundID.ForceRoarPitched, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-              if (FargoSoulsUtil.HostCheck)
-              {
-                float num10 = !WorldSavingSystem.EternityMode || (double) this.NPC.localAI[2] == 0.0 ? ((double) this.NPC.localAI[2] == 0.0 ? 1f : -1.6f) : -1.2f;
-                Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) player).Center, Vector2.Zero, ModContent.ProjectileType<CosmosVortex>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, num10, 0.0f);
-              }
-              int num11 = (int) ((Entity) this.NPC).Distance(((Entity) player).Center);
-              Vector2 vector2 = Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center);
-              for (int index21 = 0; index21 < num11; index21 += 10)
-              {
-                int index22 = Dust.NewDust(Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(vector2, (float) index21)), 0, 0, 229, 0.0f, 0.0f, 0, new Color(), 1f);
-                Main.dust[index22].noGravity = true;
-                Main.dust[index22].scale = 1.5f;
-              }
-            }
-            if ((double) ++this.NPC.ai[1] > 450.0)
-            {
-              this.NPC.TargetClosest(true);
-              ++this.Animation;
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.netUpdate = true;
-              break;
-            }
-            break;
-          case 9f:
-            if ((double) this.NPC.ai[1] == 1.0)
-              SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            if ((double) this.NPC.ai[2] == 0.0 && FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, -20f, 0.0f);
-            if ((double) ++this.NPC.ai[2] <= 200.0)
-            {
-              Vector2 center5 = ((Entity) player).Center;
-              center5.X += (float) (600 * ((double) ((Entity) this.NPC).Center.X < (double) center5.X ? -1 : 1));
-              NPC npc4 = this.NPC;
-              ((Entity) npc4).position = Vector2.op_Addition(((Entity) npc4).position, Vector2.op_Division(((Entity) player).velocity, 3f));
-              this.Movement(center5, 1.2f, 32f);
-              if ((double) --this.NPC.localAI[0] < 0.0)
-              {
-                this.NPC.localAI[0] = 90f;
-                if (FargoSoulsUtil.HostCheck)
-                {
-                  for (int index23 = -1; index23 <= 1; index23 += 2)
-                  {
-                    for (int index24 = -11; index24 <= 11; ++index24)
-                    {
-                      Vector2 center6 = ((Entity) player).Center;
-                      center6.X += 180f * (float) index24;
-                      center6.Y += (float) (400.0 + 27.272727966308594 * (double) Math.Abs(index24)) * (float) index23;
-                      Vector2 vector2 = Vector2.op_Division(Vector2.op_Subtraction(center6, ((Entity) this.NPC).Center), 20f);
-                      int num12 = 60 + Math.Abs(index24 * 2);
-                      Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Division(vector2, 2f), ModContent.ProjectileType<CosmosSphere>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 20f, (float) num12, 0.0f);
-                    }
-                  }
-                }
-              }
-              this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-              if (((Entity) this.NPC).direction < 0)
-                this.NPC.rotation += 3.14159274f;
-              this.NPC.ai[3] = (double) ((Entity) this.NPC).Center.X < (double) ((Entity) player).Center.X ? 1f : -1f;
-              if ((double) this.NPC.ai[2] == 200.0)
-              {
-                ((Entity) this.NPC).velocity = Vector2.op_Multiply(42f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-                this.NPC.netUpdate = true;
-                if (FargoSoulsUtil.HostCheck)
-                {
-                  int num13 = Math.Sign(((Entity) this.NPC).Center.Y - ((Entity) player).Center.Y);
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(Vector2.op_Multiply(3000f, ((Entity) this.NPC).DirectionFrom(((Entity) player).Center)), (float) num13)), Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center), (float) num13), ModContent.ProjectileType<CosmosDeathray2>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage, 1.25f), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                }
-              }
-            }
-            else
-              ((Entity) this.NPC).direction = this.NPC.spriteDirection = Math.Sign(this.NPC.ai[3]);
-            if ((double) ++this.NPC.ai[1] > 400.0 || (double) this.NPC.ai[2] > 200.0 && ((double) this.NPC.ai[3] > 0.0 ? ((double) ((Entity) this.NPC).Center.X > (double) ((Entity) player).Center.X + 800.0 ? 1 : 0) : ((double) ((Entity) this.NPC).Center.X < (double) ((Entity) player).Center.X - 800.0 ? 1 : 0)) != 0)
-            {
-              ((Entity) this.NPC).velocity.X = 0.0f;
-              this.NPC.TargetClosest(true);
-              ++this.Animation;
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.localAI[0] = 0.0f;
-              this.NPC.netUpdate = true;
-              break;
-            }
-            break;
-          case 10f:
-            NebulaDust();
-            if ((double) this.NPC.ai[1] == 0.0)
-              SoundEngine.PlaySound(ref SoundID.Item117, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            targetPos1 = ((Entity) player).Center;
-            targetPos1.X += (float) (550 * ((double) ((Entity) this.NPC).Center.X < (double) targetPos1.X ? -1 : 1));
-            if ((double) ((Entity) this.NPC).Distance(targetPos1) > 50.0)
-              this.Movement(targetPos1, 0.8f, 24f);
-            this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-            if (((Entity) this.NPC).direction < 0)
-            {
-              this.NPC.rotation += 3.14159274f;
-              goto case 2f;
-            }
-            else
-              goto case 2f;
-          case 11f:
-            Vector2 center7 = ((Entity) player).Center;
-            if (WorldSavingSystem.EternityMode && (double) this.NPC.localAI[2] != 0.0)
-            {
-              int num14 = (double) ((Entity) this.NPC).Center.X < (double) center7.X ? -1 : 1;
-              Vector2 vector2 = Vector2.op_Multiply((float) (600 * num14), Vector2.UnitX);
-              float num15 = (float) ((double) MathHelper.ToRadians(80f) * (double) this.NPC.ai[1] / 420.0) * (float) -num14;
-              Vector2 targetPos4 = Vector2.op_Addition(center7, Utils.RotatedBy(vector2, (double) num15, new Vector2()));
-              NPC npc5 = this.NPC;
-              ((Entity) npc5).position = Vector2.op_Addition(((Entity) npc5).position, Vector2.op_Division(((Entity) player).velocity, 3f));
-              this.Movement(targetPos4, 0.8f, 24f);
-            }
-            else
-            {
-              center7.X += (float) (550 * ((double) ((Entity) this.NPC).Center.X < (double) center7.X ? -1 : 1));
-              if ((double) ((Entity) this.NPC).Distance(center7) > 50.0)
-                this.Movement(center7, 0.8f, 24f);
-            }
-            this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-            if (((Entity) this.NPC).direction < 0)
-              this.NPC.rotation += 3.14159274f;
-            if ((double) this.NPC.ai[1] == 30.0 && FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) player).Center, Vector2.Zero, ModContent.ProjectileType<CosmosReticle>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, 0.0f, 0.0f);
-            if ((double) this.NPC.ai[1] > 60.0)
-            {
-              if ((double) ++this.NPC.ai[3] == 3.0)
-              {
-                SoundEngine.PlaySound(ref SoundID.Item20, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-                if (FargoSoulsUtil.HostCheck)
-                {
-                  Vector2 vector2_5;
-                  // ISSUE: explicit constructor call
-                  ((Vector2) ref vector2_5).\u002Ector(80f, 6f);
-                  if ((double) ((Entity) player).Center.X < (double) ((Entity) this.NPC).Center.X)
-                    vector2_5.X *= -1f;
-                  Vector2 vector2_6 = Utils.RotatedBy(vector2_5, (double) this.NPC.rotation, new Vector2());
-                  for (int index = 0; index < 2; ++index)
-                  {
-                    float num16 = MathHelper.ToRadians((double) this.NPC.localAI[2] == 0.0 ? 30f : 20f) + Utils.NextFloat(Main.rand, MathHelper.ToRadians(10f));
-                    if (index == 0)
-                      num16 *= -1f;
-                    Vector2 vector2_7 = Vector2.op_Multiply(Utils.NextFloat(Main.rand, 8f, 12f), Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center), (double) num16, new Vector2()));
-                    Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, vector2_6), vector2_7, ModContent.ProjectileType<CosmosNebulaBlaze>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 3f / 500f, 0.0f, 0.0f);
-                    if (WorldSavingSystem.EternityMode && (double) this.NPC.localAI[2] != 0.0)
-                      Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, vector2_6), Utils.RotatedBy(vector2_7, (double) num16 * (double) Utils.NextFloat(Main.rand, 1f, 4f), new Vector2()), ModContent.ProjectileType<CosmosNebulaBlaze>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 3f / 500f, 0.0f, 0.0f);
-                  }
-                }
-              }
-              else if ((double) this.NPC.ai[3] > 6.0)
-                this.NPC.ai[3] = 0.0f;
-            }
-            else
-              NebulaDust();
-            if ((double) ++this.NPC.ai[1] > 390.0)
-            {
-              this.NPC.TargetClosest(true);
-              ++this.Animation;
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.netUpdate = true;
-              break;
-            }
-            break;
-          case 13f:
-            if ((double) ++this.NPC.ai[1] < 110.0)
-            {
-              Vector2 center8 = ((Entity) player).Center;
-              center8.X += (float) (300 * ((double) ((Entity) this.NPC).Center.X < (double) center8.X ? -1 : 1));
-              if ((double) ((Entity) this.NPC).Distance(center8) > 50.0)
-                this.Movement(center8, 0.8f, 32f);
-              if ((double) this.NPC.ai[1] == 1.0)
-                SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-              if ((double) ++this.NPC.ai[2] <= 6.0)
-              {
-                this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-                if (((Entity) this.NPC).direction < 0)
-                  this.NPC.rotation += 3.14159274f;
-                this.NPC.ai[3] = (double) ((Entity) this.NPC).Center.X < (double) ((Entity) player).Center.X ? 1f : -1f;
-                if ((double) this.NPC.ai[2] == 6.0)
-                {
-                  this.NPC.netUpdate = true;
-                  if ((double) this.NPC.ai[1] > 50.0)
-                  {
+                    NPC.Center = Main.player[NPC.target].Center - 250 * Vector2.UnitY;
                     if (FargoSoulsUtil.HostCheck)
-                    {
-                      Vector2 unitX = Vector2.UnitX;
-                      if (((Entity) this.NPC).direction < 0)
-                        unitX.X *= -1f;
-                      Vector2 vector2 = Utils.RotatedBy(unitX, (double) Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center)), new Vector2());
-                      int num17 = Math.Sign(((Entity) this.NPC).Center.Y - ((Entity) player).Center.Y);
-                      Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(Vector2.op_Addition(((Entity) this.NPC).Center, vector2), Vector2.op_Multiply(Vector2.op_Multiply(3000f, ((Entity) this.NPC).DirectionFrom(((Entity) player).Center)), (float) num17)), Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center), (float) num17), ModContent.ProjectileType<CosmosDeathray>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage, 1.25f), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                      break;
-                    }
-                    break;
-                  }
-                  this.NPC.ai[2] = 0.0f;
-                  break;
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<CosmosVortex>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
                 }
-                break;
-              }
-              ((Entity) this.NPC).direction = this.NPC.spriteDirection = Math.Sign(this.NPC.ai[3]);
-              if ((double) this.NPC.ai[2] > 12.0)
-              {
-                this.NPC.ai[2] = 0.0f;
-                this.NPC.ai[3] = 0.0f;
-                this.NPC.netUpdate = true;
-                break;
-              }
-              break;
-            }
-            if ((double) this.NPC.ai[1] <= 155.0)
-            {
-              Vector2 center9 = ((Entity) player).Center;
-              center9.X += (float) (350 * ((double) ((Entity) this.NPC).Center.X < (double) center9.X ? -1 : 1));
-              center9.Y += 700f;
-              NPC npc6 = this.NPC;
-              ((Entity) npc6).position = Vector2.op_Addition(((Entity) npc6).position, Vector2.op_Division(((Entity) player).velocity, 3f));
-              this.Movement(center9, 2.4f, 32f);
-              this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-              if (((Entity) this.NPC).direction < 0)
-                this.NPC.rotation += 3.14159274f;
-              if ((double) this.NPC.ai[1] == 155.0)
-              {
-                ((Entity) this.NPC).velocity = Vector2.op_Multiply(42f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center));
-                this.NPC.netUpdate = true;
-                this.NPC.ai[3] = Math.Abs(((Entity) player).Center.Y - ((Entity) this.NPC).Center.Y) / 42f;
-                this.NPC.ai[3] *= 2f;
-                this.NPC.localAI[0] = ((Entity) player).Center.X;
-                this.NPC.localAI[1] = ((Entity) player).Center.Y;
-                this.NPC.localAI[0] += (double) ((Entity) this.NPC).Center.X < (double) ((Entity) player).Center.X ? -50f : 50f;
-                if (FargoSoulsUtil.HostCheck)
+                if (NPC.ai[1] == 117) // 1 frame before so can music fade up next frame
                 {
-                  int num18 = Math.Sign(((Entity) this.NPC).Center.Y - ((Entity) player).Center.Y);
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(Vector2.op_Multiply(3000f, ((Entity) this.NPC).DirectionFrom(((Entity) player).Center)), (float) num18)), Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) player).Center), (float) num18), ModContent.ProjectileType<CosmosDeathray2>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage, 1.25f), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                  break;
-                }
-                break;
-              }
-              break;
-            }
-            ((Entity) this.NPC).direction = this.NPC.spriteDirection = Math.Sign(((Entity) this.NPC).velocity.X);
-            this.NPC.rotation = Utils.ToRotation(((Entity) this.NPC).velocity);
-            if (((Entity) this.NPC).direction < 0)
-              this.NPC.rotation += 3.14159274f;
-            if ((double) Math.Abs(((Entity) this.NPC).Center.Y - this.NPC.localAI[1]) < 300.0)
-            {
-              Vector2 vector2_8 = Vector2.op_Subtraction(((Entity) this.NPC).Center, Vector2.op_Division(((Entity) this.NPC).velocity, 2f));
-              Vector2 vector2_9;
-              // ISSUE: explicit constructor call
-              ((Vector2) ref vector2_9).\u002Ector(this.NPC.localAI[0], this.NPC.localAI[1]);
-              Vector2 vector2_10 = vector2_9;
-              Vector2 vector2_11 = Vector2.Normalize(Vector2.op_Subtraction(vector2_8, vector2_10));
-              if (FargoSoulsUtil.HostCheck)
-              {
-                int num19 = Math.Sign(((Entity) player).Center.X - vector2_9.X) == ((Entity) this.NPC).direction ? 1 : -1;
-                Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply((float) num19 * 0.5f, vector2_11), ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply((float) num19 * 0.5f, ((Entity) this.NPC).DirectionFrom(vector2_9)), ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-              }
-            }
-            else if ((double) ++this.NPC.ai[2] > 1.0)
-            {
-              this.NPC.ai[2] = 0.0f;
-              if (FargoSoulsUtil.HostCheck)
-              {
-                Vector2 vector2;
-                // ISSUE: explicit constructor call
-                ((Vector2) ref vector2).\u002Ector(this.NPC.localAI[0], this.NPC.localAI[1]);
-                Math.Sign(((Entity) player).Center.X - vector2.X);
-                int direction = ((Entity) this.NPC).direction;
-                Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply(0.5f, ((Entity) this.NPC).DirectionFrom(vector2)), ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-              }
-            }
-            if ((double) this.NPC.ai[1] > 155.0 + (double) this.NPC.ai[3])
-            {
-              ((Entity) this.NPC).velocity.Y = 0.0f;
-              this.NPC.TargetClosest(true);
-              ++this.Animation;
-              this.NPC.ai[1] = !WorldSavingSystem.EternityMode || (double) this.NPC.localAI[2] == 0.0 ? -120f : 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.localAI[0] = 0.0f;
-              this.NPC.localAI[1] = 0.0f;
-              this.NPC.netUpdate = true;
-              break;
-            }
-            break;
-          case 14f:
-            NPC npc7 = this.NPC;
-            ((Entity) npc7).velocity = Vector2.op_Multiply(((Entity) npc7).velocity, 0.9f);
-            goto case 2f;
-          case 15f:
-            Vector2 targetPos5 = Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(((Entity) this.NPC).DirectionFrom(((Entity) player).Center), 500f));
-            if ((double) this.NPC.ai[1] < 130.0 || (double) ((Entity) this.NPC).Distance(((Entity) player).Center) > 200.0 && (double) ((Entity) this.NPC).Distance(((Entity) player).Center) < 600.0)
-            {
-              NPC npc8 = this.NPC;
-              ((Entity) npc8).velocity = Vector2.op_Multiply(((Entity) npc8).velocity, 0.97f);
-            }
-            else if ((double) ((Entity) this.NPC).Distance(targetPos5) > 50.0)
-            {
-              this.Movement(targetPos5, 0.6f, 32f);
-              NPC npc9 = this.NPC;
-              ((Entity) npc9).position = Vector2.op_Addition(((Entity) npc9).position, Vector2.op_Division(((Entity) player).velocity, 4f));
-            }
-            if ((double) this.NPC.ai[1] >= 10.0 && Main.netMode != 2)
-              ShaderManager.GetFilter("FargowiltasSouls.Invert").SetFocusPosition(((Entity) this.NPC).Center);
-            if ((double) this.NPC.ai[1] == 10.0)
-            {
-              this.NPC.localAI[0] = Utils.NextFloat(Main.rand, 6.28318548f);
-              if (!Main.dedServ)
-              {
-                SoundStyle soundStyle = new SoundStyle("FargowiltasSouls/Assets/Sounds/ZaWarudo", (SoundType) 0);
-                SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) player).Center), (SoundUpdateCallback) null);
-              }
-            }
-            else if ((double) this.NPC.ai[1] < 210.0)
-            {
-              int num20 = 60 + Math.Max(2, 210 - (int) this.NPC.ai[1]);
-              if (((Entity) Main.LocalPlayer).active && !Main.LocalPlayer.dead)
-                Main.LocalPlayer.AddBuff(ModContent.BuffType<TimeFrozenBuff>(), num20, true, false);
-              for (int index = 0; index < Main.maxNPCs; ++index)
-              {
-                if (((Entity) Main.npc[index]).active)
-                  Main.npc[index].AddBuff(ModContent.BuffType<TimeFrozenBuff>(), num20, true);
-              }
-              for (int index = 0; index < Main.maxProjectiles; ++index)
-              {
-                if (((Entity) Main.projectile[index]).active && !Main.projectile[index].FargoSouls().TimeFreezeImmune)
-                  Main.projectile[index].FargoSouls().TimeFrozen = num20;
-              }
-              if ((double) this.NPC.ai[1] < 130.0 && (double) ++this.NPC.ai[2] > 12.0)
-              {
-                this.NPC.ai[2] = 0.0f;
-                bool flag = WorldSavingSystem.EternityMode && (double) this.NPC.localAI[2] != 0.0;
-                int num21 = 300;
-                float num22 = flag ? 250f : 150f;
-                float num23 = flag ? 4f : 2.5f;
-                int num24 = FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage);
-                if ((double) this.NPC.ai[1] < 85.0 || !flag)
-                {
-                  if (flag && (double) this.NPC.ai[3] % 2.0 == 0.0)
-                  {
-                    float num25 = (float) num21 + this.NPC.ai[3] * num22;
-                    int num26 = (int) (6.2831854820251465 * (double) num25);
-                    this.NPC.localAI[0] = MathHelper.WrapAngle(this.NPC.localAI[0] + 3.14159274f + Utils.NextFloat(Main.rand, 1.57079637f));
-                    for (int index = 0; index < num26; index += 120)
+                    if (ModLoader.TryGetMod("FargowiltasMusic", out Mod musicMod))
                     {
-                      float num27 = (float) index / num25;
-                      if ((double) num27 <= 2.0 * Math.PI - (double) MathHelper.WrapAngle(MathHelper.ToRadians(60f)))
-                      {
-                        float num28 = num25;
-                        Vector2 vector2_12 = Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(num28, Utils.RotatedBy(Vector2.UnitX, (double) num27 + (double) this.NPC.localAI[0], new Vector2())));
-                        Vector2 vector2_13 = Vector2.op_Multiply(num23, ((Entity) player).DirectionFrom(vector2_12));
-                        float num29 = (float) ((double) ((Entity) player).Distance(vector2_12) / (double) num23 + 30.0);
-                        if (FargoSoulsUtil.HostCheck)
-                          Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), vector2_12, vector2_13, ModContent.ProjectileType<CosmosInvaderTime>(), num24, 0.0f, Main.myPlayer, num29, Utils.ToRotation(vector2_13), 0.0f);
-                      }
+                        Music = MusicLoader.GetMusicSlot(musicMod, "Assets/Music/PlatinumStar");
                     }
-                  }
-                  else
-                  {
-                    int num30 = flag ? 12 : 8 + (int) this.NPC.ai[3] * ((double) this.NPC.localAI[2] == 0.0 ? 2 : 4);
-                    float num31 = Utils.NextFloat(Main.rand, 6.28318548f);
-                    for (int index = 0; index < num30; ++index)
+                    else
                     {
-                      float num32 = (float) num21 + this.NPC.ai[3] * num22;
-                      Vector2 vector2_14 = Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(num32, Utils.RotatedBy(Vector2.UnitX, 2.0 * Math.PI / (double) num30 * (double) index + (double) num31, new Vector2())));
-                      Vector2 vector2_15 = Vector2.op_Multiply(num23, ((Entity) player).DirectionFrom(vector2_14));
-                      float num33 = (float) ((double) num32 / (double) num23 + 30.0);
-                      if (FargoSoulsUtil.HostCheck)
-                        Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), vector2_14, vector2_15, ModContent.ProjectileType<CosmosInvaderTime>(), num24, 0.0f, Main.myPlayer, num33, Utils.ToRotation(vector2_15), 0.0f);
+                        Music = MusicID.OtherworldlyLunarBoss;
                     }
-                  }
                 }
-                ++this.NPC.ai[3];
-              }
-            }
-            if ((double) ++this.NPC.ai[1] > 480.0)
-            {
-              this.NPC.TargetClosest(true);
-              ++this.Animation;
-              this.NPC.ai[1] = 0.0f;
-              this.NPC.ai[2] = 0.0f;
-              this.NPC.ai[3] = 0.0f;
-              this.NPC.localAI[0] = 0.0f;
-              this.NPC.netUpdate = true;
-              break;
-            }
-            break;
-          default:
-            this.Animation = 0.0f;
-            goto case 0.0f;
-        }
-        this.epicMe -= 0.02f;
-        if ((double) this.epicMe >= 0.0)
-          return;
-        this.epicMe = 0.0f;
-      }
-
-      static bool IsDeviantt(int n)
-      {
-        if (!((Entity) Main.npc[n]).active || Main.npc[n].dontTakeDamage)
-          return false;
-        return Main.npc[n].type == ModContent.NPCType<Deviantt>() || Main.npc[n].type == ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>();
-      }
-
-      void NebulaDust()
-      {
-        Vector2 vector2 = Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(new Vector2((float) (-26 * ((Entity) this.NPC).direction), 22f), this.NPC.scale));
-        for (int index1 = 0; index1 < 3; ++index1)
-        {
-          int index2 = Dust.NewDust(vector2, 0, 0, (int) byte.MaxValue, ((Entity) this.NPC).velocity.X * 0.3f, ((Entity) this.NPC).velocity.Y * 0.3f, 160, new Color(), 1f);
-          Main.dust[index2].scale = 2.4f;
-          Main.dust[index2].noGravity = true;
-          Dust dust = Main.dust[index2];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 3f);
-        }
-      }
-    }
-
-    private void Movement(Vector2 targetPos, float speedModifier, float cap = 12f, bool fastY = false)
-    {
-      if ((double) ((Entity) this.NPC).Center.X < (double) targetPos.X)
-      {
-        ((Entity) this.NPC).velocity.X += speedModifier;
-        if ((double) ((Entity) this.NPC).velocity.X < 0.0)
-          ((Entity) this.NPC).velocity.X += speedModifier * 2f;
-      }
-      else
-      {
-        ((Entity) this.NPC).velocity.X -= speedModifier;
-        if ((double) ((Entity) this.NPC).velocity.X > 0.0)
-          ((Entity) this.NPC).velocity.X -= speedModifier * 2f;
-      }
-      if ((double) ((Entity) this.NPC).Center.Y < (double) targetPos.Y)
-      {
-        ((Entity) this.NPC).velocity.Y += fastY ? speedModifier * 2f : speedModifier;
-        if ((double) ((Entity) this.NPC).velocity.Y < 0.0)
-          ((Entity) this.NPC).velocity.Y += speedModifier * 2f;
-      }
-      else
-      {
-        ((Entity) this.NPC).velocity.Y -= fastY ? speedModifier * 2f : speedModifier;
-        if ((double) ((Entity) this.NPC).velocity.Y > 0.0)
-          ((Entity) this.NPC).velocity.Y -= speedModifier * 2f;
-      }
-      float num1 = ((Entity) this.NPC).Distance(targetPos);
-      if ((double) num1 == 0.0)
-        num1 = 0.1f;
-      if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() > (double) num1)
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) this.NPC).velocity), num1);
-      double num2 = (double) MathHelper.Clamp(((Entity) this.NPC).velocity.X, -cap, cap);
-      double num3 = (double) MathHelper.Clamp(((Entity) this.NPC).velocity.Y, -cap, cap);
-    }
-
-    public virtual void FindFrame(int frameHeight)
-    {
-      if (++this.NPC.frameCounter > 6.0)
-      {
-        this.NPC.frameCounter = 0.0;
-        this.NPC.frame.Y += frameHeight;
-      }
-      if (this.NPC.frame.Y > frameHeight * 5 - 1)
-        this.NPC.frame.Y = 0;
-      switch (this.Animation)
-      {
-        case -4f:
-          this.NPC.frame.Y = frameHeight * 5;
-          if ((double) this.NPC.localAI[0] >= 5.0)
-          {
-            this.NPC.frame.Y = frameHeight * 6;
-            break;
-          }
-          break;
-        case -3f:
-          if ((double) this.NPC.ai[2] < 30.0 || (double) this.NPC.ai[2] > 100.0 && (double) this.NPC.ai[2] < 130.0)
-          {
-            this.NPC.frame.Y = frameHeight * 8;
-            break;
-          }
-          if ((double) this.NPC.ai[2] > 70.0 && (double) this.NPC.ai[2] < 100.0 || (double) this.NPC.ai[2] > 170.0)
-          {
-            this.NPC.frame.Y = frameHeight * 7;
-            break;
-          }
-          break;
-        case -2f:
-          this.NPC.frame.Y = frameHeight * 5;
-          break;
-        case -1f:
-          if ((double) this.NPC.ai[1] > 120.0)
-          {
-            this.NPC.frame.Y = frameHeight * 8;
-            break;
-          }
-          if ((double) this.NPC.ai[1] > 100.0)
-          {
-            this.NPC.frame.Y = frameHeight * 7;
-            break;
-          }
-          break;
-        case 1f:
-          if ((double) this.NPC.ai[2] <= 6.0)
-          {
-            this.NPC.frame.Y = frameHeight * 5;
-            break;
-          }
-          this.NPC.frame.Y = frameHeight * 6;
-          break;
-        case 3f:
-          if ((double) this.NPC.ai[2] <= 70.0)
-          {
-            this.NPC.frame.Y = frameHeight * 5;
-            break;
-          }
-          this.NPC.frame.Y = frameHeight * 6;
-          break;
-        case 5f:
-          if ((double) this.NPC.ai[2] <= 75.0)
-          {
-            this.NPC.frame.Y = frameHeight * 5;
-            break;
-          }
-          this.NPC.frame.Y = frameHeight * 6;
-          break;
-        case 7f:
-          if ((double) this.NPC.ai[1] < 30.0)
-          {
-            this.NPC.frame.Y = frameHeight * 7;
-            break;
-          }
-          if ((double) this.NPC.ai[1] < 60.0)
-          {
-            this.NPC.frame.Y = frameHeight * 8;
-            break;
-          }
-          break;
-        case 9f:
-          if ((double) this.NPC.ai[2] <= 200.0)
-          {
-            this.NPC.frame.Y = frameHeight * 5;
-            break;
-          }
-          this.NPC.frame.Y = frameHeight * 6;
-          break;
-        case 10f:
-          this.NPC.frame.Y = frameHeight * 5;
-          break;
-        case 11f:
-          if ((double) this.NPC.ai[1] > 60.0)
-          {
-            this.NPC.frame.Y = frameHeight * 6;
-            break;
-          }
-          this.NPC.frame.Y = frameHeight * 5;
-          break;
-        case 13f:
-          if ((double) this.NPC.ai[1] < 110.0)
-          {
-            if ((double) this.NPC.ai[2] <= 6.0)
-            {
-              this.NPC.frame.Y = frameHeight * 5;
-              break;
-            }
-            this.NPC.frame.Y = frameHeight * 6;
-            break;
-          }
-          if ((double) this.NPC.ai[1] <= 155.0)
-          {
-            this.NPC.frame.Y = frameHeight * 5;
-            break;
-          }
-          this.NPC.frame.Y = frameHeight * 6;
-          break;
-        case 14f:
-          this.NPC.frame.Y = frameHeight * 7;
-          break;
-        case 15f:
-          if ((double) this.NPC.ai[1] < 10.0)
-          {
-            this.NPC.frame.Y = frameHeight * 7;
-            break;
-          }
-          if ((double) this.NPC.ai[1] < 130.0)
-          {
-            this.NPC.frame.Y = frameHeight * 8;
-            break;
-          }
-          break;
-      }
-      if (!((IEnumerable<Projectile>) Main.projectile).Any<Projectile>((Func<Projectile, bool>) (p =>
-      {
-        if (!p.TypeAlive<GlowRing>() || (double) p.ai[0] != (double) ((Entity) this.NPC).whoAmI)
-          return false;
-        return (double) p.ai[1] == -23.0 || (double) p.ai[1] == -20.0;
-      })))
-        return;
-      this.NPC.frame.Y = frameHeight * 5;
-    }
-
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(67, 120, true, false);
-      target.AddBuff(144, 300, true, false);
-      target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 300, true, false);
-      target.AddBuff(44, 300, true, false);
-    }
-
-    public virtual void ModifyIncomingHit(ref NPC.HitModifiers modifiers)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      ref StatModifier local = ref modifiers.FinalDamage;
-      local = StatModifier.op_Multiply(local, 0.9f);
-    }
-
-    public virtual void HitEffect(NPC.HitInfo hit)
-    {
-      if (this.NPC.life > 0)
-        return;
-      for (int index = 1; index <= 6; ++index)
-      {
-        Vector2 vector2_1 = Vector2.op_Addition(((Entity) this.NPC).position, new Vector2(Utils.NextFloat(Main.rand, (float) ((Entity) this.NPC).width), Utils.NextFloat(Main.rand, (float) ((Entity) this.NPC).height)));
-        if (!Main.dedServ)
-        {
-          IEntitySource sourceFromThis = ((Entity) this.NPC).GetSource_FromThis((string) null);
-          Vector2 vector2_2 = vector2_1;
-          Vector2 velocity = ((Entity) this.NPC).velocity;
-          string name = ((ModType) this).Mod.Name;
-          DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(10, 1);
-          interpolatedStringHandler.AppendLiteral("CosmosGore");
-          interpolatedStringHandler.AppendFormatted<int>(index);
-          string stringAndClear = interpolatedStringHandler.ToStringAndClear();
-          int type = ModContent.Find<ModGore>(name, stringAndClear).Type;
-          double scale = (double) this.NPC.scale;
-          Gore.NewGore(sourceFromThis, vector2_2, velocity, type, (float) scale);
-        }
-      }
-    }
-
-    public virtual void BossLoot(ref string name, ref int potionType) => potionType = 3544;
-
-    public virtual void OnKill()
-    {
-      NPC.SetEventFlagCleared(ref WorldSavingSystem.DownedBoss[8], -1);
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      for (int index = 0; index < 10; ++index)
-      {
-        Vector2 vector2 = Vector2.op_Addition(((Entity) this.NPC).position, new Vector2((float) Main.rand.Next(((Entity) this.NPC).width), (float) Main.rand.Next(((Entity) this.NPC).height)));
-        int num = ModContent.ProjectileType<MutantBomb>();
-        Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), vector2, Vector2.Zero, num, 0, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      }
-      Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<MoonLordMoonBlast>(), 0, 0.0f, Main.myPlayer, -Utils.ToRotation(Vector2.UnitY), 32f, 0.0f);
-    }
-
-    public virtual void ModifyNPCLoot(NPCLoot npcLoot)
-    {
-      ((NPCLoot) ref npcLoot).Add((IItemDropRule) new ChampionEnchDropRule(BaseForce.EnchantsIn<CosmoForce>()));
-      ((NPCLoot) ref npcLoot).Add(ItemDropRule.BossBag(ModContent.ItemType<CosmosBag>()));
-      ((NPCLoot) ref npcLoot).Add(ItemDropRule.Common(ModContent.ItemType<EridanusTrophy>(), 10, 1, 1));
-      ((NPCLoot) ref npcLoot).Add(ItemDropRule.MasterModeCommonDrop(ModContent.ItemType<EridanusRelic>()));
-      ((NPCLoot) ref npcLoot).Add(ItemDropRule.ByCondition((IItemDropRuleCondition) new Conditions.NotExpert(), ModContent.ItemType<Eridanium>(), 1, 5, 10, 1));
-      ((NPCLoot) ref npcLoot).Add(ItemDropRule.ByCondition((IItemDropRuleCondition) new Conditions.NotExpert(), ModContent.Find<ModItem>("Fargowiltas", "CrucibleCosmos").Type, 1, 1, 1, 1));
-    }
-
-    public virtual bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
-    {
-      Texture2D texture2D1 = TextureAssets.Npc[this.NPC.type].Value;
-      Texture2D texture2D2 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosChampion_Glow", (AssetRequestMode) 1).Value;
-      Texture2D texture2D3 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosChampion_Glow2", (AssetRequestMode) 1).Value;
-      Rectangle frame = this.NPC.frame;
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(frame), 2f);
-      SpriteEffects spriteEffects = this.NPC.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Vector2 vector2_2 = Vector2.op_Subtraction(((Entity) this.NPC).Center, screenPos);
-      if ((double) Main.LocalPlayer.gravDir < 0.0)
-        vector2_2.Y = (float) Main.screenHeight - vector2_2.Y;
-      Color glowColor = new Color(Main.DiscoR / 3 + 150, Main.DiscoG / 3 + 150, Main.DiscoB / 3 + 150);
-      float num1 = this.Animation;
-      if ((double) num1 != 2.0)
-      {
-        if ((double) num1 != 3.0)
-        {
-          if ((double) num1 != 7.0)
-          {
-            if ((double) num1 != 10.0)
-            {
-              if ((double) num1 != 11.0)
-              {
-                if ((double) num1 != 14.0)
+                if (NPC.ai[1] > 117)
+                    Main.musicFade[Main.curMusic] += 0.2f;
+                if (++NPC.ai[1] > 120)
                 {
-                  if ((double) num1 == 15.0)
-                    lerpGlow(Color.Blue, (float) ((double) this.NPC.ai[1] / 240.0 - 1.0));
+                    NPC.netUpdate = true;
+                    NPC.ai[1] = 0;
+                    NPC.localAI[3] = 1;
+
+                    NPC.velocity = NPC.DirectionFrom(Main.player[NPC.target].Center).RotatedByRandom(MathHelper.PiOver2) * 20f;
+                }
+                return;
+            }
+
+            NPC.alpha = 0;
+
+            Player player = Main.player[NPC.target];
+            Vector2 targetPos;
+
+            if (NPC.HasValidTarget && NPC.Distance(player.Center) < 2500 || NPC.localAI[3] == 0)
+                NPC.timeLeft = 600;
+
+            NPC.direction = NPC.spriteDirection = NPC.Center.X < player.Center.X ? 1 : -1;
+
+            if (NPC.localAI[2] == 0 && Animation != -1 && NPC.life < NPC.lifeMax * (WorldSavingSystem.EternityMode ? .8 : 5))
+            {
+                if (Animation == 15 && NPC.ai[1] < 210 + 60) //dont phase transition during timestop
+                {
+                    NPC.life = (int)(NPC.lifeMax * (WorldSavingSystem.EternityMode ? .8 : 5));
                 }
                 else
-                  lerpGlow(Color.Blue, (float) (1.0 - (double) this.NPC.ai[1] / 60.0));
-              }
-              else
-                lerpGlow(Color.Purple, (float) ((double) this.NPC.ai[1] / 180.0 - 1.0));
+                {
+                    float buffer = Animation;
+                    Animation = -1;
+                    NPC.ai[1] = 0;
+                    NPC.ai[2] = 0;
+                    NPC.ai[3] = buffer;
+                    NPC.netUpdate = true;
+
+                    FargoSoulsUtil.ClearHostileProjectiles(2, NPC.whoAmI);
+                }
+            }
+
+            if (WorldSavingSystem.EternityMode && NPC.localAI[2] < 2 && Animation != -2 && NPC.life < NPC.lifeMax * .2)
+            {
+                if (Animation == 15 && NPC.ai[1] < 210 + 60) //dont phase transition during timestop
+                {
+                    NPC.life = (int)(NPC.lifeMax * .2);
+                }
+                else
+                {
+                    Animation = -2;
+                    NPC.ai[1] = 0;
+                    NPC.ai[2] = 0;
+                    NPC.ai[3] = 0;
+                    NPC.localAI[0] = 0;
+                    NPC.localAI[1] = 0;
+                    NPC.netUpdate = true;
+
+                    FargoSoulsUtil.ClearHostileProjectiles(2, NPC.whoAmI);
+                }
+            }
+
+            NPC.dontTakeDamage = false;
+
+            bool IsDeviantt(int n) => Main.npc[n].active && !Main.npc[n].dontTakeDamage && (Main.npc[n].type == ModContent.NPCType<Deviantt>() || Main.npc[n].type == ModContent.NPCType<DeviBoss.DeviBoss>());
+            switch ((int)Animation)
+            {
+                case -4: //hit children
+                    {
+                        NPC.timeLeft = 600;
+
+                        int ai2 = (int)NPC.ai[2];
+                        if (++NPC.ai[3] < 420 && ai2 > -1 && ai2 < Main.maxNPCs && IsDeviantt(ai2))
+                        {
+                            targetPos = Main.npc[ai2].Center;
+                            NPC.direction = NPC.spriteDirection = NPC.Center.X < targetPos.X ? 1 : -1;
+
+                            targetPos.X += NPC.width / 4 * (NPC.Center.X < targetPos.X ? -1 : 1);
+                            if (NPC.Distance(targetPos) > NPC.width / 4)
+                                Movement(targetPos, 1.6f, 64f);
+
+                            if (NPC.localAI[1] == 0)
+                            {
+                                NPC.localAI[1] = 1;
+                                SoundEngine.PlaySound(SoundID.Roar, NPC.Center);
+                            }
+
+                            if (++NPC.localAI[0] <= 5)
+                            {
+                                NPC.rotation = NPC.SafeDirectionTo(Main.npc[ai2].Center).ToRotation();
+                                if (NPC.direction < 0)
+                                    NPC.rotation += (float)Math.PI;
+
+                                if (NPC.localAI[0] == 5)
+                                {
+                                    NPC.netUpdate = true;
+                                    if (FargoSoulsUtil.HostCheck)
+                                    {
+                                        Vector2 offset = Vector2.UnitX;
+                                        if (NPC.direction < 0)
+                                            offset.X *= -1f;
+                                        offset = offset.RotatedBy(NPC.SafeDirectionTo(Main.npc[ai2].Center).ToRotation());
+
+                                        int modifier = Math.Sign(NPC.Center.Y - Main.npc[ai2].Center.Y);
+                                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + offset + 3000 * NPC.DirectionFrom(Main.npc[ai2].Center) * modifier,
+                                            NPC.SafeDirectionTo(Main.npc[ai2].Center) * modifier,
+                                            ModContent.ProjectileType<CosmosDeathray>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (NPC.localAI[0] > 10)
+                                {
+                                    NPC.localAI[0] = 0;
+                                    NPC.netUpdate = true;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (NPC.ai[3] >= 420) //if couldn't kill deviantt in 6 seconds, just stop trying
+                                hitChildren = true;
+
+                            Animation = NPC.ai[1];
+                            NPC.ai[1] = 0;
+                            NPC.ai[2] = 0;
+                            NPC.ai[3] = 0;
+                            NPC.localAI[0] = 0;
+                            NPC.localAI[1] = 0;
+                            NPC.netUpdate = true;
+                        }
+                    }
+                    break;
+
+                case -3: //final phase
+                    if (!player.active || player.dead || Vector2.Distance(NPC.Center, player.Center) > 2500f || player.Center.Y / 16f > Main.worldSurface) //despawn code
+                    {
+                        NPC.TargetClosest(false);
+                        if (NPC.timeLeft > 30)
+                            NPC.timeLeft = 30;
+
+                        NPC.velocity.Y -= 1f;
+                        break;
+                    }
+
+                    NPC.rotation = 0;
+                    NPC.velocity *= 0.9f;
+
+                    player.wingTime = player.wingTimeMax;
+
+                    if (NPC.ai[1] == 0)
+                    {
+                        NPC.ai[1] = 1;
+
+                        if (!Main.dedServ && Main.LocalPlayer.active)
+                            ScreenShakeSystem.StartShake(10, shakeStrengthDissipationIncrement: 10f / 30);
+
+                        SoundEngine.PlaySound(SoundID.Roar, NPC.Center);
+
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            if (WorldSavingSystem.EternityMode)
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<CosmosRitual>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 0f, NPC.whoAmI);
+
+                            int max = 2;
+                            float startRotation = NPC.DirectionFrom(player.Center).ToRotation() + MathHelper.PiOver2; //ensure never spawn one directly at you
+                            if (WorldSavingSystem.MasochistModeReal)
+                            {
+                                max = 3;
+                                startRotation = NPC.DirectionFrom(player.Center).ToRotation();
+                            }
+                            for (int i = 0; i < max; i++)
+                            {
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<CosmosMoon>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 4f * 2 / 7), 0f, Main.myPlayer, MathHelper.TwoPi / max * i + startRotation, NPC.whoAmI);
+                            }
+
+                            //Projectile.NewProjectile(npc.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, NPC.whoAmI, -2);
+
+                            epicMe = 1f;
+                        }
+
+                        Vector2 size = new(500, 500);
+                        Vector2 spawnPos = NPC.Center;
+                        spawnPos.X -= size.X / 2;
+                        spawnPos.Y -= size.Y / 2;
+
+                        for (int num615 = 0; num615 < 30; num615++)
+                        {
+                            int num616 = Dust.NewDust(spawnPos, (int)size.X, (int)size.Y, DustID.Smoke, 0f, 0f, 100, default, 1.5f);
+                            Main.dust[num616].velocity *= 1.4f;
+                        }
+
+                        for (int num617 = 0; num617 < 50; num617++)
+                        {
+                            int num618 = Dust.NewDust(spawnPos, (int)size.X, (int)size.Y, DustID.Torch, 0f, 0f, 100, default, 3.5f);
+                            Main.dust[num618].noGravity = true;
+                            Main.dust[num618].velocity *= 7f;
+                            num618 = Dust.NewDust(spawnPos, (int)size.X, (int)size.Y, DustID.Torch, 0f, 0f, 100, default, 1.5f);
+                            Main.dust[num618].velocity *= 3f;
+                        }
+
+                        for (int num619 = 0; num619 < 2; num619++)
+                        {
+                            float scaleFactor9 = 0.4f;
+                            if (num619 == 1) scaleFactor9 = 0.8f;
+                            int num620 = Gore.NewGore(NPC.GetSource_FromThis(), NPC.Center, default, Main.rand.Next(61, 64));
+                            Main.gore[num620].velocity *= scaleFactor9;
+                            Gore gore97 = Main.gore[num620];
+                            gore97.velocity.X++;
+                            Gore gore98 = Main.gore[num620];
+                            gore98.velocity.Y++;
+                            num620 = Gore.NewGore(NPC.GetSource_FromThis(), NPC.Center, default, Main.rand.Next(61, 64));
+                            Main.gore[num620].velocity *= scaleFactor9;
+                            Gore gore99 = Main.gore[num620];
+                            gore99.velocity.X--;
+                            Gore gore100 = Main.gore[num620];
+                            gore100.velocity.Y++;
+                            num620 = Gore.NewGore(NPC.GetSource_FromThis(), NPC.Center, default, Main.rand.Next(61, 64));
+                            Main.gore[num620].velocity *= scaleFactor9;
+                            Gore gore101 = Main.gore[num620];
+                            gore101.velocity.X++;
+                            Gore gore102 = Main.gore[num620];
+                            gore102.velocity.Y--;
+                            num620 = Gore.NewGore(NPC.GetSource_FromThis(), NPC.Center, default, Main.rand.Next(61, 64));
+                            Main.gore[num620].velocity *= scaleFactor9;
+                            Gore gore103 = Main.gore[num620];
+                            gore103.velocity.X--;
+                            Gore gore104 = Main.gore[num620];
+                            gore104.velocity.Y--;
+                        }
+
+
+                        for (int k = 0; k < 20; k++) //make visual dust
+                        {
+                            Vector2 dustPos = spawnPos;
+                            dustPos.X += Main.rand.Next((int)size.X);
+                            dustPos.Y += Main.rand.Next((int)size.Y);
+
+                            for (int i = 0; i < 20; i++)
+                            {
+                                int dust = Dust.NewDust(dustPos, 32, 32, DustID.Smoke, 0f, 0f, 100, default, 3f);
+                                Main.dust[dust].velocity *= 1.4f;
+                            }
+
+                            for (int i = 0; i < 10; i++)
+                            {
+                                int dust = Dust.NewDust(dustPos, 32, 32, DustID.Torch, 0f, 0f, 100, default, 3.5f);
+                                Main.dust[dust].noGravity = true;
+                                Main.dust[dust].velocity *= 7f;
+                                dust = Dust.NewDust(dustPos, 32, 32, DustID.Torch, 0f, 0f, 100, default, 1.5f);
+                                Main.dust[dust].velocity *= 3f;
+                            }
+
+                            float scaleFactor9 = 0.5f;
+                            for (int j = 0; j < 2; j++)
+                            {
+                                int gore = Gore.NewGore(NPC.GetSource_FromThis(), dustPos, default, Main.rand.Next(61, 64));
+                                Main.gore[gore].velocity *= scaleFactor9;
+                                Main.gore[gore].velocity.X += 1f;
+                                Main.gore[gore].velocity.Y += 1f;
+                            }
+                        }
+                    }
+
+                    if (++NPC.ai[2] > 200 || NPC.ai[2] == 100)
+                    {
+                        if (NPC.ai[2] > 200)
+                            NPC.ai[2] = 0;
+
+                        NPC.netUpdate = true;
+
+                        SoundEngine.PlaySound(SoundID.Item92, NPC.Center);
+
+                        if (!Main.dedServ && Main.LocalPlayer.active)
+                            ScreenShakeSystem.StartShake(10, shakeStrengthDissipationIncrement: 10f / 30);
+
+                        //int type; //for dust
+
+                        if (NPC.ai[3] == 0) //solar
+                        {
+                            NPC.ai[3]++;
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                float modifier = NPC.life / (NPC.lifeMax * 0.2f);
+                                if (modifier < 0)
+                                    modifier = 0;
+                                if (modifier > 1)
+                                    modifier = 1;
+                                modifier = 11f + 4f * modifier;
+
+                                const int max = 12;
+                                for (int i = 0; i < max; i++)
+                                {
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, modifier * NPC.SafeDirectionTo(player.Center).RotatedBy(2 * Math.PI / max * i),
+                                        ModContent.ProjectileType<CosmosFireball2>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 30, 30 + 60);
+                                }
+                            }
+                        }
+                        else if (NPC.ai[3] == 1) //vortex
+                        {
+                            NPC.ai[3]++;
+                            //type = 229;
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                if (!Main.dedServ)
+                                    SoundEngine.PlaySound(FargosSoundRegistry.Thunder with { Volume = 0.8f, Pitch = 0.5f }, NPC.Center);
+                                const int max = 16;
+                                for (int i = 0; i < max; i++)
+                                {
+                                    Vector2 dir = NPC.SafeDirectionTo(player.Center).RotatedBy(2 * (float)Math.PI / max * i);
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, dir * NPC.width / 120f, ModContent.ProjectileType<LightningVortexHostile>(), //ModContent.ProjectileType<CosmosLightning>(),
+                                        FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0, Main.myPlayer, 1f, dir.ToRotation());
+                                }
+                            }
+                        }
+                        else if (NPC.ai[3] == 2) //nebula
+                        {
+                            NPC.ai[3]++;
+                            //type = 242;
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                /*const int max = 11;
+                                for (int i = 0; i < max; i++)
+                                {
+                                    Projectile.NewProjectile(npc.GetSource_FromThis(), NPC.Center, 3f * NPC.SafeDirectionTo(player.Center).RotatedBy(2 * Math.PI / max * (i + 0.5)),
+                                        ModContent.ProjectileType<CosmosNebulaBlaze>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 0.007f);
+                                }*/
+
+                                for (int j = -1; j <= 1; j++) //to both sides
+                                {
+                                    if (j == 0)
+                                        continue;
+
+                                    const int gap = 30;
+                                    const int max = 15;
+                                    const int individualOffset = 8;
+                                    Vector2 baseVel = NPC.SafeDirectionTo(Main.player[NPC.target].Center).RotatedBy(MathHelper.ToRadians(gap) * j);
+                                    for (int k = 0; k < max; k++) //a fan of blazes
+                                    {
+                                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, 6f * baseVel.RotatedBy(MathHelper.ToRadians(individualOffset) * j * k),
+                                            ModContent.ProjectileType<CosmosNebulaBlaze>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 0.009f);
+                                    }
+                                }
+                            }
+                        }
+                        else //stardust
+                        {
+                            NPC.ai[3] = 0;
+                            //type = 135;
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                const int max = 18;
+                                for (int i = 0; i < max; i++)
+                                {
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.UnitX.RotatedBy(2 * Math.PI / max * i),
+                                        ModContent.ProjectileType<CosmosInvader>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 180, 0.04f);
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.UnitX.RotatedBy(2 * Math.PI / max * (i + 0.5)),
+                                        ModContent.ProjectileType<CosmosInvader>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 180, 0.025f);
+                                }
+                                for (int j = 0; j < 5; j++)
+                                {
+                                    Vector2 vel = -Vector2.UnitY.RotatedBy(MathHelper.Pi * 0.4f * j);
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, vel, ModContent.ProjectileType<CosmosGlowything>(), 0, 0f, Main.myPlayer);
+                                }
+                                SoundEngine.PlaySound(SoundID.Item25, NPC.Center);
+                            }
+                        }
+
+                        /*const int num226 = 150;
+                        for (int num227 = 0; num227 < num226; num227++)
+                        {
+                            Vector2 vector6 = Vector2.UnitX * 50f;
+                            vector6 = vector6.RotatedBy(((num227 - (num226 / 2 - 1)) * 6.28318548f / num226)) + NPC.Center;
+                            Vector2 vector7 = vector6 - NPC.Center;
+                            int num228 = Dust.NewDust(vector6 + vector7, 0, 0, type, 0f, 0f, 0, default);
+                            Main.dust[num228].scale = 3f;
+                            Main.dust[num228].noGravity = true;
+                            Main.dust[num228].velocity = vector7;
+                        }*/
+
+                        /*for (int index = 0; index < 50; ++index) //dust
+                        {
+                            Dust dust = Main.dust[Dust.NewDust(NPC.position, NPC.width, NPC.height, type, 0.0f, 0.0f, 0, new Color(), 1f)];
+                            dust.velocity *= 10f;
+                            dust.fadeIn = 1f;
+                            dust.scale = 1 + Main.rand.NextFloat() + Main.rand.Next(4) * 0.3f;
+                            if (Main.rand.Next(3) != 0)
+                            {
+                                dust.noGravity = true;
+                                dust.velocity *= 3f;
+                                dust.scale *= 2f;
+                            }
+                        }
+
+                        Vector2 size = new Vector2(500, 500);
+                        Vector2 spawnPos = NPC.Center;
+                        spawnPos.X -= size.X / 2;
+                        spawnPos.Y -= size.Y / 2;
+
+                        for (int num615 = 0; num615 < 30; num615++)
+                        {
+                            int num616 = Dust.NewDust(spawnPos, (int)size.X, (int)size.Y, 31, 0f, 0f, 100, default(Color), 1.5f);
+                            Main.dust[num616].velocity *= 1.4f;
+                        }
+
+                        for (int num617 = 0; num617 < 50; num617++)
+                        {
+                            int num618 = Dust.NewDust(spawnPos, (int)size.X, (int)size.Y, DustID.Torch, 0f, 0f, 100, default(Color), 3.5f);
+                            Main.dust[num618].noGravity = true;
+                            Main.dust[num618].velocity *= 7f;
+                            num618 = Dust.NewDust(spawnPos, (int)size.X, (int)size.Y, DustID.Torch, 0f, 0f, 100, default(Color), 1.5f);
+                            Main.dust[num618].velocity *= 3f;
+                        }
+
+                        for (int num619 = 0; num619 < 2; num619++)
+                        {
+                            float scaleFactor9 = 0.4f;
+                            if (num619 == 1) scaleFactor9 = 0.8f;
+                            int num620 = Gore.NewGore(NPC.Center, default(Vector2), Main.rand.Next(61, 64));
+                            Main.gore[num620].velocity *= scaleFactor9;
+                            Gore gore97 = Main.gore[num620];
+                            gore97.velocity.X = gore97.velocity.X + 1f;
+                            Gore gore98 = Main.gore[num620];
+                            gore98.velocity.Y = gore98.velocity.Y + 1f;
+                            num620 = Gore.NewGore(NPC.Center, default(Vector2), Main.rand.Next(61, 64));
+                            Main.gore[num620].velocity *= scaleFactor9;
+                            Gore gore99 = Main.gore[num620];
+                            gore99.velocity.X = gore99.velocity.X - 1f;
+                            Gore gore100 = Main.gore[num620];
+                            gore100.velocity.Y = gore100.velocity.Y + 1f;
+                            num620 = Gore.NewGore(NPC.Center, default(Vector2), Main.rand.Next(61, 64));
+                            Main.gore[num620].velocity *= scaleFactor9;
+                            Gore gore101 = Main.gore[num620];
+                            gore101.velocity.X = gore101.velocity.X + 1f;
+                            Gore gore102 = Main.gore[num620];
+                            gore102.velocity.Y = gore102.velocity.Y - 1f;
+                            num620 = Gore.NewGore(NPC.Center, default(Vector2), Main.rand.Next(61, 64));
+                            Main.gore[num620].velocity *= scaleFactor9;
+                            Gore gore103 = Main.gore[num620];
+                            gore103.velocity.X = gore103.velocity.X - 1f;
+                            Gore gore104 = Main.gore[num620];
+                            gore104.velocity.Y = gore104.velocity.Y - 1f;
+                        }
+
+
+                        for (int k = 0; k < 20; k++) //make visual dust
+                        {
+                            Vector2 dustPos = spawnPos;
+                            dustPos.X += Main.rand.Next((int)size.X);
+                            dustPos.Y += Main.rand.Next((int)size.Y);
+
+                            for (int i = 0; i < 20; i++)
+                            {
+                                int dust = Dust.NewDust(dustPos, 32, 32, 31, 0f, 0f, 100, default(Color), 3f);
+                                Main.dust[dust].velocity *= 1.4f;
+                            }
+
+                            for (int i = 0; i < 10; i++)
+                            {
+                                int dust = Dust.NewDust(dustPos, 32, 32, DustID.Torch, 0f, 0f, 100, default(Color), 3.5f);
+                                Main.dust[dust].noGravity = true;
+                                Main.dust[dust].velocity *= 7f;
+                                dust = Dust.NewDust(dustPos, 32, 32, DustID.Torch, 0f, 0f, 100, default(Color), 1.5f);
+                                Main.dust[dust].velocity *= 3f;
+                            }
+
+                            float scaleFactor9 = 0.5f;
+                            for (int j = 0; j < 2; j++)
+                            {
+                                int gore = Gore.NewGore(dustPos, default(Vector2), Main.rand.Next(61, 64));
+                                Main.gore[gore].velocity *= scaleFactor9;
+                                Main.gore[gore].velocity.X += 1f;
+                                Main.gore[gore].velocity.Y += 1f;
+                            }
+                        }*/
+                    }
+                    break;
+
+                case -2: //prepare for last phase
+                    NPC.rotation = 0;
+                    NPC.dontTakeDamage = true;
+
+                    NPC.localAI[2] = 2;
+
+                    targetPos = player.Center;
+                    targetPos.X += 600 * (NPC.Center.X < targetPos.X ? -1 : 1);
+                    Movement(targetPos, 0.8f, 32f);
+
+                    if (--NPC.ai[2] < 0)
+                    {
+                        NPC.ai[2] = Main.rand.Next(5);
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            Vector2 spawnPos = NPC.position + new Vector2(Main.rand.Next(NPC.width), Main.rand.Next(NPC.height));
+                            int type = ModContent.ProjectileType<Projectiles.BossWeapons.PhantasmalBlast>();
+                            Projectile.NewProjectile(NPC.GetSource_FromThis(), spawnPos, Vector2.Zero, type, 0, 0f, Main.myPlayer);
+                        }
+                    }
+
+                    if (++NPC.ai[1] > 150)
+                    {
+                        /*const int num226 = 80;
+                        for (int num227 = 0; num227 < num226; num227++)
+                        {
+                            Vector2 vector6 = Vector2.UnitX * 40f;
+                            vector6 = vector6.RotatedBy(((num227 - (num226 / 2 - 1)) * 6.28318548f / num226), default(Vector2)) + NPC.Center;
+                            Vector2 vector7 = vector6 - NPC.Center;
+                            int num228 = Dust.NewDust(vector6 + vector7, 0, 0, 229, 0f, 0f, 0, default(Color), 3f);
+                            Main.dust[num228].noGravity = true;
+                            Main.dust[num228].velocity = vector7;
+                        }*/
+
+                        NPC.TargetClosest();
+                        Animation--;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.netUpdate = true;
+                    }
+                    break;
+
+                case -1: //phase 2 transition
+                    NPC.rotation = 0;
+                    NPC.dontTakeDamage = true;
+
+                    NPC.velocity *= 0.9f;
+
+                    if (++NPC.ai[1] == 120)
+                    {
+                        SoundEngine.PlaySound(SoundID.Roar, NPC.Center);
+                        NPC.localAI[2] = 1;
+
+                        //if (FargoSoulsUtil.HostCheck) Projectile.NewProjectile(npc.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, NPC.whoAmI, -2);
+                        epicMe = 1f;
+
+                    }
+                    else if (NPC.ai[1] > 180) //LAUGH
+                    {
+                        NPC.TargetClosest();
+                        Animation = NPC.ai[3];
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.netUpdate = true;
+                    }
+                    break;
+
+                case 0: //float near player, skip next attack and wait if not p2
+                    NPC.rotation = 0;
+
+                    if ((!player.active || player.dead || Vector2.Distance(NPC.Center, player.Center) > 2500f || player.Center.Y / 16f > Main.worldSurface)
+                        && NPC.localAI[3] != 0) //despawn code
+                    {
+                        NPC.TargetClosest(false);
+                        if (NPC.timeLeft > 30)
+                            NPC.timeLeft = 30;
+
+                        NPC.velocity.Y -= 1f;
+                        break;
+                    }
+
+                    targetPos = player.Center + NPC.DirectionFrom(player.Center) * 500;
+                    Movement(targetPos, 0.8f, 32f);
+
+                    if (NPC.ai[1] == 0 && !(NPC.localAI[2] == 0 || !Main.expertMode))
+                    {
+                        if (Animation != 5 && FargoSoulsUtil.HostCheck)
+                            Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, NPC.whoAmI, -23);
+
+                    }
+
+                    if (++NPC.ai[1] > 60)
+                    {
+                        float oldAi0 = Animation;
+
+                        NPC.TargetClosest();
+                        Animation += NPC.localAI[2] == 0 || !Main.expertMode ? 2 : 1;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.netUpdate = true;
+
+                        if (!hitChildren)
+                        {
+                            for (int i = 0; i < Main.maxNPCs; i++) //look for deviantt to kill
+                            {
+                                if (Main.npc[i].active && NPC.Distance(Main.npc[i].Center) < 2000 && player.Distance(Main.npc[i].Center) < 2000 && IsDeviantt(i))
+                                {
+                                    Animation = -4;
+                                    NPC.ai[1] = oldAi0;
+                                    NPC.ai[2] = i; //store target npc
+                                    break;
+                                }
+                            }
+
+                        }
+                    }
+                    break;
+
+                case 1: //deathray punches, p2 only
+                    targetPos = player.Center;
+                    targetPos.X += 300 * (NPC.Center.X < targetPos.X ? -1 : 1);
+                    Movement(targetPos, 1.2f, 32f, useAntiWobble: false);
+
+                    if (NPC.ai[1] == 1)
+                        SoundEngine.PlaySound(SoundID.Roar, NPC.Center);
+
+                    if (++NPC.ai[2] <= 6)
+                    {
+                        NPC.rotation = NPC.SafeDirectionTo(player.Center).ToRotation();
+                        if (NPC.direction < 0)
+                            NPC.rotation += (float)Math.PI;
+
+                        NPC.ai[3] = NPC.Center.X < player.Center.X ? 1 : -1; //store direction im facing
+
+                        if (NPC.ai[2] == 6)
+                        {
+                            NPC.netUpdate = true;
+                            if (NPC.ai[1] > 50)
+                            {
+                                if (FargoSoulsUtil.HostCheck)
+                                {
+                                    Vector2 offset = Vector2.UnitX;
+                                    if (NPC.direction < 0)
+                                        offset.X *= -1f;
+                                    offset = offset.RotatedBy(NPC.SafeDirectionTo(player.Center).ToRotation());
+
+                                    int modifier = Math.Sign(NPC.Center.Y - player.Center.Y);
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + offset + 3000 * NPC.DirectionFrom(player.Center) * modifier,
+                                        NPC.SafeDirectionTo(player.Center) * modifier,
+                                        ModContent.ProjectileType<CosmosDeathray>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 1.25f), 0f, Main.myPlayer);
+                                }
+                            }
+                            else
+                            {
+                                NPC.ai[2] = 0;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        NPC.direction = NPC.spriteDirection = Math.Sign(NPC.ai[3]); //dont turn around if crossed up
+
+                        if (NPC.ai[2] > 12)
+                        {
+                            NPC.ai[2] = 0;
+                            NPC.ai[3] = 0;
+                            NPC.netUpdate = true;
+                        }
+                    }
+
+                    if (++NPC.ai[1] > 240)
+                    {
+                        NPC.TargetClosest();
+                        Animation++;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.netUpdate = true;
+                    }
+                    break;
+
+                case 2: //float near player, proceed to next attack always
+                    if (Animation != 10)
+                    {
+                        NPC.rotation = 0;
+                        targetPos = player.Center + NPC.DirectionFrom(player.Center) * 500;
+                        Movement(targetPos, 0.8f, 32f);
+                    }
+
+                    if ((!player.active || player.dead || Vector2.Distance(NPC.Center, player.Center) > 2500f)
+                        && NPC.localAI[3] != 0) //despawn code
+                    {
+                        NPC.TargetClosest(false);
+                        if (NPC.timeLeft > 30)
+                            NPC.timeLeft = 30;
+
+                        NPC.velocity.Y -= 1f;
+                        break;
+                    }
+
+                    if (++NPC.ai[1] > 60)
+                    {
+                        float oldAi0 = Animation;
+
+                        NPC.TargetClosest();
+                        Animation++;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.netUpdate = true;
+
+                        if (!hitChildren)
+                        {
+                            for (int i = 0; i < Main.maxNPCs; i++) //look for deviantt to kill
+                            {
+                                if (Main.npc[i].active && IsDeviantt(i) && NPC.Distance(Main.npc[i].Center) < 1200 && player.Distance(Main.npc[i].Center) < 1200)
+                                {
+                                    Animation = -4;
+                                    NPC.ai[1] = oldAi0;
+                                    NPC.ai[2] = i; //store target npc
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                case 3: //fireball dashes
+                    {
+                        if (NPC.ai[1] == 1)
+                        {
+                            if (FargoSoulsUtil.HostCheck) //spawn balls
+                            {
+                                const int max = 8;
+                                const float distance = 120f;
+                                float rotation = 2f * (float)Math.PI / max;
+                                int damage = FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage);
+                                for (int i = 0; i < max; i++)
+                                {
+                                    Vector2 spawnPos = NPC.Center + new Vector2(distance, 0f).RotatedBy(rotation * i);
+                                    int p = Projectile.NewProjectile(NPC.GetSource_FromThis(), spawnPos, Vector2.Zero, ModContent.ProjectileType<CosmosFireball>(), damage, 0f, Main.myPlayer, NPC.whoAmI, rotation * i);
+                                    //if (p != Main.maxProjectiles && !(WorldSavingSystem.MasochistMode && NPC.localAI[2] != 0f)) Main.projectile[p].timeLeft = 300;
+                                }
+                            }
+                        }
+
+                        int threshold = 70; //NPC.localAI[2] == 0 ? 70 : 50;
+                        if (WorldSavingSystem.MasochistModeReal)
+                            threshold = 50;
+                        if (++NPC.ai[2] <= threshold)
+                        {
+                            targetPos = player.Center;
+                            targetPos.X += 600 * (NPC.Center.X < targetPos.X ? -1 : 1);
+                            targetPos.Y += 300 * (NPC.Center.Y < targetPos.Y ? -1 : 1);
+                            Movement(targetPos, 1.6f, 24f);
+
+                            NPC.rotation = NPC.SafeDirectionTo(player.Center).ToRotation();
+                            if (NPC.direction < 0)
+                                NPC.rotation += (float)Math.PI;
+
+                            if (NPC.ai[2] == threshold)
+                            {
+                                NPC.velocity = 42f * NPC.SafeDirectionTo(player.Center);
+                                NPC.netUpdate = true;
+                            }
+                        }
+                        else
+                        {
+                            NPC.direction = NPC.spriteDirection = Math.Sign(NPC.velocity.X);
+
+                            if (NPC.ai[2] > threshold + 30)
+                            {
+                                NPC.ai[2] = 0;
+                                NPC.netUpdate = true;
+
+                                if (WorldSavingSystem.EternityMode && NPC.localAI[2] != 0f) //emode p2, do chain blasts
+                                {
+                                    if (!Main.dedServ && Main.LocalPlayer.active)
+                                        ScreenShakeSystem.StartShake(10, shakeStrengthDissipationIncrement: 10f / 30);
+
+                                    if (FargoSoulsUtil.HostCheck) //chain explosions
+                                    {
+                                        Vector2 baseDirection = NPC.SafeDirectionTo(player.Center);
+                                        const int max = 6; //spread
+                                        for (int i = 0; i < max; i++)
+                                        {
+                                            Vector2 offset = NPC.height / 2 * baseDirection.RotatedBy(Math.PI * 2 / max * i);
+                                            float ai1 = i <= 1 || i == max - 1 ? 32 : 8;
+                                            Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + Main.rand.NextVector2Circular(NPC.width / 2, NPC.height / 2), Vector2.Zero, ModContent.ProjectileType<Projectiles.Masomode.MoonLordSunBlast>(),
+                                                FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, MathHelper.WrapAngle(offset.ToRotation()), ai1);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (++NPC.ai[1] > 330) //(WorldSavingSystem.MasochistMode && NPC.localAI[2] != 0f ? 360 : 330))
+                        {
+                            NPC.TargetClosest();
+                            Animation++;
+                            NPC.ai[1] = 0;
+                            NPC.ai[2] = 0;
+                            NPC.ai[3] = 0;
+                            NPC.netUpdate = true;
+                        }
+                    }
+                    break;
+
+                case 4:
+                    goto case 0;
+
+                case 5: //meteor punch
+                    if (NPC.ai[1] == 1)
+                        SoundEngine.PlaySound(SoundID.Roar, NPC.Center);
+                    if (++NPC.ai[2] <= 75)
+                    {
+                        targetPos = player.Center;
+                        targetPos.X += 350 * (NPC.Center.X < targetPos.X ? -1 : 1);
+                        targetPos.Y -= 700;
+                        Movement(targetPos, 1.6f, 32f, useAntiWobble: false);
+
+                        NPC.rotation = NPC.SafeDirectionTo(player.Center).ToRotation();
+                        if (NPC.direction < 0)
+                            NPC.rotation += (float)Math.PI;
+
+                        NPC.localAI[0] = NPC.Center.X < player.Center.X ? 1 : -1; //store direction im facing
+
+                        if (NPC.ai[2] == 75) //falling punch
+                        {
+                            NPC.velocity = 42f * NPC.SafeDirectionTo(player.Center);
+                            NPC.netUpdate = true;
+
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                int modifier = Math.Sign(NPC.Center.Y - player.Center.Y);
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + 3000 * NPC.DirectionFrom(player.Center) * modifier, NPC.SafeDirectionTo(player.Center) * modifier,
+                                    ModContent.ProjectileType<CosmosDeathray2>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 1.25f), 0f, Main.myPlayer);
+
+                                const int max = 3;
+                                for (int i = -max; i <= max; i++)
+                                {
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, 0.5f * -Vector2.UnitY.RotatedBy(MathHelper.PiOver2 / max * i),
+                                        ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                                }
+                            }
+
+                            NPC.ai[3] = Main.rand.Next(4); //random offset each time
+                        }
+                    }
+                    else
+                    {
+                        NPC.direction = NPC.spriteDirection = Math.Sign(NPC.localAI[0]); //dont turn around if crossed up
+
+                        if (++NPC.ai[3] > 4)
+                        {
+                            NPC.ai[3] = 0;
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, 0.5f * Vector2.UnitX, ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, -0.5f * Vector2.UnitX, ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                            }
+                        }
+                    }
+
+                    if (++NPC.ai[1] > 240 || NPC.ai[2] > 60 && NPC.Center.Y > player.Center.Y + 700)
+                    {
+                        NPC.velocity.Y = 0f;
+
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            const int max = 3;
+                            for (int i = -max; i <= max; i++)
+                            {
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, 0.5f * Vector2.UnitY.RotatedBy(MathHelper.PiOver2 / max * i),
+                                    ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                            }
+                        }
+
+                        NPC.TargetClosest();
+                        Animation++;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.localAI[0] = 0;
+                        NPC.netUpdate = true;
+                    }
+                    break;
+
+                case 6:
+                    goto case 2;
+
+                case 7: //vortex
+                    targetPos = player.Center + NPC.DirectionFrom(player.Center) * 500;
+                    Movement(targetPos, 0.6f, 32f);
+
+                    if (NPC.ai[1] == 30)
+                    {
+                        SoundEngine.PlaySound(SoundID.ForceRoarPitched, NPC.Center);
+
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            float ai1 = WorldSavingSystem.EternityMode && NPC.localAI[2] != 0 ? -1.2f : NPC.localAI[2] == 0 ? 1f : -1.6f;
+                            Projectile.NewProjectile(NPC.GetSource_FromThis(), player.Center, Vector2.Zero, ModContent.ProjectileType<CosmosVortex>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 0f, ai1);
+                            /*for (int i = 0; i < 3; i++) //indicate how lightning will spawn
+                            {
+                                Projectile.NewProjectile(npc.GetSource_FromThis(), player.Center, (MathHelper.TwoPi / 3 * (i + 0.5f)).ToRotationVector2(),
+                                      ModContent.ProjectileType<GlowLine>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 6, player.whoAmI);
+                            }*/
+                        }
+
+                        int length = (int)NPC.Distance(player.Center);
+                        Vector2 offset = NPC.SafeDirectionTo(player.Center);
+                        for (int i = 0; i < length; i += 10) //dust warning line for sandnado
+                        {
+                            int d = Dust.NewDust(NPC.Center + offset * i, 0, 0, DustID.Vortex, 0f, 0f, 0, new Color());
+                            Main.dust[d].noGravity = true;
+                            Main.dust[d].scale = 1.5f;
+                        }
+                    }
+
+                    if (++NPC.ai[1] > 450)
+                    {
+                        NPC.TargetClosest();
+                        Animation++;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.netUpdate = true;
+                    }
+                    break;
+
+                case 8:
+                    goto case 0;
+
+                case 9: //shen ray and balls torture
+                    if (NPC.ai[1] == 1)
+                        SoundEngine.PlaySound(SoundID.Roar, NPC.Center);
+
+                    if (NPC.ai[2] == 0)
+                    {
+                        if (FargoSoulsUtil.HostCheck)
+                            Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, NPC.whoAmI, -20);
+                    }
+
+                    if (++NPC.ai[2] <= 200)
+                    {
+                        targetPos = player.Center;
+                        targetPos.X += 600 * (NPC.Center.X < targetPos.X ? -1 : 1);
+                        NPC.position += player.velocity / 3f; //really good tracking movement here
+                        Movement(targetPos, 1.2f, 32f);
+
+                        if (--NPC.localAI[0] < 0)
+                        {
+                            NPC.localAI[0] = 90;
+
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                const int max = 11;
+                                const int travelTime = 20;
+                                for (int j = -1; j <= 1; j += 2)
+                                {
+                                    for (int i = -max; i <= max; i++)
+                                    {
+                                        Vector2 target = player.Center;
+                                        target.X += 180f * i;
+                                        target.Y += (400f + 300f / max * Math.Abs(i)) * j;
+                                        //y pos is above and below player, adapt to always outspeed player, with additional V shapes
+                                        Vector2 speed = (target - NPC.Center) / travelTime;
+                                        int individualTiming = 60 + Math.Abs(i * 2);
+                                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, speed / 2, ModContent.ProjectileType<CosmosSphere>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, travelTime, individualTiming);
+                                    }
+                                }
+                            }
+                        }
+
+                        NPC.rotation = NPC.SafeDirectionTo(player.Center).ToRotation();
+                        if (NPC.direction < 0)
+                            NPC.rotation += (float)Math.PI;
+
+                        NPC.ai[3] = NPC.Center.X < player.Center.X ? 1 : -1; //store direction im facing
+
+                        if (NPC.ai[2] == 200) //straight ray punch
+                        {
+                            NPC.velocity = 42f * NPC.SafeDirectionTo(player.Center);
+                            NPC.netUpdate = true;
+
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                int modifier = Math.Sign(NPC.Center.Y - player.Center.Y);
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + 3000 * NPC.DirectionFrom(player.Center) * modifier, NPC.SafeDirectionTo(player.Center) * modifier,
+                                    ModContent.ProjectileType<CosmosDeathray2>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 1.25f), 0f, Main.myPlayer);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        NPC.direction = NPC.spriteDirection = Math.Sign(NPC.ai[3]); //dont turn around if crossed up
+                    }
+
+                    if (++NPC.ai[1] > 400 || NPC.ai[2] > 200 &&
+                        (NPC.ai[3] > 0 ? NPC.Center.X > player.Center.X + 800 : NPC.Center.X < player.Center.X - 800))
+                    {
+                        NPC.velocity.X = 0f;
+
+                        NPC.TargetClosest();
+                        Animation++;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.localAI[0] = 0;
+                        NPC.netUpdate = true;
+                    }
+                    break;
+
+                case 10: //dust telegraph for nebula punches
+                    void NebulaDust()
+                    {
+                        Vector2 dustPos = NPC.Center + new Vector2(-26 * NPC.direction, 22) * NPC.scale;
+                        for (int i = 0; i < 3; i++)
+                        {
+                            int d = Dust.NewDust(dustPos, 0, 0, DustID.CrystalPulse2, NPC.velocity.X * 0.3f, NPC.velocity.Y * 0.3f, 160, new Color(), 1f);
+                            Main.dust[d].scale = 2.4f;
+                            Main.dust[d].noGravity = true;
+                            Main.dust[d].velocity *= 3f;
+                        }
+                    };
+
+                    NebulaDust();
+
+                    if (NPC.ai[1] == 0)
+                        SoundEngine.PlaySound(SoundID.Item117, NPC.Center);
+
+                    targetPos = player.Center;
+                    targetPos.X += 550 * (NPC.Center.X < targetPos.X ? -1 : 1);
+                    if (NPC.Distance(targetPos) > 50)
+                        Movement(targetPos, 0.8f, 24f);
+
+                    NPC.rotation = NPC.SafeDirectionTo(player.Center).ToRotation();
+                    if (NPC.direction < 0)
+                        NPC.rotation += (float)Math.PI;
+
+                    goto case 2;
+
+                case 11: //reticle and nebula blazes
+                    targetPos = player.Center;
+
+                    if (WorldSavingSystem.EternityMode && NPC.localAI[2] != 0)
+                    {
+                        int sign = NPC.Center.X < targetPos.X ? -1 : 1;
+                        Vector2 offset = 600 * sign * Vector2.UnitX;
+                        float rotation = MathHelper.ToRadians(80) * NPC.ai[1] / 420 * -sign;
+                        targetPos += offset.RotatedBy(rotation); //emode p2, slowly rotate to above the player
+
+                        NPC.position += player.velocity / 3f; //really good tracking movement here to reduce odds of crossups
+                        Movement(targetPos, 0.8f, 24f);
+                    }
+                    else //just float beside player
+                    {
+                        targetPos.X += 550 * (NPC.Center.X < targetPos.X ? -1 : 1);
+                        Movement(targetPos, 0.8f, 24f);
+                    }
+
+                    NPC.rotation = NPC.SafeDirectionTo(player.Center).ToRotation();
+                    if (NPC.direction < 0)
+                        NPC.rotation += (float)Math.PI;
+
+                    if (NPC.ai[1] == 30 && FargoSoulsUtil.HostCheck)
+                    {
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), player.Center, Vector2.Zero, ModContent.ProjectileType<CosmosReticle>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, NPC.whoAmI);
+                    }
+
+                    if (WorldSavingSystem.MasochistModeReal && NPC.ai[1] == 60 && FargoSoulsUtil.HostCheck)
+                    {
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), player.Center, Vector2.Zero, ModContent.ProjectileType<CosmosReticle>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, NPC.whoAmI);
+                    }
+
+                    if (NPC.ai[1] > 60)
+                    {
+                        if (++NPC.ai[3] == 3)
+                        {
+                            SoundEngine.PlaySound(SoundID.Item20, NPC.Center);
+
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                Vector2 offset = new(80, 6);
+                                if (player.Center.X < NPC.Center.X)
+                                    offset.X *= -1f;
+                                offset = offset.RotatedBy(NPC.rotation);
+                                for (int i = 0; i < 2; i++)
+                                {
+                                    float rotation = MathHelper.ToRadians(NPC.localAI[2] == 0 ? 30 : 20) + Main.rand.NextFloat(MathHelper.ToRadians(10));
+                                    if (i == 0)
+                                        rotation *= -1f;
+                                    Vector2 vel = Main.rand.NextFloat(8f, 12f) * NPC.SafeDirectionTo(player.Center).RotatedBy(rotation);
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + offset, vel, ModContent.ProjectileType<CosmosNebulaBlaze>(),
+                                        FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 0.006f);
+                                    if (WorldSavingSystem.EternityMode && NPC.localAI[2] != 0)
+                                    {
+                                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + offset, vel.RotatedBy(rotation * Main.rand.NextFloat(1f, 4f)), ModContent.ProjectileType<CosmosNebulaBlaze>(),
+                                          FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 0.006f);
+                                    }
+                                }
+                            }
+                        }
+                        else if (NPC.ai[3] > 6)
+                        {
+                            NPC.ai[3] = 0;
+                        }
+                    }
+                    else
+                    {
+                        NebulaDust();
+                    }
+
+                    if (++NPC.ai[1] > 390)
+                    {
+                        NPC.TargetClosest();
+                        Animation++;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.netUpdate = true;
+                    }
+                    break;
+
+                case 12:
+                    goto case 0;
+
+                case 13: //multi-punch to uppercut
+                    if (++NPC.ai[1] < 110)
+                    {
+                        targetPos = player.Center;
+                        targetPos.X += 300 * (NPC.Center.X < targetPos.X ? -1 : 1);
+                        Movement(targetPos, 1.2f, 32f, useAntiWobble: false);
+
+                        if (NPC.ai[1] == 1)
+                            SoundEngine.PlaySound(SoundID.Roar, NPC.Center);
+
+                        if (++NPC.ai[2] <= 6)
+                        {
+                            NPC.rotation = NPC.SafeDirectionTo(player.Center).ToRotation();
+                            if (NPC.direction < 0)
+                                NPC.rotation += (float)Math.PI;
+
+                            NPC.ai[3] = NPC.Center.X < player.Center.X ? 1 : -1; //store direction im facing
+
+                            if (NPC.ai[2] == 6)
+                            {
+                                NPC.netUpdate = true;
+                                if (NPC.ai[1] > 50)
+                                {
+                                    if (FargoSoulsUtil.HostCheck)
+                                    {
+                                        Vector2 offset = Vector2.UnitX;
+                                        if (NPC.direction < 0)
+                                            offset.X *= -1f;
+                                        offset = offset.RotatedBy(NPC.SafeDirectionTo(player.Center).ToRotation());
+
+                                        int modifier = Math.Sign(NPC.Center.Y - player.Center.Y);
+                                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + offset + 3000 * NPC.DirectionFrom(player.Center) * modifier, NPC.SafeDirectionTo(player.Center) * modifier,
+                                            ModContent.ProjectileType<CosmosDeathray>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 1.25f), 0f, Main.myPlayer);
+                                    }
+                                }
+                                else
+                                {
+                                    NPC.ai[2] = 0;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            NPC.direction = NPC.spriteDirection = Math.Sign(NPC.ai[3]); //dont turn around if crossed up
+
+                            if (NPC.ai[2] > 12)
+                            {
+                                NPC.ai[2] = 0;
+                                NPC.ai[3] = 0;
+                                NPC.netUpdate = true;
+                            }
+                        }
+                    }
+                    else //uppercut time
+                    {
+                        if (NPC.ai[1] <= 110 + 45)
+                        {
+                            targetPos = player.Center;
+                            targetPos.X += 350 * (NPC.Center.X < targetPos.X ? -1 : 1);
+                            targetPos.Y += 700;
+                            NPC.position += player.velocity / 3f; //really good tracking movement here
+                            Movement(targetPos, 2.4f, 32f);
+
+                            NPC.rotation = NPC.SafeDirectionTo(player.Center).ToRotation();
+                            if (NPC.direction < 0)
+                                NPC.rotation += (float)Math.PI;
+
+                            //NPC.ai[3] = NPC.Center.X < player.Center.X ? 1 : -1; //store direction im facing
+
+                            if (NPC.ai[1] == 110 + 45) //rising punch
+                            {
+                                const float speed = 42f;
+                                NPC.velocity = speed * NPC.SafeDirectionTo(player.Center);
+                                NPC.netUpdate = true;
+
+                                NPC.ai[3] = Math.Abs(player.Center.Y - NPC.Center.Y) / speed; //time to travel to player's Y coord
+                                NPC.ai[3] *= 2f; //travel twice that to go above
+
+                                NPC.localAI[0] = player.Center.X;
+                                NPC.localAI[1] = player.Center.Y;
+
+                                NPC.localAI[0] += NPC.Center.X < player.Center.X ? -50 : 50; //horiz offset the centerpoint to one side closer to eri
+
+                                if (FargoSoulsUtil.HostCheck)
+                                {
+                                    int modifier = Math.Sign(NPC.Center.Y - player.Center.Y);
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + 3000 * NPC.DirectionFrom(player.Center) * modifier, NPC.SafeDirectionTo(player.Center) * modifier,
+                                        ModContent.ProjectileType<CosmosDeathray2>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 1.25f), 0f, Main.myPlayer);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            NPC.direction = NPC.spriteDirection = Math.Sign(NPC.velocity.X); //dont turn around if crossed up
+                            NPC.rotation = NPC.velocity.ToRotation();
+                            if (NPC.direction < 0)
+                                NPC.rotation += (float)Math.PI;
+
+                            if (Math.Abs(NPC.Center.Y - NPC.localAI[1]) < 300) //make the midpoint better at hitting people
+                            {
+                                //for finer grain, since eri moves too much in one tick (too much angular rotation change per tick when close)
+                                Vector2 midPos = NPC.Center - NPC.velocity / 2;
+                                Vector2 target = new(NPC.localAI[0], NPC.localAI[1]);
+                                Vector2 vel = Vector2.Normalize(midPos - target);
+                                if (FargoSoulsUtil.HostCheck)
+                                {
+                                    int modifier = Math.Sign(player.Center.X - target.X) == NPC.direction ? 1 : -1;
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, modifier * 0.5f * vel, ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, modifier * 0.5f * NPC.DirectionFrom(target), ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                                }
+                            }
+                            else if (++NPC.ai[2] > 1)
+                            {
+                                NPC.ai[2] = 0;
+
+                                if (FargoSoulsUtil.HostCheck)
+                                {
+                                    Vector2 target = new(NPC.localAI[0], NPC.localAI[1]);
+                                    int modifier = Math.Sign(player.Center.X - target.X) == NPC.direction ? 1 : -1;
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, 0.5f * NPC.DirectionFrom(target), ModContent.ProjectileType<CosmosBolt>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                                }
+                            }
+
+                            if (NPC.ai[1] > 110 + 45 + NPC.ai[3])// || (NPC.ai[1] > 110 + 45 && NPC.Center.Y < player.Center.Y - 700))
+                            {
+                                NPC.velocity.Y = 0f;
+
+                                NPC.TargetClosest();
+                                Animation++;
+                                NPC.ai[1] = WorldSavingSystem.EternityMode && NPC.localAI[2] != 0 ? 0 : -120;
+                                NPC.ai[2] = 0;
+                                NPC.ai[3] = 0;
+                                NPC.localAI[0] = 0;
+                                NPC.localAI[1] = 0;
+                                NPC.netUpdate = true;
+                            }
+                        }
+                    }
+                    break;
+
+                case 14:
+                    NPC.velocity *= 0.9f;
+                    goto case 2;
+
+                case 15: //ZA WARUDO
+                    targetPos = player.Center + NPC.DirectionFrom(player.Center) * 500;
+                    if (NPC.ai[1] < 130 || NPC.Distance(player.Center) > 200 && NPC.Distance(player.Center) < 600)
+                    {
+                        NPC.velocity *= 0.97f;
+                    }
+                    else
+                    {
+                        Movement(targetPos, 0.6f, 32f);
+                        NPC.position += player.velocity / 4f;
+                    }
+
+                    if (NPC.ai[1] >= 10) //for timestop visual
+                    {
+                        if (Main.netMode != NetmodeID.Server)
+                        {
+                            ManagedScreenFilter filter = ShaderManager.GetFilter("FargowiltasSouls.Invert");
+                            filter.SetFocusPosition(NPC.Center);
+                        }
+                    }
+
+                    /*if (NPC.ai[1] < 10)
+                    {
+                        for (int i = 0; i < 30; i++)
+                        {
+                            int d = Dust.NewDust(NPC.position, NPC.width, NPC.height, 135, 0f, 0f, 0, default(Color), Main.rand.NextFloat(1f, 4f));
+                            Main.dust[d].noGravity = true;
+                            Main.dust[d].velocity *= Main.rand.NextFloat(3f, 9f);
+                        }
+                    }
+                    else */
+                    if (NPC.ai[1] == 10)
+                    {
+                        NPC.localAI[0] = Main.rand.NextFloat(2 * (float)Math.PI);
+
+                        if (!Main.dedServ)
+                            SoundEngine.PlaySound(FargosSoundRegistry.ZaWarudo, player.Center);
+
+                        //if (FargoSoulsUtil.HostCheck) Projectile.NewProjectile(npc.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, NPC.whoAmI, -18);
+
+                        /*const int num226 = 80;
+                        for (int num227 = 0; num227 < num226; num227++)
+                        {
+                            Vector2 vector6 = Vector2.UnitX * 20f;
+                            vector6 = vector6.RotatedBy(((num227 - (num226 / 2 - 1)) * 6.28318548f / num226), default(Vector2)) + NPC.Center;
+                            Vector2 vector7 = vector6 - NPC.Center;
+                            int num228 = Dust.NewDust(vector6 + vector7, 0, 0, 135, 0f, 0f, 0, default(Color), 3f);
+                            Main.dust[num228].noGravity = true;
+                            Main.dust[num228].velocity = vector7;
+                        }*/
+
+                        //cardinal walls
+                        /*if (WorldSavingSystem.MasochistMode && NPC.localAI[2] != 0 && FargoSoulsUtil.HostCheck)
+                        {
+                            const int iMax = 4;
+                            for (int i = 0; i < iMax; i++)
+                            {
+                                Vector2 offset = 300 * Vector2.UnitX.RotatedBy(2 * Math.PI / iMax * i);
+                                const int jMax = 5;
+                                for (int j = -jMax; j <= jMax; j++)
+                                {
+                                    Vector2 spawnPos = player.Center + offset.RotatedBy(MathHelper.ToRadians(15) / jMax * j);
+                                    Vector2 vel = 2.5f * player.DirectionFrom(spawnPos);
+                                    float ai0 = player.Distance(spawnPos) / 2.5f;
+                                    Projectile.NewProjectile(npc.GetSource_FromThis(), spawnPos, vel, ModContent.ProjectileType<CosmosInvader>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, ai0);
+                                }
+                            }
+                        }*/
+                    }
+                    else if (NPC.ai[1] < 210)
+                    {
+                        int duration = 60 + Math.Max(2, 210 - (int)NPC.ai[1]);
+
+                        if (Main.LocalPlayer.active && !Main.LocalPlayer.dead)
+                        {
+                            Main.LocalPlayer.AddBuff(ModContent.BuffType<TimeFrozenBuff>(), duration);
+                            //Main.LocalPlayer.AddBuff(BuffID.ChaosState, 300); //no cheesing this attack
+                        }
+
+                        for (int i = 0; i < Main.maxNPCs; i++)
+                        {
+                            if (Main.npc[i].active)
+                                Main.npc[i].AddBuff(ModContent.BuffType<TimeFrozenBuff>(), duration, true);
+                        }
+
+                        for (int i = 0; i < Main.maxProjectiles; i++)
+                        {
+                            if (Main.projectile[i].active && !Main.projectile[i].FargoSouls().TimeFreezeImmune)
+                                Main.projectile[i].FargoSouls().TimeFrozen = duration;
+                        }
+
+
+                        if (NPC.ai[1] < 130 && ++NPC.ai[2] > 12)
+                        {
+                            NPC.ai[2] = 0;
+
+                            bool altAttack = WorldSavingSystem.EternityMode && NPC.localAI[2] != 0;
+
+                            int baseDistance = 300; //altAttack ? 500 : 400;
+                            float offset = altAttack ? 250f : 150f;
+                            float speed = altAttack ? 4f : 2.5f;
+                            int damage = FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage); //altAttack ? FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 4f * 2 / 7 ): FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage);
+
+                            if (NPC.ai[1] < 130 - 45 || !altAttack)
+                            {
+                                if (altAttack && NPC.ai[3] % 2 == 0) //emode p2, asgore rings
+                                {
+                                    float radius = baseDistance + NPC.ai[3] * offset;
+                                    int circumference = (int)(2f * (float)Math.PI * radius);
+
+                                    //always flip it to opposite the previous side
+                                    NPC.localAI[0] = MathHelper.WrapAngle(NPC.localAI[0] + (float)Math.PI + Main.rand.NextFloat((float)Math.PI / 2));
+                                    const float safeRange = 60f;
+
+                                    const int arcLength = 120;
+                                    for (int i = 0; i < circumference; i += arcLength)
+                                    {
+                                        float angle = i / radius;
+                                        if (angle > 2 * Math.PI - MathHelper.WrapAngle(MathHelper.ToRadians(safeRange)))
+                                            continue;
+
+                                        float spawnOffset = radius;// + Main.rand.NextFloat(-16, 16);
+                                        Vector2 spawnPos = player.Center + spawnOffset * Vector2.UnitX.RotatedBy(angle + NPC.localAI[0]);
+                                        Vector2 vel = speed * player.DirectionFrom(spawnPos);
+                                        float ai0 = player.Distance(spawnPos) / speed + 30;
+                                        if (FargoSoulsUtil.HostCheck)
+                                            Projectile.NewProjectile(NPC.GetSource_FromThis(), spawnPos, vel, ModContent.ProjectileType<CosmosInvaderTime>(), damage, 0f, Main.myPlayer, ai0, vel.ToRotation());
+                                    }
+                                }
+                                else //scatter
+                                {
+                                    int max = altAttack ? 12 : 8 + (int)NPC.ai[3] * (NPC.localAI[2] == 0 ? 2 : 4);
+                                    float rotationOffset = Main.rand.NextFloat((float)Math.PI * 2);
+                                    for (int i = 0; i < max; i++)
+                                    {
+                                        float ai0 = baseDistance;
+                                        float distance = ai0 + NPC.ai[3] * offset;
+                                        Vector2 spawnPos = player.Center + distance * Vector2.UnitX.RotatedBy(2 * Math.PI / max * i + rotationOffset);
+                                        Vector2 vel = speed * player.DirectionFrom(spawnPos);// distance * player.DirectionFrom(spawnPos) / ai0;
+                                        ai0 = distance / speed + 30;
+                                        if (FargoSoulsUtil.HostCheck)
+                                            Projectile.NewProjectile(NPC.GetSource_FromThis(), spawnPos, vel, ModContent.ProjectileType<CosmosInvaderTime>(), damage, 0f, Main.myPlayer, ai0, vel.ToRotation());
+                                    }
+                                }
+                            }
+
+                            NPC.ai[3]++;
+                        }
+                    }
+
+                    if (++NPC.ai[1] > 480)
+                    {
+                        NPC.TargetClosest();
+                        Animation++;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.localAI[0] = 0;
+                        NPC.netUpdate = true;
+                    }
+                    break;
+
+                default:
+                    Animation = 0;
+                    goto case 0;
+            }
+
+            epicMe -= 0.02f;
+            if (epicMe < 0)
+                epicMe = 0;
+        }
+
+        private void Movement(Vector2 targetPos, float speedModifier, float cap = 12f, bool fastY = false, bool useAntiWobble = true)
+        {
+            if (useAntiWobble)
+            {
+                float accel = 1f * speedModifier;
+                float decel = 1.5f * speedModifier;
+                float resistance = NPC.velocity.Length() * accel / (35f * speedModifier);
+                NPC.velocity = FargoSoulsUtil.SmartAccel(NPC.Center, targetPos, NPC.velocity, accel - resistance, decel + resistance);
             }
             else
-              lerpGlow(Color.Purple, (float) (1.0 - (double) this.NPC.ai[1] / 30.0));
-          }
-          else
-            lerpGlow(Color.LimeGreen, (double) this.NPC.ai[1] < 30.0 ? (float) (1.0 - (double) this.NPC.ai[1] / 30.0) : (float) (((double) this.NPC.ai[1] - 30.0) / 360.0));
-        }
-        else
-          lerpGlow(Color.OrangeRed, (float) ((double) this.NPC.ai[1] / 150.0 - 1.0));
-      }
-      else
-        lerpGlow(Color.OrangeRed, (float) (1.0 - (double) this.NPC.ai[1] / 60.0));
-      if (!this.NPC.IsABestiaryIconDummy)
-      {
-        glowColor = Color.op_Multiply(glowColor, this.NPC.Opacity);
-        spriteBatch.End();
-        spriteBatch.Begin((SpriteSortMode) 0, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      }
-      if ((double) this.NPC.localAI[2] != 0.0 || (double) this.Animation == -4.0)
-      {
-        for (int index = 0; index < NPCID.Sets.TrailCacheLength[this.NPC.type]; ++index)
-        {
-          Vector2 vector2_3 = Vector2.op_Subtraction(this.NPC.oldPos[index], screenPos);
-          if ((double) Main.LocalPlayer.gravDir < 0.0)
-            vector2_3.Y = (float) Main.screenHeight - vector2_3.Y;
-          float rotation = this.NPC.rotation;
-          Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(Vector2.op_Addition(vector2_3, Vector2.op_Division(((Entity) this.NPC).Size, 2f)), new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(frame), Color.op_Multiply(glowColor, 0.6f), rotation, vector2_1, this.NPC.scale, spriteEffects, 0.0f);
-        }
-      }
-      if ((double) this.epicMe > 0.0)
-      {
-        float num2 = 10f * this.NPC.scale * (float) Math.Cos(Math.PI / 2.0 * (double) this.epicMe);
-        float num3 = this.NPC.Opacity * (float) Math.Sqrt((double) this.epicMe);
-        Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(vector2_2, new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(frame), Color.op_Multiply(glowColor, num3), this.NPC.rotation, vector2_1, num2, spriteEffects, 0.0f);
-      }
-      if (!this.NPC.IsABestiaryIconDummy)
-      {
-        spriteBatch.End();
-        spriteBatch.Begin((SpriteSortMode) 0, BlendState.NonPremultiplied, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      }
-      Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(vector2_2, new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(frame), this.NPC.GetAlpha(drawColor), this.NPC.rotation, vector2_1, this.NPC.scale, spriteEffects, 0.0f);
-      if (!this.NPC.IsABestiaryIconDummy)
-      {
-        Main.EntitySpriteDraw(texture2D3, Vector2.op_Addition(vector2_2, new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(frame), glowColor, this.NPC.rotation, vector2_1, this.NPC.scale, spriteEffects, 0.0f);
-        spriteBatch.End();
-        spriteBatch.Begin((SpriteSortMode) 0, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-        Main.EntitySpriteDraw(texture2D3, Vector2.op_Addition(vector2_2, new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(frame), glowColor, this.NPC.rotation, vector2_1, this.NPC.scale, spriteEffects, 0.0f);
-        spriteBatch.End();
-        spriteBatch.Begin((SpriteSortMode) 0, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      }
-      return false;
+            {
+                if (NPC.Center.X < targetPos.X)
+                {
+                    NPC.velocity.X += speedModifier;
+                    if (NPC.velocity.X < 0)
+                        NPC.velocity.X += speedModifier * 2;
+                }
+                else
+                {
+                    NPC.velocity.X -= speedModifier;
+                    if (NPC.velocity.X > 0)
+                        NPC.velocity.X -= speedModifier * 2;
+                }
+                if (NPC.Center.Y < targetPos.Y)
+                {
+                    NPC.velocity.Y += fastY ? speedModifier * 2 : speedModifier;
+                    if (NPC.velocity.Y < 0)
+                        NPC.velocity.Y += speedModifier * 2;
+                }
+                else
+                {
+                    NPC.velocity.Y -= fastY ? speedModifier * 2 : speedModifier;
+                    if (NPC.velocity.Y > 0)
+                        NPC.velocity.Y -= speedModifier * 2;
+                }
+            }
 
-      void lerpGlow(Color color, float modifier)
-      {
-        if ((double) modifier < 0.0)
-          modifier = 0.0f;
-        if ((double) modifier > 1.0)
-          modifier = 1f;
-        ((Color) ref glowColor).R = (byte) MathHelper.Lerp((float) ((Color) ref color).R, (float) ((Color) ref glowColor).R, modifier);
-        ((Color) ref glowColor).G = (byte) MathHelper.Lerp((float) ((Color) ref color).G, (float) ((Color) ref glowColor).G, modifier);
-        ((Color) ref glowColor).B = (byte) MathHelper.Lerp((float) ((Color) ref color).B, (float) ((Color) ref glowColor).B, modifier);
-      }
+            float dist = NPC.Distance(targetPos);
+            if (dist == 0)
+                dist = 0.1f;
+            if (NPC.velocity.Length() > dist)
+                NPC.velocity = Vector2.Normalize(NPC.velocity) * dist;
+            MathHelper.Clamp(NPC.velocity.X, -cap, cap);
+            MathHelper.Clamp(NPC.velocity.Y, -cap, cap);
+        }
+
+        public override void FindFrame(int frameHeight)
+        {
+            const int HandsBackFrame = 5;
+            const int PunchFrame = 6;
+            const int HandsUpFrame1 = 7;
+            const int HandsUpFrame2 = 8;
+
+            if (++NPC.frameCounter > 6)
+            {
+                NPC.frameCounter = 0;
+                NPC.frame.Y += frameHeight;
+            }
+
+            if (NPC.frame.Y > frameHeight * HandsBackFrame - 1)
+            {
+                NPC.frame.Y = 0;
+            }
+
+            switch ((int)Animation)
+            {
+                case -4:
+                    NPC.frame.Y = frameHeight * HandsBackFrame;
+                    if (NPC.localAI[0] >= 5)
+                        NPC.frame.Y = frameHeight * PunchFrame;
+                    break;
+
+                case -3:
+                    if (NPC.ai[2] < 30 || NPC.ai[2] > 100 && NPC.ai[2] < 130)
+                        NPC.frame.Y = frameHeight * HandsUpFrame2;
+                    else if (NPC.ai[2] > 70 && NPC.ai[2] < 100 || NPC.ai[2] > 170)
+                        NPC.frame.Y = frameHeight * HandsUpFrame1;
+                    break;
+
+                case -2:
+                    NPC.frame.Y = frameHeight * HandsBackFrame;
+                    break;
+
+                case -1:
+                    if (NPC.ai[1] > 120)
+                        NPC.frame.Y = frameHeight * HandsUpFrame2;
+                    else if (NPC.ai[1] > 100)
+                        NPC.frame.Y = frameHeight * HandsUpFrame1;
+                    break;
+
+                case 1:
+                    if (NPC.ai[2] <= 6)
+                        NPC.frame.Y = frameHeight * HandsBackFrame;
+                    else
+                        NPC.frame.Y = frameHeight * PunchFrame;
+                    break;
+
+                case 3:
+                    {
+                        int threshold = 70; //NPC.localAI[2] == 0 ? 70 : 50;
+                        if (NPC.ai[2] <= threshold)
+                            NPC.frame.Y = frameHeight * HandsBackFrame;
+                        else
+                            NPC.frame.Y = frameHeight * PunchFrame;
+                    }
+                    break;
+
+                case 5:
+                    if (NPC.ai[2] <= 75)
+                        NPC.frame.Y = frameHeight * HandsBackFrame;
+                    else
+                        NPC.frame.Y = frameHeight * PunchFrame;
+                    break;
+
+                case 7:
+                    if (NPC.ai[1] < 30)
+                        NPC.frame.Y = frameHeight * HandsUpFrame1;
+                    else if (NPC.ai[1] < 60)
+                        NPC.frame.Y = frameHeight * HandsUpFrame2;
+                    break;
+
+                case 9:
+                    if (NPC.ai[2] <= 200)
+                        NPC.frame.Y = frameHeight * HandsBackFrame;
+                    else
+                        NPC.frame.Y = frameHeight * PunchFrame;
+                    break;
+
+                case 10:
+                    NPC.frame.Y = frameHeight * HandsBackFrame;
+                    break;
+
+                case 11:
+                    if (NPC.ai[1] > 60)
+                        NPC.frame.Y = frameHeight * PunchFrame;
+                    else
+                        NPC.frame.Y = frameHeight * HandsBackFrame;
+                    break;
+
+                case 13:
+                    if (NPC.ai[1] < 110)
+                    {
+                        if (NPC.ai[2] <= 6)
+                            NPC.frame.Y = frameHeight * HandsBackFrame;
+                        else
+                            NPC.frame.Y = frameHeight * PunchFrame;
+                    }
+                    else //uppercut time
+                    {
+                        if (NPC.ai[1] <= 110 + 45)
+                            NPC.frame.Y = frameHeight * HandsBackFrame;
+                        else
+                            NPC.frame.Y = frameHeight * PunchFrame;
+                    }
+                    break;
+
+                case 14:
+                    NPC.frame.Y = frameHeight * HandsUpFrame1;
+                    break;
+
+                case 15: //ZA WARUDO
+                    if (NPC.ai[1] < 10)
+                        NPC.frame.Y = frameHeight * HandsUpFrame1;
+                    else if (NPC.ai[1] < 130)
+                        NPC.frame.Y = frameHeight * HandsUpFrame2;
+                    break;
+
+                default:
+                    break;
+            }
+
+            if (Main.projectile.Any(p => p.TypeAlive<GlowRing>() && p.ai[0] == NPC.whoAmI && (p.ai[1] == -23 || p.ai[1] == -20)))
+            {
+                NPC.frame.Y = frameHeight * HandsBackFrame;
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
+        {
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.AddBuff(BuffID.Burning, 120);
+                target.AddBuff(BuffID.Electrified, 300);
+                target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 300);
+                target.AddBuff(BuffID.Frostburn, 300);
+            }
+        }
+
+        public override void ModifyIncomingHit(ref NPC.HitModifiers modifiers)
+        {
+            if (WorldSavingSystem.EternityMode)
+                modifiers.FinalDamage *= 0.9f;
+        }
+
+        public override void HitEffect(NPC.HitInfo hit)
+        {
+            if (NPC.life <= 0)
+            {
+                for (int i = 1; i <= 6; i++)
+                {
+                    Vector2 pos = NPC.position + new Vector2(Main.rand.NextFloat(NPC.width), Main.rand.NextFloat(NPC.height));
+                    if (!Main.dedServ)
+                        Gore.NewGore(NPC.GetSource_FromThis(), pos, NPC.velocity, ModContent.Find<ModGore>(Mod.Name, $"CosmosGore{i}").Type, NPC.scale);
+                }
+            }
+        }
+
+        public override void BossLoot(ref string name, ref int potionType)
+        {
+            potionType = ItemID.SuperHealingPotion;
+        }
+
+        public override void OnKill()
+        {
+            NPC.SetEventFlagCleared(ref WorldSavingSystem.DownedBoss[(int)WorldSavingSystem.Downed.CosmosChampion], -1);
+
+            if (FargoSoulsUtil.HostCheck)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    Vector2 spawnPos = NPC.position + new Vector2(Main.rand.Next(NPC.width), Main.rand.Next(NPC.height));
+                    int type = ModContent.ProjectileType<MutantBomb>();
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), spawnPos, Vector2.Zero, type, 0, 0f, Main.myPlayer);
+                }
+                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<Projectiles.Masomode.MoonLordMoonBlast>(), 0, 0f, Main.myPlayer, -Vector2.UnitY.ToRotation(), 32);
+            }
+        }
+
+        public override void ModifyNPCLoot(NPCLoot npcLoot)
+        {
+            npcLoot.Add(new ChampionEnchDropRule(BaseForce.EnchantsIn<CosmoForce>()));
+
+            npcLoot.Add(ItemDropRule.BossBag(ModContent.ItemType<CosmosBag>()));
+            npcLoot.Add(ItemDropRule.Common(ModContent.ItemType<EridanusTrophy>(), 10));
+
+            npcLoot.Add(ItemDropRule.MasterModeCommonDrop(ModContent.ItemType<EridanusRelic>()));
+
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.NotExpert(), ModContent.ItemType<Eridanium>(), 1, 5, 10));
+            npcLoot.Add(ItemDropRule.ByCondition(new Conditions.NotExpert(), ModContent.Find<ModItem>("Fargowiltas", "CrucibleCosmos").Type));
+        }
+
+        public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
+        {
+            //if (!NPC.IsABestiaryIconDummy)
+            //{
+            //    spriteBatch.End();
+            //    spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
+            //}
+
+            Texture2D npcTex = Terraria.GameContent.TextureAssets.Npc[NPC.type].Value;
+
+            Texture2D npcGlow = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosChampion_Glow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            Texture2D npcGlow2 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosChampion_Glow2", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            Rectangle rectangle = NPC.frame;//new Rectangle(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            SpriteEffects effects = NPC.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+            Vector2 drawPos = NPC.Center - screenPos;
+            if (Main.LocalPlayer.gravDir < 0)
+            {
+                drawPos.Y = Main.screenHeight - drawPos.Y;
+            }
+
+            Color glowColor = new(Main.DiscoR / 3 + 150, Main.DiscoG / 3 + 150, Main.DiscoB / 3 + 150);
+            void lerpGlow(Color color, float modifier)
+            {
+                if (modifier < 0)
+                    modifier = 0;
+                if (modifier > 1)
+                    modifier = 1;
+                glowColor.R = (byte)MathHelper.Lerp(color.R, glowColor.R, modifier);
+                glowColor.G = (byte)MathHelper.Lerp(color.G, glowColor.G, modifier);
+                glowColor.B = (byte)MathHelper.Lerp(color.B, glowColor.B, modifier);
+            }
+            switch (Animation)
+            {
+                /*case -4:
+                    {
+                        ulong seed = (ulong)(NPC.ai[3] / 6);
+                        Color rainbowFlash = new Color(50 * Utils.RandomInt(ref seed, 0, 6) + 5, 50 * Utils.RandomInt(ref seed, 0, 6) + 5, 50 * Utils.RandomInt(ref seed, 0, 6) + 5);
+                        lerpGlow(rainbowFlash, 0.2f);
+                    }
+                    break;*/
+
+                case 2:
+                    lerpGlow(Color.OrangeRed, 1f - NPC.ai[1] / 60);
+                    break;
+
+                case 3:
+                    lerpGlow(Color.OrangeRed, NPC.ai[1] / 150 - 1f);
+                    break;
+
+                case 7:
+                    lerpGlow(Color.LimeGreen, NPC.ai[1] < 30 ? 1f - NPC.ai[1] / 30 : (NPC.ai[1] - 30) / 360);
+                    break;
+
+                case 10:
+                    lerpGlow(Color.Purple, 1f - NPC.ai[1] / 30);
+                    break;
+
+                case 11:
+                    lerpGlow(Color.Purple, NPC.ai[1] / 180 - 1f);
+                    break;
+
+                case 14:
+                    lerpGlow(Color.Blue, 1f - NPC.ai[1] / 60);
+                    break;
+
+                case 15:
+                    lerpGlow(Color.Blue, NPC.ai[1] / 240 - 1f);
+                    break;
+
+                default: break;
+            }
+
+            if (!NPC.IsABestiaryIconDummy)
+            {
+                glowColor *= NPC.Opacity;
+
+                spriteBatch.UseBlendState(BlendState.Additive);
+            }
+
+            if (NPC.localAI[2] != 0 || Animation == -4f)
+            {
+                for (int i = 0; i < NPCID.Sets.TrailCacheLength[NPC.type]; i++)
+                {
+                    Vector2 oldDrawPos = NPC.oldPos[i] - screenPos;
+                    if (Main.LocalPlayer.gravDir < 0)
+                    {
+                        oldDrawPos.Y = Main.screenHeight - oldDrawPos.Y;
+                    }
+                    float num165 = NPC.rotation; //NPC.oldRot[i];
+                    Main.EntitySpriteDraw(npcGlow, oldDrawPos + NPC.Size / 2f + new Vector2(0, NPC.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), glowColor * 0.6f, num165, origin2, NPC.scale, effects, 0);
+                }
+            }
+
+            if (epicMe > 0)
+            {
+                float scale = 10f * NPC.scale * (float)Math.Cos(Math.PI / 2 * epicMe); //modifier starts at 1 and drops to 0, so using cos
+                float opacity = NPC.Opacity * (float)Math.Sqrt(epicMe);
+                Main.EntitySpriteDraw(npcGlow, drawPos + new Vector2(0, NPC.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), glowColor * opacity, NPC.rotation, origin2, scale, effects, 0);
+            }
+
+            if (!NPC.IsABestiaryIconDummy)
+            {
+                spriteBatch.UseBlendState(BlendState.NonPremultiplied);
+            }
+
+            Main.EntitySpriteDraw(npcTex, drawPos + new Vector2(0f, NPC.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), NPC.GetAlpha(drawColor), NPC.rotation, origin2, NPC.scale, effects, 0);
+
+            if (!NPC.IsABestiaryIconDummy)
+            {
+                Main.EntitySpriteDraw(npcGlow2, drawPos + new Vector2(0f, NPC.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), glowColor, NPC.rotation, origin2, NPC.scale, effects, 0);
+
+                spriteBatch.UseBlendState(BlendState.Additive);
+
+                Main.EntitySpriteDraw(npcGlow2, drawPos + new Vector2(0f, NPC.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), glowColor, NPC.rotation, origin2, NPC.scale, effects, 0);
+
+                spriteBatch.ResetToDefault();
+            }
+            return false;
+        }
     }
-  }
 }

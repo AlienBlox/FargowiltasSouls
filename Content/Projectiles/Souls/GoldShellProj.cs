@@ -1,50 +1,49 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Souls.GoldShellProj
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Souls
 {
-  public class GoldShellProj : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class GoldShellProj : ModProjectile
     {
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Gold Shell");
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 56;
-      ((Entity) this.Projectile).height = 56;
-      this.Projectile.friendly = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft = 18000;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 56;
+            Projectile.height = 56;
+            Projectile.friendly = true;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft = 18000;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+        }
 
-    public virtual bool? CanDamage() => new bool?(false);
+        public override bool? CanDamage()
+        {
+            return false;
+        }
 
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (player.dead)
-        fargoSoulsPlayer.GoldShell = false;
-      if (!fargoSoulsPlayer.GoldShell)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        ((Entity) this.Projectile).position.X = ((Entity) Main.player[this.Projectile.owner]).Center.X - (float) (((Entity) this.Projectile).width / 2);
-        ((Entity) this.Projectile).position.Y = ((Entity) Main.player[this.Projectile.owner]).Center.Y - (float) (((Entity) this.Projectile).height / 2);
-      }
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (player.dead)
+            {
+                modPlayer.GoldShell = false;
+            }
+
+            if (!modPlayer.GoldShell)
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            Projectile.position.X = Main.player[Projectile.owner].Center.X - Projectile.width / 2;
+            Projectile.position.Y = Main.player[Projectile.owner].Center.Y - Projectile.height / 2;
+        }
     }
-  }
 }

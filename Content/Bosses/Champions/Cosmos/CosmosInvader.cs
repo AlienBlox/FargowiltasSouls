@@ -1,154 +1,157 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Cosmos.CosmosInvader
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Projectiles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Cosmos
 {
-  public class CosmosInvader : ModProjectile
-  {
-    protected bool spawned;
-
-    public virtual string Texture => "Terraria/Images/Projectile_539";
-
-    public virtual void SetStaticDefaults() => Main.projFrames[this.Projectile.type] = 4;
-
-    public virtual void SetDefaults()
+    public class CosmosInvader : ModProjectile
     {
-      ((Entity) this.Projectile).width = 18;
-      ((Entity) this.Projectile).height = 18;
-      this.Projectile.hostile = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.aiStyle = -1;
-      this.CooldownSlot = 1;
-    }
+        public override string Texture => "Terraria/Images/Projectile_539";
 
-    public virtual bool CanHitPlayer(Player target) => target.hurtCooldowns[1] == 0;
+        protected bool spawned;
 
-    public virtual bool PreAI()
-    {
-      if (!this.spawned)
-      {
-        this.spawned = true;
-        this.Projectile.frame = Main.rand.Next(4);
-        this.Projectile.timeLeft = (int) this.Projectile.ai[0];
-      }
-      return true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Cosmic Invader");
+            Main.projFrames[Projectile.type] = 4;
+        }
 
-    public virtual void AI()
-    {
-      Projectile projectile = this.Projectile;
-      ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 1f + this.Projectile.ai[1]);
-      this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + 1.57079637f;
-      if (++this.Projectile.frameCounter >= 4)
-      {
-        this.Projectile.frameCounter = 0;
-        if (++this.Projectile.frame >= Main.projFrames[this.Projectile.type])
-          this.Projectile.frame = 0;
-      }
-      ++this.Projectile.localAI[0];
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 18;
+            Projectile.height = 18;
+            Projectile.hostile = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.aiStyle = -1;
+            CooldownSlot = 1;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      ((Entity) this.Projectile).position = ((Entity) this.Projectile).Center;
-      ((Entity) this.Projectile).width = ((Entity) this.Projectile).height = 80;
-      ((Entity) this.Projectile).Center = ((Entity) this.Projectile).position;
-      SoundStyle soundStyle = SoundID.Item25;
-      ((SoundStyle) ref soundStyle).Volume = 0.5f;
-      ((SoundStyle) ref soundStyle).Pitch = 0.0f;
-      SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      for (int index1 = 0; index1 < 2; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 100, new Color(), 1.5f);
-        Main.dust[index2].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 3.14159274101257), (float) Main.rand.NextDouble()), (float) ((Entity) this.Projectile).width), 2f));
-      }
-      for (int index3 = 0; index3 < 5; ++index3)
-      {
-        int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 176, 0.0f, 0.0f, 200, new Color(), 3.7f);
-        Main.dust[index4].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 3.14159274101257), (float) Main.rand.NextDouble()), (float) ((Entity) this.Projectile).width), 2f));
-        Main.dust[index4].noGravity = true;
-        Dust dust = Main.dust[index4];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 3f);
-      }
-      for (int index5 = 0; index5 < 5; ++index5)
-      {
-        int index6 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 180, 0.0f, 0.0f, 0, new Color(), 2.7f);
-        Main.dust[index6].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(Utils.RotatedBy(Utils.RotatedByRandom(Vector2.UnitX, 3.14159274101257), (double) Utils.ToRotation(((Entity) this.Projectile).velocity), new Vector2()), (float) ((Entity) this.Projectile).width), 2f));
-        Main.dust[index6].noGravity = true;
-        Dust dust = Main.dust[index6];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 3f);
-      }
-      for (int index7 = 0; index7 < 2; ++index7)
-      {
-        int index8 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 0, new Color(), 1.5f);
-        Main.dust[index8].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(Utils.RotatedBy(Utils.RotatedByRandom(Vector2.UnitX, 3.14159274101257), (double) Utils.ToRotation(((Entity) this.Projectile).velocity), new Vector2()), (float) ((Entity) this.Projectile).width), 2f));
-        Main.dust[index8].noGravity = true;
-        Dust dust = Main.dust[index8];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 3f);
-      }
-    }
+        public override bool CanHitPlayer(Player target)
+        {
+            return target.hurtCooldowns[1] == 0;
+        }
 
-    public virtual void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
-    {
-      if (!NPC.AnyNPCs(ModContent.NPCType<CosmosChampion>()))
-        return;
-      ref AddableFloat local = ref modifiers.ScalingArmorPenetration;
-      local = AddableFloat.op_Addition(local, 0.25f);
-    }
+        public override bool PreAI()
+        {
+            if (!spawned)
+            {
+                spawned = true;
+                Projectile.frame = Main.rand.Next(4);
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(163, 20, true, false);
-      target.AddBuff(80, 300, true, false);
-    }
+                Projectile.timeLeft = (int)Projectile.ai[0];
+            }
+            return true;
+        }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
+        public override void AI()
+        {
+            Projectile.velocity *= 1 + Projectile.ai[1];
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/MutantBoss/MutantEye_Glow", (AssetRequestMode) 1).Value;
-      Rectangle bounds = texture2D.Bounds;
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(bounds), 2f);
-      Color color1 = Color.Lerp(new Color(29, 171, 239, 0), Color.Transparent, 0.3f);
-      float num1 = (float) (((double) this.Projectile.localAI[0] - 10.0) / 10.0);
-      if ((double) num1 < 0.0)
-        num1 = 0.0f;
-      float num2 = num1 / 6f;
-      Color color2 = Color.op_Multiply(color1, Math.Min(1f, num2));
-      Vector2 vector2_2 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(Utils.SafeNormalize(((Entity) this.Projectile).velocity, Vector2.UnitX), 18f));
-      float num3 = this.Projectile.scale * (float) (((double) Main.mouseTextColor / 200.0 - 0.34999999403953552) * 0.20000000298023224 + 0.949999988079071);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(vector2_2, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(bounds), color2, Utils.ToRotation(((Entity) this.Projectile).velocity) + 1.57079637f, vector2_1, num3, (SpriteEffects) 0, 0.0f);
-      return false;
-    }
+            Projectile.rotation = Projectile.velocity.ToRotation() + (float)Math.PI / 2;
 
-    public virtual void PostDraw(Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
+            if (++Projectile.frameCounter >= 4)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame >= Main.projFrames[Projectile.type])
+                    Projectile.frame = 0;
+            }
+
+            Projectile.localAI[0]++;
+        }
+
+        public override void OnKill(int timeLeft) //vanilla explosion code echhhhhhhhhhh
+        {
+            Projectile.position = Projectile.Center;
+            Projectile.width = Projectile.height = 80;
+            Projectile.Center = Projectile.position;
+            SoundEngine.PlaySound(SoundID.Item25 with { Volume = 0.5f, Pitch = 0 }, Projectile.Center);
+            for (int index1 = 0; index1 < 2; ++index1)
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0.0f, 0.0f, 100, new Color(), 1.5f);
+                Main.dust[index2].position = Projectile.Center + Vector2.UnitY.RotatedByRandom(3.14159274101257) * (float)Main.rand.NextDouble() * Projectile.width / 2f;
+            }
+            for (int index1 = 0; index1 < 5; ++index1)
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.BubbleBurst_Blue, 0.0f, 0.0f, 200, new Color(), 3.7f);
+                Main.dust[index2].position = Projectile.Center + Vector2.UnitY.RotatedByRandom(3.14159274101257) * (float)Main.rand.NextDouble() * Projectile.width / 2f;
+                Main.dust[index2].noGravity = true;
+                Dust dust = Main.dust[index2];
+                dust.velocity *= 3f;
+            }
+            for (int index1 = 0; index1 < 5; ++index1)
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.DungeonSpirit, 0.0f, 0.0f, 0, new Color(), 2.7f);
+                Main.dust[index2].position = Projectile.Center + Vector2.UnitX.RotatedByRandom(3.14159274101257).RotatedBy((double)Projectile.velocity.ToRotation(), new Vector2()) * Projectile.width / 2f;
+                Main.dust[index2].noGravity = true;
+                Dust dust = Main.dust[index2];
+                dust.velocity *= 3f;
+            }
+            for (int index1 = 0; index1 < 2; ++index1)
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0.0f, 0.0f, 0, new Color(), 1.5f);
+                Main.dust[index2].position = Projectile.Center + Vector2.UnitX.RotatedByRandom(3.14159274101257).RotatedBy((double)Projectile.velocity.ToRotation(), new Vector2()) * Projectile.width / 2f;
+                Main.dust[index2].noGravity = true;
+                Dust dust = Main.dust[index2];
+                dust.velocity *= 3f;
+            }
+        }
+
+        public override void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
+        {
+            if (NPC.AnyNPCs(ModContent.NPCType<CosmosChampion>()))
+            {
+                modifiers.ScalingArmorPenetration += 0.25f;
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(BuffID.Obstructed, 20);
+            target.AddBuff(BuffID.Blackout, 300);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D glow = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/MutantBoss/MutantEye_Glow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            Rectangle glowrectangle = glow.Bounds;
+            Vector2 gloworigin2 = glowrectangle.Size() / 2f;
+            Color glowcolor = Color.Lerp(new Color(29, 171, 239, 0), Color.Transparent, 0.3f);
+
+            float transparency = (Projectile.localAI[0] - FargoSoulsGlobalProjectile.TimeFreezeMoveDuration) / FargoSoulsGlobalProjectile.TimeFreezeMoveDuration;
+            if (transparency < 0) //clamp and delay the rampup until timestop is over
+                transparency = 0;
+            transparency /= 6; //so it takes longer to reach full brightness
+            glowcolor *= Math.Min(1f, transparency);
+
+            Vector2 drawCenter = Projectile.Center - Projectile.velocity.SafeNormalize(Vector2.UnitX) * 18;
+
+            float scale = Projectile.scale;
+            scale *= (Main.mouseTextColor / 200f - 0.35f) * 0.2f + 0.95f;
+
+            Main.EntitySpriteDraw(glow, drawCenter - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle),
+                glowcolor, Projectile.velocity.ToRotation() + MathHelper.PiOver2, gloworigin2, scale, SpriteEffects.None, 0);
+            return false;
+        }
+
+        public override void PostDraw(Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+        }
     }
-  }
 }

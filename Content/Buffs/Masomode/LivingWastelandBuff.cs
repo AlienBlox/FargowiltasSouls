@@ -1,53 +1,54 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.LivingWastelandBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class LivingWastelandBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class LivingWastelandBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
-
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      for (int index = 0; index < Main.maxNPCs; ++index)
-      {
-        if (((Entity) Main.npc[index]).active && (double) ((Entity) Main.npc[index]).Distance(((Entity) player).Center) < 300.0)
-          Main.npc[index].AddBuff(ModContent.BuffType<RottingBuff>(), 2, false);
-      }
-      for (int index = 0; index < (int) byte.MaxValue; ++index)
-      {
-        if (((Entity) Main.player[index]).active && !Main.player[index].dead && index != ((Entity) player).whoAmI && (double) ((Entity) Main.player[index]).Distance(((Entity) player).Center) < 300.0)
-          Main.player[index].AddBuff(ModContent.BuffType<RottingBuff>(), 2, true, false);
-      }
-      for (int index = 0; index < 20; ++index)
-      {
-        Vector2 vector2 = new Vector2();
-        double num = Main.rand.NextDouble() * 2.0 * Math.PI;
-        vector2.X += (float) (Math.Sin(num) * 300.0);
-        vector2.Y += (float) (Math.Cos(num) * 300.0);
-        Dust dust1 = Main.dust[Dust.NewDust(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) player).Center, vector2), new Vector2(4f, 4f)), 0, 0, 119, 0.0f, 0.0f, 100, Color.White, 1f)];
-        dust1.velocity = ((Entity) player).velocity;
-        if (Utils.NextBool(Main.rand, 3))
+        public override void SetStaticDefaults()
         {
-          Dust dust2 = dust1;
-          dust2.velocity = Vector2.op_Addition(dust2.velocity, Vector2.op_Multiply(Vector2.Normalize(vector2), -5f));
+            // DisplayName.SetDefault("Living Wasteland");
+            // Description.SetDefault("Everyone around you turns to rot");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "人形废土");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "你周围的每个人都开始腐烂");
         }
-        dust1.noGravity = true;
-      }
-      player.FargoSouls().Rotting = true;
+
+        public override void Update(Player player, ref int buffIndex)
+        {
+            const float distance = 300f;
+            for (int i = 0; i < Main.maxNPCs; i++)
+                if (Main.npc[i].active && Main.npc[i].Distance(player.Center) < distance)
+                    Main.npc[i].AddBuff(ModContent.BuffType<RottingBuff>(), 2);
+            for (int i = 0; i < Main.maxPlayers; i++)
+                if (Main.player[i].active && !Main.player[i].dead && i != player.whoAmI && Main.player[i].Distance(player.Center) < distance)
+                    Main.player[i].AddBuff(ModContent.BuffType<RottingBuff>(), 2);
+
+            for (int i = 0; i < 20; i++)
+            {
+                Vector2 offset = new();
+                double angle = Main.rand.NextDouble() * 2d * Math.PI;
+                offset.X += (float)(Math.Sin(angle) * distance);
+                offset.Y += (float)(Math.Cos(angle) * distance);
+                Dust dust = Main.dust[Dust.NewDust(player.Center + offset - new Vector2(4, 4), 0, 0, DustID.Ice_Pink, 0, 0, 100, Color.White, 1f)];
+                dust.velocity = player.velocity;
+                if (Main.rand.NextBool(3))
+                    dust.velocity += Vector2.Normalize(offset) * -5f;
+                dust.noGravity = true;
+            }
+
+            player.FargoSouls().Rotting = true;
+            /*player.FargoSouls().AttackSpeed -= .1f;
+            player.statLifeMax2 -= player.statLifeMax / 5;
+            player.statDefense -= 10;
+            player.GetDamage(DamageClass.Melee) -= 0.1f;
+            player.GetDamage(DamageClass.Magic) -= 0.1f;
+            player.GetDamage(DamageClass.Ranged) -= 0.1f;
+            player.GetDamage(DamageClass.Summon) -= 0.1f;*/
+        }
     }
-  }
 }

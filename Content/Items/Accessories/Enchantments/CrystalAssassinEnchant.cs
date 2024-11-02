@@ -1,109 +1,232 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.CrystalAssassinEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Common.Graphics.Particles;
 using FargowiltasSouls.Content.Buffs.Souls;
+using FargowiltasSouls.Content.Projectiles.Souls;
+using FargowiltasSouls.Content.UI.Elements;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
+using FargowiltasSouls.Core.Systems;
+using FargowiltasSouls.Core.Toggler.Content;
+using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
 using Terraria;
-using Terraria.Localization;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class CrystalAssassinEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(36, 157, 207);
-
-    public override void SetDefaults()
+    public class CrystalAssassinEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 5;
-      this.Item.value = 150000;
-    }
-
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      CrystalAssassinEnchant.AddEffects(player, this.Item);
-    }
-
-    public static void AddEffects(Player player, Item item)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      fargoSoulsPlayer.CrystalEnchantActive = true;
-      if (fargoSoulsPlayer.SmokeBombCD != 0)
-        --fargoSoulsPlayer.SmokeBombCD;
-      if (fargoSoulsPlayer.HasDash || !player.AddEffect<CrystalAssassinDash>(item))
-        return;
-      player.dashType = 5;
-    }
-
-    public static void SmokeBombKey(FargoSoulsPlayer modPlayer)
-    {
-      if (modPlayer.CrystalSmokeBombProj == null)
-      {
-        float num = 60f;
-        Vector2 vector2 = Vector2.op_Subtraction(Main.MouseWorld, ((Entity) modPlayer.Player).Center);
-        vector2.X /= num;
-        vector2.Y = (float) ((double) vector2.Y / (double) num - 0.090000003576278687 * (double) num);
-        modPlayer.CrystalSmokeBombProj = Main.projectile[Projectile.NewProjectile(((Entity) modPlayer.Player).GetSource_Misc(""), ((Entity) modPlayer.Player).Center, Vector2.op_Addition(vector2, Vector2.op_Multiply(Utils.NextVector2Square(Main.rand, 0.0f, 0.0f), 2f)), 196, 0, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f)];
-        modPlayer.SmokeBombCD = 15;
-      }
-      else
-      {
-        Vector2 vector2_1;
-        // ISSUE: explicit constructor call
-        ((Vector2) ref vector2_1).\u002Ector(((Entity) modPlayer.CrystalSmokeBombProj).position.X, ((Entity) modPlayer.CrystalSmokeBombProj).position.Y - 30f);
-        Vector2 vector2_2;
-        // ISSUE: explicit constructor call
-        ((Vector2) ref vector2_2).\u002Ector(vector2_1.X, vector2_1.Y);
-        int num1 = 0;
-        int num2 = 10;
-        while (Collision.SolidCollision(vector2_1, ((Entity) modPlayer.Player).width, ((Entity) modPlayer.Player).height))
+        public override void SetStaticDefaults()
         {
-          vector2_1 = vector2_2;
-          switch (num1)
-          {
-            case 0:
-              vector2_1.X -= (float) num2;
-              break;
-            case 1:
-              vector2_1.X += (float) num2;
-              break;
-            case 2:
-              vector2_1.Y += (float) num2;
-              break;
-            default:
-              vector2_1.Y -= (float) num2;
-              num2 += 10;
-              break;
-          }
-          ++num1;
-          if (num1 >= 4)
-            num1 = 0;
-          if (num2 > 100)
-            return;
+            base.SetStaticDefaults();
         }
-        if ((double) vector2_1.X <= 50.0 || (double) vector2_1.X >= (double) (Main.maxTilesX * 16 - 50) || (double) vector2_1.Y <= 50.0 || (double) vector2_1.Y >= (double) (Main.maxTilesY * 16 - 50))
-          return;
-        modPlayer.Player.Teleport(vector2_1, 1, 0);
-        NetMessage.SendData(65, -1, -1, (NetworkText) null, 0, (float) ((Entity) modPlayer.Player).whoAmI, vector2_1.X, vector2_1.Y, 1, 0, 0);
-        modPlayer.Player.AddBuff(ModContent.BuffType<FirstStrikeBuff>(), 60, true, false);
-        modPlayer.CrystalSmokeBombProj.timeLeft = 120;
-        modPlayer.SmokeBombCD = 300;
-        modPlayer.CrystalSmokeBombProj = (Projectile) null;
-      }
-    }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(4982, 1).AddIngredient(4983, 1).AddIngredient(4984, 1).AddIngredient(3030, 1).AddIngredient(856, 1).AddIngredient(1168, 50).AddTile(125).Register();
+        public override Color nameColor => new(36, 157, 207);
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Pink;
+            Item.value = 150000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            AddEffects(player, Item);
+        }
+
+        public static void AddEffects(Player player, Item item)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            modPlayer.CrystalEnchantActive = true;
+
+            //cooldown
+            if (modPlayer.SmokeBombCD != 0)
+            {
+                modPlayer.SmokeBombCD--;
+            }
+
+            player.AddEffect<CrystalAssassinDash>(item);
+            player.AddEffect<CrystalDiagonalDash>(item);
+        }
+        /*
+        public static void SmokeBombKey(FargoSoulsPlayer modPlayer)
+        {
+            //throw smoke bomb
+            if (modPlayer.CrystalSmokeBombProj == null)
+            {
+                const float gravity = 0.18f;
+                float time = 60f;
+                Vector2 distance = Main.MouseWorld - modPlayer.Player.Center;
+                distance.X /= time;
+                distance.Y = distance.Y / time - 0.5f * gravity * time;
+
+                modPlayer.CrystalSmokeBombProj = Main.projectile[Projectile.NewProjectile(modPlayer.Player.GetSource_Misc(""), modPlayer.Player.Center, distance + Main.rand.NextVector2Square(0, 0) * 2,
+                        ProjectileID.SmokeBomb, 0, 0f, Main.myPlayer)];
+
+                modPlayer.SmokeBombCD = 15;
+            }
+            //already threw smoke bomb, tele to it
+            else
+            {
+                Vector2 teleportPos = new(modPlayer.CrystalSmokeBombProj.position.X, modPlayer.CrystalSmokeBombProj.position.Y - 30);
+                Vector2 originalPos = new(teleportPos.X, teleportPos.Y);
+
+                //spiral out to find a save spot
+                int count = 0;
+                int increase = 10;
+                while (Collision.SolidCollision(teleportPos, modPlayer.Player.width, modPlayer.Player.height))
+                {
+                    teleportPos = originalPos;
+
+                    switch (count)
+                    {
+                        case 0:
+                            teleportPos.X -= increase;
+                            break;
+                        case 1:
+                            teleportPos.X += increase;
+                            break;
+                        case 2:
+                            teleportPos.Y += increase;
+                            break;
+                        default:
+                            teleportPos.Y -= increase;
+                            increase += 10;
+                            break;
+                    }
+                    count++;
+
+                    if (count >= 4)
+                    {
+                        count = 0;
+                    }
+
+                    if (increase > 100)
+                    {
+                        return;
+                    }
+                }
+
+                if (teleportPos.X > 50 && teleportPos.X < (double)(Main.maxTilesX * 16 - 50) && teleportPos.Y > 50 && teleportPos.Y < (double)(Main.maxTilesY * 16 - 50))
+                {
+                    modPlayer.Player.Teleport(teleportPos, 1);
+                    NetMessage.SendData(MessageID.TeleportEntity, -1, -1, null, 0, modPlayer.Player.whoAmI, teleportPos.X, teleportPos.Y, 1);
+
+                    modPlayer.Player.AddBuff(ModContent.BuffType<FirstStrikeBuff>(), 60);
+
+                    modPlayer.CrystalSmokeBombProj.timeLeft = 120;
+                    modPlayer.SmokeBombCD = 300;
+                    modPlayer.CrystalSmokeBombProj = null;
+                }
+            }
+        }
+        */
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddIngredient(ItemID.CrystalNinjaHelmet)
+                .AddIngredient(ItemID.CrystalNinjaChestplate)
+                .AddIngredient(ItemID.CrystalNinjaLeggings)
+                .AddIngredient(ItemID.FlyingKnife)
+                .AddIngredient(ItemID.UnicornonaStick)
+                .AddIngredient(ItemID.SmokeBomb, 50)
+
+                .AddTile(TileID.CrystalBall)
+                .Register();
+        }
     }
-  }
+    public class CrystalAssassinDash : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<ShadowHeader>();
+        public override int ToggleItemType => ModContent.ItemType<CrystalAssassinEnchant>();
+        public override bool MutantsPresenceAffects => true;
+        public static void AddDash(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            modPlayer.FargoDash = DashManager.DashType.Crystal;
+            modPlayer.HasDash = true;
+        }
+        public static void CrystalDash(Player player, int direction)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            float dashSpeed = 22f;
+            if (player.HasEffect<CrystalDiagonalDash>())
+            {
+                player.velocity.Y *= 0;
+                if (player.controlUp)
+                    player.velocity.Y = dashSpeed * -0.5f;
+                else if (player.controlDown)
+                    player.velocity.Y = dashSpeed * 0.7f;
+            }
+
+            if (player.ForceEffect<CrystalAssassinDash>() && modPlayer.CrystalDashFirstStrikeCD <= 0)
+            {
+                player.AddBuff(ModContent.BuffType<FirstStrikeBuff>(), 60);
+                modPlayer.CrystalDashFirstStrikeCD = 60 * 5;
+            }
+
+
+            player.velocity.X = dashSpeed * direction;
+            if (modPlayer.IsDashingTimer < 20)
+                modPlayer.IsDashingTimer = 20;
+
+            int cd = player.ForceEffect<CrystalAssassinDash>() ? 30 : 60;
+            player.dashDelay = cd;
+            modPlayer.DashCD = cd;
+
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+                NetMessage.SendData(MessageID.PlayerControls, number: player.whoAmI);
+
+            for (int num17 = 0; num17 < 20; num17++)
+            {
+                int num18 = Dust.NewDust(new Vector2(player.position.X, player.position.Y), player.width, player.height, DustID.Smoke, 0f, 0f, 100, default, 2f);
+                Dust expr_CDB_cp_0 = Main.dust[num18];
+                expr_CDB_cp_0.position.X += Main.rand.Next(-5, 6);
+                Dust expr_D02_cp_0 = Main.dust[num18];
+                expr_D02_cp_0.position.Y += Main.rand.Next(-5, 6);
+                Main.dust[num18].velocity *= 0.2f;
+                Main.dust[num18].scale *= 1f + Main.rand.Next(20) * 0.01f;
+                //Main.dust[num18].shader = GameShaders.Armor.GetSecondaryShader(player.cShoe, this);
+            }
+            int num19 = Gore.NewGore(player.GetSource_FromThis(), new Vector2(player.position.X + player.width / 2 - 24f, player.position.Y + player.height / 2 - 34f), default, Main.rand.Next(61, 64), 1f);
+            Main.gore[num19].velocity.X = Main.rand.Next(-50, 51) * 0.01f;
+            Main.gore[num19].velocity.Y = Main.rand.Next(-50, 51) * 0.01f;
+            Main.gore[num19].velocity *= 0.4f;
+            num19 = Gore.NewGore(player.GetSource_FromThis(), new Vector2(player.position.X + player.width / 2 - 24f, player.position.Y + player.height / 2 - 14f), default, Main.rand.Next(61, 64), 1f);
+            Main.gore[num19].velocity.X = Main.rand.Next(-50, 51) * 0.01f;
+            Main.gore[num19].velocity.Y = Main.rand.Next(-50, 51) * 0.01f;
+            Main.gore[num19].velocity *= 0.4f;
+        }
+        public static void WhileDashing(Player player)
+        {
+            Particle bub = new SparkParticle(player.position + new Vector2(Main.rand.Next(0, player.width), Main.rand.Next(0, player.height)), -(player.velocity * 0.1f), Color.DeepPink, 0.5f, 10, true, Color.Pink);
+            bub.Spawn();
+
+            player.velocity *= 0.95f;
+            if (player.HasEffect<CrystalDiagonalDash>())
+            {
+                if (player.velocity.Y == 0)
+                    player.FargoSouls().CoyoteTime = 30;
+                if (player.FargoSouls().CoyoteTime > 0 && player.controlJump)
+                {
+                    player.FargoSouls().CoyoteTime = 0;
+                    if (player.velocity.X > 0 || player.velocity.X < 0)
+                    {
+                        player.velocity.X = Math.Sign(player.velocity.X) * 30;
+                        player.velocity.Y = -10;
+                    }
+                }
+            } 
+        }
+    }
+    public class CrystalDiagonalDash : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<ShadowHeader>();
+        public override int ToggleItemType => ModContent.ItemType<CrystalAssassinEnchant>();
+        public override bool MutantsPresenceAffects => true;
+    }
 }

@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Tiles.EModeGlobalTile
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Terraria;
@@ -13,95 +7,106 @@ using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Tiles
 {
-  public class EModeGlobalTile : GlobalTile
-  {
-    public virtual void NearbyEffects(int i, int j, int type, bool closer)
+    public class EModeGlobalTile : GlobalTile
     {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      if (type == 226)
-      {
-        Tile tileSafely = Framing.GetTileSafely(i, j);
-        if (((Tile) ref tileSafely).WallType == (ushort) 87 && ((Entity) Main.LocalPlayer).active && !Main.LocalPlayer.dead && !Main.LocalPlayer.ghost && (double) ((Entity) Main.LocalPlayer).Distance(new Vector2((float) (i * 16 + 8), (float) (j * 16 + 8))) < 3000.0)
-          Main.LocalPlayer.AddBuff(ModContent.BuffType<LihzahrdCurseBuff>(), 10, true, false);
-      }
-      if (type != 237 || !((Entity) Main.LocalPlayer).active || Main.LocalPlayer.dead || Main.LocalPlayer.ghost || (double) ((Entity) Main.LocalPlayer).Distance(new Vector2((float) (i * 16 + 8), (float) (j * 16 + 8))) >= 3000.0 || !Collision.CanHit(new Vector2((float) (i * 16 + 8), (float) (j * 16 + 8)), 0, 0, ((Entity) Main.LocalPlayer).Center, 0, 0))
-        return;
-      Tile tileSafely1 = Framing.GetTileSafely(((Entity) Main.LocalPlayer).Center);
-      if (((Tile) ref tileSafely1).WallType != (ushort) 87)
-        return;
-      if (!Main.LocalPlayer.HasBuff(ModContent.BuffType<LihzahrdBlessingBuff>()))
-      {
-        Main.NewText((object) Language.GetTextValue("Mods." + ((ModType) this).Mod.Name + ".Buffs.LihzahrdBlessingBuff.Message"), new Color?(Color.Orange));
-        SoundEngine.PlaySound(ref SoundID.Item4, new Vector2?(((Entity) Main.LocalPlayer).Center), (SoundUpdateCallback) null);
-        for (int index1 = 0; index1 < 50; ++index1)
+        public override void NearbyEffects(int i, int j, int type, bool closer)
         {
-          int index2 = Dust.NewDust(((Entity) Main.LocalPlayer).position, ((Entity) Main.LocalPlayer).width, ((Entity) Main.LocalPlayer).height, 6, 0.0f, 0.0f, 0, new Color(), Utils.NextFloat(Main.rand, 3f, 6f));
-          Main.dust[index2].noGravity = true;
-          Dust dust = Main.dust[index2];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 9f);
-        }
-      }
-      Main.LocalPlayer.AddBuff(ModContent.BuffType<LihzahrdBlessingBuff>(), 35999, true, false);
-    }
+            if (!WorldSavingSystem.EternityMode)
+                return;
 
-    private static bool CanBreakTileMaso(int i, int j, int type)
-    {
-      if (type == 137 || type == 135)
-      {
-        Tile tileSafely1 = Framing.GetTileSafely(i, j);
-        if (((Tile) ref tileSafely1).WallType == (ushort) 87)
+            if (type == TileID.LihzahrdBrick && Framing.GetTileSafely(i, j).WallType == WallID.LihzahrdBrickUnsafe)
+            {
+                if (Main.LocalPlayer.active && !Main.LocalPlayer.dead && !Main.LocalPlayer.ghost && Main.LocalPlayer.Distance(new Vector2(i * 16 + 8, j * 16 + 8)) < 3000)
+                    Main.LocalPlayer.AddBuff(ModContent.BuffType<LihzahrdCurseBuff>(), 10);
+            }
+
+            if (type == TileID.LihzahrdAltar && Main.LocalPlayer.active && !Main.LocalPlayer.dead && !Main.LocalPlayer.ghost
+                && Main.LocalPlayer.Distance(new Vector2(i * 16 + 8, j * 16 + 8)) < 3000
+                && Collision.CanHit(new Vector2(i * 16 + 8, j * 16 + 8), 0, 0, Main.LocalPlayer.Center, 0, 0)
+                && Framing.GetTileSafely(Main.LocalPlayer.Center).WallType == WallID.LihzahrdBrickUnsafe)
+            {
+                if (!Main.LocalPlayer.HasBuff<LihzahrdBlessingBuff>() && !Main.LocalPlayer.HasBuff<PurifiedBuff>())
+                {
+                    Main.NewText(Language.GetTextValue($"Mods.{Mod.Name}.Buffs.LihzahrdBlessingBuff.Message"), Color.Orange);
+                    SoundEngine.PlaySound(SoundID.Item4, Main.LocalPlayer.Center);
+                    for (int k = 0; k < 50; k++)
+                    {
+                        int d = Dust.NewDust(Main.LocalPlayer.position, Main.LocalPlayer.width, Main.LocalPlayer.height, DustID.Torch, 0f, 0f, 0, default, Main.rand.NextFloat(3f, 6f));
+                        Main.dust[d].noGravity = true;
+                        Main.dust[d].velocity *= 9f;
+                    }
+                }
+                Main.LocalPlayer.AddBuff(ModContent.BuffType<LihzahrdBlessingBuff>(), 60 * 60 * 10 - 1); //10mins
+            }
+        }
+
+        private static bool CanBreakTileMaso(int i, int j, int type)
         {
-          int closest = (int) Player.FindClosest(new Vector2((float) (i * 16 + 8), (float) (j * 16 + 8)), 0, 0);
-          if (closest != -1)
-          {
-            Tile tileSafely2 = Framing.GetTileSafely(((Entity) Main.player[closest]).Center);
-            if (((Tile) ref tileSafely2).WallType == (ushort) 87 && !Main.player[closest].FargoSouls().LihzahrdCurse)
-              return true;
-          }
-          return false;
+            if ((type == TileID.Traps || type == TileID.PressurePlates) && Framing.GetTileSafely(i, j).WallType == WallID.LihzahrdBrickUnsafe)
+            {
+                int p = Player.FindClosest(new Vector2(i * 16 + 8, j * 16 + 8), 0, 0);
+                if (p != -1)
+                {
+                    //if player INSIDE TEMPLE, but not cursed, its ok to break
+                    Tile tile = Framing.GetTileSafely(Main.player[p].Center);
+                    if (tile.WallType == WallID.LihzahrdBrickUnsafe && !Main.player[p].FargoSouls().LihzahrdCurse)
+                        return true;
+                }
+                //if player outside temple, or player in temple but is cursed, dont break
+                return false;
+            }
+            return true;
         }
-      }
-      return true;
-    }
 
-    public virtual bool CanExplode(int i, int j, int type)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return ((GlobalBlockType) this).CanExplode(i, j, type);
-      return EModeGlobalTile.CanBreakTileMaso(i, j, type) && ((GlobalBlockType) this).CanExplode(i, j, type);
-    }
+        public override bool CanExplode(int i, int j, int type)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return base.CanExplode(i, j, type);
 
-    public virtual bool CanKillTile(int i, int j, int type, ref bool blockDamaged)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return base.CanKillTile(i, j, type, ref blockDamaged);
-      return EModeGlobalTile.CanBreakTileMaso(i, j, type) && base.CanKillTile(i, j, type, ref blockDamaged);
-    }
 
-    public virtual void KillTile(
-      int i,
-      int j,
-      int type,
-      ref bool fail,
-      ref bool effectOnly,
-      ref bool noItem)
-    {
-      if (!WorldSavingSystem.EternityMode || type != 31 || Main.invasionType != 0 || NPC.downedGoblins || !WorldGen.shadowOrbSmashed)
-        return;
-      int closest = (int) Player.FindClosest(new Vector2((float) (i * 16), (float) (j * 16)), 0, 0);
-      if (closest == -1 || Main.player[closest].statLifeMax2 < 200)
-        return;
-      if (FargoSoulsUtil.HostCheck)
-      {
-        Main.invasionDelay = 0;
-        Main.StartInvasion(1);
-      }
-      else
-        NetMessage.SendData(61, -1, -1, (NetworkText) null, closest, -1f, 0.0f, 0.0f, 0, 0, 0);
+            if (!CanBreakTileMaso(i, j, type))
+                return false;
+
+
+            return base.CanExplode(i, j, type);
+        }
+
+        public override bool CanKillTile(int i, int j, int type, ref bool blockDamaged)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return base.CanKillTile(i, j, type, ref blockDamaged);
+
+
+            if (!CanBreakTileMaso(i, j, type))
+                return false;
+
+
+            return base.CanKillTile(i, j, type, ref blockDamaged);
+        }
+
+        public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return;
+
+            if (type == TileID.ShadowOrbs && Main.invasionType == 0 && !NPC.downedGoblins && WorldGen.shadowOrbSmashed)
+            {
+                int p = Player.FindClosest(new Vector2(i * 16, j * 16), 0, 0);
+                if (p != -1 && Main.player[p].statLifeMax2 >= 200)
+                {
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Main.invasionDelay = 0;
+                        Main.StartInvasion(1);
+                    }
+                    else
+                    {
+                        NetMessage.SendData(MessageID.SpawnBossUseLicenseStartEvent, -1, -1, null, p, -1f);
+                    }
+                }
+            }
+        }
     }
-  }
 }

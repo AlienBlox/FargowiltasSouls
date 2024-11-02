@@ -1,67 +1,61 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.SilverSword
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+﻿using FargowiltasSouls.Content.Items.Accessories.Enchantments;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class SilverSword : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class SilverSword : ModProjectile
     {
-      ProjectileID.Sets.MinionTargettingFeature[this.Projectile.type] = true;
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("SilverSword");
+            ProjectileID.Sets.MinionTargettingFeature[Projectile.type] = true;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.netImportant = true;
-      this.Projectile.CloneDefaults(533);
-      this.AIType = 533;
-      ((Entity) this.Projectile).width = 32;
-      ((Entity) this.Projectile).height = 32;
-      this.Projectile.friendly = true;
-      this.Projectile.minion = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft = 18000;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.minionSlots = 0.0f;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.netImportant = true;
+            Projectile.CloneDefaults(ProjectileID.DeadlySphere);
+            AIType = ProjectileID.DeadlySphere;
+            Projectile.width = 32;
+            Projectile.height = 32;
+            Projectile.friendly = true;
+            Projectile.minion = true;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft = 18000;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.minionSlots = 0;
+        }
 
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      player.FargoSouls();
-      if (((Entity) player).whoAmI == Main.myPlayer && !player.HasEffect<SilverEffect>())
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        int index1 = Dust.NewDust(new Vector2(((Entity) this.Projectile).position.X, ((Entity) this.Projectile).position.Y + 2f), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height + 5, 245, ((Entity) this.Projectile).velocity.X * 0.2f, ((Entity) this.Projectile).velocity.Y * 0.2f, 100, new Color(), 1f);
-        Main.dust[index1].noGravity = true;
-        int index2 = Dust.NewDust(new Vector2(((Entity) this.Projectile).position.X, ((Entity) this.Projectile).position.Y + 2f), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height + 5, 245, ((Entity) this.Projectile).velocity.X * 0.2f, ((Entity) this.Projectile).velocity.Y * 0.2f, 100, new Color(), 1f);
-        Main.dust[index2].noGravity = true;
-      }
-    }
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
 
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      if ((double) ((Entity) this.Projectile).velocity.X != (double) oldVelocity.X)
-        ((Entity) this.Projectile).velocity.X = oldVelocity.X;
-      if ((double) ((Entity) this.Projectile).velocity.Y != (double) oldVelocity.Y)
-        ((Entity) this.Projectile).velocity.Y = oldVelocity.Y;
-      return false;
+            if (player.whoAmI == Main.myPlayer && !player.HasEffect<SilverEffect>())
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            //dust!
+            int dustId = Dust.NewDust(new Vector2(Projectile.position.X, Projectile.position.Y + 2f), Projectile.width, Projectile.height + 5, DustID.SilverCoin, Projectile.velocity.X * 0.2f, Projectile.velocity.Y * 0.2f, 100, default, 1f);
+            Main.dust[dustId].noGravity = true;
+            int dustId3 = Dust.NewDust(new Vector2(Projectile.position.X, Projectile.position.Y + 2f), Projectile.width, Projectile.height + 5, DustID.SilverCoin,
+                Projectile.velocity.X * 0.2f, Projectile.velocity.Y * 0.2f, 100, default, 1f);
+            Main.dust[dustId3].noGravity = true;
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            if (Projectile.velocity.X != oldVelocity.X) Projectile.velocity.X = oldVelocity.X;
+            if (Projectile.velocity.Y != oldVelocity.Y) Projectile.velocity.Y = oldVelocity.Y;
+            return false;
+        }
     }
-  }
 }

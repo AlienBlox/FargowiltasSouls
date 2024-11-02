@@ -1,173 +1,195 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.GolemBoulder
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Core.Systems;
+using FargowiltasSouls.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class GolemBoulder : ModProjectile
-  {
-    public bool spawned;
-    public float vel;
-
-    public virtual string Texture => "Terraria/Images/Projectile_261";
-
-    public virtual void SetStaticDefaults()
+    public class GolemBoulder : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public override string Texture => "Terraria/Images/Projectile_261";
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(261);
-      this.AIType = 261;
-      this.Projectile.hostile = true;
-      this.Projectile.friendly = false;
-      this.Projectile.DamageType = DamageClass.Default;
-      this.Projectile.tileCollide = false;
-      this.Projectile.extraUpdates = 0;
-    }
+        public bool spawned;
+        public float vel;
 
-    public virtual void SendExtraAI(BinaryWriter writer) => writer.Write(this.vel);
-
-    public virtual void ReceiveExtraAI(BinaryReader reader) => this.vel = reader.ReadSingle();
-
-    public virtual void AI()
-    {
-      if (!this.spawned)
-      {
-        this.spawned = true;
-        SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        for (int index1 = 0; index1 < 20; ++index1)
+        public override void SetStaticDefaults()
         {
-          int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 100, new Color(), 3f);
-          Dust dust = Main.dust[index2];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
+            // DisplayName.SetDefault("Boulder");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-        for (int index3 = 0; index3 < 10; ++index3)
+
+        public override void SetDefaults()
         {
-          int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 3.5f);
-          Main.dust[index4].noGravity = true;
-          Dust dust1 = Main.dust[index4];
-          dust1.velocity = Vector2.op_Multiply(dust1.velocity, 7f);
-          int index5 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-          Dust dust2 = Main.dust[index5];
-          dust2.velocity = Vector2.op_Multiply(dust2.velocity, 3f);
+            Projectile.CloneDefaults(ProjectileID.BoulderStaffOfEarth);
+            AIType = ProjectileID.BoulderStaffOfEarth;
+            Projectile.hostile = true;
+            Projectile.friendly = false;
+            Projectile.DamageType = DamageClass.Default;
+            Projectile.tileCollide = false;
+            Projectile.extraUpdates = 0;
         }
-        float num = 0.5f;
-        for (int index6 = 0; index6 < 3; ++index6)
+
+        public override void SendExtraAI(BinaryWriter writer)
         {
-          int index7 = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-          Gore gore = Main.gore[index7];
-          gore.velocity = Vector2.op_Multiply(gore.velocity, num);
-          ++Main.gore[index7].velocity.X;
-          ++Main.gore[index7].velocity.Y;
+            writer.Write(vel);
         }
-      }
-      if (!this.Projectile.tileCollide)
-      {
-        Tile tileSafely = Framing.GetTileSafely(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.UnitY, 26f)));
-        if (!((Tile) ref tileSafely).HasUnactuatedTile || !Main.tileSolid[(int) ((Tile) ref tileSafely).TileType])
-          this.Projectile.tileCollide = true;
-      }
-      if ((double) ((Entity) this.Projectile).velocity.Y < 0.0 && (double) ((Entity) this.Projectile).velocity.X == 0.0 && (double) this.vel == 0.0)
-      {
-        int closest = (int) Player.FindClosest(((Entity) this.Projectile).Center, 0, 0);
-        if (closest != -1)
+
+        public override void ReceiveExtraAI(BinaryReader reader)
         {
-          ((Entity) this.Projectile).velocity.X = this.vel = (double) ((Entity) this.Projectile).Center.X < (double) ((Entity) Main.player[closest]).Center.X ? 4f : -4f;
-          ((Entity) this.Projectile).velocity.Y *= Utils.NextFloat(Main.rand, 1.9f, 2.1f);
+            vel = reader.ReadSingle();
         }
-        else
-          this.Projectile.timeLeft = 0;
-      }
-      if (Math.Sign(((Entity) this.Projectile).velocity.X) == Math.Sign(this.vel))
-        ((Entity) this.Projectile).velocity.X = this.vel;
-      else
-        this.Projectile.timeLeft = 0;
-    }
 
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      if ((double) this.vel == 0.0)
-        return true;
-      if ((double) ((Entity) this.Projectile).velocity.Y != (double) oldVelocity.Y && (double) oldVelocity.Y > 1.0)
-        ((Entity) this.Projectile).velocity.Y = (float) (-(double) oldVelocity.Y * 0.800000011920929);
-      return false;
-    }
-
-    public virtual bool TileCollideStyle(
-      ref int width,
-      ref int height,
-      ref bool fallThrough,
-      ref Vector2 hitboxCenterFrac)
-    {
-      width = 26;
-      height = 26;
-      Tile tileSafely = Framing.GetTileSafely(((Entity) this.Projectile).Center);
-      if ((!Tile.op_Inequality(tileSafely, (ArgumentException) null) ? 0 : (((Tile) ref tileSafely).WallType == (ushort) 87 ? 1 : 0)) == 0)
-        fallThrough = (FargoSoulsUtil.NPCExists(NPC.golemBoss, new int[1]
+        public override void AI()
         {
-          245
-        }) == null ? 1 : ((double) ((Entity) Main.player[Main.npc[NPC.golemBoss].target]).Bottom.Y > (double) ((Entity) this.Projectile).Bottom.Y ? 1 : 0)) != 0;
-      return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
-    }
+            if (!spawned)
+            {
+                spawned = true;
+                SoundEngine.PlaySound(SoundID.Item14, Projectile.Center);
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Dig, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      for (int index = 0; index < 5; ++index)
-        Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 148, 0.0f, 0.0f, 0, new Color(), 1f);
-    }
+                for (int i = 0; i < 20; i++)
+                {
+                    int dust = Dust.NewDust(Projectile.position, Projectile.width,
+                        Projectile.height, DustID.Smoke, 0f, 0f, 100, default, 3f);
+                    Main.dust[dust].velocity *= 1.4f;
+                }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(36, 600, true, false);
-      target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600, true, false);
-      target.AddBuff(195, 600, true, false);
-    }
+                for (int i = 0; i < 10; i++)
+                {
+                    int dust = Dust.NewDust(Projectile.position, Projectile.width,
+                        Projectile.height, DustID.Torch, 0f, 0f, 100, default, 3.5f);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].velocity *= 7f;
+                    dust = Dust.NewDust(Projectile.position, Projectile.width,
+                        Projectile.height, DustID.Torch, 0f, 0f, 100, default, 1.5f);
+                    Main.dust[dust].velocity *= 3f;
+                }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection < 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Color color1 = Color.op_Multiply(Color.op_Multiply(Color.Orange, this.Projectile.Opacity), 0.75f);
-      ((Color) ref color1).A = (byte) 20;
-      for (float index1 = 0.0f; (double) index1 < (double) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index1 += 0.5f)
-      {
-        Color color2 = color1;
-        float num3 = ((float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index1) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type];
-        Color color3 = Color.op_Multiply(color2, num3 * num3);
-        int index2 = (int) index1 - 1;
-        if (index2 >= 0)
-        {
-          float num4 = this.Projectile.oldRot[index2];
-          Vector2 vector2_2 = Vector2.op_Addition(Vector2.Lerp(this.Projectile.oldPos[(int) index1], this.Projectile.oldPos[index2], (float) (1.0 - (double) index1 % 1.0)), Vector2.op_Division(((Entity) this.Projectile).Size, 2f));
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(vector2_2, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color3, num4, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
+                float scaleFactor9 = 0.5f;
+                for (int j = 0; j < 3; j++)
+                {
+                    int gore = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, default, Main.rand.Next(61, 64));
+                    Main.gore[gore].velocity *= scaleFactor9;
+                    Main.gore[gore].velocity.X += 1f;
+                    Main.gore[gore].velocity.Y += 1f;
+                }
+            }
+
+            if (!Projectile.tileCollide)
+            {
+                Tile tile = Framing.GetTileSafely(Projectile.Center - Vector2.UnitY * 26);
+                if (!(tile.HasUnactuatedTile && Main.tileSolid[tile.TileType]))
+                    Projectile.tileCollide = true;
+            }
+
+            if (Projectile.velocity.Y < 0 && Projectile.velocity.X == 0 && vel == 0) //on first bounce, roll at nearby player
+            {
+                int p = Player.FindClosest(Projectile.Center, 0, 0);
+                if (p != -1)
+                {
+                    Projectile.velocity.X = vel = Projectile.Center.X < Main.player[p].Center.X ? 4f : -4f;
+                    Projectile.velocity.Y *= Main.rand.NextFloat(1.9f, 2.1f);
+                }
+                else
+                {
+                    Projectile.timeLeft = 0;
+                }
+            }
+
+            if (Math.Sign(Projectile.velocity.X) == Math.Sign(vel))
+                Projectile.velocity.X = vel;
+            else
+                Projectile.timeLeft = 0;
         }
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            if (vel == 0) //use the first bounce block code above, doesn't seem to work otherwise
+                return true;
+
+            if (Projectile.velocity.Y != oldVelocity.Y && oldVelocity.Y > 1) //bouncy
+                Projectile.velocity.Y = -oldVelocity.Y * 0.8f;
+            return false;
+        }
+
+        public override bool TileCollideStyle(ref int width, ref int height, ref bool fallThrough, ref Vector2 hitboxCenterFrac)
+        {
+            width = 26;
+            height = 26;
+
+            Tile tile = Framing.GetTileSafely(Projectile.Center);
+            bool inTemple = tile != null && tile.WallType == WallID.LihzahrdBrickUnsafe;
+            if (!inTemple)
+                fallThrough = FargoSoulsUtil.NPCExists(NPC.golemBoss, NPCID.Golem) == null || Main.player[Main.npc[NPC.golemBoss].target].Bottom.Y > Projectile.Bottom.Y;
+
+            return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.Dig, Projectile.Center);
+            for (int index = 0; index < 5; ++index)
+                Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.t_Lihzahrd, 0.0f, 0.0f, 0, new Color(), 1f);
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            //target.AddBuff(BuffID.BrokenArmor, 600);
+            target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600);
+            //target.AddBuff(BuffID.WitheredArmor, 600);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            bool recolor = SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
+            Texture2D texture = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+
+            if (recolor)
+                texture = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/Masomode/GolemBoulder").Value;
+
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            SpriteEffects spriteEffects = Projectile.spriteDirection < 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Color color26 = Color.Orange * Projectile.Opacity * 0.75f;
+            if (recolor)
+                color26 = Color.LightGray * Projectile.Opacity * 0.75f;
+            color26.A = 20;
+
+            for (float i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 0.5f)
+            {
+                Color color27 = color26;
+                float fade = (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                color27 *= fade;
+                int max0 = (int)i - 1;//Math.Max((int)i - 1, 0);
+                if (max0 < 0)
+                    continue;
+                float num165 = Projectile.oldRot[max0];
+                Vector2 center = Vector2.Lerp(Projectile.oldPos[(int)i], Projectile.oldPos[max0], 1 - i % 1);
+                center += Projectile.Size / 2;
+                Main.EntitySpriteDraw(texture, center - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, spriteEffects, 0);
+            }
+
+            for (int j = 0; j < 12; j++)
+            {
+                Vector2 afterimageOffset = (MathHelper.TwoPi * j / 12f).ToRotationVector2() * 3f;
+                Color glowColor = color26;
+
+                Main.EntitySpriteDraw(texture, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY) + afterimageOffset, rectangle, glowColor, Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0f);
+            }
+
+            Main.EntitySpriteDraw(texture, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, spriteEffects, 0);
+            return false;
+        }
     }
-  }
 }

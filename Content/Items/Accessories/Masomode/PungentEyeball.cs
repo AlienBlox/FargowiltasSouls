@@ -1,40 +1,66 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.PungentEyeball
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Content.Projectiles;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
+using Microsoft.Xna.Framework;
+using System.Linq;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class PungentEyeball : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class PungentEyeball : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 5;
-      this.Item.value = Item.sellPrice(0, 4, 0, 0);
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[80] = true;
-      player.buffImmune[163] = true;
-      player.AddEffect<PungentEyeballCursor>(this.Item);
-      player.FargoSouls().PungentEyeball = true;
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Pink;
+            Item.value = Item.sellPrice(0, 4);
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[BuffID.Blackout] = true;
+            player.buffImmune[BuffID.Obstructed] = true;
+            player.AddEffect<PungentEyeballCursor>(Item);
+            player.FargoSouls().PungentEyeball = true;
+        }
     }
-  }
+    public class PungentEyeballCursor : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<LumpofFleshHeader>();
+        public override int ToggleItemType => ModContent.ItemType<PungentEyeball>();
+        public override bool MutantsPresenceAffects => true;
+        public override void PostUpdateEquips(Player player)
+        {
+            if (player.whoAmI == Main.myPlayer)
+            {
+                const float distance = 16 * 5;
+
+                foreach (NPC n in Main.npc.Where(n => n.active && !n.dontTakeDamage && n.lifeMax > 5 && !n.friendly))
+                {
+                    if (Vector2.Distance(Main.MouseWorld, FargoSoulsUtil.ClosestPointInHitbox(n.Hitbox, Main.MouseWorld)) < distance)
+                    {
+                        n.AddBuff(ModContent.BuffType<PungentGazeBuff>(), 2, true);
+                    }
+                }
+
+                int visualProj = ModContent.ProjectileType<PungentAuraProj>();
+                if (player.ownedProjectileCounts[visualProj] <= 0)
+                {
+                    Projectile.NewProjectile(GetSource_EffectItem(player), player.Center, Vector2.Zero, visualProj, 0, 0, Main.myPlayer);
+                }
+            }
+        }
+    }
 }

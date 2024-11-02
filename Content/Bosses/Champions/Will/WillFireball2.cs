@@ -1,192 +1,195 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Will.WillFireball2
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Will
 {
-  public class WillFireball2 : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_467";
-
-    public virtual void SetStaticDefaults() => Main.projFrames[this.Projectile.type] = 4;
-
-    public virtual void SetDefaults()
+    public class WillFireball2 : ModProjectile
     {
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 30;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.timeLeft = 40;
-      this.Projectile.ignoreWater = true;
-      this.CooldownSlot = 1;
-    }
+        public override string Texture => "Terraria/Images/Projectile_467";
 
-    public virtual void AI()
-    {
-      this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + 1.57079637f;
-      this.Projectile.alpha -= 40;
-      if (this.Projectile.alpha < 0)
-        this.Projectile.alpha = 0;
-      ++this.Projectile.frameCounter;
-      if (this.Projectile.frameCounter > 2)
-      {
-        this.Projectile.frameCounter = 0;
-        ++this.Projectile.frame;
-        if (this.Projectile.frame > 3)
-          this.Projectile.frame = 0;
-      }
-      Lighting.AddLight(((Entity) this.Projectile).Center, 1.1f, 0.9f, 0.4f);
-      this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + 1.57079637f;
-      ++this.Projectile.localAI[0];
-      if ((double) this.Projectile.localAI[0] == 12.0)
-      {
-        this.Projectile.localAI[0] = 0.0f;
-        for (int index1 = 0; index1 < 12; ++index1)
+        public override void SetStaticDefaults()
         {
-          Vector2 vector2 = Utils.RotatedBy(Vector2.op_Addition(Vector2.op_Division(Vector2.op_Multiply(Vector2.UnitX, (float) -((Entity) this.Projectile).width), 2f), Vector2.op_Multiply(Vector2.op_UnaryNegation(Utils.RotatedBy(Vector2.UnitY, (double) index1 * 3.14159274101257 / 6.0, new Vector2())), new Vector2(8f, 16f))), (double) this.Projectile.rotation - 1.5707963705062866, new Vector2());
-          int index2 = Dust.NewDust(((Entity) this.Projectile).Center, 0, 0, 6, 0.0f, 0.0f, 160, new Color(), 1f);
-          Main.dust[index2].scale = 1.1f;
-          Main.dust[index2].noGravity = true;
-          Main.dust[index2].position = Vector2.op_Addition(((Entity) this.Projectile).Center, vector2);
-          Main.dust[index2].velocity = Vector2.op_Multiply(Vector2.op_UnaryNegation(Vector2.UnitY), 0.1f);
-          Main.dust[index2].velocity = Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_UnaryNegation(Vector2.UnitY), 3f)), Main.dust[index2].position)), 1.25f);
+            // DisplayName.SetDefault("Fireball");
+            Main.projFrames[Projectile.type] = 4;
         }
-      }
-      if (Utils.NextBool(Main.rand, 4))
-      {
-        for (int index3 = 0; index3 < 1; ++index3)
+
+        public override void SetDefaults()
         {
-          Vector2 vector2 = Vector2.op_UnaryNegation(Utils.RotatedBy(Utils.RotatedByRandom(Vector2.UnitX, 0.196349546313286), -(double) Utils.ToRotation(Vector2.UnitY), new Vector2()));
-          int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 100, new Color(), 1f);
-          Dust dust = Main.dust[index4];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 0.1f);
-          Main.dust[index4].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(vector2, (float) ((Entity) this.Projectile).width), 2f));
-          Main.dust[index4].fadeIn = 0.9f;
+            Projectile.width = 30;
+            Projectile.height = 30;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.timeLeft = 40;
+            Projectile.ignoreWater = true;
+            CooldownSlot = 1;
         }
-      }
-      if (Utils.NextBool(Main.rand, 32))
-      {
-        for (int index5 = 0; index5 < 1; ++index5)
+
+        public override void AI()
         {
-          Vector2 vector2 = Vector2.op_UnaryNegation(Utils.RotatedBy(Utils.RotatedByRandom(Vector2.UnitX, 0.392699092626572), -(double) Utils.ToRotation(Vector2.UnitY), new Vector2()));
-          int index6 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 155, new Color(), 0.8f);
-          Dust dust = Main.dust[index6];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 0.3f);
-          Main.dust[index6].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(vector2, (float) ((Entity) this.Projectile).width), 2f));
-          if (Utils.NextBool(Main.rand))
-            Main.dust[index6].fadeIn = 1.4f;
+            Projectile.rotation = Projectile.velocity.ToRotation() + (float)Math.PI / 2;
+            Projectile.alpha -= 40;
+            if (Projectile.alpha < 0)
+                Projectile.alpha = 0;
+
+            Projectile.frameCounter++;
+            if (Projectile.frameCounter > 2)
+            {
+                Projectile.frameCounter = 0;
+                Projectile.frame++;
+                if (Projectile.frame > 3)
+                    Projectile.frame = 0;
+            }
+
+            Lighting.AddLight(Projectile.Center, 1.1f, 0.9f, 0.4f);
+            Projectile.rotation = Projectile.velocity.ToRotation() + (float)Math.PI / 2;
+
+            ++Projectile.localAI[0];
+            if (Projectile.localAI[0] == 12) //loads of vanilla dust :echprime:
+            {
+                Projectile.localAI[0] = 0.0f;
+                for (int index1 = 0; index1 < 12; ++index1)
+                {
+                    Vector2 vector2 = (Vector2.UnitX * -Projectile.width / 2f + -Vector2.UnitY.RotatedBy(index1 * 3.14159274101257 / 6.0, new Vector2()) * new Vector2(8f, 16f)).RotatedBy(Projectile.rotation - (float)Math.PI / 2, new Vector2());
+                    int index2 = Dust.NewDust(Projectile.Center, 0, 0, DustID.Torch, 0.0f, 0.0f, 160, new Color(), 1f);
+                    Main.dust[index2].scale = 1.1f;
+                    Main.dust[index2].noGravity = true;
+                    Main.dust[index2].position = Projectile.Center + vector2;
+                    Main.dust[index2].velocity = -Vector2.UnitY * 0.1f;
+                    Main.dust[index2].velocity = Vector2.Normalize(Projectile.Center - -Vector2.UnitY * 3f - Main.dust[index2].position) * 1.25f;
+                }
+            }
+            if (Main.rand.NextBool(4))
+            {
+                for (int index1 = 0; index1 < 1; ++index1)
+                {
+                    Vector2 vector2 = -Vector2.UnitX.RotatedByRandom(0.196349546313286).RotatedBy((double)-Vector2.UnitY.ToRotation(), new Vector2());
+                    int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0.0f, 0.0f, 100, new Color(), 1f);
+                    Main.dust[index2].velocity *= 0.1f;
+                    Main.dust[index2].position = Projectile.Center + vector2 * Projectile.width / 2f;
+                    Main.dust[index2].fadeIn = 0.9f;
+                }
+            }
+            if (Main.rand.NextBool(32))
+            {
+                for (int index1 = 0; index1 < 1; ++index1)
+                {
+                    Vector2 vector2 = -Vector2.UnitX.RotatedByRandom(0.392699092626572).RotatedBy((double)-Vector2.UnitY.ToRotation(), new Vector2());
+                    int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0.0f, 0.0f, 155, new Color(), 0.8f);
+                    Main.dust[index2].velocity *= 0.3f;
+                    Main.dust[index2].position = Projectile.Center + vector2 * Projectile.width / 2f;
+                    if (Main.rand.NextBool())
+                        Main.dust[index2].fadeIn = 1.4f;
+                }
+            }
+            if (Main.rand.NextBool())
+            {
+                for (int index1 = 0; index1 < 2; ++index1)
+                {
+                    Vector2 vector2 = -Vector2.UnitX.RotatedByRandom(0.785398185253143).RotatedBy((double)-Vector2.UnitY.ToRotation(), new Vector2());
+                    int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Torch, 0.0f, 0.0f, 0, new Color(), 1.2f);
+                    Main.dust[index2].velocity *= 0.3f;
+                    Main.dust[index2].noGravity = true;
+                    Main.dust[index2].position = Projectile.Center + vector2 * Projectile.width / 2f;
+                    if (Main.rand.NextBool())
+                        Main.dust[index2].fadeIn = 1.4f;
+                }
+            }
         }
-      }
-      if (!Utils.NextBool(Main.rand))
-        return;
-      for (int index7 = 0; index7 < 2; ++index7)
-      {
-        Vector2 vector2 = Vector2.op_UnaryNegation(Utils.RotatedBy(Utils.RotatedByRandom(Vector2.UnitX, 0.785398185253143), -(double) Utils.ToRotation(Vector2.UnitY), new Vector2()));
-        int index8 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 0, new Color(), 1.2f);
-        Dust dust = Main.dust[index8];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 0.3f);
-        Main.dust[index8].noGravity = true;
-        Main.dust[index8].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(vector2, (float) ((Entity) this.Projectile).width), 2f));
-        if (Utils.NextBool(Main.rand))
-          Main.dust[index8].fadeIn = 1.4f;
-      }
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      if ((double) this.Projectile.localAI[1] != 0.0)
-        return;
-      this.Projectile.localAI[1] = 1f;
-      this.Projectile.penetrate = -1;
-      ((Entity) this.Projectile).position = ((Entity) this.Projectile).Center;
-      SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-      ((Entity) this.Projectile).width = ((Entity) this.Projectile).height = 120;
-      ((Entity) this.Projectile).Center = ((Entity) this.Projectile).position;
-      for (int index1 = 0; index1 < 2; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 100, new Color(), 1.5f);
-        Main.dust[index2].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 3.14159274101257), (float) Main.rand.NextDouble()), (float) ((Entity) this.Projectile).width), 2f));
-      }
-      for (int index3 = 0; index3 < 15; ++index3)
-      {
-        int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 200, new Color(), 3.7f);
-        Main.dust[index4].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 3.14159274101257), (float) Main.rand.NextDouble()), (float) ((Entity) this.Projectile).width), 2f));
-        Main.dust[index4].noGravity = true;
-        Dust dust1 = Main.dust[index4];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 3f);
-        int index5 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-        Main.dust[index5].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 3.14159274101257), (float) Main.rand.NextDouble()), (float) ((Entity) this.Projectile).width), 2f));
-        Dust dust2 = Main.dust[index5];
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 2f);
-        Main.dust[index5].noGravity = true;
-        Main.dust[index5].fadeIn = 2.5f;
-      }
-      for (int index6 = 0; index6 < 5; ++index6)
-      {
-        int index7 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 0, new Color(), 2.7f);
-        Main.dust[index7].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(Utils.RotatedBy(Utils.RotatedByRandom(Vector2.UnitX, 3.14159274101257), (double) Utils.ToRotation(((Entity) this.Projectile).velocity), new Vector2()), (float) ((Entity) this.Projectile).width), 2f));
-        Main.dust[index7].noGravity = true;
-        Dust dust = Main.dust[index7];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 3f);
-      }
-      for (int index8 = 0; index8 < 5; ++index8)
-      {
-        int index9 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 0, new Color(), 1.5f);
-        Main.dust[index9].position = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(Utils.RotatedBy(Utils.RotatedByRandom(Vector2.UnitX, 3.14159274101257), (double) Utils.ToRotation(((Entity) this.Projectile).velocity), new Vector2()), (float) ((Entity) this.Projectile).width), 2f));
-        Main.dust[index9].noGravity = true;
-        Dust dust = Main.dust[index9];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 3f);
-      }
-    }
+        public override void OnKill(int timeLeft)
+        {
+            if (Projectile.localAI[1] == 0)
+            {
+                Projectile.localAI[1] = 1;
+                Projectile.penetrate = -1;
+                Projectile.position = Projectile.Center;
+                SoundEngine.PlaySound(SoundID.Item14, Projectile.position);
+                Projectile.width = Projectile.height = 120;
+                Projectile.Center = Projectile.position;
+                for (int index1 = 0; index1 < 2; ++index1)
+                {
+                    int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0.0f, 0.0f, 100, new Color(), 1.5f);
+                    Main.dust[index2].position = Projectile.Center + Vector2.UnitY.RotatedByRandom(3.14159274101257) * (float)Main.rand.NextDouble() * Projectile.width / 2f;
+                }
+                for (int index1 = 0; index1 < 15; ++index1)
+                {
+                    int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Torch, 0.0f, 0.0f, 200, new Color(), 3.7f);
+                    Main.dust[index2].position = Projectile.Center + Vector2.UnitY.RotatedByRandom(3.14159274101257) * (float)Main.rand.NextDouble() * Projectile.width / 2f;
+                    Main.dust[index2].noGravity = true;
+                    Dust dust1 = Main.dust[index2];
+                    dust1.velocity *= 3f;
+                    int index3 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Torch, 0.0f, 0.0f, 100, new Color(), 1.5f);
+                    Main.dust[index3].position = Projectile.Center + Vector2.UnitY.RotatedByRandom(3.14159274101257) * (float)Main.rand.NextDouble() * Projectile.width / 2f;
+                    Dust dust2 = Main.dust[index3];
+                    dust2.velocity *= 2f;
+                    Main.dust[index3].noGravity = true;
+                    Main.dust[index3].fadeIn = 2.5f;
+                }
+                for (int index1 = 0; index1 < 5; ++index1)
+                {
+                    int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Torch, 0.0f, 0.0f, 0, new Color(), 2.7f);
+                    Main.dust[index2].position = Projectile.Center + Vector2.UnitX.RotatedByRandom(3.14159274101257).RotatedBy((double)Projectile.velocity.ToRotation(), new Vector2()) * Projectile.width / 2f;
+                    Main.dust[index2].noGravity = true;
+                    Dust dust = Main.dust[index2];
+                    dust.velocity *= 3f;
+                }
+                for (int index1 = 0; index1 < 5; ++index1)
+                {
+                    int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0.0f, 0.0f, 0, new Color(), 1.5f);
+                    Main.dust[index2].position = Projectile.Center + Vector2.UnitX.RotatedByRandom(3.14159274101257).RotatedBy((double)Projectile.velocity.ToRotation(), new Vector2()) * Projectile.width / 2f;
+                    Main.dust[index2].noGravity = true;
+                    Dust dust = Main.dust[index2];
+                    dust.velocity *= 3f;
+                }
+            }
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300, true, false);
-        target.AddBuff(ModContent.BuffType<MidasBuff>(), 300, true, false);
-      }
-      target.AddBuff(30, 300, true, false);
-    }
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300);
+                target.AddBuff(ModContent.BuffType<MidasBuff>(), 300);
+            }
+            target.AddBuff(BuffID.Bleeding, 300);
+        }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection < 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(Color.White, this.Projectile.Opacity), 0.75f), 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection < 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = Color.White * Projectile.Opacity * 0.75f * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

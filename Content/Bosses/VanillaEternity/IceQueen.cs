@@ -1,9 +1,3 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.VanillaEternity.IceQueen
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Projectiles.Masomode;
 using FargowiltasSouls.Core.Globals;
@@ -11,66 +5,113 @@ using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.VanillaEternity
 {
-  public class IceQueen : EModeNPCBehaviour
-  {
-    public int AttackTimer;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(345);
-
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    public class IceQueen : EModeNPCBehaviour
     {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.AttackTimer);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.IceQueen);
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.AttackTimer = binaryReader.Read7BitEncodedInt();
-    }
+        public int AttackTimer;
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      npc.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
-    }
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      if (--this.AttackTimer > 0)
-        return;
-      this.AttackTimer = 120;
-      if (((Entity) npc).whoAmI != NPC.FindFirstNPC(npc.type) || !FargoSoulsUtil.HostCheck)
-        return;
-      if ((double) npc.ai[0] == 2.0)
-      {
-        this.AttackTimer = 75;
-        for (int index = 0; index < 16; ++index)
-          Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.op_Multiply(8f, Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center), 0.39269909262657166 * (double) index, new Vector2())), 348, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 0.8f), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      }
-      else
-      {
-        Vector2 vector2;
-        // ISSUE: explicit constructor call
-        ((Vector2) ref vector2).\u002Ector(Utils.NextFloat(Main.rand, 40f), Utils.NextFloat(Main.rand, -20f, 20f));
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, vector2, ModContent.ProjectileType<QueenFlocko>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 0.8f), 0.0f, Main.myPlayer, (float) ((Entity) npc).whoAmI, -1f, 0.0f);
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.op_UnaryNegation(vector2), ModContent.ProjectileType<QueenFlocko>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 0.8f), 0.0f, Main.myPlayer, (float) ((Entity) npc).whoAmI, 1f, 0.0f);
-      }
-    }
+            binaryWriter.Write7BitEncodedInt(AttackTimer);
+        }
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 600, true, false);
-      target.AddBuff(44, 180, true, false);
-      target.FargoSouls().AddBuffNoStack(47, 30);
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+        {
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            AttackTimer = binaryReader.Read7BitEncodedInt();
+        }
+
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
+
+            npc.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
+        }
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            /*Counter[0]++;
+
+            short countCap = 14;
+            if (npc.life < npc.lifeMax * 3 / 4)
+                countCap--;
+            if (npc.life < npc.lifeMax / 2)
+                countCap -= 2;
+            if (npc.life < npc.lifeMax / 4)
+                countCap -= 3;
+            if (npc.life < npc.lifeMax / 10)
+                countCap -= 4;
+
+            if (Counter[0] > countCap)
+            {
+                Counter[0] = 0;
+                if (++Counter[1] > 25)
+                {
+                    Counter[1] = 0;
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        int n = NPC.NewNPC((int)npc.Center.X, (int)npc.Center.Y, NPCID.Flocko);
+                        if (Main.netMode == NetmodeID.Server)
+                            NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n);
+                    }
+                }
+                Vector2 speed = new Vector2(Main.rand.Next(-1000, 1001), Main.rand.Next(-1000, 1001));
+                speed.Normalize();
+                speed *= 12f;
+                Vector2 spawn = npc.Center;
+                spawn.Y -= 20f;
+                spawn += speed * 4f;
+                if (FargoSoulsUtil.HostCheck)
+                    Projectile.NewProjectile(spawn, speed, ProjectileID.FrostShard, 30, 0f, Main.myPlayer);
+            }*/
+
+            if (--AttackTimer <= 0)
+            {
+                AttackTimer = 120;
+                if (npc.whoAmI == NPC.FindFirstNPC(npc.type) && FargoSoulsUtil.HostCheck)
+                {
+                    if (npc.ai[0] == 2) //stationary, spinning
+                    {
+                        AttackTimer = 75;
+
+                        for (int i = 0; i < 16; i++)
+                        {
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center,
+                                8f * npc.SafeDirectionTo(Main.player[npc.target].Center).RotatedBy(MathHelper.Pi / 8 * i),
+                                ProjectileID.FrostWave, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 0.8f), 0f, Main.myPlayer);
+                        }
+                    }
+                    else
+                    {
+                        Vector2 speed = new(Main.rand.NextFloat(40f), Main.rand.NextFloat(-20f, 20f));
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, speed,
+                            ModContent.ProjectileType<QueenFlocko>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 0.8f), 0f, Main.myPlayer, npc.whoAmI, -1);
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, -speed,
+                            ModContent.ProjectileType<QueenFlocko>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 0.8f), 0f, Main.myPlayer, npc.whoAmI, 1);
+                    }
+                }
+            }
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 600);
+            target.AddBuff(BuffID.Frostburn, 180);
+            target.FargoSouls().AddBuffNoStack(BuffID.Frozen, 30);
+        }
     }
-  }
 }

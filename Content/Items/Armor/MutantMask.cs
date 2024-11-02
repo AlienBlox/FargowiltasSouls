@@ -1,91 +1,123 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Armor.MutantMask
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Fargowiltas.Items.Tiles;
+﻿using Fargowiltas.Items.Tiles;
 using FargowiltasSouls.Content.Buffs.Minions;
 using FargowiltasSouls.Content.Items.Materials;
+using FargowiltasSouls.Content.Projectiles.Minions;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Armor
 {
-  [AutoloadEquip]
-  public class MutantMask : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    [AutoloadEquip(EquipType.Head)]
+    public class MutantMask : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void SetDefaults()
+        public override void SetDefaults()
+        {
+            Item.width = 18;
+            Item.height = 18;
+            Item.rare = ItemRarityID.Purple;
+            Item.value = Item.sellPrice(0, 50);
+            Item.defense = 50;
+        }
+
+        public override void UpdateEquip(Player player)
+        {
+            player.GetDamage(DamageClass.Generic) += 0.50f;
+            player.GetCritChance(DamageClass.Generic) += 20;
+
+            player.maxMinions += 10;
+            player.maxTurrets += 10;
+
+            player.manaCost -= 0.25f;
+            player.ammoCost75 = true;
+        }
+
+        public override bool IsArmorSet(Item head, Item body, Item legs)
+        {
+            return body.type == ModContent.ItemType<MutantBody>() && legs.type == ModContent.ItemType<MutantPants>();
+        }
+
+        public override void ArmorSetShadows(Player player)
+        {
+            player.armorEffectDrawShadow = true;
+        }
+
+        public override void UpdateArmorSet(Player player)
+        {
+            player.setBonus = GetSetBonusString();
+            MutantSetBonus(player, Item);
+        }
+
+        public static string GetSetBonusString()
+        {
+            return Language.GetTextValue($"Mods.FargowiltasSouls.SetBonus.Mutant");
+        }
+
+        public static void MutantSetBonus(Player player, Item item)
+        {
+            player.AddEffect<MasoAbom>(item);
+            player.AddEffect<MasoRing>(item);
+            player.AddBuff(ModContent.BuffType<MutantPowerBuff>(), 2);
+
+            player.FargoSouls().MutantSetBonusItem = item;
+            player.FargoSouls().GodEaterImbue = true;
+            player.FargoSouls().AttackSpeed += .2f;
+        }
+
+        public override void SafeModifyTooltips(List<TooltipLine> list)
+        {
+            foreach (TooltipLine line2 in list)
+            {
+                if (line2.Mod == "Terraria" && line2.Name == "ItemName")
+                {
+                    line2.OverrideColor = new Color(Main.DiscoR, 51, 255 - (int)(Main.DiscoR * 0.4));
+                }
+            }
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient<Fargowiltas.Items.Vanity.MutantMask>()
+            .AddIngredient<AbomEnergy>(10)
+            .AddIngredient<EternalEnergy>(10)
+            .AddTile<CrucibleCosmosSheet>()
+
+            .Register();
+        }
+    }
+    public class MasoAbom : AccessoryEffect
     {
-      ((Entity) this.Item).width = 18;
-      ((Entity) this.Item).height = 18;
-      this.Item.rare = 11;
-      this.Item.value = Item.sellPrice(0, 50, 0, 0);
-      this.Item.defense = 50;
+        public override Header ToggleHeader => Header.GetHeader<MutantArmorHeader>();
+        public override int ToggleItemType => ModContent.ItemType<MutantMask>();
+        //public override bool MinionEffect => true; no, abom is stronger than minos
+        public override void PostUpdateEquips(Player player)
+        {
+            player.FargoSouls().AbomMinion = true;
+            if (player.ownedProjectileCounts[ModContent.ProjectileType<AbomMinion>()] < 1)
+                FargoSoulsUtil.NewSummonProjectile(player.GetSource_Misc(""), player.Center, Vector2.Zero, ModContent.ProjectileType<AbomMinion>(), 900, 10f, player.whoAmI, -1);
+        }
     }
-
-    public virtual void UpdateEquip(Player player)
+    public class MasoRing : AccessoryEffect
     {
-      ref StatModifier local = ref player.GetDamage(DamageClass.Generic);
-      local = StatModifier.op_Addition(local, 0.5f);
-      player.GetCritChance(DamageClass.Generic) += 20f;
-      player.maxMinions += 10;
-      player.maxTurrets += 10;
-      player.manaCost -= 0.25f;
-      player.ammoCost75 = true;
-    }
+        public override Header ToggleHeader => Header.GetHeader<MutantArmorHeader>();
+        public override int ToggleItemType => ModContent.ItemType<MutantMask>();
+        public override void PostUpdateEquips(Player player)
+        {
+            player.FargoSouls().PhantasmalRing = true;
+            if (player.ownedProjectileCounts[ModContent.ProjectileType<PhantasmalRing>()] < 1)
+                FargoSoulsUtil.NewSummonProjectile(player.GetSource_Misc(""), player.Center, Vector2.Zero, ModContent.ProjectileType<PhantasmalRing>(), 1700, 0f, player.whoAmI);
+        }
 
-    public virtual bool IsArmorSet(Item head, Item body, Item legs)
-    {
-      return body.type == ModContent.ItemType<MutantBody>() && legs.type == ModContent.ItemType<MutantPants>();
     }
-
-    public virtual void ArmorSetShadows(Player player) => player.armorEffectDrawShadow = true;
-
-    public virtual void UpdateArmorSet(Player player)
-    {
-      player.setBonus = MutantMask.GetSetBonusString();
-      MutantMask.MutantSetBonus(player, this.Item);
-    }
-
-    public static string GetSetBonusString()
-    {
-      return Language.GetTextValue("Mods.FargowiltasSouls.SetBonus.Mutant");
-    }
-
-    public static void MutantSetBonus(Player player, Item item)
-    {
-      player.AddEffect<MasoAbom>(item);
-      player.AddEffect<MasoRing>(item);
-      player.AddBuff(ModContent.BuffType<MutantPowerBuff>(), 2, true, false);
-      player.FargoSouls().MutantSetBonusItem = item;
-      player.FargoSouls().GodEaterImbue = true;
-      player.FargoSouls().AttackSpeed += 0.2f;
-    }
-
-    public override void SafeModifyTooltips(List<TooltipLine> list)
-    {
-      foreach (TooltipLine tooltipLine in list)
-      {
-        if (tooltipLine.Mod == "Terraria" && tooltipLine.Name == "ItemName")
-          tooltipLine.OverrideColor = new Color?(new Color(Main.DiscoR, 51, (int) byte.MaxValue - (int) ((double) Main.DiscoR * 0.4)));
-      }
-    }
-
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient<Fargowiltas.Items.Vanity.MutantMask>(1).AddIngredient<AbomEnergy>(10).AddIngredient<EternalEnergy>(10).AddTile<CrucibleCosmosSheet>().Register();
-    }
-  }
 }

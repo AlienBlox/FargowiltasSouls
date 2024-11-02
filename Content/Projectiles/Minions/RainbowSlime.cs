@@ -1,102 +1,110 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.RainbowSlime
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class RainbowSlime : ModProjectile
-  {
-    public int counter;
-
-    public virtual string Texture => "Terraria/Images/Projectile_266";
-
-    public virtual void SetStaticDefaults()
+    public class RainbowSlime : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 6;
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-    }
+        public override string Texture => "Terraria/Images/Projectile_266";
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.netImportant = true;
-      this.Projectile.alpha = 75;
-      ((Entity) this.Projectile).width = 24;
-      ((Entity) this.Projectile).height = 16;
-      this.Projectile.timeLeft *= 5;
-      this.Projectile.aiStyle = 26;
-      this.AIType = 266;
-      this.Projectile.friendly = true;
-      this.Projectile.minion = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.penetrate = -1;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 10;
-    }
+        public int counter;
 
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      this.Projectile.timeLeft = 2;
-      if (((Entity) player).whoAmI == Main.myPlayer && (!((Entity) player).active || player.dead || player.ghost || !player.FargoSouls().RainbowSlime))
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if (++this.counter <= 150)
-          return;
-        this.counter = 0;
-        if (this.Projectile.owner != Main.myPlayer || FargoSoulsUtil.FindClosestHostileNPC(((Entity) this.Projectile).Center, 600f, true) == -1)
-          return;
-        for (int index = 0; index < 15; ++index)
-          Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, new Vector2(Utils.NextFloat(Main.rand, -6f, 6f), Utils.NextFloat(Main.rand, -8f, -5f)), ModContent.ProjectileType<RainbowSlimeSpikeFriendly>(), this.Projectile.damage / 10, this.Projectile.knockBack, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      }
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Rainbow Slime");
+            Main.projFrames[Projectile.type] = 6;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+            //ProjectileID.Sets.MinionTargettingFeature[Projectile.type] = true;
+        }
 
-    public virtual bool OnTileCollide(Vector2 oldVelocity) => false;
+        public override void SetDefaults()
+        {
+            Projectile.netImportant = true;
+            Projectile.alpha = 75;
+            Projectile.width = 24;
+            Projectile.height = 16;
+            Projectile.timeLeft *= 5;
+            Projectile.aiStyle = 26;
+            AIType = ProjectileID.BabySlime;
+            Projectile.friendly = true;
+            Projectile.minion = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.penetrate = -1;
 
-    public virtual bool TileCollideStyle(
-      ref int width,
-      ref int height,
-      ref bool fallThrough,
-      ref Vector2 hitboxCenterFrac)
-    {
-      fallThrough = (double) ((Entity) Main.player[this.Projectile.owner]).Center.Y > (double) ((Entity) this.Projectile).position.Y + (double) ((Entity) this.Projectile).height;
-      return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
-    }
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 10;
+        }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.AddBuff(ModContent.BuffType<FlamesoftheUniverseBuff>(), 120, false);
-    }
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(new Color(Main.DiscoR, Main.DiscoG, Main.DiscoB, this.Projectile.alpha));
-    }
+            Projectile.timeLeft = 2;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY - 4f)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, this.Projectile.spriteDirection < 0 ? (SpriteEffects) 1 : (SpriteEffects) 0, 0.0f);
-      return false;
+            if (player.whoAmI == Main.myPlayer && (!player.active || player.dead || player.ghost || !player.FargoSouls().RainbowSlime))
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            /*if (Projectile.damage == 0)
+            {
+                Projectile.damage = (int)(35 * player.GetDamage(DamageClass.Summon));
+                if (player.FargoSouls().MasochistSoul)
+                    Projectile.damage *= 2;
+            }*/
+
+            if (++counter > 150) //periodically do bonus attack
+            {
+                counter = 0;
+                if (Projectile.owner == Main.myPlayer && FargoSoulsUtil.FindClosestHostileNPC(Projectile.Center, 600, true) != -1)
+                {
+                    for (int j = 0; j < 15; j++) //spray spikes
+                    {
+                        Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, new Vector2(Main.rand.NextFloat(-6, 6), Main.rand.NextFloat(-8, -5)), ModContent.ProjectileType<RainbowSlimeSpikeFriendly>(), Projectile.damage / 10, Projectile.knockBack, Main.myPlayer);
+                    }
+                }
+            }
+
+            //Main.NewText(Projectile.ai[0].ToString() + " " + Projectile.ai[1].ToString() + " " + Projectile.localAI[0].ToString() + " " + Projectile.localAI[1].ToString());
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            return false;
+        }
+
+        public override bool TileCollideStyle(ref int width, ref int height, ref bool fallThrough, ref Vector2 hitboxCenterFrac)
+        {
+            fallThrough = Main.player[Projectile.owner].Center.Y > Projectile.position.Y + Projectile.height;
+            return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.AddBuff(ModContent.BuffType<Buffs.Masomode.FlamesoftheUniverseBuff>(), 120);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(Main.DiscoR, Main.DiscoG, Main.DiscoB, Projectile.alpha);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY - 4),
+                new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2,
+                Projectile.scale, Projectile.spriteDirection < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

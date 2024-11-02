@@ -1,24 +1,44 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Core.Toggler.ToggleCollection
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
+﻿using System.Collections.Generic;
 
-using System.Collections.Generic;
-
-#nullable disable
 namespace FargowiltasSouls.Core.Toggler
 {
-  public abstract class ToggleCollection
-  {
-    public abstract string Mod { get; }
+    /// <summary>
+    /// Deprecated.
+    /// </summary>
+    public abstract class ToggleCollection
+    {
+        public abstract string Mod { get; }
+        public abstract string SortCategory { get; }
+        public abstract float Priority { get; }
 
-    public abstract string SortCategory { get; }
+        public abstract bool Active
+        {
+            get;
+        }
 
-    public abstract float Priority { get; }
 
-    public abstract bool Active { get; }
+        public List<Toggle> Load()
+        {
+            return [];
+            /*
+            // All string (toggles) and int (header) fields
+            FieldInfo[] fields = GetType().GetFields();
+            // The amount of int fields, ie toggles
+            List<Toggle> ret = new();
 
-    public List<Toggle> Load() => new List<Toggle>();
-  }
+            for (int i = 0; i < fields.Length; i++)
+            {
+                if (fields[i].FieldType != typeof(int)) // Register as toggle if it's a string
+                    ret.Add(new Toggle(fields[i].Name, Mod, SortCategory));
+                else // ...or as a header if it's an int
+                {
+                    ToggleLoader.LoadedHeaders.Add(fields[i + 1].Name, (fields[i].Name, (int)fields[i].GetValue(this)));
+                }
+            }
+
+            // Return the toggles (strings)
+            return ret;
+            */
+        }
+    }
 }

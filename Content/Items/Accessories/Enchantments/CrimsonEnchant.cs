@@ -1,37 +1,76 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.CrimsonEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Buffs.Souls;
+using FargowiltasSouls.Content.Items.Accessories.Forces;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class CrimsonEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(200, 54, 75);
-
-    public override void SetDefaults()
+    public class CrimsonEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 2;
-      this.Item.value = 50000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<CrimsonEffect>(this.Item);
-    }
+        public override Color nameColor => new(200, 54, 75);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(792, 1).AddIngredient(793, 1).AddIngredient(794, 1).AddIngredient(800, 1).AddIngredient(801, 1).AddIngredient(3062, 1).AddTile(26).Register();
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Green;
+            Item.value = 50000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<CrimsonEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ItemID.CrimsonHelmet)
+            .AddIngredient(ItemID.CrimsonScalemail)
+            .AddIngredient(ItemID.CrimsonGreaves)
+            .AddIngredient(ItemID.TheUndertaker)
+            .AddIngredient(ItemID.TheMeatball)
+            .AddIngredient(ItemID.CrimsonHeart)
+
+            .AddTile(TileID.DemonAltar)
+            .Register();
+        }
     }
-  }
+    public class CrimsonEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<NatureHeader>();
+        public override int ToggleItemType => ModContent.ItemType<CrimsonEnchant>();
+        public override void OnHurt(Player player, Player.HurtInfo info)
+        {
+            if (player.HasEffect<NatureEffect>())
+                return;
+            //if was already healing, stop the heal and do nothing
+            if (player.HasBuff<CrimsonRegenBuff>())
+            {
+                player.ClearBuff(ModContent.BuffType<CrimsonRegenBuff>());
+            }
+            else
+            {
+                FargoSoulsPlayer modPlayer = player.FargoSouls();
+                if (info.Damage < 10)
+                    return; //ignore hits under 10 damage
+                modPlayer.CrimsonRegenTime = 0; //reset timer
+                float returnHeal = 0.5f; //% of damage given back
+                modPlayer.CrimsonRegenAmount = (int)(info.Damage * returnHeal); //50% return heal
+
+                player.AddBuff(ModContent.BuffType<CrimsonRegenBuff>(),
+                    modPlayer.ForceEffect<CrimsonEnchant>() ? 900 : 430); //should never reach that time lol. buff gets removed in buff itself after its done. sets to actual time so that it shows in buff properly
+            }
+        }
+    }
 }

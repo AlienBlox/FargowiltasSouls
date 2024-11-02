@@ -1,53 +1,84 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Forces.NatureForce
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Fargowiltas.Items.Tiles;
+﻿using Fargowiltas.Items.Tiles;
+using FargowiltasSouls.Content.Buffs.Souls;
 using FargowiltasSouls.Content.Items.Accessories.Enchantments;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
+using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Forces
 {
-  public class NatureForce : BaseForce
-  {
-    public override void SetStaticDefaults()
+    public class NatureForce : BaseForce
     {
-      BaseForce.Enchants[this.Type] = new int[6]
-      {
-        ModContent.ItemType<CrimsonEnchant>(),
-        ModContent.ItemType<MoltenEnchant>(),
-        ModContent.ItemType<RainEnchant>(),
-        ModContent.ItemType<FrostEnchant>(),
-        ModContent.ItemType<ChlorophyteEnchant>(),
-        ModContent.ItemType<ShroomiteEnchant>()
-      };
-    }
+        public override void SetStaticDefaults()
+        {
+            Enchants[Type] =
+            [
+                ModContent.ItemType<CrimsonEnchant>(),
+                ModContent.ItemType<MoltenEnchant>(),
+                ModContent.ItemType<RainEnchant>(),
+                ModContent.ItemType<FrostEnchant>(),
+                ModContent.ItemType<ChlorophyteEnchant>(),
+                ModContent.ItemType<ShroomiteEnchant>()
+            ];
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      this.SetActive(player);
-      player.AddEffect<CrimsonEffect>(this.Item);
-      player.AddEffect<MoltenEffect>(this.Item);
-      RainEnchant.AddEffects(player, this.Item);
-      player.AddEffect<FrostEffect>(this.Item);
-      player.AddEffect<SnowEffect>(this.Item);
-      ChlorophyteEnchant.AddEffects(player, this.Item);
-      player.AddEffect<ShroomiteStealthEffect>(this.Item);
-      player.AddEffect<ShroomiteShroomEffect>(this.Item);
-    }
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            SetActive(player);
+            player.AddEffect<NatureEffect>(Item);
 
-    public virtual void AddRecipes()
-    {
-      Recipe recipe = this.CreateRecipe(1);
-      foreach (int num in BaseForce.Enchants[this.Type])
-        recipe.AddIngredient(num, 1);
-      recipe.AddTile<CrucibleCosmosSheet>();
-      recipe.Register();
+            // crimson
+            player.AddEffect<CrimsonEffect>(Item);
+            // molten
+            player.AddEffect<MoltenEffect>(Item);
+            // rain
+            player.AddEffect<RainUmbrellaEffect>(Item);
+            // frost
+            player.AddEffect<FrostEffect>(Item);
+            // chloro
+            player.AddEffect<ChloroMinion>(Item);
+            // shroomite
+            player.AddEffect<ShroomiteHealEffect>(Item);
+            if (player.HasEffect<ShroomiteHealEffect>())
+                player.AddEffect<ShroomiteMushroomPriority>(Item);
+            player.AddEffect<ShroomiteShroomEffect>(Item);
+        }
+        public override void SafeModifyTooltips(List<TooltipLine> tooltips)
+        {
+            float bonus = 4f * Main.LocalPlayer.statLife / 50;
+            int i = tooltips.FindIndex(line => line.Name == "Tooltip4");
+            if (i != -1)
+                tooltips[i].Text = string.Format(tooltips[i].Text, bonus);
+        }
+
+        public override void AddRecipes()
+        {
+            Recipe recipe = CreateRecipe();
+            foreach (int ench in Enchants[Type])
+                recipe.AddIngredient(ench);
+            recipe.AddTile<CrucibleCosmosSheet>();
+            recipe.Register();
+        }
     }
-  }
+    public class NatureEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => null;
+        //public override int ToggleItemType => ModContent.ItemType<NatureForce>();
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (player.HasBuff<MushroomPowerBuff>())
+            {
+                modPlayer.AuraSizeBonus += 0.05f;
+            }
+            else
+                modPlayer.AuraSizeBonus -= 0.05f;
+
+            modPlayer.AuraSizeBonus = MathHelper.Clamp(modPlayer.AuraSizeBonus, 0, 0.2f);
+        }
+
+    }
 }

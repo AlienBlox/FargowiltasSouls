@@ -1,82 +1,73 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Dungeon.DungeonTeleporters
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.NPCMatching;
+﻿using FargowiltasSouls.Core.NPCMatching;
 using Terraria;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Dungeon
 {
-  public class DungeonTeleporters : Teleporters
-  {
-    public override NPCMatcher CreateMatcher()
+    public class DungeonTeleporters : Teleporters
     {
-      return new NPCMatcher().MatchTypeRange(285, 286, 283, 284, 281, 282);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.DiabolistRed,
+            NPCID.DiabolistWhite,
+            NPCID.Necromancer,
+            NPCID.NecromancerArmored,
+            NPCID.RaggedCaster,
+            NPCID.RaggedCasterOpenCoat
+        );
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      switch (npc.type)
-      {
-        case 281:
-          if (Utils.NextBool(Main.rand, 4))
-          {
-            npc.Transform(Utils.NextBool(Main.rand) ? 285 : 283);
-            break;
-          }
-          break;
-        case 282:
-          if (Utils.NextBool(Main.rand, 4))
-          {
-            npc.Transform(Utils.NextBool(Main.rand) ? 286 : 284);
-            break;
-          }
-          break;
-        case 283:
-          if (Utils.NextBool(Main.rand, 4))
-          {
-            npc.Transform(Utils.NextBool(Main.rand) ? 285 : 281);
-            break;
-          }
-          break;
-        case 284:
-          if (Utils.NextBool(Main.rand, 4))
-          {
-            npc.Transform(Utils.NextBool(Main.rand) ? 286 : 282);
-            break;
-          }
-          break;
-        case 285:
-          if (Utils.NextBool(Main.rand, 4))
-          {
-            npc.Transform(Utils.NextBool(Main.rand) ? 283 : 281);
-            break;
-          }
-          break;
-        case 286:
-          if (Utils.NextBool(Main.rand, 4))
-          {
-            npc.Transform(Utils.NextBool(Main.rand) ? 284 : 282);
-            break;
-          }
-          break;
-      }
-      this.DoTeleport = true;
-      this.TeleportTimer = this.TeleportThreshold - 6;
-    }
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
 
-    public override void AI(NPC npc)
-    {
-      if (npc.HasValidTarget && !Main.player[npc.target].ZoneDungeon && !this.DoTeleport)
-      {
-        this.DoTeleport = true;
-        this.TeleportTimer = this.TeleportThreshold - 420;
-      }
-      base.AI(npc);
+            switch (npc.type)
+            {
+                case NPCID.DiabolistRed:
+                    if (Main.rand.NextBool(4))
+                        npc.Transform(Main.rand.NextBool() ? NPCID.Necromancer : NPCID.RaggedCaster);
+                    break;
+
+                case NPCID.DiabolistWhite:
+                    if (Main.rand.NextBool(4))
+                        npc.Transform(Main.rand.NextBool() ? NPCID.NecromancerArmored : NPCID.RaggedCasterOpenCoat);
+                    break;
+
+                case NPCID.Necromancer:
+                    if (Main.rand.NextBool(4))
+                        npc.Transform(Main.rand.NextBool() ? NPCID.DiabolistRed : NPCID.RaggedCaster);
+                    break;
+
+                case NPCID.NecromancerArmored:
+                    if (Main.rand.NextBool(4))
+                        npc.Transform(Main.rand.NextBool() ? NPCID.DiabolistWhite : NPCID.RaggedCasterOpenCoat);
+                    break;
+
+                case NPCID.RaggedCaster:
+                    if (Main.rand.NextBool(4))
+                        npc.Transform(Main.rand.NextBool() ? NPCID.DiabolistRed : NPCID.Necromancer);
+                    break;
+
+                case NPCID.RaggedCasterOpenCoat:
+                    if (Main.rand.NextBool(4))
+                        npc.Transform(Main.rand.NextBool() ? NPCID.DiabolistWhite : NPCID.NecromancerArmored);
+                    break;
+
+                default:
+                    break;
+            }
+
+            DoTeleport = true;
+            TeleportTimer = TeleportThreshold - 6;
+        }
+
+        public override void AI(NPC npc)
+        {
+            if (npc.HasValidTarget && !Main.player[npc.target].ZoneDungeon && !DoTeleport)
+            {
+                DoTeleport = true;
+                TeleportTimer = TeleportThreshold - 420; //occasionally teleport outside dungeon
+            }
+
+            base.AI(npc);
+        }
     }
-  }
 }

@@ -1,90 +1,77 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Core.Toggler.Header
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
-using System;
+﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI.Chat;
 
-#nullable disable
 namespace FargowiltasSouls.Core.Toggler
 {
-  public abstract class Header : ModType
-  {
-    public abstract string SortCategory { get; }
-
-    public abstract float Priority { get; }
-
-    public abstract int Item { get; }
-
-    public string HeaderDescription
+    public abstract class Header : ModType
     {
-      get
-      {
-        string textValue = Language.GetTextValue("Mods." + this.Mod.Name + ".Toggler." + this.Name);
-        if (this.Item <= 0)
-          return textValue;
-        DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(4, 1);
-        interpolatedStringHandler.AppendLiteral("[i:");
-        interpolatedStringHandler.AppendFormatted<int>(this.Item);
-        interpolatedStringHandler.AppendLiteral("]");
-        return interpolatedStringHandler.ToStringAndClear() + " " + textValue;
-      }
-    }
 
-    public virtual void Load()
-    {
-      ToggleLoader.RegisterHeader(this);
-      ModTypeLookup<Header>.Register(this);
-    }
+        public abstract string SortCategory { get; }
+        /// <summary>
+        /// Dictates ordering of Headers in the toggle display. <para/>
+        /// Lower number -> header appears higher up.
+        /// </summary>
+        public abstract float Priority { get; }
+        public abstract int Item { get; }
+        public string HeaderDescription
+        {
+            get
+            {
+                string desc = Language.GetTextValue($"Mods.{Mod.Name}.Toggler.{Name}");
+                if (Item <= 0) return desc;
+                string itemIcon = $"[i:{Item}]";
+                /*
+                ModItem modItem = ModContent.GetModItem(Item);
+                if (modItem == null)
+                {
+                    itemIcon = $"[i:{Item}]";
+                }
+                else
+                {
+                    itemIcon = $"[i:{modItem.Mod.Name}/{modItem.Name}]";
+                }
+                */
+                return $"{itemIcon} {desc}";
+            }
+        }
+        public override void Load() // Must do this here so headers are registered before Toggles
+        {
+            ToggleLoader.RegisterHeader(this);
+            ModTypeLookup<Header>.Register(this);
+        }
 
-    protected virtual void Register()
-    {
-    }
+        protected override void Register()
+        {
+            /*
+            ToggleLoader.RegisterHeader(this);
+            ModTypeLookup<Header>.Register(this);
+            */
+        }
 
-    public virtual string ToString()
-    {
-      DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(37, 4);
-      interpolatedStringHandler.AppendLiteral("Mod: ");
-      interpolatedStringHandler.AppendFormatted<Mod>(this.Mod);
-      interpolatedStringHandler.AppendLiteral(", Item: ");
-      interpolatedStringHandler.AppendFormatted<int>(this.Item);
-      interpolatedStringHandler.AppendLiteral(", Category: ");
-      interpolatedStringHandler.AppendFormatted(this.SortCategory);
-      interpolatedStringHandler.AppendLiteral(", Priority: ");
-      interpolatedStringHandler.AppendFormatted<float>(this.Priority);
-      return interpolatedStringHandler.ToStringAndClear();
-    }
+        public override string ToString() => $"Mod: {Mod}, Item: {Item}, Category: {SortCategory}, Priority: {Priority}";
+        public string GetRawToggleName()
+        {
+            string baseText = HeaderDescription;
+            List<TextSnippet> parsedText = ChatManager.ParseMessage(baseText, Color.White);
+            string rawText = "";
 
-    public string GetRawToggleName()
-    {
-      List<TextSnippet> message = ChatManager.ParseMessage(this.HeaderDescription, Color.White);
-      string rawToggleName = "";
-      foreach (TextSnippet textSnippet in message)
-      {
-        if (!textSnippet.Text.StartsWith("["))
-          rawToggleName += textSnippet.Text.Trim();
-      }
-      return rawToggleName;
-    }
+            foreach (TextSnippet snippet in parsedText)
+            {
+                if (!snippet.Text.StartsWith("["))
+                {
+                    rawText += snippet.Text.Trim();
+                }
+            }
 
-    public static T GetHeader<T>() where T : Header => ModContent.GetInstance<T>();
+            return rawText;
+        }
 
-    public static Header GetHeaderFromItem<T>() where T : ModItem
-    {
-      return ToggleLoader.LoadedHeaders.FirstOrDefault<Header>((Func<Header, bool>) (h => h.Item == ModContent.ItemType<T>()));
+        public static T GetHeader<T>() where T : Header => ModContent.GetInstance<T>();
+        public static Header GetHeaderFromItem<T>() where T : ModItem => ToggleLoader.LoadedHeaders.FirstOrDefault(h => h.Item == ModContent.ItemType<T>());
+        public static Header GetHeaderFromItemType(int type) => ToggleLoader.LoadedHeaders.FirstOrDefault(h => h.Item == type);
     }
-
-    public static Header GetHeaderFromItemType(int type)
-    {
-      return ToggleLoader.LoadedHeaders.FirstOrDefault<Header>((Func<Header, bool>) (h => h.Item == type));
-    }
-  }
 }

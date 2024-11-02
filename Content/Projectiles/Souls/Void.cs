@@ -1,189 +1,257 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Souls.Void
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Souls
 {
-  public class Void : ModProjectile
-  {
-    private int timer;
-
-    public virtual string Texture => "Terraria/Images/Projectile_578";
-
-    public virtual void SetStaticDefaults()
+    public class Void : ModProjectile
     {
-    }
+        private int timer = 0;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 32;
-      ((Entity) this.Projectile).height = 32;
-      this.Projectile.aiStyle = 0;
-      this.Projectile.scale = 1f;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Ranged;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft = 600;
-      this.Projectile.tileCollide = false;
-      this.AIType = 14;
-    }
+        public override string Texture => "Terraria/Images/Projectile_578";
 
-    public virtual void AI()
-    {
-      ++this.Projectile.ai[0];
-      if ((double) this.Projectile.ai[0] <= 40.0)
-      {
-        this.Projectile.scale = (float) ((double) this.Projectile.ai[0] / 40.0 * 3.0);
-        this.Projectile.alpha = (int) byte.MaxValue - (int) ((double) byte.MaxValue * (double) this.Projectile.scale / 3.0);
-        this.Projectile.rotation -= 0.1570796f;
-        if (Utils.NextBool(Main.rand))
+        public override void SetStaticDefaults()
         {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 6.28318548202515), this.Projectile.scale);
-          Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f)), 0, 0, 229, 0.0f, 0.0f, 0, new Color(), 1f)];
-          dust.noGravity = true;
-          dust.position = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, (float) Main.rand.Next(10, 21)));
-          dust.velocity = Vector2.op_Multiply(Utils.RotatedBy(vector2, 1.5707963705062866, new Vector2()), 6f);
-          dust.scale = 0.5f + Utils.NextFloat(Main.rand);
-          dust.fadeIn = 0.5f;
-          dust.customData = (object) ((Entity) this.Projectile).Center;
+            // DisplayName.SetDefault("Void");
         }
-        if (Utils.NextBool(Main.rand))
+
+        public override void SetDefaults()
         {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 6.28318548202515), this.Projectile.scale);
-          Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f)), 0, 0, 240, 0.0f, 0.0f, 0, new Color(), 1f)];
-          dust.noGravity = true;
-          dust.position = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f));
-          dust.velocity = Vector2.op_Multiply(Utils.RotatedBy(vector2, -1.5707963705062866, new Vector2()), 3f);
-          dust.scale = 0.5f + Utils.NextFloat(Main.rand);
-          dust.fadeIn = 0.5f;
-          dust.customData = (object) ((Entity) this.Projectile).Center;
+            Projectile.width = 32;
+            Projectile.height = 32;
+            Projectile.aiStyle = 0;
+            Projectile.scale = 1f;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Ranged;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft = 600;
+            Projectile.tileCollide = false;
+            AIType = ProjectileID.Bullet;
+
         }
-        int closest = (int) Player.FindClosest(((Entity) this.Projectile).Center, 0, 0);
-        if (closest != -1)
+
+        public override void AI()
         {
-          this.Projectile.localAI[1] = Vector2.op_Equality(((Entity) this.Projectile).Center, ((Entity) Main.player[closest]).Center) ? 0.0f : Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) Main.player[closest]).Center));
-          this.Projectile.localAI[1] += 1.04719758f;
-        }
-      }
-      else
-      {
-        this.Projectile.scale = 3f;
-        this.Projectile.alpha = 0;
-        this.Projectile.rotation -= (float) Math.PI / 60f;
-        if (Utils.NextBool(Main.rand))
-        {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 6.28318548202515), this.Projectile.scale);
-          Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f)), 0, 0, 229, 0.0f, 0.0f, 0, new Color(), 1f)];
-          dust.noGravity = true;
-          dust.position = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, (float) Main.rand.Next(10, 21)));
-          dust.velocity = Vector2.op_Multiply(Utils.RotatedBy(vector2, 1.5707963705062866, new Vector2()), 6f);
-          dust.scale = 0.5f + Utils.NextFloat(Main.rand);
-          dust.fadeIn = 0.5f;
-          dust.customData = (object) ((Entity) this.Projectile).Center;
-        }
-        else
-        {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 6.28318548202515), this.Projectile.scale);
-          Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f)), 0, 0, 240, 0.0f, 0.0f, 0, new Color(), 1f)];
-          dust.noGravity = true;
-          dust.position = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f));
-          dust.velocity = Vector2.op_Multiply(Utils.RotatedBy(vector2, -1.5707963705062866, new Vector2()), 3f);
-          dust.scale = 0.5f + Utils.NextFloat(Main.rand);
-          dust.fadeIn = 0.5f;
-          dust.customData = (object) ((Entity) this.Projectile).Center;
-        }
-        if (this.timer == 0)
-        {
-          int num1 = 500;
-          Player player = Main.player[this.Projectile.owner];
-          for (int index = 0; index < Main.maxProjectiles; ++index)
-          {
-            float num2 = ((Entity) this.Projectile).Distance(((Entity) Main.projectile[index]).Center);
-            Projectile projectile = Main.projectile[index];
-            if (FargoSoulsUtil.CanDeleteProjectile(projectile) && (double) num2 <= (double) num1 && projectile.type != this.Projectile.type && (!projectile.friendly || !player.FargoSouls().VortexStealth))
+            const int maxScale = 3;
+
+            Projectile.ai[0]++;
+
+            //spawning in
+            if (Projectile.ai[0] <= 40)
             {
-              Vector2 vector2 = Vector2.op_Subtraction(((Entity) this.Projectile).position, ((Entity) projectile).Center);
-              ((Entity) projectile).velocity = Vector2.op_Multiply(Utils.SafeNormalize(vector2, Vector2.Zero), 8f);
-              if (this.Projectile.timeLeft <= 30 && (double) num2 < (double) (num1 / 4) && (double) projectile.minionSlots == 0.0)
-                ((Entity) projectile).active = false;
+                Projectile.scale = Projectile.ai[0] / 40 * maxScale;
+                Projectile.alpha = 255 - (int)(255 * Projectile.scale / maxScale);
+                Projectile.rotation = Projectile.rotation - 0.1570796f;
+                if (Main.rand.NextBool())
+                {
+                    Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                    Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Vortex, 0.0f, 0.0f, 0, new Color(), 1f)];
+                    dust.noGravity = true;
+                    dust.position = Projectile.Center - spinningpoint * Main.rand.Next(10, 21);
+                    dust.velocity = spinningpoint.RotatedBy((float)Math.PI / 2, new Vector2()) * 6f;
+                    dust.scale = 0.5f + Main.rand.NextFloat();
+                    dust.fadeIn = 0.5f;
+                    dust.customData = Projectile.Center;
+                }
+                if (Main.rand.NextBool())
+                {
+                    Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                    Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Granite, 0.0f, 0.0f, 0, new Color(), 1f)];
+                    dust.noGravity = true;
+                    dust.position = Projectile.Center - spinningpoint * 30f;
+                    dust.velocity = spinningpoint.RotatedBy(-(float)Math.PI / 2, new Vector2()) * 3f;
+                    dust.scale = 0.5f + Main.rand.NextFloat();
+                    dust.fadeIn = 0.5f;
+                    dust.customData = Projectile.Center;
+                }
+
+                int p = Player.FindClosest(Projectile.Center, 0, 0);
+                if (p != -1)
+                {
+                    Projectile.localAI[1] =
+                        Projectile.Center == Main.player[p].Center ? 0 : Projectile.SafeDirectionTo(Main.player[p].Center).ToRotation();
+                    Projectile.localAI[1] += (float)Math.PI * 2 / 3 / 2;
+                }
             }
-          }
-          this.timer = 10;
-        }
-        --this.timer;
-      }
-      Dust dust1 = Main.dust[Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 229, 0.0f, 0.0f, 0, new Color(), 1f)];
-      dust1.velocity = Vector2.op_Multiply(dust1.velocity, 5f);
-      dust1.fadeIn = 1f;
-      dust1.scale = (float) (1.0 + (double) Utils.NextFloat(Main.rand) + (double) Main.rand.Next(4) * 0.30000001192092896);
-      dust1.noGravity = true;
-    }
+            else //if (Projectile.ai[0] <= 40 + time)
+            {
+                Projectile.scale = maxScale;
+                Projectile.alpha = 0;
+                Projectile.rotation = Projectile.rotation - (float)Math.PI / 60f;
+                if (Main.rand.NextBool())
+                {
+                    Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                    Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Vortex, 0.0f, 0.0f, 0, new Color(), 1f)];
+                    dust.noGravity = true;
+                    dust.position = Projectile.Center - spinningpoint * Main.rand.Next(10, 21);
+                    dust.velocity = spinningpoint.RotatedBy((float)Math.PI / 2, new Vector2()) * 6f;
+                    dust.scale = 0.5f + Main.rand.NextFloat();
+                    dust.fadeIn = 0.5f;
+                    dust.customData = Projectile.Center;
+                }
+                else
+                {
+                    Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                    Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Granite, 0.0f, 0.0f, 0, new Color(), 1f)];
+                    dust.noGravity = true;
+                    dust.position = Projectile.Center - spinningpoint * 30f;
+                    dust.velocity = spinningpoint.RotatedBy(-(float)Math.PI / 2, new Vector2()) * 3f;
+                    dust.scale = 0.5f + Main.rand.NextFloat();
+                    dust.fadeIn = 0.5f;
+                    dust.customData = Projectile.Center;
+                }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      int num = 229;
-      for (int index = 0; index < 80; ++index)
-      {
-        Dust dust1 = Main.dust[Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, num, 0.0f, 0.0f, 0, new Color(), 1f)];
-        Dust dust2 = dust1;
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 10f);
-        dust1.fadeIn = 1f;
-        dust1.scale = (float) (1.0 + (double) Utils.NextFloat(Main.rand) + (double) Main.rand.Next(4) * 0.30000001192092896);
-        if (!Utils.NextBool(Main.rand, 3))
+
+                //suck
+                if (timer == 0)
+                {
+                    int minDist = 500;
+                    Player player = Main.player[Projectile.owner];
+
+                    /*for (int i = 0; i < 200; i++)
+                    {
+                        float distance = Projectile.Distance(Main.npc[i].Center);
+                        NPC npc = Main.npc[i];
+
+                        if (!npc.active || npc.townNPC || npc.type == NPCID.TargetDummy || npc.type == NPCID.DD2EterniaCrystal || npc.type == NPCID.DD2LanePortal || npc.boss ||
+                            (distance > minDist))
+                        {
+                            continue;
+                        }
+
+                        Vector2 dir = Projectile.position - npc.Center;
+                        npc.velocity = dir.SafeNormalize(Vector2.Zero) * 8;
+
+                        if (Projectile.timeLeft <= 30 && distance < minDist / 4)
+                        {
+                            npc.active = false;
+                        }
+                    }*/
+
+                    for (int i = 0; i < Main.maxProjectiles; i++)
+                    {
+
+                        float distance = Projectile.Distance(Main.projectile[i].Center);
+                        Projectile proj = Main.projectile[i];
+                        if (!FargoSoulsUtil.CanDeleteProjectile(proj, 0) || distance > minDist || proj.type == Projectile.type || (proj.friendly/* && player.FargoSouls().VortexStealth*/))
+                        {
+                            continue;
+                        }
+
+                        Vector2 dir = Projectile.position - proj.Center;
+                        proj.velocity = dir.SafeNormalize(Vector2.Zero) * 8;
+
+                        if (Projectile.timeLeft <= 30 && distance < minDist / 4 && proj.minionSlots == 0)
+                        {
+                            proj.active = false;
+                        }
+                    }
+
+                    timer = 10;
+                }
+
+                timer--;
+
+            }
+            /*else
+            {
+                Projectile.scale = (float)(1.0 - (Projectile.ai[0] - time) / 60.0) * maxScale;
+                Projectile.alpha = 255 - (int)(255 * Projectile.scale / maxScale);
+                Projectile.rotation = Projectile.rotation - (float)Math.PI / 30f;
+                if (Projectile.alpha >= 255)
+                    Projectile.Kill();
+                for (int index = 0; index < 2; ++index)
+                {
+                    switch (Main.rand.Next(3))
+                    {
+                        case 0:
+                            Vector2 spinningpoint1 = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                            Dust dust1 = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint1 * 30f, 0, 0, 229, 0.0f, 0.0f, 0, new Color(), 1f)];
+                            dust1.noGravity = true;
+                            dust1.position = Projectile.Center - spinningpoint1 * Main.rand.Next(10, 21);
+                            dust1.velocity = spinningpoint1.RotatedBy((float)Math.PI / 2, new Vector2()) * 6f;
+                            dust1.scale = 0.5f + Main.rand.NextFloat();
+                            dust1.fadeIn = 0.5f;
+                            dust1.customData = Projectile.Center;
+                            break;
+                        case 1:
+                            Vector2 spinningpoint2 = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                            Dust dust2 = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint2 * 30f, 0, 0, 240, 0.0f, 0.0f, 0, new Color(), 1f)];
+                            dust2.noGravity = true;
+                            dust2.position = Projectile.Center - spinningpoint2 * 30f;
+                            dust2.velocity = spinningpoint2.RotatedBy(-(float)Math.PI / 2, new Vector2()) * 3f;
+                            dust2.scale = 0.5f + Main.rand.NextFloat();
+                            dust2.fadeIn = 0.5f;
+                            dust2.customData = Projectile.Center;
+                            break;
+                    }
+                }
+            }*/
+
+            Dust dust3 = Main.dust[Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Vortex, 0f, 0f, 0, new Color(), 1f)];
+            dust3.velocity *= 5f;
+            dust3.fadeIn = 1f;
+            dust3.scale = 1f + Main.rand.NextFloat() + Main.rand.Next(4) * 0.3f;
+            dust3.noGravity = true;
+        }
+
+        public override void OnKill(int timeLeft)
         {
-          dust1.noGravity = true;
-          Dust dust3 = dust1;
-          dust3.velocity = Vector2.op_Multiply(dust3.velocity, 3f);
-          dust1.scale *= 2f;
+            SoundEngine.PlaySound(SoundID.Item92, Projectile.Center);
+            int type = 229;
+            for (int index = 0; index < 80; ++index)
+            {
+                Dust dust = Main.dust[Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, type, 0.0f, 0.0f, 0, new Color(), 1f)];
+                dust.velocity *= 10f;
+                dust.fadeIn = 1f;
+                dust.scale = 1 + Main.rand.NextFloat() + Main.rand.Next(4) * 0.3f;
+                if (!Main.rand.NextBool(3))
+                {
+                    dust.noGravity = true;
+                    dust.velocity *= 3f;
+                    dust.scale *= 2f;
+                }
+            }
+
+            if (Projectile.localAI[0] == 0 && Projectile.owner == Main.myPlayer)
+            {
+                for (int i = 0; i < Main.maxNPCs; i++)
+                {
+                    if (Main.npc[i].active && Projectile.Distance(Main.npc[i].Center) < 850) //strip nearby enemies of iframes
+                        Main.npc[i].immune[Projectile.owner] = 0;
+                }
+
+                Projectile.localAI[0] = 1;
+                Projectile.position = Projectile.Center;
+                Projectile.width = 600;
+                Projectile.height = 600;
+                Projectile.Center = Projectile.position;
+
+                Projectile.damage *= 10;
+                Projectile.knockBack *= 10;
+                Projectile.Damage();
+            }
         }
-      }
-      if ((double) this.Projectile.localAI[0] != 0.0 || this.Projectile.owner != Main.myPlayer)
-        return;
-      for (int index = 0; index < Main.maxNPCs; ++index)
-      {
-        if (((Entity) Main.npc[index]).active && (double) ((Entity) this.Projectile).Distance(((Entity) Main.npc[index]).Center) < 850.0)
-          Main.npc[index].immune[this.Projectile.owner] = 0;
-      }
-      this.Projectile.localAI[0] = 1f;
-      ((Entity) this.Projectile).position = ((Entity) this.Projectile).Center;
-      ((Entity) this.Projectile).width = 600;
-      ((Entity) this.Projectile).height = 600;
-      ((Entity) this.Projectile).Center = ((Entity) this.Projectile).position;
-      this.Projectile.damage *= 10;
-      this.Projectile.knockBack *= 10f;
-      this.Projectile.Damage();
-    }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.op_Multiply(Color.Black, this.Projectile.Opacity), -this.Projectile.rotation, vector2, this.Projectile.scale * 1.25f, (SpriteEffects) 1, 0.0f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Color.Black * Projectile.Opacity, -Projectile.rotation, origin2, Projectile.scale * 1.25f, SpriteEffects.FlipHorizontally, 0);
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

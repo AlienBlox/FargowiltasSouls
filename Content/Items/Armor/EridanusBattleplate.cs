@@ -1,46 +1,47 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Armor.EridanusBattleplate
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Materials;
+﻿using FargowiltasSouls.Content.Items.Materials;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Armor
 {
-  [AutoloadEquip]
-  public class EridanusBattleplate : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    [AutoloadEquip(EquipType.Body)]
+    public class EridanusBattleplate : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 18;
-      ((Entity) this.Item).height = 18;
-      this.Item.rare = 11;
-      this.Item.value = Item.sellPrice(0, 20, 0, 0);
-      this.Item.defense = 30;
-    }
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void UpdateEquip(Player player)
-    {
-      ref StatModifier local = ref player.GetDamage(DamageClass.Generic);
-      local = StatModifier.op_Addition(local, 0.1f);
-      player.GetCritChance(DamageClass.Generic) += 10f;
-      player.endurance += 0.1f;
-      player.lifeRegen += 4;
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 18;
+            Item.height = 18;
+            Item.rare = ItemRarityID.Purple;
+            Item.value = Item.sellPrice(0, 20);
+            Item.defense = 30;
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.ItemType<Eridanium>(), 5).AddIngredient(3458, 5).AddIngredient(3456, 5).AddIngredient(3457, 5).AddIngredient(3459, 5).AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet")).Register();
+        public override void UpdateEquip(Player player)
+        {
+            player.GetDamage(DamageClass.Generic) += 0.10f;
+            player.GetCritChance(DamageClass.Generic) += 10;
+            player.endurance += 0.1f;
+            player.lifeRegen += 4;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ModContent.ItemType<Eridanium>(), 5)
+            .AddIngredient(ItemID.FragmentSolar, 5)
+            .AddIngredient(ItemID.FragmentVortex, 5)
+            .AddIngredient(ItemID.FragmentNebula, 5)
+            .AddIngredient(ItemID.FragmentStardust, 5)
+            .AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"))
+
+            .Register();
+        }
     }
-  }
 }

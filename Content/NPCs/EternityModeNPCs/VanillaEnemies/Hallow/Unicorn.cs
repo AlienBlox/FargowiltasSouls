@@ -1,37 +1,70 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Hallow.Unicorn
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Hallow
 {
-  public class Unicorn : EModeNPCBehaviour
-  {
-    public int Counter;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(86);
-
-    public virtual void AI(NPC npc)
+    public class Unicorn : EModeNPCBehaviour
     {
-      base.AI(npc);
-      if ((double) Math.Abs(((Entity) npc).velocity.X) < 3.0 || ++this.Counter < 3)
-        return;
-      this.Counter = 0;
-      int num = (double) ((Entity) npc).velocity.X > 0.0 ? 1 : -1;
-      int index = Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), new Vector2(((Entity) npc).Center.X - (float) (num * (((Entity) npc).width / 2)), ((Entity) npc).Center.Y), ((Entity) npc).velocity, 251, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 1.33333337f), 1f, -1, 0.0f, 0.0f, 0.0f);
-      if (index == Main.maxProjectiles)
-        return;
-      Main.projectile[index].friendly = false;
-      Main.projectile[index].hostile = true;
-      Main.projectile[index].FargoSouls().Rainbow = true;
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Unicorn);
+
+        public int Counter;
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            if (Math.Abs(npc.velocity.X) >= 3f)
+            {
+                //spawn rainbows in mid jump only
+                if (++Counter >= 3)
+                {
+                    Counter = 0;
+
+                    int direction = npc.velocity.X > 0 ? 1 : -1;
+                    int p = Projectile.NewProjectile(npc.GetSource_FromThis(), new Vector2(npc.Center.X - direction * (npc.width / 2), npc.Center.Y), npc.velocity, ProjectileID.RainbowBack, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 4f / 3), 1);
+                    if (p != Main.maxProjectiles)
+                    {
+                        Main.projectile[p].friendly = false;
+                        Main.projectile[p].hostile = true;
+                        Main.projectile[p].FargoSouls().Rainbow = true;
+                    }
+                }
+            }
+
+            //jump initiated
+            /* if (npc.velocity.Y <= -6 && !masoBool[0])
+             {
+                 masoBool[0] = true;
+                 Counter[1] = 20;
+             }
+
+             //spawn rainbows in mid jump only
+             if (Counter[1] > 0 && Counter[0]++ >= 3)
+             {
+                 if (npc.velocity.Length() > 3)
+                 {
+                     int direction = npc.velocity.X > 0 ? 1 : -1;
+                     int p = Projectile.NewProjectile(new Vector2(npc.Center.X - direction * (npc.width / 2), npc.Center.Y), npc.velocity, ProjectileID.RainbowBack, FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 4f / 3), 1);
+                     if (p < 1000)
+                     {
+                         Main.projectile[p].friendly = false;
+                         Main.projectile[p].hostile = true;
+                         Main.projectile[p].FargoSouls().Rainbow = true;
+                     }
+                 }
+
+                 Counter[0] = 0;
+                 Counter[1]--;
+
+                 if (Counter[1] == 0)
+                 {
+                     masoBool[0] = false;
+                 }
+             }*/
+        }
     }
-  }
 }

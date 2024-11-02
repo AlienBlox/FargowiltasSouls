@@ -1,41 +1,69 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.AgitatingLens
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Content.Projectiles.Masomode;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
+using System;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class AgitatingLens : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class AgitatingLens : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 1;
-      this.Item.value = Item.sellPrice(0, 1, 0, 0);
-    }
+        public override void SetStaticDefaults()
+        {
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[ModContent.BuffType<BerserkedBuff>()] = true;
-      player.AddEffect<AgitatingLensEffect>(this.Item);
-      player.AddEffect<AgitatingLensInstall>(this.Item);
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
+
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Blue;
+            Item.value = Item.sellPrice(gold: 1);
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[ModContent.BuffType<BerserkedBuff>()] = true;
+
+            player.AddEffect<AgitatingLensEffect>(Item);
+            player.AddEffect<AgitatingLensInstall>(Item);
+        }
     }
-  }
+    public class AgitatingLensEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupremeFairyHeader>();
+        public override int ToggleItemType => ModContent.ItemType<AgitatingLens>();
+        public override bool ExtraAttackEffect => true;
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (modPlayer.AgitatingLensCD++ > 30)
+            {
+                modPlayer.AgitatingLensCD = 0;
+                if ((Math.Abs(player.velocity.X) >= 5 || Math.Abs(player.velocity.Y) >= 5) && player.whoAmI == Main.myPlayer)
+                {
+                    int damage = 18;
+                    if (modPlayer.SupremeDeathbringerFairy)
+                        damage *= 2;
+                    if (modPlayer.MasochistSoul)
+                        damage *= 2;
+                    damage = (int)(damage * player.ActualClassDamage(DamageClass.Magic));
+                    Projectile.NewProjectile(GetSource_EffectItem(player), player.Center, player.velocity * 0.1f, ModContent.ProjectileType<BloodScytheFriendly>(), damage, 5f, player.whoAmI);
+                }
+            }
+        }
+    }
+    public class AgitatingLensInstall : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupremeFairyHeader>();
+        public override int ToggleItemType => ModContent.ItemType<AgitatingLens>();
+        
+    }
 }

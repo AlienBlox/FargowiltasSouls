@@ -1,189 +1,189 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.ChallengerItems.RollingSnowball
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Items.Weapons.Challengers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.ChallengerItems
 {
-  public class RollingSnowball : ModProjectile
-  {
-    private int width;
-    private int height;
-
-    public virtual string Texture => "Terraria/Images/Projectile_166";
-
-    public virtual void SetDefaults()
+    public class RollingSnowball : ModProjectile
     {
-      this.Projectile.CloneDefaults(166);
-      this.Projectile.aiStyle = -1;
-      this.Projectile.DamageType = DamageClass.Magic;
-      this.Projectile.penetrate = -1;
-      this.width = ((Entity) this.Projectile).width = 14;
-      this.height = ((Entity) this.Projectile).height = 14;
-      this.Projectile.netImportant = true;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
+        public override string Texture => "Terraria/Images/Projectile_166";
 
-    public virtual bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      return new bool?((double) ((Entity) this.Projectile).Distance(FargoSoulsUtil.ClosestPointInHitbox(targetHitbox, ((Entity) this.Projectile).Center)) < (double) (Math.Min(((Entity) this.Projectile).width, ((Entity) this.Projectile).height) / 2));
-    }
+        int width;
+        int height;
 
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      if (player.dead || !((Entity) player).active || player.HeldItem.type != ModContent.ItemType<SnowballStaff>() || !player.channel || !player.CheckMana(player.HeldItem.mana, false, false))
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if (((Entity) player).whoAmI == Main.myPlayer)
+        public override void SetDefaults()
         {
-          Vector2 vector2 = Vector2.op_Subtraction(Main.MouseWorld, ((Entity) player).Center);
-          player.ChangeDir(Math.Sign(vector2.X));
-          if (player.controlUseTile && (double) this.Projectile.localAI[1] <= 0.0)
-          {
-            this.Projectile.localAI[1] = 60f;
-            ((Entity) this.Projectile).velocity.X = Math.Abs(((Entity) this.Projectile).velocity.X) * (float) Math.Sign(vector2.X);
-            this.Dusts();
-            ((Entity) this.Projectile).Bottom = Vector2.op_Addition(((Entity) player).Bottom, Vector2.op_Multiply(Vector2.op_Multiply((float) (((Entity) this.Projectile).width / 2), Vector2.UnitX), (float) ((Entity) player).direction));
-            this.Dusts();
-            this.Projectile.netUpdate = true;
-          }
-          --this.Projectile.localAI[1];
-          if ((double) this.Projectile.localAI[1] == 0.0)
-          {
-            for (int index1 = 0; index1 < 30; ++index1)
+            Projectile.CloneDefaults(ProjectileID.SnowBallFriendly);
+            Projectile.aiStyle = -1;
+
+            Projectile.DamageType = DamageClass.Magic;
+            Projectile.penetrate = -1;
+
+            width = Projectile.width = 14;
+            height = Projectile.height = 14;
+
+            Projectile.netImportant = true;
+
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+        }
+
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
+        {
+            return Projectile.Distance(FargoSoulsUtil.ClosestPointInHitbox(targetHitbox, Projectile.Center)) < Math.Min(Projectile.width, Projectile.height) / 2;
+        }
+
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+
+            if (player.dead || !player.active || player.HeldItem.type != ModContent.ItemType<SnowballStaff>() || !player.channel || !player.CheckMana(player.HeldItem.mana))
             {
-              int index2 = Dust.NewDust(((Entity) player).position, ((Entity) player).width, ((Entity) player).height, 88, 0.0f, 0.0f, 0, new Color(), 2f);
-              Main.dust[index2].noGravity = true;
-              Dust dust = Main.dust[index2];
-              dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
+                Projectile.Kill();
+                return;
             }
-          }
+
+            if (player.whoAmI == Main.myPlayer)
+            {
+                Vector2 direction = Main.MouseWorld - player.Center;
+                player.ChangeDir(Math.Sign(direction.X));
+
+                if (player.controlUseTile)
+                {
+                    if (Projectile.localAI[1] <= 0)
+                    {
+                        Projectile.localAI[1] = 60;
+
+                        Projectile.velocity.X = Math.Abs(Projectile.velocity.X) * Math.Sign(direction.X);
+
+                        Dusts();
+                        Projectile.Bottom = player.Bottom + Projectile.width / 2 * Vector2.UnitX * player.direction;
+                        Dusts();
+                        Projectile.netUpdate = true;
+                    }
+                }
+
+                Projectile.localAI[1] -= 1f;
+
+                if (Projectile.localAI[1] == 0)
+                {
+                    for (int i = 0; i < 30; i++)
+                    {
+                        int d = Dust.NewDust(player.position, player.width, player.height, DustID.GemSapphire, 0, 0, 0, default, 2f);
+                        Main.dust[d].noGravity = true;
+                        Main.dust[d].velocity *= 4f;
+                    }
+                }
+            }
+
+            if (Projectile.velocity.X != 0)
+                Projectile.spriteDirection = Projectile.direction = Math.Sign(Projectile.velocity.X);
+
+            float roll = Projectile.velocity.X / (MathHelper.Pi * width);
+            Projectile.rotation += roll;
+            if (Projectile.velocity.Y == 0)
+            {
+                Projectile.velocity.X *= 0.98f;
+
+                const float cap = 15f;
+                Projectile.scale = Math.Min(Projectile.scale + Math.Abs(roll) * 0.2f, cap);
+            }
+
+            Projectile.velocity.Y += 0.4f;
+            if (Projectile.velocity.Y > 16)
+                Projectile.velocity.Y = 16;
+
+            if (Projectile.Colliding(Projectile.Hitbox, player.Hitbox))
+            {
+                float x = Math.Abs(Projectile.Center.X - FargoSoulsUtil.ClosestPointInHitbox(player, Projectile.Center).X);
+                float ratio = 1f - x / (Projectile.width / 2);
+                float IdleAccel = 0.6f * ratio; //makes it easier to "walk" the snowball
+                Projectile.velocity.X += IdleAccel * (Projectile.Center.X < player.Center.X ? -1 : 1);
+                Projectile.velocity.Y += IdleAccel * (Projectile.Center.Y < player.Center.Y ? -1 : 1);
+            }
+
+            Projectile.position = Projectile.Bottom;
+            Projectile.width = (int)(width * Projectile.scale);
+            Projectile.height = (int)(height * Projectile.scale);
+            Projectile.Bottom = Projectile.position;
+
+            Projectile.timeLeft = 2;
         }
-        if ((double) ((Entity) this.Projectile).velocity.X != 0.0)
-          this.Projectile.spriteDirection = ((Entity) this.Projectile).direction = Math.Sign(((Entity) this.Projectile).velocity.X);
-        float num1 = ((Entity) this.Projectile).velocity.X / (3.14159274f * (float) this.width);
-        this.Projectile.rotation += num1;
-        if ((double) ((Entity) this.Projectile).velocity.Y == 0.0)
+
+        public override void OnKill(int timeLeft)
         {
-          ((Entity) this.Projectile).velocity.X *= 0.98f;
-          this.Projectile.scale = Math.Min(this.Projectile.scale + Math.Abs(num1) * 0.2f, 15f);
+            SoundEngine.PlaySound(SoundID.Dig, Projectile.Center);
+            Dusts();
         }
-        ((Entity) this.Projectile).velocity.Y += 0.4f;
-        if ((double) ((Entity) this.Projectile).velocity.Y > 16.0)
-          ((Entity) this.Projectile).velocity.Y = 16f;
-        if (this.Projectile.Colliding(((Entity) this.Projectile).Hitbox, ((Entity) player).Hitbox))
+
+        private void Dusts()
         {
-          float num2 = 0.6f * (float) (1.0 - (double) Math.Abs(((Entity) this.Projectile).Center.X - FargoSoulsUtil.ClosestPointInHitbox((Entity) player, ((Entity) this.Projectile).Center).X) / (double) (((Entity) this.Projectile).width / 2));
-          ((Entity) this.Projectile).velocity.X += num2 * ((double) ((Entity) this.Projectile).Center.X < (double) ((Entity) player).Center.X ? -1f : 1f);
-          ((Entity) this.Projectile).velocity.Y += num2 * ((double) ((Entity) this.Projectile).Center.Y < (double) ((Entity) player).Center.Y ? -1f : 1f);
+            int max = (int)(10 * Projectile.scale);
+            for (int i = 0; i < max; i++)
+            {
+                int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.SnowBlock, Scale: 1f + Projectile.scale / 10f);
+                Main.dust[d].velocity *= 0.8f;
+                Main.dust[d].noGravity = true;
+            }
         }
-        ((Entity) this.Projectile).position = ((Entity) this.Projectile).Bottom;
-        ((Entity) this.Projectile).width = (int) ((double) this.width * (double) this.Projectile.scale);
-        ((Entity) this.Projectile).height = (int) ((double) this.height * (double) this.Projectile.scale);
-        ((Entity) this.Projectile).Bottom = ((Entity) this.Projectile).position;
-        this.Projectile.timeLeft = 2;
-      }
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Dig, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      this.Dusts();
-    }
+        public override bool TileCollideStyle(ref int width, ref int height, ref bool fallThrough, ref Vector2 hitboxCenterFrac)
+        {
+            fallThrough = false;
+            width = 20;
+            return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
+        }
 
-    private void Dusts()
-    {
-      int num1 = (int) (10.0 * (double) this.Projectile.scale);
-      for (int index1 = 0; index1 < num1; ++index1)
-      {
-        Vector2 position = ((Entity) this.Projectile).position;
-        int width = ((Entity) this.Projectile).width;
-        int height = ((Entity) this.Projectile).height;
-        float num2 = (float) (1.0 + (double) this.Projectile.scale / 10.0);
-        Color color = new Color();
-        double num3 = (double) num2;
-        int index2 = Dust.NewDust(position, width, height, 51, 0.0f, 0.0f, 0, color, (float) num3);
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 0.8f);
-        Main.dust[index2].noGravity = true;
-      }
-    }
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            if (Projectile.velocity.X != oldVelocity.X && Math.Abs(oldVelocity.X) > 1)
+            {
+                Projectile.velocity.X = -oldVelocity.X * 0.5f;
+                Projectile.netUpdate = true;
+            }
+            if (Projectile.velocity.Y != oldVelocity.Y && Math.Abs(oldVelocity.Y) > 4)
+            {
+                Projectile.velocity.Y = -oldVelocity.Y * 0.5f;
+                Projectile.netUpdate = true;
+            }
+            return false;
+        }
 
-    public virtual bool TileCollideStyle(
-      ref int width,
-      ref int height,
-      ref bool fallThrough,
-      ref Vector2 hitboxCenterFrac)
-    {
-      fallThrough = false;
-      width = 20;
-      return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
-    }
+        public override void ModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers)
+        {
+            float speedModifier = Math.Abs(Projectile.velocity.X) / 3f;
+            if (speedModifier < 0.1f)
+                speedModifier = 0.1f;
+            if (speedModifier > 1.5f)
+                speedModifier = 1.5f;
+            modifiers.FinalDamage *= (float)Math.Sqrt(Projectile.scale) * speedModifier;
+            modifiers.Knockback *= Math.Max(1f, Math.Abs(Projectile.velocity.X) * 1.5f);
+        }
 
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      if ((double) ((Entity) this.Projectile).velocity.X != (double) oldVelocity.X && (double) Math.Abs(oldVelocity.X) > 1.0)
-      {
-        ((Entity) this.Projectile).velocity.X = (float) (-(double) oldVelocity.X * 0.5);
-        this.Projectile.netUpdate = true;
-      }
-      if ((double) ((Entity) this.Projectile).velocity.Y != (double) oldVelocity.Y && (double) Math.Abs(oldVelocity.Y) > 4.0)
-      {
-        ((Entity) this.Projectile).velocity.Y = (float) (-(double) oldVelocity.Y * 0.5);
-        this.Projectile.netUpdate = true;
-      }
-      return false;
-    }
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            float ratio = 1f - Math.Abs(Projectile.velocity.X) / 4f;
+            if (ratio < 0)
+                ratio = 0;
+            target.immune[Projectile.owner] = 10 + (int)(50 * ratio);
+        }
 
-    public virtual void ModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers)
-    {
-      float num = Math.Abs(((Entity) this.Projectile).velocity.X) / 3f;
-      if ((double) num < 0.10000000149011612)
-        num = 0.1f;
-      if ((double) num > 1.5)
-        num = 1.5f;
-      ref StatModifier local1 = ref modifiers.FinalDamage;
-      local1 = StatModifier.op_Multiply(local1, (float) Math.Sqrt((double) this.Projectile.scale) * num);
-      ref StatModifier local2 = ref modifiers.Knockback;
-      local2 = StatModifier.op_Multiply(local2, Math.Max(1f, Math.Abs(((Entity) this.Projectile).velocity.X) * 1.5f));
-    }
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      float num = (float) (1.0 - (double) Math.Abs(((Entity) this.Projectile).velocity.X) / 4.0);
-      if ((double) num < 0.0)
-        num = 0.0f;
-      target.immune[this.Projectile.owner] = 10 + (int) (50.0 * (double) num);
-    }
+            SpriteEffects effects = SpriteEffects.None;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = (SpriteEffects) 0;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

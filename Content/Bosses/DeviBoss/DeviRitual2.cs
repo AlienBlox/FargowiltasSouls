@@ -1,90 +1,108 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.DeviBoss.DeviRitual2
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.DeviBoss
 {
-  public class DeviRitual2 : ModProjectile
-  {
-    private const float PI = 3.14159274f;
-    private const float rotationPerTick = 0.0551156625f;
-    private const float threshold = 150f;
-
-    public virtual void SetStaticDefaults() => ((ModType) this).SetStaticDefaults();
-
-    public virtual void SetDefaults()
+    public class DeviRitual2 : ModProjectile
     {
-      ((Entity) this.Projectile).width = 12;
-      ((Entity) this.Projectile).height = 12;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.alpha = (int) byte.MaxValue;
-    }
+        private const float PI = (float)Math.PI;
+        private const float rotationPerTick = PI / 57f;
+        private const float threshold = 150;
 
-    public virtual void AI()
-    {
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[1], ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>());
-      if (npc != null)
-      {
-        this.Projectile.alpha -= 2;
-        if (this.Projectile.alpha < 0)
-          this.Projectile.alpha = 0;
-        ((Entity) this.Projectile).Center = ((Entity) npc).Center;
-      }
-      else
-      {
-        ((Entity) this.Projectile).velocity = Vector2.Zero;
-        this.Projectile.alpha += 2;
-        if (this.Projectile.alpha > (int) byte.MaxValue)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.Kill();
-          return;
+            // DisplayName.SetDefault("Deviantt Seal");
+            base.SetStaticDefaults();
         }
-      }
-      this.Projectile.timeLeft = 2;
-      this.Projectile.scale = (float) (1.0 - (double) this.Projectile.alpha / (double) byte.MaxValue);
-      this.Projectile.ai[0] -= (float) Math.PI / 57f;
-      if ((double) this.Projectile.ai[0] >= -3.1415927410125732)
-        return;
-      this.Projectile.ai[0] += 6.28318548f;
-      this.Projectile.netUpdate = true;
-    }
 
-    public virtual bool? CanDamage() => new bool?(false);
+        public override void SetDefaults()
+        {
+            Projectile.width = 12;
+            Projectile.height = 12;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.alpha = 255;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      for (int index = 0; index < 9; ++index)
-      {
-        Vector2 vector2_2 = Utils.RotatedBy(new Vector2((float) (150.0 / (Main.getGoodWorld ? 2.0 : 1.0) * (double) this.Projectile.scale / 2.0), 0.0f), (double) this.Projectile.ai[0], new Vector2());
-        float num3 = 0.69813174f * (float) index;
-        Vector2 vector2_3 = Utils.RotatedBy(vector2_2, (double) num3, new Vector2());
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_3), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, (float) ((double) num3 + (double) this.Projectile.ai[0] + 1.5707963705062866), vector2_1, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      }
-      return false;
-    }
+        public override void AI()
+        {
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[1], ModContent.NPCType<DeviBoss>());
+            if (npc != null)
+            {
+                Projectile.alpha -= 2;
+                if (Projectile.alpha < 0)
+                    Projectile.alpha = 0;
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
+                /*float distance = threshold * Projectile.scale / 2f;
+                for (int i = 0; i < 30; i++)
+                {
+                    Vector2 offset = new Vector2();
+                    double angle = Main.rand.NextDouble() * 2d * Math.PI;
+                    offset.X += (float)(Math.Sin(angle) * distance);
+                    offset.Y += (float)(Math.Cos(angle) * distance);
+                    Dust dust = Main.dust[Dust.NewDust(
+                        Main.npc[ai1].Center + offset - new Vector2(4, 4), 0, 0,
+                        86, 0, 0, 100, Color.White, 1f)];
+                    dust.velocity = Main.npc[ai1].velocity;
+                    dust.noGravity = true;
+                }*/
+
+                Projectile.Center = npc.Center;
+            }
+            else
+            {
+                Projectile.velocity = Vector2.Zero;
+                Projectile.alpha += 2;
+                if (Projectile.alpha > 255)
+                {
+                    Projectile.Kill();
+                    return;
+                }
+            }
+
+            Projectile.timeLeft = 2;
+            Projectile.scale = 1f - Projectile.alpha / 255f;
+            Projectile.ai[0] -= rotationPerTick;
+            if (Projectile.ai[0] < -PI)
+            {
+                Projectile.ai[0] += 2f * PI;
+                Projectile.netUpdate = true;
+            }
+
+            //Projectile.rotation += 0.5f;
+        }
+
+        public override bool? CanDamage()
+        {
+            return false;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = Projectile.GetAlpha(lightColor);
+
+            for (int x = 0; x < 9; x++)
+            {
+                Vector2 drawOffset = new Vector2(threshold / (Main.getGoodWorld ? 2 : 1) * Projectile.scale / 2f, 0f).RotatedBy(Projectile.ai[0]);
+                float rotation = 2f * PI / 9f * x;
+                drawOffset = drawOffset.RotatedBy(rotation);
+                Main.EntitySpriteDraw(texture2D13, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, rotation + Projectile.ai[0] + (float)Math.PI / 2, origin2, Projectile.scale, SpriteEffects.None, 0);
+            }
+            return false;
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
     }
-  }
 }

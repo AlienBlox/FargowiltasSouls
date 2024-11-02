@@ -1,25 +1,21 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.MagicalCurseBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class MagicalCurseBuff : ModBuff
-  {
-    public virtual string Texture => "FargowiltasSouls/Content/Buffs/PlaceholderDebuff";
-
-    public virtual void SetStaticDefaults()
+    public class MagicalCurseBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
+        public override string Texture => "FargowiltasSouls/Content/Buffs/PlaceholderDebuff";
 
-    public virtual void Update(NPC npc, ref int buffIndex) => npc.FargoSouls().MagicalCurse = true;
-  }
+        public override void SetStaticDefaults()
+        {
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+        }
+
+        public override void Update(NPC npc, ref int buffIndex)
+        {
+            npc.FargoSouls().MagicalCurse = true;
+        }
+    }
 }

@@ -1,143 +1,159 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.AbomBoss.AbomSwordHandle
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
+﻿
 
 using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Projectiles.Deathrays;
 using FargowiltasSouls.Core.Systems;
-using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
-using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.AbomBoss
 {
-  public class AbomSwordHandle : BaseDeathray
-  {
-    public int counter;
-
-    public virtual string Texture => "FargowiltasSouls/Content/Projectiles/Deathrays/AbomDeathray";
-
-    public AbomSwordHandle()
-      : base(150f)
+    public class AbomSwordHandle : BaseDeathray
     {
-    }
+        public override string Texture => "FargowiltasSouls/Content/Projectiles/Deathrays/AbomDeathray";
+        public AbomSwordHandle() : base(150) { }
+        public int counter;
 
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override void SetDefaults()
-    {
-      base.SetDefaults();
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.netImportant = true;
-    }
-
-    public virtual void AI()
-    {
-      Vector2? nullable = new Vector2?();
-      if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-      int projectileByIdentity = FargoSoulsUtil.GetProjectileByIdentity(this.Projectile.owner, (int) this.Projectile.ai[1], new int[1]
-      {
-        ModContent.ProjectileType<AbomSword>()
-      });
-      if (projectileByIdentity != -1)
-      {
-        ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) Main.projectile[projectileByIdentity]).Center, Vector2.op_Multiply(((Entity) Main.projectile[projectileByIdentity]).velocity, 75f));
-        ((Entity) this.Projectile).velocity = Utils.RotatedBy(((Entity) Main.projectile[projectileByIdentity]).velocity, (double) this.Projectile.ai[0], new Vector2());
-      }
-      if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-      double num1 = (double) this.Projectile.localAI[0];
-      float num2 = 1f;
-      ++this.Projectile.localAI[0];
-      if ((double) this.Projectile.localAI[0] >= (double) this.maxTime)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        this.Projectile.scale = (float) (Math.Sin((double) this.Projectile.localAI[0] * 3.1415927410125732 / (double) this.maxTime) * (double) num2 * 6.0);
-        if ((double) this.Projectile.scale > (double) num2)
-          this.Projectile.scale = num2;
-        float rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-        this.Projectile.rotation = rotation - 1.57079637f;
-        ((Entity) this.Projectile).velocity = Utils.ToRotationVector2(rotation);
-        float length = 3f;
-        int width = ((Entity) this.Projectile).width;
-        Vector2 center = ((Entity) this.Projectile).Center;
-        if (nullable.HasValue)
+        public override void SetStaticDefaults()
         {
-          Vector2 vector2 = nullable.Value;
+            base.SetStaticDefaults();
+            // DisplayName.SetDefault("Styx Gazer Blade");
         }
-        float[] numArray = new float[(int) length];
-        for (int index = 0; index < numArray.Length; ++index)
-          numArray[index] = 100f;
-        float num3 = 0.0f;
-        for (int index = 0; index < numArray.Length; ++index)
-          num3 += numArray[index];
-        this.Projectile.localAI[1] = MathHelper.Lerp(this.Projectile.localAI[1], num3 / length, 0.5f);
-      }
-    }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      ((Entity) target).velocity.X = (double) ((Entity) target).Center.X < (double) ((Entity) Main.projectile[(int) this.Projectile.ai[1]]).Center.X ? -15f : 15f;
-      ((Entity) target).velocity.Y = -10f;
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.AddBuff(ModContent.BuffType<AbomFangBuff>(), 300, true, false);
-        target.AddBuff(67, 180, true, false);
-      }
-      target.AddBuff(195, 600, true, false);
-      target.AddBuff(196, 600, true, false);
-    }
-
-    public float WidthFunction(float _)
-    {
-      return (float) ((double) ((Entity) this.Projectile).width * (double) this.Projectile.scale * 2.0);
-    }
-
-    public static Color ColorFunction(float _) => new Color(253, 254, 32, 100);
-
-    public override bool PreDraw(ref Color lightColor)
-    {
-      if (Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        return false;
-      ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.WillBigDeathray");
-      Vector2 vector2_1 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Utils.SafeNormalize(((Entity) this.Projectile).velocity, Vector2.UnitY), this.Projectile.localAI[1]));
-      Vector2 center = ((Entity) this.Projectile).Center;
-      Vector2[] vector2Array = new Vector2[8];
-      for (int index = 0; index < vector2Array.Length; ++index)
-        vector2Array[index] = Vector2.Lerp(center, vector2_1, (float) index / ((float) vector2Array.Length - 1f));
-      Color black = Color.Black;
-      shader.TrySetParameter("mainColor", (object) black);
-      ModContent.Request<Texture2D>("FargowiltasSouls/Assets/ExtraTextures/Trails/WillStreak", (AssetRequestMode) 2).Value.SetTexture1();
-      for (int index1 = 0; index1 < 2; ++index1)
-      {
-        // ISSUE: method pointer
-        // ISSUE: reference to a compiler-generated field
-        // ISSUE: reference to a compiler-generated field
-        // ISSUE: method pointer
-        PrimitiveSettings primitiveSettings = new PrimitiveSettings(new PrimitiveSettings.VertexWidthFunction((object) this, __methodptr(WidthFunction)), AbomSwordHandle.\u003C\u003EO.\u003C0\u003E__ColorFunction ?? (AbomSwordHandle.\u003C\u003EO.\u003C0\u003E__ColorFunction = new PrimitiveSettings.VertexColorFunction((object) null, __methodptr(ColorFunction))), (PrimitiveSettings.VertexOffsetFunction) null, true, false, shader, new int?(), new int?(), false, new (Vector2, Vector2)?());
-        PrimitiveRenderer.RenderTrail((IEnumerable<Vector2>) vector2Array, primitiveSettings, new int?(30));
-        for (int index2 = 0; index2 < vector2Array.Length / 2; ++index2)
+        public override void SetDefaults()
         {
-          Vector2 vector2_2 = vector2Array[index2];
-          int index3 = vector2Array.Length - 1 - index2;
-          vector2Array[index2] = vector2Array[index3];
-          vector2Array[index3] = vector2_2;
+            base.SetDefaults();
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+            Projectile.netImportant = true;
         }
-        PrimitiveRenderer.RenderTrail((IEnumerable<Vector2>) vector2Array, primitiveSettings, new int?(30));
-      }
-      return false;
+
+        public override void AI()
+        {
+            Vector2? vector78 = null;
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+            int sword = FargoSoulsUtil.GetProjectileByIdentity(Projectile.owner, (int)Projectile.ai[1], ModContent.ProjectileType<AbomSword>());
+            if (sword != -1)
+            {
+                Projectile.Center = Main.projectile[sword].Center + Main.projectile[sword].velocity * 75;
+                Projectile.velocity = Main.projectile[sword].velocity.RotatedBy(Projectile.ai[0]);
+            }
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+            if (Projectile.localAI[0] == 0f)
+            {
+                //SoundEngine.PlaySound(SoundID.Zombie104, Projectile.Center);
+            }
+            float num801 = 1f;
+            Projectile.localAI[0] += 1f;
+            if (Projectile.localAI[0] >= maxTime)
+            {
+                Projectile.Kill();
+                return;
+            }
+            Projectile.scale = (float)Math.Sin(Projectile.localAI[0] * 3.14159274f / maxTime) * num801 * 6f;
+            if (Projectile.scale > num801)
+            {
+                Projectile.scale = num801;
+            }
+            float num804 = Projectile.velocity.ToRotation();
+            /*if (Main.npc[ai1].velocity != Vector2.Zero)
+                num804 += Projectile.ai[0];*/
+            //Projectile.rotation = num804 - 1.57079637f;
+            Projectile.velocity = num804.ToRotationVector2();
+            float num805 = 3f;
+            float num806 = Projectile.width;
+            Vector2 samplingPoint = Projectile.Center;
+            if (vector78.HasValue)
+            {
+                samplingPoint = vector78.Value;
+            }
+            float[] array3 = new float[(int)num805];
+            //Collision.LaserScan(samplingPoint, Projectile.velocity, num806 * Projectile.scale, 3000f, array3);
+            for (int i = 0; i < array3.Length; i++)
+                array3[i] = 100f;
+            float num807 = 0f;
+            int num3;
+            for (int num808 = 0; num808 < array3.Length; num808 = num3 + 1)
+            {
+                num807 += array3[num808];
+                num3 = num808;
+            }
+            num807 /= num805;
+            float amount = 0.5f;
+            Projectile.localAI[1] = MathHelper.Lerp(Projectile.localAI[1], num807, amount);
+            /*Vector2 vector79 = Projectile.Center + Projectile.velocity * (Projectile.localAI[1] - 14f);
+            for (int num809 = 0; num809 < 2; num809 = num3 + 1)
+            {
+                float num810 = Projectile.velocity.ToRotation() + ((Main.rand.Next(2) == 1) ? -1f : 1f) * 1.57079637f;
+                float num811 = (float)Main.rand.NextDouble() * 2f + 2f;
+                Vector2 vector80 = new Vector2((float)Math.Cos((double)num810) * num811, (float)Math.Sin((double)num810) * num811);
+                int num812 = Dust.NewDust(vector79, 0, 0, 244, vector80.X, vector80.Y, 0, default(Color), 1f);
+                Main.dust[num812].noGravity = true;
+                Main.dust[num812].scale = 1.7f;
+                num3 = num809;
+            }
+            if (Main.rand.NextBool(5))
+            {
+                Vector2 value29 = Projectile.velocity.RotatedBy(1.5707963705062866, default(Vector2)) * ((float)Main.rand.NextDouble() - 0.5f) * (float)Projectile.width;
+                int num813 = Dust.NewDust(vector79 + value29 - Vector2.One * 4f, 8, 8, 244, 0f, 0f, 100, default(Color), 1.5f);
+                Dust dust = Main.dust[num813];
+                dust.velocity *= 0.5f;
+                Main.dust[num813].velocity.Y = -Math.Abs(Main.dust[num813].velocity.Y);
+            }*/
+            //DelegateMethods.v3_1 = new Vector3(0.3f, 0.65f, 0.7f);
+            //Utils.PlotTileLine(Projectile.Center, Projectile.Center + Projectile.velocity * Projectile.localAI[1], (float)Projectile.width * Projectile.scale, new Utils.PerLinePoint(DelegateMethods.CastLight));
+
+            /*if (Main.npc[ai1].velocity != Vector2.Zero && --counter < 0)
+            {
+                counter = 5;
+                if (FargoSoulsUtil.HostCheck) //spawn bonus projs
+                {
+                    Vector2 spawnPos = Projectile.Center;
+                    Vector2 vel = Projectile.velocity.RotatedBy(Math.PI / 2 * Math.Sign(Projectile.ai[0]));
+                    const int max = 15;
+                    for (int i = 1; i <= max; i++)
+                    {
+                        spawnPos += Projectile.velocity * 3000f / max;
+                        Projectile.NewProjectile(spawnPos, vel, ModContent.ProjectileType<AbomSickle2>(), Projectile.damage, 0f, Projectile.owner);
+                    }
+                }
+            }*/
+
+            /*int d = Dust.NewDust(Projectile.position + Projectile.velocity * Main.rand.NextFloat(100), Projectile.width, Projectile.height, 87, 0f, 0f, 0, default(Color), 1.5f);
+            Main.dust[d].noGravity = true;
+            Main.dust[d].velocity *= 4f;*/
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.velocity.X = target.Center.X < Main.projectile[(int)Projectile.ai[1]].Center.X ? -15f : 15f;
+            target.velocity.Y = -10f;
+
+            //Projectile.NewProjectile(target.Center + Main.rand.NextVector2Circular(100, 100), Vector2.Zero, ModContent.ProjectileType<AbomBlast>(), 0, 0f, Projectile.owner);
+
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.AddBuff(ModContent.BuffType<AbomFangBuff>(), 300);
+                target.AddBuff(BuffID.Burning, 180);
+            }
+            target.AddBuff(BuffID.WitheredArmor, 600);
+            target.AddBuff(BuffID.WitheredWeapon, 600);
+        }
+
+        public float WidthFunction(float _) => Projectile.width * Projectile.scale * 2;
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            //AbomSword.DrawStyxGazerDeathray(Projectile, Projectile.localAI[1], WidthFunction);
+            return false;
+        }
     }
-  }
 }

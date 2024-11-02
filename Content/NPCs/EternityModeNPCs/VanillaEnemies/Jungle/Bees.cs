@@ -1,43 +1,76 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Jungle.Bees
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Jungle
 {
-  public class Bees : EModeNPCBehaviour
-  {
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(210, 211);
-
-    public override void OnFirstTick(NPC npc)
+    public class Bees : EModeNPCBehaviour
     {
-      base.OnFirstTick(npc);
-      npc.buffImmune[20] = true;
-      npc.buffImmune[70] = true;
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.Bee,
+            NPCID.BeeSmall
+        );
 
-    public virtual bool CheckDead(NPC npc)
-    {
-      if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.beeBoss, 222))
-        return base.CheckDead(npc);
-      npc.life = 0;
-      npc.HitEffect(0, 10.0, new bool?());
-      return false;
-    }
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(ModContent.BuffType<InfestedBuff>(), 300, true, false);
-      target.AddBuff(ModContent.BuffType<SwarmingBuff>(), 600, true, false);
+            npc.buffImmune[BuffID.Poisoned] = true;
+            npc.buffImmune[BuffID.Venom] = true;
+        }
+
+        //public override void OnSpawn(NPC npc)
+        //{
+        //    base.OnSpawn(npc);
+
+        //    if (Main.rand.NextBool(5))
+        //        switch ((Main.hardMode && !FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.beeBoss, NPCID.QueenBee)) ? Main.rand.Next(16, 21) : Main.rand.Next(16))
+        //        {
+        //            case 0: npc.Transform(NPCID.Hornet); break;
+        //            case 1: npc.Transform(NPCID.HornetFatty); break;
+        //            case 2: npc.Transform(NPCID.HornetHoney); break;
+        //            case 3: npc.Transform(NPCID.HornetLeafy); break;
+        //            case 4: npc.Transform(NPCID.HornetSpikey); break;
+        //            case 5: npc.Transform(NPCID.HornetStingy); break;
+        //            case 6: npc.Transform(NPCID.LittleHornetFatty); break;
+        //            case 7: npc.Transform(NPCID.LittleHornetHoney); break;
+        //            case 8: npc.Transform(NPCID.LittleHornetLeafy); break;
+        //            case 9: npc.Transform(NPCID.LittleHornetSpikey); break;
+        //            case 10: npc.Transform(NPCID.LittleHornetStingy); break;
+        //            case 11: npc.Transform(NPCID.BigHornetFatty); break;
+        //            case 12: npc.Transform(NPCID.BigHornetHoney); break;
+        //            case 13: npc.Transform(NPCID.BigHornetLeafy); break;
+        //            case 14: npc.Transform(NPCID.BigHornetSpikey); break;
+        //            case 15: npc.Transform(NPCID.BigHornetStingy); break;
+        //            case 16: npc.Transform(NPCID.MossHornet); break;
+        //            case 17: npc.Transform(NPCID.BigMossHornet); break;
+        //            case 18: npc.Transform(NPCID.GiantMossHornet); break;
+        //            case 19: npc.Transform(NPCID.LittleMossHornet); break;
+        //            case 20: npc.Transform(NPCID.TinyMossHornet); break;
+        //        }
+        //}
+
+        public override bool CheckDead(NPC npc)
+        {
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.beeBoss, NPCID.QueenBee))
+            {
+                npc.life = 0;
+                npc.HitEffect();
+                return false;
+            }
+
+            return base.CheckDead(npc);
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(ModContent.BuffType<InfestedBuff>(), 300);
+            target.AddBuff(ModContent.BuffType<SwarmingBuff>(), 600);
+        }
     }
-  }
 }

@@ -1,94 +1,87 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.Volknet.Projectiles.PlasmaArrow
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.Volknet.Projectiles
 {
-  public class PlasmaArrow : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class PlasmaArrow : ModProjectile
     {
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Plasma Arrow");
+            //DisplayName.AddTranslation(GameCulture.Chinese, "等离子矢");
+        }
+        public override void SetDefaults()
+        {
+            Projectile.width = 15;
+            Projectile.height = 15;
+            Projectile.scale = 0.5f;
+            Projectile.friendly = true;
+            Projectile.hostile = false;
+            Projectile.timeLeft = 300;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.penetrate = 10;
+            Projectile.alpha = 255;
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 20;
+            Projectile.arrow = true;
+            Projectile.DamageType = DamageClass.Ranged;
+            Projectile.extraUpdates = 1;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 15;
-      ((Entity) this.Projectile).height = 15;
-      this.Projectile.scale = 0.5f;
-      this.Projectile.friendly = true;
-      this.Projectile.hostile = false;
-      this.Projectile.timeLeft = 300;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.penetrate = 10;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 20;
-      this.Projectile.arrow = true;
-      this.Projectile.DamageType = DamageClass.Ranged;
-      this.Projectile.extraUpdates = 1;
-    }
+        public override void AI()
+        {
+            Projectile.localAI[1]++;
+            if (Projectile.velocity.Length() < 30)
+            {
+                Projectile.velocity *= 1.04f;
+            }
+            if (Projectile.localAI[1] > 10 && !Collision.SolidCollision(Projectile.position, Projectile.width, Projectile.height))
+            {
+                Projectile.tileCollide = true;
+            }
+            Projectile.alpha -= 50;
+            if (Projectile.alpha < 0) Projectile.alpha = 0;
+            Projectile.rotation = (float)Math.Atan2(Projectile.velocity.Y, Projectile.velocity.X);
+        }
 
-    public virtual void AI()
-    {
-      ++this.Projectile.localAI[1];
-      if ((double) ((Vector2) ref ((Entity) this.Projectile).velocity).Length() < 30.0)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 1.04f);
-      }
-      if ((double) this.Projectile.localAI[1] > 10.0 && !Collision.SolidCollision(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height))
-        this.Projectile.tileCollide = true;
-      this.Projectile.alpha -= 50;
-      if (this.Projectile.alpha < 0)
-        this.Projectile.alpha = 0;
-      this.Projectile.rotation = (float) Math.Atan2((double) ((Entity) this.Projectile).velocity.Y, (double) ((Entity) this.Projectile).velocity.X);
-    }
+        public override Color? GetAlpha(Color lightColor) => Color.White * 0.4f * Projectile.Opacity;
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.op_Multiply(Color.White, 0.4f), this.Projectile.Opacity));
-    }
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Projectile.ai[0] = (Projectile.ai[0] + 1) % 40;
+            Texture2D tex = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            for (float i = 0; i < 3; i++)
+            {
+                Main.EntitySpriteDraw(tex, Projectile.Center - Main.screenPosition + (i * MathHelper.TwoPi / 3 + Projectile.ai[0] / 40 * MathHelper.TwoPi).ToRotationVector2() * 2, null, Projectile.GetAlpha(lightColor), Projectile.rotation, tex.Size() / 2, Projectile.scale, SpriteEffects.None, 0);
+            }
+            return false;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      this.Projectile.ai[0] = (float) (((double) this.Projectile.ai[0] + 1.0) % 40.0);
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      for (float num = 0.0f; (double) num < 3.0; ++num)
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), Vector2.op_Multiply(Utils.ToRotationVector2((float) ((double) num * 6.2831854820251465 / 3.0 + (double) this.Projectile.ai[0] / 40.0 * 6.2831854820251465)), 2f)), new Rectangle?(), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, Vector2.op_Division(Utils.Size(texture2D), 2f), this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
-    }
+        public override void OnKill(int timeLeft)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                Dust dust = Dust.NewDustDirect(Projectile.position, 20, 20, DustID.ChlorophyteWeapon, default, default, default, default, 3);
+                dust.velocity = Vector2.Normalize(dust.position - Projectile.Center) * Main.rand.Next(20);
+                dust.noGravity = true;
+            }
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index = 0; index < 10; ++index)
-      {
-        Dust dust = Dust.NewDustDirect(((Entity) this.Projectile).position, 20, 20, 157, 0.0f, 0.0f, 0, new Color(), 3f);
-        dust.velocity = Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(dust.position, ((Entity) this.Projectile).Center)), (float) Main.rand.Next(20));
-        dust.noGravity = true;
-      }
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                Dust dust = Dust.NewDustDirect(Projectile.position, 20, 20, DustID.ChlorophyteWeapon, default, default, default, default, 3);
+                dust.velocity = Vector2.Normalize(dust.position - Projectile.Center) * Main.rand.Next(20);
+                dust.noGravity = true;
+            }
+            target.AddBuff(BuffID.WitheredArmor, 600);
+            target.AddBuff(BuffID.Confused, 600);
+        }
     }
-
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      for (int index = 0; index < 10; ++index)
-      {
-        Dust dust = Dust.NewDustDirect(((Entity) this.Projectile).position, 20, 20, 157, 0.0f, 0.0f, 0, new Color(), 3f);
-        dust.velocity = Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(dust.position, ((Entity) this.Projectile).Center)), (float) Main.rand.Next(20));
-        dust.noGravity = true;
-      }
-      target.AddBuff(195, 600, false);
-      target.AddBuff(31, 600, false);
-    }
-  }
 }

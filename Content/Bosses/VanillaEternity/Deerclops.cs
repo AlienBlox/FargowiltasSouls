@@ -1,370 +1,476 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.VanillaEternity.Deerclops
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Common.Utilities;
-using FargowiltasSouls.Content.Buffs.Masomode;
-using FargowiltasSouls.Content.Projectiles;
+using System.IO;
+using Terraria.ModLoader.IO;
 using FargowiltasSouls.Content.Projectiles.Deathrays;
 using FargowiltasSouls.Content.Projectiles.Masomode;
-using FargowiltasSouls.Core.Globals;
-using FargowiltasSouls.Core.NPCMatching;
-using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using System;
-using System.IO;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
-using Terraria.ModLoader.IO;
+using FargowiltasSouls.Content.Projectiles;
+using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Core.Systems;
+using FargowiltasSouls.Core.Globals;
+using FargowiltasSouls.Common.Utilities;
+using FargowiltasSouls.Core.NPCMatching;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.VanillaEternity
 {
-  public class Deerclops : EModeNPCBehaviour
-  {
-    public int BerserkSpeedupTimer;
-    public int TeleportTimer;
-    public int WalkingSpeedUpTimer;
-    public bool EnteredPhase2;
-    public bool EnteredPhase3;
-    public bool DoLaserAttack;
-    public bool DroppedSummon;
-    public int ForceDespawnTimer;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(668);
-
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    public class Deerclops : EModeNPCBehaviour
     {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.BerserkSpeedupTimer);
-      binaryWriter.Write7BitEncodedInt(this.TeleportTimer);
-      binaryWriter.Write7BitEncodedInt(this.WalkingSpeedUpTimer);
-      bitWriter.WriteBit(this.EnteredPhase2);
-      bitWriter.WriteBit(this.EnteredPhase3);
-      bitWriter.WriteBit(this.DoLaserAttack);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Deerclops);
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.BerserkSpeedupTimer = binaryReader.Read7BitEncodedInt();
-      this.TeleportTimer = binaryReader.Read7BitEncodedInt();
-      this.WalkingSpeedUpTimer = binaryReader.Read7BitEncodedInt();
-      this.EnteredPhase2 = bitReader.ReadBit();
-      this.EnteredPhase3 = bitReader.ReadBit();
-      this.DoLaserAttack = bitReader.ReadBit();
-    }
+        public int BerserkSpeedupTimer;
+        public int TeleportTimer;
+        public int WalkingSpeedUpTimer;
 
-    public virtual void SetDefaults(NPC npc)
-    {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(npc);
-      npc.lifeMax = (int) Math.Round((double) npc.lifeMax * 1.25, (MidpointRounding) 0);
-    }
+        public bool EnteredPhase2;
+        public bool EnteredPhase3;
+        public bool DoLaserAttack;
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      npc.buffImmune[44] = true;
-      npc.buffImmune[324] = true;
-      npc.buffImmune[46] = true;
-      npc.buffImmune[47] = true;
-    }
+        public bool DroppedSummon;
 
-    public virtual bool CanHitPlayer(NPC npc, Player target, ref int CooldownSlot)
-    {
-      return npc.alpha <= 0 && base.CanHitPlayer(npc, target, ref CooldownSlot);
-    }
+        public int ForceDespawnTimer;
+        public int LockDirection;
 
-    public override bool SafePreAI(NPC npc)
-    {
-      bool flag = base.SafePreAI(npc);
-      EModeGlobalNPC.deerBoss = ((Entity) npc).whoAmI;
-      if (WorldSavingSystem.SwarmActive)
-        return flag;
-      --this.BerserkSpeedupTimer;
-      if ((double) npc.localAI[3] > 0.0 || this.EnteredPhase3)
-        ++npc.localAI[2];
-      if ((double) npc.ai[0] != 0.0)
-      {
-        npc.alpha -= 10;
-        if (npc.alpha < 0)
-          npc.alpha = 0;
-        if (this.EnteredPhase3)
-          ++npc.localAI[2];
-      }
-      ++this.TeleportTimer;
-      if (this.EnteredPhase3)
-        ++this.TeleportTimer;
-      if (((Entity) Main.LocalPlayer).active && !Main.LocalPlayer.ghost && !Main.LocalPlayer.dead && (double) ((Entity) npc).Distance(((Entity) Main.LocalPlayer).Center) < 1000.0)
-        Main.LocalPlayer.AddBuff(ModContent.BuffType<LowGroundBuff>(), 2, true, false);
-      switch ((int) npc.ai[0])
-      {
-        case 0:
-          if (++this.WalkingSpeedUpTimer > 900)
-            this.WalkingSpeedUpTimer = 900;
-          ((Entity) npc).position.X += (float) ((double) ((Entity) npc).velocity.X * (double) Math.Max(0, this.WalkingSpeedUpTimer - 90) / 90.0);
-          if (this.TeleportTimer < 780)
-          {
-            if (this.EnteredPhase3)
-              ((Entity) npc).position.X += ((Entity) npc).velocity.X;
-            if ((double) ((Entity) npc).velocity.Y == 0.0)
-            {
-              if (this.EnteredPhase2)
-                ((Entity) npc).position.X += ((Entity) npc).velocity.X;
-              if (this.BerserkSpeedupTimer > 0)
-                ((Entity) npc).position.X += (float) ((double) ((Entity) npc).velocity.X * 4.0 * (double) this.BerserkSpeedupTimer / 600.0);
-            }
-          }
-          if (this.EnteredPhase2)
-          {
-            if (!this.EnteredPhase3 && (double) npc.life < (double) npc.lifeMax * 0.33)
-            {
-              npc.ai[0] = 3f;
-              npc.ai[1] = 0.0f;
-              npc.netUpdate = true;
-              break;
-            }
-            if (this.TeleportTimer > 780)
-            {
-              this.WalkingSpeedUpTimer = 0;
-              ((Entity) npc).velocity.X *= 0.9f;
-              npc.dontTakeDamage = true;
-              npc.localAI[1] = 0.0f;
-              if (this.EnteredPhase2 && ((Entity) Main.LocalPlayer).active && !Main.LocalPlayer.ghost && !Main.LocalPlayer.dead && (double) ((Entity) npc).Distance(((Entity) Main.LocalPlayer).Center) < 1600.0)
-              {
-                FargoSoulsUtil.AddDebuffFixedDuration(Main.LocalPlayer, 22, 2);
-                FargoSoulsUtil.AddDebuffFixedDuration(Main.LocalPlayer, 80, 2);
-              }
-              if (npc.alpha == 0)
-              {
-                SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-                Deerclops.SpawnFreezeHands(npc);
-              }
-              npc.alpha += 5;
-              if (npc.alpha > (int) byte.MaxValue)
-              {
-                npc.alpha = (int) byte.MaxValue;
-                npc.localAI[3] = 30f;
-                if (npc.HasPlayerTarget)
-                {
-                  float num1 = (float) (224 * Math.Sign(((Entity) npc).Center.X - ((Entity) Main.player[npc.target]).Center.X)) * -1f;
-                  if (this.TeleportTimer == 790)
-                  {
-                    if (Utils.NextBool(Main.rand))
-                      num1 *= -1f;
-                    if (Main.netMode == 2)
-                      NetMessage.SendData(23, -1, -1, (NetworkText) null, ((Entity) npc).whoAmI, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-                    this.DoLaserAttack = !this.DoLaserAttack;
-                    EModeNPCBehaviour.NetSync(npc);
-                  }
-                  ((Entity) npc).Bottom = Vector2.op_Addition(((Entity) Main.player[npc.target]).Bottom, Vector2.op_Multiply(num1, Vector2.UnitX));
-                  ((Entity) npc).direction = Math.Sign(((Entity) Main.player[npc.target]).Center.X - ((Entity) npc).Center.X);
-                  ((Entity) npc).velocity.X = 3.4f * (float) ((Entity) npc).direction;
-                  ((Entity) npc).velocity.Y = 0.0f;
-                  int num2 = 180;
-                  if (this.EnteredPhase3)
-                    num2 -= 30;
-                  if (WorldSavingSystem.MasochistModeReal)
-                    num2 -= 30;
-                  if (this.TeleportTimer > 780 + num2)
-                  {
-                    this.TeleportTimer = 0;
-                    ((Entity) npc).velocity.X = 0.0f;
-                    npc.ai[0] = 4f;
-                    npc.ai[1] = 0.0f;
-                    EModeNPCBehaviour.NetSync(npc);
-                    if (Main.netMode == 2)
-                      NetMessage.SendData(23, -1, -1, (NetworkText) null, ((Entity) npc).whoAmI, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-                  }
-                }
-              }
-              else
-              {
-                this.TeleportTimer = 780;
-                if ((double) npc.localAI[3] > 0.0)
-                  npc.localAI[3] -= 3f;
-              }
-              return false;
-            }
-            break;
-          }
-          if ((double) npc.life < (double) npc.lifeMax * 0.66)
-          {
-            npc.ai[0] = 3f;
-            npc.ai[1] = 0.0f;
-            npc.netUpdate = true;
-            break;
-          }
-          break;
-        case 1:
-          this.WalkingSpeedUpTimer = 0;
-          if ((double) npc.ai[1] < 30.0 && WorldSavingSystem.MasochistModeReal)
-          {
-            npc.ai[1] += 0.5f;
-            npc.frameCounter += 0.5;
-            break;
-          }
-          break;
-        case 3:
-          this.WalkingSpeedUpTimer = 0;
-          if (!WorldSavingSystem.MasochistModeReal && (double) npc.ai[1] < 30.0)
-          {
-            npc.ai[1] -= 0.5f;
-            npc.frameCounter -= 0.5;
-          }
-          if (this.EnteredPhase2)
-          {
-            npc.localAI[1] = 0.0f;
-            npc.localAI[3] = 30f;
-            if ((double) npc.ai[1] > 30.0)
-            {
-              Main.dayTime = false;
-              Main.time = 16200.0;
-            }
-          }
-          else if ((double) npc.life < (double) npc.lifeMax * 0.66)
-          {
-            this.EnteredPhase2 = true;
-            EModeNPCBehaviour.NetSync(npc);
-          }
-          if (this.EnteredPhase3)
-          {
-            if (!Main.dedServ)
-              FargoSoulsUtil.ScreenshakeRumble(6f);
-            if ((double) npc.ai[1] > 30.0 && npc.HasValidTarget)
-              ((Entity) npc).position = Vector2.Lerp(((Entity) npc).position, Vector2.op_Subtraction(((Entity) Main.player[npc.target]).Center, Vector2.op_Multiply(450f, Vector2.UnitY)), 0.2f);
-          }
-          else if ((double) npc.life < (double) npc.lifeMax * 0.33)
-          {
-            this.EnteredPhase3 = true;
-            EModeNPCBehaviour.NetSync(npc);
-          }
-          if (this.EnteredPhase3 || WorldSavingSystem.MasochistModeReal)
-          {
-            this.BerserkSpeedupTimer = 600;
-            break;
-          }
-          break;
-        case 4:
-          this.WalkingSpeedUpTimer = 0;
-          int num3 = 100;
-          if (this.EnteredPhase3)
-            num3 *= 2;
-          if (this.TeleportTimer > 780 - num3)
-            this.TeleportTimer = 780 - num3;
-          if ((double) npc.ai[1] == 0.0)
-          {
-            if (this.EnteredPhase2)
-            {
-              if (npc.alpha == 0)
-                this.DoLaserAttack = Utils.NextBool(Main.rand);
-              EModeNPCBehaviour.NetSync(npc);
-              if (FargoSoulsUtil.HostCheck && this.DoLaserAttack)
-                Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0.0f, Main.myPlayer, (float) ((Entity) npc).whoAmI, (float) npc.type, 0.0f);
-            }
-            if (FargoSoulsUtil.HostCheck && !this.DoLaserAttack)
-              Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.Zero, 683, 0, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-          }
-          Vector2 vector2 = Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply(new Vector2((float) (64 * ((Entity) npc).direction), -24f), npc.scale));
-          if (WorldSavingSystem.MasochistModeReal && (double) npc.ai[1] < 35.0)
-            ++npc.ai[1];
-          if (this.DoLaserAttack && (double) npc.ai[1] >= 70.0)
-          {
-            if (this.EnteredPhase3)
-            {
-              float num4 = 0.33f;
-              if ((double) npc.ai[1] == 70.0)
-              {
-                float num5 = 55.60606f * 5f;
-                float num6 = (float) (3.1415927410125732 * (WorldSavingSystem.MasochistModeReal ? 1.0 : 0.800000011920929)) / num5 * (float) -((Entity) npc).direction;
-                if (FargoSoulsUtil.HostCheck)
-                  Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), vector2, Vector2.UnitY, ModContent.ProjectileType<DeerclopsDeathray>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 2f), 0.0f, Main.myPlayer, num6, num5, 0.0f);
-              }
-              npc.ai[1] += num4;
-              if ((double) npc.ai[1] < 90.0)
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(BerserkSpeedupTimer);
+            binaryWriter.Write7BitEncodedInt(TeleportTimer);
+            binaryWriter.Write7BitEncodedInt(WalkingSpeedUpTimer);
+            bitWriter.WriteBit(EnteredPhase2);
+            bitWriter.WriteBit(EnteredPhase3);
+            bitWriter.WriteBit(DoLaserAttack);
+        }
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+        {
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            BerserkSpeedupTimer = binaryReader.Read7BitEncodedInt();
+            TeleportTimer = binaryReader.Read7BitEncodedInt();
+            WalkingSpeedUpTimer = binaryReader.Read7BitEncodedInt();
+            EnteredPhase2 = bitReader.ReadBit();
+            EnteredPhase3 = bitReader.ReadBit();
+            DoLaserAttack = bitReader.ReadBit();
+        }
+
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
+
+            npc.lifeMax = (int)Math.Round(npc.lifeMax * 1.25, MidpointRounding.ToEven);
+        }
+
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
+
+            npc.buffImmune[BuffID.Frostburn] = true;
+            npc.buffImmune[BuffID.Frostburn2] = true;
+            npc.buffImmune[BuffID.Chilled] = true;
+            npc.buffImmune[BuffID.Frozen] = true;
+        }
+
+        public override bool CanHitPlayer(NPC npc, Player target, ref int CooldownSlot)
+        {
+            if (npc.alpha > 0)
                 return false;
-            }
-            else
+
+            return base.CanHitPlayer(npc, target, ref CooldownSlot);
+        }
+
+        public override bool SafePreAI(NPC npc)
+        {
+            bool result = base.SafePreAI(npc);
+
+            EModeGlobalNPC.deerBoss = npc.whoAmI;
+
+            const int MaxBerserkTime = 600;
+
+            BerserkSpeedupTimer -= 1;
+
+            if (npc.localAI[3] > 0 || EnteredPhase3)
+                npc.localAI[2]++; //cry about it
+
+            const int TeleportThreshold = 780;
+
+            if (npc.ai[0] != 0)
             {
-              npc.ai[1] += 0.33f;
-              if ((double) npc.ai[1] >= 89.0)
-              {
-                npc.ai[0] = 2f;
-                npc.ai[1] = 0.0f;
-                npc.frameCounter = 0.0;
-                npc.netUpdate = true;
-                break;
-              }
+                npc.alpha -= 10;
+                if (npc.alpha < 0)
+                    npc.alpha = 0;
+
+                if (EnteredPhase3)
+                    npc.localAI[2]++;
             }
-            if ((double) npc.ai[1] < 90.0)
-              return false;
-            break;
-          }
-          break;
-        case 5:
-          if ((double) npc.ai[1] == 30.0 && npc.HasValidTarget && (double) Math.Abs(((Entity) npc).Center.X - ((Entity) Main.player[npc.target]).Center.X) < 48.0 && (double) ((Entity) Main.player[npc.target]).Bottom.Y < (double) ((Entity) npc).Top.Y - 80.0)
-          {
-            Deerclops.SpawnFreezeHands(npc);
-            break;
-          }
-          break;
-        case 6:
-          if (++this.ForceDespawnTimer > 180 && FargoSoulsUtil.HostCheck)
-          {
-            npc.ai[0] = 8f;
-            npc.ai[1] = 0.0f;
-            npc.localAI[1] = 0.0f;
-            npc.netUpdate = true;
-            break;
-          }
-          break;
-      }
-      if (this.EnteredPhase3 && ((double) npc.ai[0] != 0.0 || npc.alpha <= 0))
-      {
-        npc.localAI[3] += 3f;
-        if ((double) npc.localAI[3] > 30.0)
-          npc.localAI[3] = 30f;
-      }
-      EModeUtils.DropSummon(npc, "DeerThing2", NPC.downedDeerclops, ref this.DroppedSummon);
-      return flag;
-    }
 
-    private static void SpawnFreezeHands(NPC npc)
-    {
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      for (int index = 0; index < 12; ++index)
-      {
-        Vector2 vector2 = Vector2.op_Addition(((Entity) Main.player[npc.target]).Center, Vector2.op_Multiply(16f * Utils.NextFloat(Main.rand, 6f, 36f), Utils.RotatedBy(Vector2.UnitX, 0.52359879016876221 * ((double) index + (double) Utils.NextFloat(Main.rand)), new Vector2())));
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), vector2, Vector2.Zero, ModContent.ProjectileType<DeerclopsHand>(), 0, 0.0f, Main.myPlayer, (float) npc.target, 0.0f, 0.0f);
-      }
-    }
+            TeleportTimer++;
+            if (EnteredPhase3)
+                TeleportTimer++;
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(44, 90, true, false);
-      target.AddBuff(36, 90, true, false);
-      if (WorldSavingSystem.MasochistModeReal)
-        target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 600, true, false);
-      target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 1200, true, false);
-    }
+            if (Main.LocalPlayer.active && !Main.LocalPlayer.ghost && !Main.LocalPlayer.dead && npc.Distance(Main.LocalPlayer.Center) < 1000)
+            {
+                Main.LocalPlayer.AddBuff(ModContent.BuffType<LowGroundBuff>(), 2);
+                Main.LocalPlayer.buffImmune[BuffID.Frozen] = true;
+            }
+                
 
-    public override void LoadSprites(NPC npc, bool recolor)
-    {
-      base.LoadSprites(npc, recolor);
-      EModeNPCBehaviour.LoadNPCSprite(recolor, npc.type);
-      EModeNPCBehaviour.LoadBossHeadSprite(recolor, 39);
-      EModeNPCBehaviour.LoadGore(recolor, 1270);
-      EModeNPCBehaviour.LoadGore(recolor, 1271);
-      EModeNPCBehaviour.LoadGore(recolor, 1272);
-      EModeNPCBehaviour.LoadGore(recolor, 1273);
-      EModeNPCBehaviour.LoadGore(recolor, 1274);
+            switch ((int)npc.ai[0])
+            {
+                case 0: //walking at player
+                    if (++WalkingSpeedUpTimer > 900) //scaling capped for edge case sanity
+                        WalkingSpeedUpTimer = 900;
+                    //after walking for a bit, begin walking faster to catch up to outrunning player
+                    npc.position.X += npc.velocity.X * Math.Max(0, WalkingSpeedUpTimer - 90) / 90f;
+
+                    if (TeleportTimer < TeleportThreshold)
+                    {
+                        if (EnteredPhase3)
+                            npc.position.X += npc.velocity.X;
+
+                        if (npc.velocity.Y == 0)
+                        {
+                            if (EnteredPhase2)
+                                npc.position.X += npc.velocity.X;
+                            if (BerserkSpeedupTimer > 0)
+                                npc.position.X += npc.velocity.X * 4f * BerserkSpeedupTimer / MaxBerserkTime;
+                        }
+                    }
+
+                    if (EnteredPhase2)
+                    {
+                        if (!EnteredPhase3 && npc.life < npc.lifeMax * .33)
+                        {
+                            npc.ai[0] = 3;
+                            npc.ai[1] = 0;
+                            npc.netUpdate = true;
+                            break;
+                        }
+
+                        if (TeleportTimer > TeleportThreshold)
+                        {
+                            WalkingSpeedUpTimer = 0;
+
+                            npc.velocity.X *= 0.9f;
+                            npc.dontTakeDamage = true;
+                            npc.localAI[1] = 0; //reset walls attack counter
+
+                            if (EnteredPhase2 && Main.LocalPlayer.active && !Main.LocalPlayer.ghost && !Main.LocalPlayer.dead && npc.Distance(Main.LocalPlayer.Center) < 1600)
+                            {
+                                FargoSoulsUtil.AddDebuffFixedDuration(Main.LocalPlayer, BuffID.Darkness, 2);
+                                FargoSoulsUtil.AddDebuffFixedDuration(Main.LocalPlayer, BuffID.Blackout, 2);
+                            }
+
+                            if (npc.alpha == 0)
+                            {
+                                SoundEngine.PlaySound(SoundID.Roar, npc.Center);
+
+                                SpawnFreezeHands(npc, Main.player[npc.target]);
+                            }
+
+                            npc.alpha += 5;
+                            if (WorldSavingSystem.SwarmActive)
+                                npc.alpha -= 2;
+                            if (npc.alpha > 255)
+                            {
+                                npc.alpha = 255;
+
+                                npc.localAI[3] = 30;
+
+                                if (npc.HasPlayerTarget) //teleport
+                                {
+                                    float distance = 16 * 14 * Math.Sign(npc.Center.X - Main.player[npc.target].Center.X);
+                                    distance *= -1f; //alternate back and forth
+
+                                    if (TeleportTimer == TeleportThreshold + 10) //introduce randomness
+                                    {
+                                        if (Main.rand.NextBool())
+                                            distance *= -1f;
+
+                                        if (Main.netMode == NetmodeID.Server)
+                                            NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
+
+                                        DoLaserAttack = !DoLaserAttack; //guarantee he alternates wall attacks at some point in the fight
+                                        NetSync(npc);
+                                    }
+
+                                    npc.Bottom = Main.player[npc.target].Bottom + distance * Vector2.UnitX;
+
+                                    npc.direction = Math.Sign(Main.player[npc.target].Center.X - npc.Center.X);
+                                    npc.velocity.X = 3.4f * npc.direction;
+                                    npc.velocity.Y = 0;
+
+                                    int addedThreshold = 180;
+                                    if (EnteredPhase3)
+                                        addedThreshold -= 30;
+                                    if (WorldSavingSystem.MasochistModeReal)
+                                        addedThreshold -= 30;
+
+                                    if (TeleportTimer > TeleportThreshold + addedThreshold)
+                                    {
+                                        TeleportTimer = 0;
+                                        npc.velocity.X = 0;
+                                        npc.ai[0] = 4;
+                                        npc.ai[1] = 0;
+                                        NetSync(npc);
+                                        if (Main.netMode == NetmodeID.Server)
+                                            NetMessage.SendData(MessageID.SyncNPC, number: npc.whoAmI);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                TeleportTimer = TeleportThreshold;
+
+                                if (npc.localAI[3] > 0)
+                                    npc.localAI[3] -= 3; //remove visual effect
+                            }
+
+                            return false;
+                        }
+                    }
+                    else if (npc.life < npc.lifeMax * .66)
+                    {
+                        npc.ai[0] = 3;
+                        npc.ai[1] = 0;
+                        npc.netUpdate = true;
+                    }
+
+                    break;
+
+                case 1: //ice wave, npc.localai[1] counts them, attacks at ai1=30, last spike 52, ends at ai1=80
+                    WalkingSpeedUpTimer = 0;
+
+                    if (npc.ai[1] < 30)
+                    {
+                        if (WorldSavingSystem.MasochistModeReal)
+                        {
+                            npc.ai[1] += 0.5f;
+                            npc.frameCounter += 0.5;
+                        }
+                    }
+                    break;
+
+                case 2: //debris attack
+                    break;
+
+                case 3: //roar at 30, ends at ai1=60
+                    WalkingSpeedUpTimer = 0;
+
+                    if (!WorldSavingSystem.MasochistModeReal && npc.ai[1] < 30)
+                    {
+                        npc.ai[1] -= 0.5f;
+                        npc.frameCounter -= 0.5;
+                    }
+
+                    if (EnteredPhase2)
+                    {
+                        npc.localAI[1] = 0; //ensure this is always the same
+                        npc.localAI[3] = 30; //go invul
+
+                        if (npc.ai[1] > 30)
+                        {
+                            Main.dayTime = false;
+                            Main.time = 16200; //midnight, to help teleport visual
+                        }
+                    }
+                    else if (npc.life < npc.lifeMax * .66)
+                    {
+                        EnteredPhase2 = true;
+                        NetSync(npc);
+                    }
+
+                    if (EnteredPhase3)
+                    {
+                        if (!Main.dedServ)
+                            FargoSoulsUtil.ScreenshakeRumble(6);
+
+                        if (npc.ai[1] > 30) //roaring
+                        {
+                            if (npc.HasValidTarget) //fly over player
+                                npc.position = Vector2.Lerp(npc.position, Main.player[npc.target].Center - 450 * Vector2.UnitY, 0.2f);
+                        }
+                    }
+                    else if (npc.life < npc.lifeMax * .33)
+                    {
+                        EnteredPhase3 = true;
+                        NetSync(npc);
+                    }
+
+                    if (EnteredPhase3 || WorldSavingSystem.MasochistModeReal)
+                        BerserkSpeedupTimer = MaxBerserkTime;
+                    break;
+
+                case 4: //both sides ice wave, attacks at ai1=50, last spike 70, ends at ai1=90
+                    {
+                        WalkingSpeedUpTimer = 0;
+
+                        int cooldown = 100; //stops deerclops from teleporting while old ice walls are still there
+                        if (EnteredPhase3)
+                            cooldown *= 2;
+                        if (TeleportTimer > TeleportThreshold - cooldown)
+                            TeleportTimer = TeleportThreshold - cooldown;
+
+                        if (npc.ai[1] == 0)
+                        {
+                            LockDirection = npc.direction;
+                            if (EnteredPhase2)
+                            {
+                                if (npc.alpha == 0) //i.e. dont randomize when coming out of tp
+                                    DoLaserAttack = Main.rand.NextBool();
+                                NetSync(npc);
+
+                                if (FargoSoulsUtil.HostCheck)
+                                {
+                                    if (DoLaserAttack)
+                                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, npc.whoAmI, npc.type);
+                                }
+                            }
+
+                            if (FargoSoulsUtil.HostCheck && !DoLaserAttack)
+                            {
+                                Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Vector2.Zero, ProjectileID.DD2OgreSmash, 0, 0f, Main.myPlayer);
+                            }
+                        }
+                        npc.direction = LockDirection;
+                        Vector2 eye = npc.Center + new Vector2(64 * npc.direction, -24f) * npc.scale;
+
+                        if (WorldSavingSystem.MasochistModeReal)
+                        {
+                            const int desiredStartup = 30; //effectively changes startup from 50 to this value
+                            const int threshold = 50 - desiredStartup / 2;
+                            if (npc.ai[1] < threshold)
+                                npc.ai[1]++;
+                        }
+
+                        if (DoLaserAttack && npc.ai[1] >= 70)
+                        {
+                            if (EnteredPhase3)
+                            {
+                                const float baseIncrement = 0.33f;
+                                float increment = baseIncrement;
+                                //if (WorldSavingSystem.MasochistModeReal) increment *= 2;
+
+                                if (npc.ai[1] == 70) //shoot laser
+                                {
+                                    float time = (90 - 70) / baseIncrement - 5;
+                                    time *= 5; //account for the ray having extra updates
+                                    float rotation = MathHelper.Pi * (WorldSavingSystem.MasochistModeReal ? 1f : 0.8f) / time * -npc.direction;
+
+                                    if (FargoSoulsUtil.HostCheck)
+                                        Projectile.NewProjectile(npc.GetSource_FromThis(), eye, Vector2.UnitY, ModContent.ProjectileType<DeerclopsDeathray>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 2f), 0f, Main.myPlayer, rotation, time);
+                                }
+
+                                npc.ai[1] += increment; //more endlag than normal
+
+                                if (npc.ai[1] < 90)
+                                    return false; //stop deerclops from turning around
+                            }
+                            else
+                            {
+                                npc.ai[1] += 0.33f; //more endlag than normal
+
+                                if (npc.ai[1] >= 89)
+                                {
+                                    npc.ai[0] = 2; //force debris attack instead
+                                    npc.ai[1] = 0;
+                                    npc.frameCounter = 0;
+                                    npc.netUpdate = true;
+                                    break;
+                                }
+                            }
+
+                            if (npc.ai[1] < 90)
+                                return false; //stop deerclops from turning around
+                        }
+                    }
+                    break;
+
+                case 5: //another roar?
+                    if (npc.ai[1] == 30)
+                    {
+                        //if player is somehow directly above deerclops at moment of roar
+                        if (npc.HasValidTarget && Math.Abs(npc.Center.X - Main.player[npc.target].Center.X) < 16 * 3
+                            && Main.player[npc.target].Bottom.Y < npc.Top.Y - 16 * 5)
+                        {
+                            //freeze them and drag them down
+                            SpawnFreezeHands(npc, Main.player[npc.target]);
+                        }
+                    }
+                    break;
+
+                case 6: //trying to return home
+                    if (++ForceDespawnTimer > 180)
+                    {
+                        if (FargoSoulsUtil.HostCheck) //force despawn
+                        {
+                            npc.ai[0] = 8f;
+                            npc.ai[1] = 0.0f;
+                            npc.localAI[1] = 0.0f;
+                            npc.netUpdate = true;
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+
+            //FargoSoulsUtil.PrintAI(npc);
+
+            if (EnteredPhase3 && !(npc.ai[0] == 0 && npc.alpha > 0))
+            {
+                npc.localAI[3] += 3;
+                if (npc.localAI[3] > 30)
+                    npc.localAI[3] = 30;
+            }
+
+            //FargoSoulsUtil.PrintAI(npc);
+
+            EModeUtils.DropSummon(npc, "DeerThing2", NPC.downedDeerclops, ref DroppedSummon);
+
+            return result;
+        }
+
+        public static void SpawnFreezeHands(Entity source, Player targetPlayer)
+        {
+            if (FargoSoulsUtil.HostCheck)
+            {
+                const int max = 12;
+                for (int i = 0; i < 12; i++)
+                {
+                    Vector2 spawnPos = targetPlayer.Center + 16 * Main.rand.NextFloat(6, 36) * Vector2.UnitX.RotatedBy(MathHelper.TwoPi / max * (i + Main.rand.NextFloat()));
+                    Projectile.NewProjectile(source.GetSource_FromThis(), spawnPos, Vector2.Zero, ModContent.ProjectileType<DeerclopsHand>(), 0, 0f, Main.myPlayer, targetPlayer.whoAmI);
+                }
+            }
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(BuffID.Frostburn, 90);
+            target.AddBuff(BuffID.BrokenArmor, 90);
+            if (WorldSavingSystem.MasochistModeReal)
+                target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 600);
+            target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 1200);
+        }
+
+        public override void LoadSprites(NPC npc, bool recolor)
+        {
+            base.LoadSprites(npc, recolor);
+
+            LoadNPCSprite(recolor, npc.type);
+            LoadBossHeadSprite(recolor, 39);
+            LoadGore(recolor, 1270);
+            LoadGore(recolor, 1271);
+            LoadGore(recolor, 1272);
+            LoadGore(recolor, 1273);
+            LoadGore(recolor, 1274);
+        }
     }
-  }
 }

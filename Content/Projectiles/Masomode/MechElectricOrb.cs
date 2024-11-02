@@ -1,14 +1,10 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.MechElectricOrb
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Common.Graphics.Particles;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.Systems;
+using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -18,165 +14,258 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class MechElectricOrb : ModProjectile
-  {
-    public static readonly SoundStyle ShotSound;
-    public static readonly SoundStyle HumSound;
-    public const int Red = 0;
-    public const int Blue = 1;
-    public const int Yellow = 2;
-    public const int Green = 3;
-    private bool lastSecondAccel;
-
-    private ref float ColorAI => ref this.Projectile.ai[2];
-
-    public float ColorType
+    public class MechElectricOrb : ModProjectile
     {
-      get
-      {
-        return !WorldSavingSystem.EternityMode || !SoulConfig.Instance.BossRecolors ? 0.0f : this.ColorAI;
-      }
-    }
-
-    public virtual void SetStaticDefaults()
-    {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-      Main.projFrames[this.Type] = 10;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 24;
-      ((Entity) this.Projectile).height = 24;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.alpha = 50;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.timeLeft = 600;
-      this.Projectile.hostile = true;
-    }
-
-    public virtual bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      if (((Rectangle) ref projHitbox).Intersects(targetHitbox))
-        return new bool?(true);
-      Rectangle rectangle = projHitbox;
-      rectangle.X = (int) ((Entity) this.Projectile).oldPosition.X;
-      rectangle.Y = (int) ((Entity) this.Projectile).oldPosition.Y;
-      return ((Rectangle) ref rectangle).Intersects(targetHitbox) ? new bool?(true) : new bool?(false);
-    }
-
-    public virtual void AI()
-    {
-      if (++this.Projectile.frameCounter > 6)
-      {
-        if (++this.Projectile.frame >= Main.projFrames[this.Type])
-          this.Projectile.frame = 0;
-        this.Projectile.frameCounter = 0;
-      }
-      if ((double) this.Projectile.localAI[1] == 0.0)
-      {
-        SoundStyle shotSound = MechElectricOrb.ShotSound;
-        ((SoundStyle) ref shotSound).Volume = 0.5f;
-        SoundEngine.PlaySound(ref shotSound, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-        this.Projectile.localAI[1] = 1f;
-        SoundStyle humSound = MechElectricOrb.HumSound;
-        ((SoundStyle) ref humSound).PitchVariance = 0.3f;
-        ((SoundStyle) ref humSound).Volume = 0.2f;
-        ((SoundStyle) ref humSound).MaxInstances = 5;
-        ((SoundStyle) ref humSound).SoundLimitBehavior = (SoundLimitBehavior) 1;
-        SoundEngine.PlaySound(ref humSound, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-        this.lastSecondAccel = this.Projectile.type == ModContent.ProjectileType<MechElectricOrb>();
-      }
-      if ((double) this.Projectile.localAI[0] == 0.0)
-        this.Projectile.localAI[0] = Utils.NextBool(Main.rand) ? 1f : -1f;
-      this.Projectile.Opacity = 1f;
-      this.Projectile.rotation += 0.157079637f * this.Projectile.localAI[0];
-      float colorType = this.ColorType;
-      Color color = (double) colorType == 1.0 ? Color.Teal : ((double) colorType == 3.0 ? Color.Green : ((double) colorType == 2.0 ? Color.Yellow : Color.Red));
-      if (Utils.NextBool(Main.rand, 6))
-        new ElectricSpark(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.Normalize(Vector2.op_UnaryNegation(Utils.RotatedByRandom(((Entity) this.Projectile).velocity, 0.62831854820251465))), Math.Max(4f, ((Vector2) ref ((Entity) this.Projectile).velocity).Length() / 2f)), Color.op_Multiply(color, 0.7f), Utils.NextFloat(Main.rand, 0.7f, 1f), 20).Spawn();
-      Lighting.AddLight(((Entity) this.Projectile).Center, (float) ((Color) ref color).R / (float) byte.MaxValue, (float) ((Color) ref color).G / (float) byte.MaxValue, (float) ((Color) ref color).B / (float) byte.MaxValue);
-      if (this.lastSecondAccel && (double) this.Projectile.ai[0] == -1.0 && (double) --this.Projectile.ai[1] < 0.0)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 1.03f);
-      }
-      float num = ((Vector2) ref ((Entity) this.Projectile).velocity).Length() / (float) (((Entity) this.Projectile).width * 3);
-      if ((double) num <= 1.0)
-        return;
-      Projectile projectile1 = this.Projectile;
-      ((Entity) projectile1).velocity = Vector2.op_Division(((Entity) projectile1).velocity, num);
-    }
-
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.primeBoss, (int) sbyte.MaxValue))
-        target.AddBuff(ModContent.BuffType<NanoInjectionBuff>(), 360, true, false);
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.destroyBoss, 134))
-        target.AddBuff(144, 60, true, false);
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.retiBoss, 125))
-        target.AddBuff(69, 300, true, false);
-      if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.spazBoss, 126))
-        return;
-      target.AddBuff(39, 180, true, false);
-    }
-
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Item10, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-      float colorType = this.ColorType;
-      Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, (double) colorType == 1.0 ? 59 : ((double) colorType == 3.0 ? 61 : ((double) colorType == 2.0 ? 64 : 60)), ((Entity) this.Projectile).velocity.X * 0.1f, ((Entity) this.Projectile).velocity.Y * 0.1f, 150, new Color(), 1.2f);
-      if (Main.dedServ)
-        return;
-      Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).position, new Vector2(((Entity) this.Projectile).velocity.X * 0.05f, ((Entity) this.Projectile).velocity.Y * 0.05f), Main.rand.Next(16, 18), 1f);
-    }
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Type].Value;
-      int num1 = texture2D.Height / Main.projFrames[this.Type];
-      int num2 = texture2D.Width / 4;
-      int num3 = this.Projectile.frame * num1;
-      int num4 = (int) this.ColorType * num2;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(num4, num3, num2, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (float index1 = 0.0f; (double) index1 < (double) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index1 += 0.33f)
-      {
-        float colorType = this.ColorType;
-        Color color1 = (double) colorType == 1.0 ? Color.Teal : ((double) colorType == 3.0 ? Color.Green : ((double) colorType == 2.0 ? Color.Yellow : Color.Red));
-        ((Color) ref color1).A = (byte) 50;
-        float num5 = ((float) ProjectileID.Sets.TrailCacheLength[this.Type] - index1) / (float) ProjectileID.Sets.TrailCacheLength[this.Type];
-        Color color2 = Color.op_Multiply(color1, num5);
-        float num6 = (float) ((double) this.Projectile.scale / 2.0 + (double) this.Projectile.scale * (double) num5 / 2.0);
-        int index2 = (int) index1 - 1;
-        if (index2 >= 0)
+        public static readonly SoundStyle ShotSound = FargosSoundRegistry.ElectricOrbShot with { PitchVariance = 0.3f, Volume = 7f };
+        public static readonly SoundStyle HumSound = FargosSoundRegistry.ElectricOrbHum;
+        public const int Red = 0;
+        public const int Blue = 1;
+        public const int Yellow = 2;
+        public const int Green = 3;
+        private ref float ColorAI => ref Projectile.ai[2];
+        public float ColorType
         {
-          Vector2 vector2_2 = Vector2.op_Addition(Vector2.Lerp(this.Projectile.oldPos[(int) index1], this.Projectile.oldPos[index2], (float) (1.0 - (double) index1 % 1.0)), Vector2.op_Division(vector2_1, 2f));
-          float num7 = this.Projectile.oldRot[index2];
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(vector2_2, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color2, num7, vector2_1, num6, spriteEffects, 0.0f);
+            get => (WorldSavingSystem.EternityMode && SoulConfig.Instance.BossRecolors) ? ColorAI : Red;
         }
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.White, this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Electric Orb");
 
-    static MechElectricOrb()
-    {
-      SoundStyle soundStyle;
-      // ISSUE: explicit constructor call
-      ((SoundStyle) ref soundStyle).\u002Ector("FargowiltasSouls/Assets/Sounds/ElectricOrbShot", (SoundType) 0);
-      ((SoundStyle) ref soundStyle).PitchVariance = 0.3f;
-      ((SoundStyle) ref soundStyle).Volume = 7f;
-      MechElectricOrb.ShotSound = soundStyle;
-      MechElectricOrb.HumSound = new SoundStyle("FargowiltasSouls/Assets/Sounds/ElectricOrbHum", (SoundType) 0);
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+            Main.projFrames[Type] = 10;
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.width = 24;
+            Projectile.height = 24;
+            Projectile.aiStyle = -1;
+            Projectile.alpha = 50;
+            //Projectile.light = 1f;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.timeLeft = 600;
+            Projectile.hostile = true;
+        }
+
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
+        {
+            if (projHitbox.Intersects(targetHitbox))
+                return true;
+
+            Rectangle trailHitbox = projHitbox;
+            trailHitbox.X = (int)Projectile.oldPosition.X;
+            trailHitbox.Y = (int)Projectile.oldPosition.Y;
+            if (trailHitbox.Intersects(targetHitbox))
+                return true;
+
+            return false;
+        }
+
+        bool lastSecondAccel;
+
+        public override void AI()
+        {
+            if (++Projectile.frameCounter > 6)
+            {
+                if (++Projectile.frame >= Main.projFrames[Type])
+                    Projectile.frame = 0;
+                Projectile.frameCounter = 0;
+            }
+            if (Projectile.localAI[1] == 0)
+            {
+                SoundEngine.PlaySound(ShotSound with { Volume = 0.5f, MaxInstances = 4 }, Projectile.position);
+                Projectile.localAI[1] = 1f;
+
+                SoundEngine.PlaySound(HumSound with { 
+                    PitchVariance = 0.3f, 
+                    Volume = 0.2f, 
+                    MaxInstances = 5, 
+                    SoundLimitBehavior = SoundLimitBehavior.ReplaceOldest 
+                }, Projectile.position);
+
+                //doing it this way so projs that inherit from Electric Orb dont inherit the accel
+                lastSecondAccel = Projectile.type == ModContent.ProjectileType<MechElectricOrb>();
+            }
+
+            if (Projectile.localAI[0] == 0)
+                Projectile.localAI[0] = Main.rand.NextBool() ? 1 : -1;
+            /*
+            Projectile.alpha += (int)(25.0 * Projectile.localAI[0]);
+            if (Projectile.alpha > 200)
+            {
+                Projectile.alpha = 200;
+                Projectile.localAI[0] = -1f;
+            }
+            if (Projectile.alpha < 0)
+            {
+                Projectile.alpha = 0;
+                Projectile.localAI[0] = 1f;
+            }
+            */
+            Projectile.Opacity = 1;
+            Projectile.rotation += MathF.PI * 0.05f * Projectile.localAI[0];
+            //Projectile.rotation = Projectile.rotation + (Math.Abs(Projectile.velocity.X) + Math.Abs(Projectile.velocity.Y)) * 0.01f * Projectile.direction;
+
+            Color color = ColorType switch
+            {
+                Blue => Color.Teal,
+                Green => Color.Green,
+                Yellow => Color.Yellow,
+                _ => Color.Red
+            };
+
+            if (Main.rand.NextBool(6))
+            {
+                Vector2 dir = Vector2.Normalize(-Projectile.velocity.RotatedByRandom(MathF.PI * 0.2f));
+                float spd = Math.Max(4, Projectile.velocity.Length() / 2);
+                Particle p = new ElectricSpark(Projectile.Center, dir * spd, color * 0.7f, Main.rand.NextFloat(0.7f, 1f), 20);
+                p.Spawn();
+            }
+
+            //if (Main.rand.NextBool(30))
+            //Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Enchanted_Pink, (float)(Projectile.velocity.X * 0.5), (float)(Projectile.velocity.Y * 0.5), 150, default, 1.2f);
+            float r = color.R / 255f;
+            float g = color.G / 255f;
+            float b = color.B / 255f;
+            Lighting.AddLight(Projectile.Center, r, g, b);
+
+            if (lastSecondAccel && Projectile.ai[0] == -1 && --Projectile.ai[1] < 0)
+                Projectile.velocity *= 1.03f;
+
+            //cap proj velocity so to reduce the gap in its hitbox
+            float ratio = Projectile.velocity.Length() / (Projectile.width * 3);
+            if (ratio > 1)
+                Projectile.velocity /= ratio;
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.primeBoss, NPCID.SkeletronPrime))
+                target.AddBuff(ModContent.BuffType<NanoInjectionBuff>(), 360);
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.destroyBoss, NPCID.TheDestroyer))
+                target.AddBuff(BuffID.Electrified, 60);
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.retiBoss, NPCID.Retinazer))
+                target.AddBuff(BuffID.Ichor, 300);
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.spazBoss, NPCID.Spazmatism))
+                target.AddBuff(BuffID.CursedInferno, 180);
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.Item10, Projectile.position);
+
+            //Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 58, Projectile.velocity.X * 0.1f, Projectile.velocity.Y * 0.1f, 150, new Color(), 1.2f);
+            /*int Type = Main.rand.Next(16, 18);
+            if (Projectile.type == 503)
+                Type = 16;
+            if (!Main.dedServ)
+                Gore.NewGore(Projectile.position, new Vector2(Projectile.velocity.X * 0.05f, Projectile.velocity.Y * 0.05f), Type, 1f);*/
+            int dustID = ColorType switch
+            {
+                Blue => DustID.BlueTorch,
+                Green => DustID.GreenTorch,
+                Yellow => DustID.YellowTorch,
+                _ => DustID.RedTorch
+            };
+            Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, dustID, Projectile.velocity.X * 0.1f, Projectile.velocity.Y * 0.1f, 150, new Color(), 1.2f);
+            if (!Main.dedServ)
+                Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.position, new Vector2(Projectile.velocity.X * 0.05f, Projectile.velocity.Y * 0.05f), Main.rand.Next(16, 18), 1f);
+        }
+        /*
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(255, 100, 100, lightColor.A - Projectile.alpha);
+        }
+        */
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture = TextureAssets.Projectile[Type].Value;
+            int sizeY = texture.Height / Main.projFrames[Type]; //ypos of lower right corner of sprite to draw
+            int sizeX = texture.Width / 4;
+            int frameY = Projectile.frame * sizeY;
+            int frameX = (int)ColorType * sizeX;
+            Rectangle rectangle = new(frameX, frameY, sizeX, sizeY);
+            Vector2 origin = rectangle.Size() / 2f;
+            SpriteEffects spriteEffects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+
+            //Main.spriteBatch.End();
+            //Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+            for (float i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 0.33f)
+            {
+                Color oldColor = ColorType switch
+                {
+                    Blue => Color.Teal,
+                    Green => Color.Green,
+                    Yellow => Color.Yellow,
+                    _ => Color.Red
+                };
+                oldColor.A = 50;
+                float modifier = (float)(ProjectileID.Sets.TrailCacheLength[Type] - i) / ProjectileID.Sets.TrailCacheLength[Type];
+                oldColor *= modifier;
+                float scale = (Projectile.scale / 2) + (Projectile.scale * modifier / 2);
+                int max0 = (int)i - 1;//Math.Max((int)i - 1, 0);
+                if (max0 < 0)
+                    continue;
+                Vector2 oldPos = Vector2.Lerp(Projectile.oldPos[(int)i], Projectile.oldPos[max0], 1 - i % 1) + (origin / 2);
+                float oldRot = Projectile.oldRot[max0];
+                Main.EntitySpriteDraw(texture, oldPos - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), rectangle, oldColor,
+                    oldRot, origin, scale, spriteEffects, 0);
+            }
+            //Main.spriteBatch.End();
+            //Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
+
+            Main.EntitySpriteDraw(texture, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), rectangle, Color.White,
+                    Projectile.rotation, origin, Projectile.scale, spriteEffects, 0);
+
+            /* OLD
+            Texture2D glow = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/Masomode/MechElectricOrb_Glow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            int rect1 = glow.Height / Main.projFrames[Projectile.type];
+            int rect2 = rect1 * Projectile.frame;
+            Rectangle glowrectangle = new(0, rect2, glow.Width, rect1);
+            Vector2 gloworigin2 = glowrectangle.Size() / 2f;
+            Color glowcolor = Color.Lerp(new Color(255, 100, 100, 150), Color.Transparent, 0.8f);
+            Vector2 drawCenter = Projectile.Center - Projectile.velocity.SafeNormalize(Vector2.UnitX) * 14;
+
+            Main.EntitySpriteDraw(glow, drawCenter - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle),//create small, non transparent trail texture
+                   Projectile.GetAlpha(lightColor), Projectile.velocity.ToRotation() + MathHelper.PiOver2, gloworigin2, Projectile.scale / 2, SpriteEffects.None, 0);
+
+            for (int i = 0; i < 3; i++) //create multiple transparent trail textures ahead of the projectile
+            {
+                Vector2 drawCenter2 = drawCenter + (Projectile.velocity.SafeNormalize(Vector2.UnitX) * 12).RotatedBy(MathHelper.Pi / 5 - i * MathHelper.Pi / 5); //use a normalized version of the projectile's velocity to offset it at different angles
+                drawCenter2 -= Projectile.velocity.SafeNormalize(Vector2.UnitX) * 12; //then move it backwards
+                Main.EntitySpriteDraw(glow, drawCenter2 - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle),
+                    glowcolor, Projectile.velocity.ToRotation() + MathHelper.PiOver2, gloworigin2, Projectile.scale, SpriteEffects.None, 0);
+            }
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++) //reused betsy fireball scaling trail thing
+            {
+
+                Color color27 = glowcolor;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                float scale = Projectile.scale * (ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i] - Projectile.velocity.SafeNormalize(Vector2.UnitX) * 14;
+                Main.EntitySpriteDraw(glow, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle), color27,
+                    Projectile.velocity.ToRotation() + MathHelper.PiOver2, gloworigin2, scale, SpriteEffects.None, 0);
+            }
+            */
+            return false;
+        }
+        /*
+        public override void PostDraw(Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+
+        }
+        */
     }
-  }
 }

@@ -1,139 +1,147 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.Shucks.Crimetroid
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.Shucks
 {
-  public class Crimetroid : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class Crimetroid : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 4;
-      Main.projPet[this.Projectile.type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            Main.projFrames[Projectile.type] = 4;
+            Main.projPet[Projectile.type] = true;
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.netImportant = true;
-      ((Entity) this.Projectile).width = 20;
-      ((Entity) this.Projectile).height = 20;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft *= 5;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 10;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.netImportant = true;
+            Projectile.width = 20;
+            Projectile.height = 20;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft *= 5;
 
-    public virtual bool MinionContactDamage() => true;
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 10;
+        }
 
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      PatreonPlayer modPlayer = player.GetModPlayer<PatreonPlayer>();
-      if (!((Entity) player).active || player.dead || player.ghost)
-        modPlayer.Crimetroid = false;
-      if (modPlayer.Crimetroid)
-        this.Projectile.timeLeft = 2;
-      if (++this.Projectile.frameCounter > 6)
-      {
-        this.Projectile.frameCounter = 0;
-        if (++this.Projectile.frame >= Main.projFrames[this.Projectile.type])
-          this.Projectile.frame = 0;
-      }
-      double num1 = (double) ((Entity) this.Projectile).Distance(((Entity) player).Top);
-      if (num1 > 400.0)
-        this.Projectile.tileCollide = false;
-      if (num1 > 2000.0)
-        ((Entity) this.Projectile).Center = ((Entity) player).Center;
-      Vector2 vector2_1 = ((Entity) player).Top;
-      if (num1 < 60.0)
-      {
-        this.Projectile.localAI[0] = 0.0f;
-        vector2_1 = Vector2.op_Addition(((Entity) this.Projectile).Center, ((Entity) this.Projectile).velocity);
-        if (Vector2.op_Equality(vector2_1, ((Entity) this.Projectile).Center))
-          --vector2_1.Y;
-        if (!this.Projectile.tileCollide)
-          this.Projectile.tileCollide = Collision.CanHitLine(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, ((Entity) player).position, ((Entity) player).width, ((Entity) player).height);
-      }
-      else if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = MathHelper.ToRadians(Utils.NextFloat(Main.rand, 45f));
-        if (Utils.NextBool(Main.rand))
-          this.Projectile.localAI[0] *= -1f;
-      }
-      this.Projectile.localAI[0] *= 0.99f;
-      float num2 = 8f;
-      if ((double) this.Projectile.localAI[1] > 0.0)
-      {
-        --this.Projectile.localAI[1];
-        num2 *= 0.5f;
-      }
-      if (!Utils.HasNaNs(((Entity) player).velocity) && Vector2.op_Inequality(((Entity) player).velocity, Vector2.Zero))
-        num2 += ((Vector2) ref ((Entity) player).velocity).Length() / 2f;
-      Vector2 vector2_2 = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, vector2_1), num2);
-      if ((double) this.Projectile.localAI[0] != 0.0)
-        vector2_2 = Utils.RotatedBy(vector2_2, (double) this.Projectile.localAI[0], new Vector2());
-      ((Entity) this.Projectile).velocity = Vector2.op_Division(Vector2.op_Addition(Vector2.op_Multiply(((Entity) this.Projectile).velocity, 21f), vector2_2), 22f);
-      this.Projectile.rotation = ((Entity) this.Projectile).velocity.X * 0.05f;
-      if ((double) Math.Abs(this.Projectile.rotation) <= (double) MathHelper.ToRadians(75f))
-        return;
-      this.Projectile.rotation = MathHelper.ToRadians(75f) * (float) Math.Sign(this.Projectile.rotation);
-    }
+        public override bool MinionContactDamage() => true;
 
-    public virtual bool TileCollideStyle(
-      ref int width,
-      ref int height,
-      ref bool fallThrough,
-      ref Vector2 hitboxCenterFrac)
-    {
-      fallThrough = true;
-      return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
-    }
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            PatreonPlayer modPlayer = player.GetModPlayer<PatreonPlayer>();
 
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      this.Projectile.localAI[1] = 15f;
-      if ((double) ((Entity) this.Projectile).velocity.X != (double) oldVelocity.X)
-        ((Entity) this.Projectile).velocity.X = (float) (-(double) oldVelocity.X * 0.75);
-      if ((double) ((Entity) this.Projectile).velocity.Y != (double) oldVelocity.Y)
-        ((Entity) this.Projectile).velocity.Y = (float) (-(double) oldVelocity.Y * 0.75);
-      return false;
-    }
+            if (!player.active || player.dead || player.ghost)
+            {
+                modPlayer.Crimetroid = false;
+            }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      if (this.Projectile.owner != Main.myPlayer)
-        return;
-      this.Projectile.vampireHeal((int) Math.Round(40.0 / 3.0, (MidpointRounding) 1) + 1, ((Entity) this.Projectile).Center, (Entity) target);
-    }
+            if (modPlayer.Crimetroid)
+            {
+                Projectile.timeLeft = 2;
+            }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      Main.EntitySpriteDraw(ModContent.Request<Texture2D>("FargowiltasSouls/Content/Patreon/Shucks/CrimetroidJelly", (AssetRequestMode) 1).Value, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.op_Multiply(alpha, 0.5f), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+            if (++Projectile.frameCounter > 6)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame >= Main.projFrames[Projectile.type])
+                    Projectile.frame = 0;
+            }
+
+            float dist = Projectile.Distance(player.Top);
+            if (dist > 400)
+                Projectile.tileCollide = false;
+            if (dist > 2000)
+                Projectile.Center = player.Center;
+
+            Vector2 focus = player.Top;
+            if (dist < 60)
+            {
+                Projectile.localAI[0] = 0;
+
+                focus = Projectile.Center + Projectile.velocity;
+                if (focus == Projectile.Center)
+                    focus.Y -= 1;
+                if (!Projectile.tileCollide)
+                    Projectile.tileCollide = Collision.CanHitLine(Projectile.position, Projectile.width, Projectile.height, player.position, player.width, player.height);
+            }
+            else if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = MathHelper.ToRadians(Main.rand.NextFloat(45));
+                if (Main.rand.NextBool())
+                    Projectile.localAI[0] *= -1;
+            }
+
+            Projectile.localAI[0] *= 0.99f;
+
+            float maxSpeed = 8f;
+            if (Projectile.localAI[1] > 0)
+            {
+                Projectile.localAI[1]--;
+                maxSpeed *= 0.5f;
+            }
+            if (!player.velocity.HasNaNs() && player.velocity != Vector2.Zero)
+                maxSpeed += player.velocity.Length() / 2;
+
+            Vector2 change = Projectile.SafeDirectionTo(focus) * maxSpeed;
+            if (Projectile.localAI[0] != 0)
+            {
+                change = change.RotatedBy(Projectile.localAI[0]);
+            }
+            const float increment = 22;
+            Projectile.velocity = (Projectile.velocity * (increment - 1) + change) / increment;
+
+            Projectile.rotation = Projectile.velocity.X * .05f;
+            if (Math.Abs(Projectile.rotation) > MathHelper.ToRadians(75))
+                Projectile.rotation = MathHelper.ToRadians(75) * Math.Sign(Projectile.rotation);
+        }
+
+        public override bool TileCollideStyle(ref int width, ref int height, ref bool fallThrough, ref Vector2 hitboxCenterFrac)
+        {
+            fallThrough = true;
+            return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            Projectile.localAI[1] = 15;
+            if (Projectile.velocity.X != oldVelocity.X)
+                Projectile.velocity.X = -oldVelocity.X * 0.75f;
+            if (Projectile.velocity.Y != oldVelocity.Y)
+                Projectile.velocity.Y = -oldVelocity.Y * 0.75f;
+            return false;
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            if (Projectile.owner == Main.myPlayer)
+                Projectile.vampireHeal((int)Math.Round(1.0 / 0.075, MidpointRounding.AwayFromZero) + 1, Projectile.Center, target);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+
+
+            Texture2D texture2D14 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Patreon/Shucks/CrimetroidJelly", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            const float jellyOpacity = 0.5f;
+            Main.EntitySpriteDraw(texture2D14, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26 * jellyOpacity, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

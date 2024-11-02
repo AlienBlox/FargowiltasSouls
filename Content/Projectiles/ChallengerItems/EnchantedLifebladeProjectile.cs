@@ -1,150 +1,202 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.ChallengerItems.EnchantedLifebladeProjectile
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.ChallengerItems
 {
-  public class EnchantedLifebladeProjectile : ModProjectile
-  {
-    public bool PlayedSound;
-    private Vector2 Aim = Vector2.Zero;
-    private Vector2 AimDir = Vector2.Zero;
-    private Vector2 Position = Vector2.Zero;
-    private const int ProjSpriteWidth = 74;
-    private const int ProjSpriteHeight = 74;
 
-    public virtual void SetStaticDefaults()
+    public class EnchantedLifebladeProjectile : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 4;
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 8;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 54;
-      ((Entity) this.Projectile).height = 54;
-      this.Projectile.aiStyle = 0;
-      this.AIType = 14;
-      this.Projectile.penetrate = 1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Melee;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 20;
-      this.Projectile.penetrate = -1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 1;
-    }
-
-    public virtual void AI()
-    {
-      if (this.Projectile.frameCounter > 4)
-      {
-        this.Projectile.frame %= Main.projFrames[this.Type];
-        this.Projectile.frameCounter = 0;
-      }
-      ++this.Projectile.frameCounter;
-      Player player = Main.player[this.Projectile.owner];
-      Vector2 vector2_1 = Vector2.Normalize(Vector2.op_Subtraction(Main.MouseWorld, ((Entity) player).Center));
-      if (Main.myPlayer == this.Projectile.owner)
-      {
-        if ((double) this.Projectile.ai[1] < 5.0)
+        public bool PlayedSound = false;
+        public override void SetStaticDefaults()
         {
-          if ((double) this.Projectile.ai[0] == 0.0)
-            this.Projectile.ai[0] = 16f;
-          if ((double) this.Projectile.ai[0] == 16.0)
-          {
-            Vector2 vector2_2 = vector2_1;
-            Vector2 vector2_3 = Vector2.op_Subtraction(Main.MouseWorld, ((Entity) player).Center);
-            double num = (double) Math.Min(((Vector2) ref vector2_3).Length(), 450f);
-            this.Aim = Vector2.op_Multiply(vector2_2, (float) num);
-            this.AimDir = Vector2.Normalize(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) player).Center, this.Aim), ((Entity) this.Projectile).Center));
-            if (Utils.HasNaNs(this.AimDir))
-              this.AimDir = Vector2.op_Multiply(Vector2.UnitX, (float) ((Entity) player).direction);
-            this.AimDir = Utils.RotatedByRandom(this.AimDir, (double) MathHelper.ToRadians(10f));
-            SoundEngine.PlaySound(ref SoundID.DD2_SonicBoomBladeSlash, new Vector2?(Vector2.op_Addition(((Entity) player).Center, this.Position)), (SoundUpdateCallback) null);
-          }
-          if ((double) this.Projectile.ai[0] >= 16.0)
-          {
-            ((Entity) this.Projectile).velocity = Vector2.op_Multiply(this.AimDir, 30f);
-            this.Projectile.friendly = true;
-          }
-          if ((double) this.Projectile.ai[0] == 31.0)
-          {
-            if ((double) this.Projectile.ai[1] != 4.0)
-              ((Entity) this.Projectile).velocity = Vector2.Zero;
-            for (int index1 = 0; index1 < 30; ++index1)
+            // DisplayName.SetDefault("Enchanted Lifeblade");
+            Main.projFrames[Projectile.type] = 4;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 8;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+            ProjectileID.Sets.CultistIsResistantTo[Type] = true;
+        }
+        public override void SetDefaults()
+        {
+            Projectile.width = 54; //sqrt(sprite width^2 / 2) since diagonal
+            Projectile.height = 54;
+            Projectile.aiStyle = 0;
+            AIType = 14;
+            Projectile.penetrate = 1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            //Projectile.light = 2f;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Melee;
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 20;
+            Projectile.penetrate = -1;
+
+            Projectile.FargoSouls().DeletionImmuneRank = 1;
+        }
+        private Vector2 Aim = Vector2.Zero;
+        private Vector2 AimDir = Vector2.Zero;
+        private Vector2 Position = Vector2.Zero;
+        const int ProjSpriteWidth = 74;
+        const int ProjSpriteHeight = 74;
+        public override void AI()
+        {
+
+
+            const int SpinTime = 15 + 1;
+            const int ChargeTime = 15;
+            const int ChargeSpeed = 30;
+
+            if (Projectile.frameCounter > 4)
             {
-              int index2 = Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, new Vector2(37f, 37f)), 74, 74, 70, ((Entity) this.Projectile).velocity.X, ((Entity) this.Projectile).velocity.Y, 100, new Color(), 1f);
-              Main.dust[index2].noGravity = true;
+                Projectile.frame %= Main.projFrames[Type];
+                Projectile.frameCounter = 0;
             }
-            this.Projectile.ai[0] = 1f;
-            ++this.Projectile.ai[1];
-          }
-        }
-        else
-        {
-          SoundEngine.PlaySound(ref SoundID.NPCDeath3, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          this.Projectile.Kill();
-        }
-      }
-      this.DrawOffsetX = -(74 - ((Entity) this.Projectile).width);
-      if ((double) this.Projectile.ai[0] < 16.0)
-        this.Projectile.rotation += MathHelper.ToRadians(36f);
-      if ((double) this.Projectile.ai[0] == 16.0)
-        this.Projectile.rotation = Utils.ToRotation(this.AimDir) + 0.7853982f;
-      player.ChangeDir((double) this.Aim.X < 0.0 ? -1 : 1);
-      Tile tileSafely = Framing.GetTileSafely(((Entity) this.Projectile).Center);
-      if (!((Tile) ref tileSafely).HasUnactuatedTile || !Main.tileSolid[(int) ((Tile) ref tileSafely).TileType] || Main.tileSolidTop[(int) ((Tile) ref tileSafely).TileType])
-        Lighting.AddLight(((Entity) this.Projectile).Center, 15);
-      ++this.Projectile.ai[0];
-    }
+            Projectile.frameCounter++;
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, 610 - (int) Main.mouseTextColor * 2), this.Projectile.Opacity));
-    }
+            //for a duration, stays in place and spins around
+            //after timer, dash towards mouse and then reset timer and spin again
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (float index1 = 0.0f; (double) index1 < (double) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index1 += 0.5f)
-      {
-        Color color1 = Color.op_Multiply(Color.op_Multiply(new Color((int) byte.MaxValue, 51, 153), this.Projectile.Opacity), 0.5f);
-        ((Color) ref color1).A = (byte) ((uint) ((Color) ref alpha).A / 2U);
-        float num3 = ((float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index1) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type];
-        Color color2 = Color.op_Multiply(color1, num3 * num3);
-        int index2 = (int) index1 - 1;
-        if (index2 >= 0)
-        {
-          float num4 = this.Projectile.oldRot[index2];
-          Vector2 vector2_2 = Vector2.op_Addition(Vector2.Lerp(this.Projectile.oldPos[(int) index1], this.Projectile.oldPos[index2], (float) (1.0 - (double) index1 % 1.0)), Vector2.op_Division(((Entity) this.Projectile).Size, 2f));
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(vector2_2, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color2, num4, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
+            Player player = Main.player[Projectile.owner];
+            Vector2 vector = Vector2.Normalize(Main.MouseWorld - player.Center);
+
+            if (Main.myPlayer == Projectile.owner)
+            {
+                if (Projectile.ai[1] < 5) //number of charges        //if (player.channel && !player.noItems && !player.CCed) for if only one sword
+                {
+
+                    //if (player.inventory[player.selectedItem].shoot == Projectile.type)
+                    //{
+                    if (Projectile.ai[0] == 0)
+                    {
+                        //Position = vector * Math.Min((Main.MouseWorld - player.Center).Length(), 450); move dependent on player variant
+                        //Projectile.position = player.Center + (vector * Math.Min((Main.MouseWorld - player.Center).Length(), 450)); //move independently variant
+                        //for (int i = 0; i < 30; i++)
+                        //{
+                        //    int index3 = Dust.NewDust(Projectile.Center - new Vector2(ProjSpriteWidth / 2, ProjSpriteWidth / 2), ProjSpriteWidth, ProjSpriteWidth, DustID.PurpleCrystalShard,
+                        //        Projectile.velocity.X, Projectile.velocity.Y, 100, default, 1f);
+                        //    Main.dust[index3].noGravity = true;
+                        //}
+
+                        //SoundEngine.PlaySound(SoundID.Item9, Projectile.Center);
+                        //Projectile.friendly = false;
+
+                        Projectile.ai[0] = SpinTime;
+                    }
+                    if (Projectile.ai[0] == SpinTime)
+                    {
+                        Aim = vector * Math.Min((Main.MouseWorld - player.Center).Length(), 450);
+                        //AimDir = Vector2.Normalize(Aim - Position); move dependent on player variant
+                        AimDir = Vector2.Normalize(player.Center + Aim - Projectile.Center); //move independently variant
+                        if (AimDir.HasNaNs())
+                            AimDir = Vector2.UnitX * player.direction;
+                        AimDir = AimDir.RotatedByRandom(MathHelper.ToRadians(10));
+                        SoundEngine.PlaySound(SoundID.DD2_SonicBoomBladeSlash, player.Center + Position);
+                    }
+                    if (Projectile.ai[0] >= SpinTime)
+                    {
+                        //Position = Position + (AimDir * ChargeSpeed); move dependent on player variant
+                        Projectile.velocity = AimDir * ChargeSpeed; //move independently variant
+                        Projectile.friendly = true;
+                    }
+                    if (Projectile.ai[0] == SpinTime + ChargeTime)
+                    {
+                        if (Projectile.ai[1] != 4)
+                            Projectile.velocity = Vector2.Zero; //move independently
+                        for (int i = 0; i < 30; i++)
+                        {
+                            int index4 = Dust.NewDust(Projectile.Center - new Vector2(ProjSpriteWidth / 2, ProjSpriteWidth / 2), ProjSpriteWidth, ProjSpriteWidth, DustID.PurpleCrystalShard,
+                                Projectile.velocity.X, Projectile.velocity.Y, 100, default, 1f);
+                            Main.dust[index4].noGravity = true;
+                        }
+                        Projectile.ai[0] = 1;
+                        Projectile.ai[1]++; //number of charges
+                    }
+
+                    //dust marker at aim position so you know the max range
+                    //int index2 = Dust.NewDust(player.Center + vector * Math.Min((Main.MouseWorld - player.Center).Length(), 450), 0, 0, DustID.PurpleCrystalShard,
+                    //    0, 0, 100, default, 1f);
+                    //Main.dust[index2].noGravity = true;
+                    //Main.dust[index2].velocity.X *= 0f;
+                    //Main.dust[index2].velocity.Y *= 0f;
+                    //}
+
+
+                }
+                else //if no longer holding, die
+                {
+                    SoundEngine.PlaySound(SoundID.NPCDeath3, Projectile.Center);
+
+                    Projectile.Kill();
+                }
+            }
+            //Projectile.velocity = Position + new Vector2(-Projectile.width / 2, -Projectile.height / 2); move dependent on player variant
+            //Projectile.position = player.Center; move dependent on player variant
+            DrawOffsetX = -(ProjSpriteWidth - Projectile.width);
+
+
+            //rotation
+            if (Projectile.ai[0] < SpinTime)
+            {
+                Projectile.rotation += MathHelper.ToRadians(360 / 10);
+            }
+            if (Projectile.ai[0] == SpinTime)
+            {
+                Projectile.rotation = AimDir.ToRotation() + MathHelper.PiOver4;
+            }
+
+            player.ChangeDir(Aim.X < 0 ? -1 : 1);
+            //player.heldProj = Projectile.whoAmI; for if only one sword
+            //player.itemTime = 20; for if only one sword
+            //player.itemAnimation = 20; for if only one sword
+            //player.itemRotation = (float)Math.Atan2((double)(Projectile.velocity.Y * (float)Projectile.direction), (double)(Projectile.velocity.X * (float)Projectile.direction));
+
+            Tile tile = Framing.GetTileSafely(Projectile.Center);
+            if (!(tile.HasUnactuatedTile && Main.tileSolid[tile.TileType] && !Main.tileSolidTop[tile.TileType]))
+                Lighting.AddLight(Projectile.Center, torchID: TorchID.Pink);
+
+            Projectile.ai[0]++;
+
+
         }
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+
+        public override Color? GetAlpha(Color lightColor) => new Color(255, 255, 255, 610 - Main.mouseTextColor * 2) * Projectile.Opacity;
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            for (float i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 0.5f)
+            {
+                Color color27 = new Color(255, 51, 153) * Projectile.Opacity * 0.5f;
+                color27.A = (byte)(color26.A / 2);
+                float fade = (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                color27 *= fade * fade;
+                int max0 = (int)i - 1;//Math.Max((int)i - 1, 0);
+                if (max0 < 0)
+                    continue;
+                float num165 = Projectile.oldRot[max0];
+                Vector2 center = Vector2.Lerp(Projectile.oldPos[(int)i], Projectile.oldPos[max0], 1 - i % 1);
+                center += Projectile.Size / 2;
+                Main.EntitySpriteDraw(texture2D13, center - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+
+            return false;
+        }
     }
-  }
 }

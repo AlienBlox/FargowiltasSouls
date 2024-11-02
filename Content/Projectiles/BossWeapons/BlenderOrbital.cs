@@ -1,144 +1,153 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.BlenderOrbital
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  internal class BlenderOrbital : ModProjectile
-  {
-    public int Counter;
-    private int soundtimer;
-
-    public virtual void SetStaticDefaults()
+    internal class BlenderOrbital : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 10;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public int Counter = 0;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 46;
-      ((Entity) this.Projectile).height = 46;
-      this.Projectile.friendly = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.DamageType = DamageClass.Melee;
-      this.Projectile.scale = 1f;
-      this.Projectile.extraUpdates = 1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.usesIDStaticNPCImmunity = true;
-      this.Projectile.idStaticNPCHitCooldown = 15;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.Projectile.localAI[0]);
-      writer.Write(this.Projectile.localAI[1]);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.Projectile.localAI[0] = reader.ReadSingle();
-      this.Projectile.localAI[1] = reader.ReadSingle();
-    }
-
-    public virtual void AI()
-    {
-      int projectileByIdentity = FargoSoulsUtil.GetProjectileByIdentity(this.Projectile.owner, (int) this.Projectile.localAI[0], new int[1]
-      {
-        ModContent.ProjectileType<BlenderYoyoProj>()
-      });
-      if (projectileByIdentity == -1)
-      {
-        if (this.Projectile.owner == Main.myPlayer)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.Kill();
-          return;
+            // DisplayName.SetDefault("The Blender");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 10;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-      }
-      else
-      {
-        Projectile projectile1 = Main.projectile[projectileByIdentity];
-        Vector2 vector2_1 = Utils.RotatedBy(new Vector2((float) (150.0 + 150.0 * (1.0 - Math.Cos((double) this.Projectile.localAI[1]))), 0.0f), (double) this.Projectile.ai[1], new Vector2());
-        Vector2 vector2_2 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, vector2_1);
-        Vector2 vector2_3 = Vector2.op_Addition(((Entity) projectile1).Center, vector2_1);
-        Projectile projectile2 = this.Projectile;
-        ((Entity) projectile2).position = Vector2.op_Addition(((Entity) projectile2).position, Vector2.op_Subtraction(Vector2.Lerp(vector2_2, ((Entity) projectile1).Center, 0.05f), vector2_2));
-        Projectile projectile3 = this.Projectile;
-        ((Entity) projectile3).position = Vector2.op_Addition(((Entity) projectile3).position, Vector2.op_Division(Vector2.op_Subtraction(((Entity) Main.player[this.Projectile.owner]).position, ((Entity) Main.player[this.Projectile.owner]).oldPosition), 2f));
-        ((Entity) this.Projectile).Center = Vector2.Lerp(((Entity) this.Projectile).Center, vector2_3, 0.05f);
-        this.Projectile.ai[1] += (float) (0.15707963705062866 / (double) this.Projectile.MaxUpdates * 0.75);
-        if ((double) this.Projectile.ai[1] > 3.1415927410125732)
-        {
-          this.Projectile.ai[1] -= 6.28318548f;
-          this.Projectile.netUpdate = true;
-        }
-        this.Projectile.localAI[1] += (float) Math.PI / 60f / (float) this.Projectile.MaxUpdates;
-        if ((double) this.Projectile.localAI[1] > 3.1415927410125732)
-          this.Projectile.localAI[1] -= 6.28318548f;
-        this.Projectile.damage = (int) ((double) projectile1.damage * 0.5);
-        this.Projectile.knockBack = projectile1.knockBack;
-      }
-      ++this.Projectile.timeLeft;
-      this.Projectile.rotation += 0.25f / (float) this.Projectile.MaxUpdates;
-      if (this.soundtimer <= 0)
-        return;
-      --this.soundtimer;
-    }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      if (this.soundtimer != 0)
-        return;
-      this.soundtimer = 15;
-      SoundStyle soundStyle = SoundID.Item22;
-      ((SoundStyle) ref soundStyle).Volume = 1.5f;
-      ((SoundStyle) ref soundStyle).Pitch = 1f;
-      SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-    }
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (float index1 = 0.0f; (double) index1 < (double) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index1 += 0.5f)
-      {
-        Color color1 = Color.op_Multiply(Color.op_Multiply(Color.LightGreen, this.Projectile.Opacity), 0.5f);
-        ((Color) ref color1).A = (byte) 100;
-        Color color2 = Color.op_Multiply(color1, ((float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index1) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        int index2 = (int) index1 - 1;
-        if (index2 >= 0)
+        public override void SetDefaults()
         {
-          float num3 = this.Projectile.oldRot[index2];
-          Vector2 vector2_2 = Vector2.op_Addition(Vector2.Lerp(this.Projectile.oldPos[(int) index1], this.Projectile.oldPos[index2], (float) (1.0 - (double) index1 % 1.0)), Vector2.op_Division(((Entity) this.Projectile).Size, 2f));
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(vector2_2, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color2, num3, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
+            Projectile.width = 46;
+            Projectile.height = 46;
+            Projectile.friendly = true;
+            Projectile.penetrate = -1;
+            Projectile.DamageType = DamageClass.Melee;
+            Projectile.scale = 1f;
+
+            Projectile.extraUpdates = 1;
+            Projectile.tileCollide = false;
+
+            Projectile.usesIDStaticNPCImmunity = true;
+            Projectile.idStaticNPCHitCooldown = 15;
+
+            Projectile.aiStyle = -1;
+
+            Projectile.FargoSouls().TimeFreezeImmune = true;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+            Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
         }
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(Projectile.localAI[0]);
+            writer.Write(Projectile.localAI[1]);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            Projectile.localAI[0] = reader.ReadSingle();
+            Projectile.localAI[1] = reader.ReadSingle();
+        }
+
+        int soundtimer;
+        public override void AI()
+        {
+            int byIdentity = FargoSoulsUtil.GetProjectileByIdentity(Projectile.owner, (int)Projectile.localAI[0], ModContent.ProjectileType<BlenderYoyoProj>());
+            if (byIdentity == -1)
+            {
+                if (Projectile.owner == Main.myPlayer)
+                {
+                    Projectile.Kill();
+                    return;
+                }
+            }
+            else
+            {
+                Projectile proj = Main.projectile[byIdentity];
+
+                //rotation mumbo jumbo
+                float distanceFromPlayer = 150 + 150 * (1 - (float)Math.Cos(Projectile.localAI[1])); // + Projectile.ai[0] * 32;
+
+                Vector2 offset = new Vector2(distanceFromPlayer, 0f).RotatedBy(Projectile.ai[1]);
+
+                Vector2 oldCenter = Projectile.Center - offset;
+                Vector2 desiredPos = proj.Center + offset;
+                Projectile.position += Vector2.Lerp(oldCenter, proj.Center, 0.05f) - oldCenter;
+                Projectile.position += (Main.player[Projectile.owner].position - Main.player[Projectile.owner].oldPosition) / 2;
+                Projectile.Center = Vector2.Lerp(Projectile.Center, desiredPos, 0.05f);
+
+                float rotation = MathHelper.Pi / 20 / Projectile.MaxUpdates * 0.75f;
+                Projectile.ai[1] += rotation;
+                if (Projectile.ai[1] > MathHelper.Pi)
+                {
+                    Projectile.ai[1] -= MathHelper.TwoPi;
+                    Projectile.netUpdate = true;
+                }
+
+                Projectile.localAI[1] += MathHelper.TwoPi / 120 / Projectile.MaxUpdates; // * (0.5f + 1.5f * Projectile.ai[0] / 5);
+                if (Projectile.localAI[1] > MathHelper.Pi)
+                    Projectile.localAI[1] -= MathHelper.TwoPi;
+
+                Projectile.damage = (int)(proj.damage * 0.5);
+                Projectile.knockBack = proj.knockBack;
+            }
+
+            Projectile.timeLeft++;
+            Projectile.rotation += 0.25f / Projectile.MaxUpdates;
+
+            if (soundtimer > 0)
+                soundtimer--;
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            //target.immune[Projectile.owner] = 6;
+
+            /*Vector2 velocity = Vector2.Normalize(Projectile.Center - target.Center) * 10;
+            int proj2 = ModContent.ProjectileType<BlenderProj3>();
+            Projectile.NewProjectile(Projectile.Center, velocity, proj2, Projectile.damage, Projectile.knockBack, Main.myPlayer);*/
+
+            if (soundtimer == 0)
+            {
+                soundtimer = 15;
+                SoundEngine.PlaySound(SoundID.Item22 with { Volume = 1.5f, Pitch = 1f }, Projectile.Center);
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            for (float i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 0.5f)
+            {
+                Color color27 = Color.LightGreen * Projectile.Opacity * 0.5f;
+                color27.A = 100;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                int max0 = (int)i - 1;//Math.Max((int)i - 1, 0);
+                if (max0 < 0)
+                    continue;
+                float num165 = Projectile.oldRot[max0];
+                Vector2 center = Vector2.Lerp(Projectile.oldPos[(int)i], Projectile.oldPos[max0], 1 - i % 1);
+                center += Projectile.Size / 2;
+                Main.EntitySpriteDraw(texture2D13, center - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

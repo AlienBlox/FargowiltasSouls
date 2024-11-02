@@ -1,11 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.EaterHead
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.IO;
@@ -14,237 +7,249 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class EaterHead : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class EaterHead : ModProjectile
     {
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-      ProjectileID.Sets.MinionTargettingFeature[this.Projectile.type] = true;
-      EModeGlobalProjectile.IgnoreMinionNerf[this.Type] = true;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 28;
-      ((Entity) this.Projectile).height = 50;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft *= 5;
-      this.Projectile.minion = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.friendly = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.netImportant = true;
-      this.Projectile.usesIDStaticNPCImmunity = true;
-      this.Projectile.idStaticNPCHitCooldown = 25;
-      this.Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.Projectile.localAI[0]);
-      writer.Write(this.Projectile.localAI[1]);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.Projectile.localAI[0] = reader.ReadSingle();
-      this.Projectile.localAI[1] = reader.ReadSingle();
-    }
-
-    public virtual Color? GetAlpha(Color lightColor) => new Color?(Color.White);
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      Color color = Lighting.GetColor((int) ((double) ((Entity) this.Projectile).Center.X / 16.0), (int) ((double) ((Entity) this.Projectile).Center.Y / 16.0));
-      int num2 = num1 * this.Projectile.frame;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(new Rectangle(0, num2, texture2D.Width, num1)), color, this.Projectile.rotation, new Vector2((float) texture2D.Width / 2f, (float) num1 / 2f), this.Projectile.scale, this.Projectile.spriteDirection == 1 ? (SpriteEffects) 0 : (SpriteEffects) 1, 0.0f);
-      return false;
-    }
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if ((int) Main.time % 120 == 0)
-        this.Projectile.netUpdate = true;
-      if (!((Entity) player).active)
-      {
-        ((Entity) this.Projectile).active = false;
-      }
-      else
-      {
-        if (player.dead)
-          fargoSoulsPlayer.EaterMinion = false;
-        if (fargoSoulsPlayer.EaterMinion)
-          this.Projectile.timeLeft = 2;
-        int num1 = 30;
-        Vector2 center = ((Entity) player).Center;
-        float num2 = 300f;
-        float num3 = 400f;
-        int index1 = -1;
-        if ((double) ((Entity) this.Projectile).Distance(center) > 1800.0)
+        public override void SetStaticDefaults()
         {
-          ((Entity) this.Projectile).Center = center;
-          this.Projectile.netUpdate = true;
+            // DisplayName.SetDefault("Eater Head");
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+            ProjectileID.Sets.MinionTargettingFeature[Projectile.type] = true;
+
+            EModeGlobalProjectile.IgnoreMinionNerf[Type] = true;
         }
-        if (true)
+
+        public override void SetDefaults()
         {
-          NPC minionAttackTargetNpc = this.Projectile.OwnerMinionAttackTargetNPC;
-          if (minionAttackTargetNpc != null && minionAttackTargetNpc.CanBeChasedBy((object) this.Projectile, false) && (double) ((Entity) this.Projectile).Distance(((Entity) minionAttackTargetNpc).Center) < (double) num2 * 3.0)
-          {
-            index1 = ((Entity) minionAttackTargetNpc).whoAmI;
-            if (minionAttackTargetNpc.boss)
+            Projectile.width = 28;
+            Projectile.height = 50;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft *= 5;
+            Projectile.minion = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.friendly = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.alpha = 255;
+            Projectile.netImportant = true;
+
+            Projectile.usesIDStaticNPCImmunity = true;
+            Projectile.idStaticNPCHitCooldown = 25;
+            Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
+        }
+
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(Projectile.localAI[0]);
+            writer.Write(Projectile.localAI[1]);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            Projectile.localAI[0] = reader.ReadSingle();
+            Projectile.localAI[1] = reader.ReadSingle();
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = TextureAssets.Projectile[Projectile.type].Value;
+            int num214 = TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type];
+            Color color25 = Lighting.GetColor((int)(Projectile.Center.X / 16), (int)(Projectile.Center.Y / 16));
+            int y6 = num214 * Projectile.frame;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Rectangle(0, y6, texture2D13.Width, num214),
+                color25, Projectile.rotation, new Vector2(texture2D13.Width / 2f, num214 / 2f), Projectile.scale,
+                Projectile.spriteDirection == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally, 0);
+            return false;
+        }
+
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if ((int)Main.time % 120 == 0) Projectile.netUpdate = true;
+            if (!player.active)
             {
-              int whoAmI1 = ((Entity) minionAttackTargetNpc).whoAmI;
+                Projectile.active = false;
+                return;
+            }
+
+            int num1038 = 10;
+            if (player.dead) modPlayer.EaterMinion = false;
+            if (modPlayer.EaterMinion) Projectile.timeLeft = 2;
+            num1038 = 30;
+
+            Vector2 center = player.Center;
+            float num1040 = 300f;
+            float num1041 = 400f;
+            int num1042 = -1;
+            if (Projectile.Distance(center) > 1800f)
+            {
+                Projectile.Center = center;
+                Projectile.netUpdate = true;
+            }
+
+            bool flag66 = true;
+            if (flag66)
+            {
+                NPC ownerMinionAttackTargetNPC5 = Projectile.OwnerMinionAttackTargetNPC;
+                if (ownerMinionAttackTargetNPC5 != null && ownerMinionAttackTargetNPC5.CanBeChasedBy(Projectile, false))
+                {
+                    float num1043 = Projectile.Distance(ownerMinionAttackTargetNPC5.Center);
+                    if (num1043 < num1040 * 3f)
+                    {
+                        num1042 = ownerMinionAttackTargetNPC5.whoAmI;
+                        if (ownerMinionAttackTargetNPC5.boss)
+                        {
+                            int arg_2D352_0 = ownerMinionAttackTargetNPC5.whoAmI;
+                        }
+                        else
+                        {
+                            int arg_2D35E_0 = ownerMinionAttackTargetNPC5.whoAmI;
+                        }
+                    }
+                }
+
+                if (num1042 < 0)
+                    for (int num1044 = 0; num1044 < Main.maxNPCs; num1044++)
+                    {
+                        NPC nPC13 = Main.npc[num1044];
+                        if (nPC13.CanBeChasedBy(Projectile, false)
+                            && (player.Distance(nPC13.Center) < num1041 || Projectile.Distance(nPC13.Center) < num1041))
+                        {
+                            float num1045 = Projectile.Distance(nPC13.Center);
+                            if (num1045 < num1040)
+                            {
+                                num1042 = num1044;
+                                bool arg_2D3CE_0 = nPC13.boss;
+                            }
+                        }
+                    }
+            }
+
+            const int blockTrackDownAllowanceRange = 4;
+
+            static bool IsInTile(Vector2 pos)
+            {
+                Tile tile = Framing.GetTileSafely(pos);
+                return tile.HasUnactuatedTile && (Main.tileSolid[tile.TileType] || Main.tileSolidTop[tile.TileType]);
+            }
+
+            float playerGroundCompareHeight = player.Center.Y;
+            for (int i = 0; i < 20; i++)
+            {
+                Vector2 pos = new(player.Center.X, playerGroundCompareHeight);
+                if (IsInTile(pos))
+                    break;
+                playerGroundCompareHeight += 16;
+            }
+
+            bool belowPlayer = Projectile.Center.Y > playerGroundCompareHeight;
+            bool canMove = false;
+            if (belowPlayer || Projectile.Distance(Main.player[Projectile.owner].Center) > 1200f)
+            {
+                canMove = true;
             }
             else
             {
-              int whoAmI2 = ((Entity) minionAttackTargetNpc).whoAmI;
+                for (int i = 0; i < blockTrackDownAllowanceRange; i++)
+                {
+                    if (IsInTile(Projectile.Top + Vector2.UnitY * 16 * i))
+                    {
+                        canMove = true;
+                        break;
+                    }
+                }
             }
-          }
-          if (index1 < 0)
-          {
-            for (int index2 = 0; index2 < Main.maxNPCs; ++index2)
-            {
-              NPC npc = Main.npc[index2];
-              if (npc.CanBeChasedBy((object) this.Projectile, false) && ((double) ((Entity) player).Distance(((Entity) npc).Center) < (double) num3 || (double) ((Entity) this.Projectile).Distance(((Entity) npc).Center) < (double) num3) && (double) ((Entity) this.Projectile).Distance(((Entity) npc).Center) < (double) num2)
-              {
-                index1 = index2;
-                int num4 = npc.boss ? 1 : 0;
-              }
-            }
-          }
-        }
-        float y = ((Entity) player).Center.Y;
-        for (int index3 = 0; index3 < 20 && !IsInTile(new Vector2(((Entity) player).Center.X, y)); ++index3)
-          y += 16f;
-        int num5 = (double) ((Entity) this.Projectile).Center.Y > (double) y ? 1 : 0;
-        bool flag = false;
-        if (num5 != 0 || (double) ((Entity) this.Projectile).Distance(((Entity) Main.player[this.Projectile.owner]).Center) > 1200.0)
-        {
-          flag = true;
-        }
-        else
-        {
-          for (int index4 = 0; index4 < 4; ++index4)
-          {
-            if (IsInTile(Vector2.op_Addition(((Entity) this.Projectile).Top, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitY, 16f), (float) index4))))
-            {
-              flag = true;
-              break;
-            }
-          }
-        }
-        if (!flag)
-        {
-          ((Entity) this.Projectile).velocity.Y += 0.4f;
-          if ((double) ((Entity) this.Projectile).velocity.Y > 16.0)
-            ((Entity) this.Projectile).velocity.Y = 16f;
-          if ((double) ((Entity) this.Projectile).velocity.Y > 4.0)
-          {
-            if ((double) ((Entity) this.Projectile).velocity.X < 0.0)
-              ((Entity) this.Projectile).velocity.X += 0.09f;
-            else
-              ((Entity) this.Projectile).velocity.X -= 0.09f;
-          }
-          else if ((double) Math.Abs(((Entity) this.Projectile).velocity.X) + (double) Math.Abs(((Entity) this.Projectile).velocity.Y) < 6.4000000953674316)
-          {
-            if ((double) ((Entity) this.Projectile).velocity.X < 0.0)
-              ((Entity) this.Projectile).velocity.X -= 0.11f;
-            else
-              ((Entity) this.Projectile).velocity.X += 0.11f;
-          }
-        }
-        else if (index1 != -1)
-        {
-          NPC npc = Main.npc[index1];
-          Vector2 vector2 = Vector2.op_Subtraction(((Entity) npc).Center, ((Entity) this.Projectile).Center);
-          Utils.ToDirectionInt((double) vector2.X > 0.0);
-          Utils.ToDirectionInt((double) vector2.Y > 0.0);
-          float num6 = 0.4f;
-          if ((double) ((Vector2) ref vector2).Length() < 600.0)
-            num6 = 0.6f;
-          if ((double) ((Vector2) ref vector2).Length() < 300.0)
-            num6 = 0.8f;
-          double num7 = (double) ((Vector2) ref vector2).Length();
-          Vector2 size = ((Entity) npc).Size;
-          double num8 = (double) ((Vector2) ref size).Length() * 0.75;
-          if (num7 > num8)
-          {
-            Projectile projectile1 = this.Projectile;
-            ((Entity) projectile1).velocity = Vector2.op_Addition(((Entity) projectile1).velocity, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.Normalize(vector2), num6), 1.5f));
-            if ((double) Vector2.Dot(((Entity) this.Projectile).velocity, vector2) < 0.25)
-            {
-              Projectile projectile2 = this.Projectile;
-              ((Entity) projectile2).velocity = Vector2.op_Multiply(((Entity) projectile2).velocity, 0.8f);
-            }
-          }
-          float num9 = 30f;
-          if ((double) ((Vector2) ref ((Entity) this.Projectile).velocity).Length() > (double) num9)
-            ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) this.Projectile).velocity), num9);
-        }
-        else
-        {
-          Vector2 bottom = ((Entity) player).Bottom;
-          float num10 = 0.2f;
-          Vector2 vector2 = Vector2.op_Subtraction(bottom, ((Entity) this.Projectile).Center);
-          if ((double) ((Vector2) ref vector2).Length() < 200.0)
-            num10 = 0.12f;
-          if ((double) ((Vector2) ref vector2).Length() < 140.0)
-            num10 = 0.06f;
-          if ((double) ((Vector2) ref vector2).Length() > 100.0 || (double) Math.Abs(vector2.Y) > 32.0)
-          {
-            if ((double) Math.Abs(bottom.X - ((Entity) this.Projectile).Center.X) > 20.0)
-              ((Entity) this.Projectile).velocity.X = ((Entity) this.Projectile).velocity.X + num10 * (float) Math.Sign(bottom.X - ((Entity) this.Projectile).Center.X);
-            if ((double) Math.Abs(bottom.Y - ((Entity) this.Projectile).Center.Y) > 10.0)
-              ((Entity) this.Projectile).velocity.Y = ((Entity) this.Projectile).velocity.Y + num10 * (float) Math.Sign(bottom.Y - ((Entity) this.Projectile).Center.Y);
-          }
-          else if ((double) ((Vector2) ref ((Entity) this.Projectile).velocity).Length() > 2.0)
-          {
-            Projectile projectile = this.Projectile;
-            ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 0.96f);
-          }
-          if ((double) Math.Abs(((Entity) this.Projectile).velocity.Y) < 1.0)
-            ((Entity) this.Projectile).velocity.Y = ((Entity) this.Projectile).velocity.Y - 0.1f;
-          float num11 = 15f;
-          if ((double) ((Vector2) ref ((Entity) this.Projectile).velocity).Length() > (double) num11)
-            ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) this.Projectile).velocity), num11);
-        }
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + 1.57079637f;
-        int direction1 = ((Entity) this.Projectile).direction;
-        ((Entity) this.Projectile).direction = this.Projectile.spriteDirection = (double) ((Entity) this.Projectile).velocity.X > 0.0 ? 1 : -1;
-        int direction2 = ((Entity) this.Projectile).direction;
-        if (direction1 != direction2)
-          this.Projectile.netUpdate = true;
-        float num12 = MathHelper.Clamp(this.Projectile.localAI[0], 0.0f, 50f);
-        ((Entity) this.Projectile).position = ((Entity) this.Projectile).Center;
-        this.Projectile.scale = (float) (1.0 + (double) num12 * 0.0099999997764825821);
-        ((Entity) this.Projectile).width = ((Entity) this.Projectile).height = (int) ((double) num1 * (double) this.Projectile.scale);
-        ((Entity) this.Projectile).Center = ((Entity) this.Projectile).position;
-        if (this.Projectile.alpha > 0)
-        {
-          this.Projectile.alpha -= 42;
-          if (this.Projectile.alpha < 0)
-            this.Projectile.alpha = 0;
-        }
-        Projectile projectile3 = this.Projectile;
-        ((Entity) projectile3).position = Vector2.op_Subtraction(((Entity) projectile3).position, Vector2.op_Division(((Entity) this.Projectile).velocity, 2f));
-      }
 
-      static bool IsInTile(Vector2 pos)
-      {
-        Tile tileSafely = Framing.GetTileSafely(pos);
-        if (!((Tile) ref tileSafely).HasUnactuatedTile)
-          return false;
-        return Main.tileSolid[(int) ((Tile) ref tileSafely).TileType] || Main.tileSolidTop[(int) ((Tile) ref tileSafely).TileType];
-      }
+            if (!canMove)
+            {
+                //float fastfallComparePoint = num1042 == -1 ? player.Center.Y : Main.npc[num1042].Center.Y;
+                Projectile.velocity.Y += 0.40f; //Projectile.Center.Y > fastfallComparePoint ? 0.25f : 0.50f;
+                if (Projectile.velocity.Y > 16f)
+                    Projectile.velocity.Y = 16f;
+
+                if (Projectile.velocity.Y > 4f)
+                {
+                    if (Projectile.velocity.X < 0)
+                        Projectile.velocity.X += 0.09f;
+                    else
+                        Projectile.velocity.X -= 0.09f;
+                }
+                else if (Math.Abs(Projectile.velocity.X) + Math.Abs(Projectile.velocity.Y) < 16f * 0.4f)
+                {
+                    if (Projectile.velocity.X < 0)
+                        Projectile.velocity.X -= 0.11f;
+                    else
+                        Projectile.velocity.X += 0.11f;
+                }
+            }
+            else if (num1042 != -1)
+            {
+                NPC nPC14 = Main.npc[num1042];
+                Vector2 vector132 = nPC14.Center - Projectile.Center;
+                (vector132.X > 0f).ToDirectionInt();
+                (vector132.Y > 0f).ToDirectionInt();
+                float scaleFactor15 = 0.4f;
+                if (vector132.Length() < 600f) scaleFactor15 = 0.6f;
+                if (vector132.Length() < 300f) scaleFactor15 = 0.8f;
+                if (vector132.Length() > nPC14.Size.Length() * 0.75f)
+                {
+                    Projectile.velocity += Vector2.Normalize(vector132) * scaleFactor15 * 1.5f;
+                    if (Vector2.Dot(Projectile.velocity, vector132) < 0.25f) Projectile.velocity *= 0.8f;
+                }
+
+                float num1046 = 30f;
+                if (Projectile.velocity.Length() > num1046) Projectile.velocity = Vector2.Normalize(Projectile.velocity) * num1046;
+            }
+            else
+            {
+                center = player.Bottom;
+
+                float num1047 = 0.2f;
+                Vector2 vector133 = center - Projectile.Center;
+                if (vector133.Length() < 200f) num1047 = 0.12f;
+                if (vector133.Length() < 140f) num1047 = 0.06f;
+                if (vector133.Length() > 100f || Math.Abs(vector133.Y) > 16 * blockTrackDownAllowanceRange / 2)
+                {
+                    if (Math.Abs(center.X - Projectile.Center.X) > 20f) Projectile.velocity.X = Projectile.velocity.X + num1047 * Math.Sign(center.X - Projectile.Center.X);
+                    if (Math.Abs(center.Y - Projectile.Center.Y) > 10f) Projectile.velocity.Y = Projectile.velocity.Y + num1047 * Math.Sign(center.Y - Projectile.Center.Y);
+                }
+                else if (Projectile.velocity.Length() > 2f)
+                {
+                    Projectile.velocity *= 0.96f;
+                }
+
+                if (Math.Abs(Projectile.velocity.Y) < 1f) Projectile.velocity.Y = Projectile.velocity.Y - 0.1f;
+                float num1048 = 15f;
+                if (Projectile.velocity.Length() > num1048) Projectile.velocity = Vector2.Normalize(Projectile.velocity) * num1048;
+            }
+
+            Projectile.rotation = Projectile.velocity.ToRotation() + 1.57079637f;
+            int direction = Projectile.direction;
+            Projectile.direction = Projectile.spriteDirection = Projectile.velocity.X > 0f ? 1 : -1;
+            if (direction != Projectile.direction) Projectile.netUpdate = true;
+            float num1049 = MathHelper.Clamp(Projectile.localAI[0], 0f, 50f);
+            Projectile.position = Projectile.Center;
+            Projectile.scale = 1f + num1049 * 0.01f;
+            Projectile.width = Projectile.height = (int)(num1038 * Projectile.scale);
+            Projectile.Center = Projectile.position;
+            if (Projectile.alpha > 0)
+            {
+                Projectile.alpha -= 42;
+                if (Projectile.alpha < 0)
+                {
+                    Projectile.alpha = 0;
+                }
+            }
+
+            Projectile.position -= Projectile.velocity / 2;
+        }
     }
-  }
 }

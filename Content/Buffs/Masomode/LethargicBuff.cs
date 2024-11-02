@@ -1,37 +1,36 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.LethargicBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using System;
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class LethargicBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class LethargicBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Lethargic");
+            // Description.SetDefault("Your weapons feel sluggish");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "昏昏欲睡");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "你感觉你的武器变得缓慢");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().AttackSpeed -= 0.25f;
-    }
+        public override void Update(Player player, ref int buffIndex)
+        {
+            //all item speed reduced to 75%
+            player.FargoSouls().AttackSpeed -= .25f;
+        }
 
-    public virtual void Update(NPC npc, ref int buffIndex)
-    {
-      if (npc.boss)
-        return;
-      NPC npc1 = FargoSoulsUtil.NPCExists(npc.realLife, Array.Empty<int>());
-      if (npc1 != null && npc1.boss)
-        return;
-      npc.FargoSouls().Lethargic = true;
+        public override void Update(NPC npc, ref int buffIndex)
+        {
+            if (npc.boss)
+                return;
+
+            NPC realNPC = FargoSoulsUtil.NPCExists(npc.realLife);
+            if (realNPC != null && realNPC.boss)
+                return;
+
+            npc.FargoSouls().Lethargic = true;
+        }
     }
-  }
 }

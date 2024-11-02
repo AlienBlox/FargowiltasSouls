@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.MutantBoss.MutantSpearMagical
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.Masomode;
+﻿using FargowiltasSouls.Content.Projectiles.Masomode;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
@@ -12,78 +6,82 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.MutantBoss
 {
-  public class MutantSpearMagical : MutantSpearThrown
-  {
-    private const int attackTime = 120;
-    private const int flySpeed = 25;
-
-    public override string Texture
+    public class MutantSpearMagical : MutantSpearThrown
     {
-      get
-      {
-        return !FargoSoulsUtil.AprilFools ? "FargowiltasSouls/Content/Projectiles/BossWeapons/HentaiSpear" : "FargowiltasSouls/Content/Bosses/MutantBoss/MutantSpear_April";
-      }
-    }
+        public override string Texture => FargoSoulsUtil.AprilFools ?
+            "FargowiltasSouls/Content/Bosses/MutantBoss/MutantSpear_April" :
+            "FargowiltasSouls/Content/Projectiles/BossWeapons/HentaiSpear";
 
-    public override void SetDefaults()
-    {
-      base.SetDefaults();
-      this.Projectile.timeLeft = 144;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 1;
-    }
-
-    public override void AI()
-    {
-      if ((double) this.Projectile.ai[0] == 0.0)
-      {
-        if ((double) this.Projectile.localAI[1] == 0.0)
+        public override void SetDefaults()
         {
-          this.Projectile.rotation = 6.28318548f + Utils.NextFloat(Main.rand, 6.28318548f);
-          if (Utils.NextBool(Main.rand))
-            this.Projectile.rotation *= -1f;
+            base.SetDefaults();
+            Projectile.timeLeft = attackTime + 600 / flySpeed;
+            Projectile.FargoSouls().DeletionImmuneRank = 1;
         }
-        this.Projectile.rotation = MathHelper.Lerp(this.Projectile.rotation, this.Projectile.ai[1], 0.05f);
-        if ((double) ++this.Projectile.localAI[1] > 120.0)
+
+        const int attackTime = 120;
+        const int flySpeed = 25;
+        public override void AI()
         {
-          SoundEngine.PlaySound(ref SoundID.Item1, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          this.Projectile.ai[0] = 1f;
-          ((Entity) this.Projectile).velocity = Vector2.op_Multiply(25f, Utils.ToRotationVector2(this.Projectile.ai[1]));
+            if (Projectile.ai[0] == 0)
+            {
+                if (Projectile.localAI[1] == 0) //cosmetic rotation
+                {
+                    Projectile.rotation = MathHelper.TwoPi + Main.rand.NextFloat(MathHelper.TwoPi);
+                    if (Main.rand.NextBool())
+                        Projectile.rotation *= -1;
+                }
+
+                Projectile.rotation = MathHelper.Lerp(Projectile.rotation, Projectile.ai[1], 0.05f);
+
+                if (++Projectile.localAI[1] > attackTime)
+                {
+                    SoundEngine.PlaySound(SoundID.Item1, Projectile.Center);
+                    Projectile.ai[0] = 1f;
+                    Projectile.velocity = flySpeed * Projectile.ai[1].ToRotationVector2();
+                }
+            }
+            else
+            {
+                Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.ToRadians(135f);
+                if (--Projectile.localAI[0] < 0)
+                {
+                    Projectile.localAI[0] = 4;
+                    if (Projectile.ai[1] == 0 && FargoSoulsUtil.HostCheck)
+                        Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.Zero, ModContent.ProjectileType<MutantSphereSmall>(), Projectile.damage, 0f, Projectile.owner, Projectile.ai[0]);
+                }
+            }
+
+            scaletimer++;
         }
-      }
-      else
-      {
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + MathHelper.ToRadians(135f);
-        if ((double) --this.Projectile.localAI[0] < 0.0)
+
+        public override void OnKill(int timeLeft)
         {
-          this.Projectile.localAI[0] = 4f;
-          if ((double) this.Projectile.ai[1] == 0.0 && FargoSoulsUtil.HostCheck)
-            Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.Zero, ModContent.ProjectileType<MutantSphereSmall>(), this.Projectile.damage, 0.0f, this.Projectile.owner, this.Projectile.ai[0], 0.0f, 0.0f);
+            base.OnKill(timeLeft);
+
+            if (FargoSoulsUtil.HostCheck)
+            {
+                Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.Zero, ModContent.ProjectileType<MoonLordMoonBlast>(),
+                    Projectile.damage, Projectile.knockBack, Projectile.owner, Projectile.velocity.ToRotation(), 12);
+            }
         }
-      }
-      ++this.scaletimer;
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      base.OnKill(timeLeft);
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.Zero, ModContent.ProjectileType<MoonLordMoonBlast>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, Utils.ToRotation(((Entity) this.Projectile).velocity), 12f, 0.0f);
-    }
 
-    public override Color? GetAlpha(Color lightColor)
-    {
-      Color color = Color.op_Multiply(Color.White, this.Projectile.Opacity);
-      ((Color) ref color).A = (byte) ((double) byte.MaxValue * (double) Math.Min(this.Projectile.localAI[1] / 120f, 1f));
-      return new Color?(color);
-    }
+        public override Color? GetAlpha(Color lightColor)
+        {
+            Color color = Color.White * Projectile.Opacity;
+            color.A = (byte)(255f * Math.Min(Projectile.localAI[1] / attackTime, 1f));
+            return color;
+        }
 
-    public override bool PreDraw(ref Color lightColor)
-    {
-      return (double) this.Projectile.ai[0] == 0.0 || base.PreDraw(ref lightColor);
+        public override bool PreDraw(ref Color lightColor)
+        {
+            if (Projectile.ai[0] == 0) //block the fancy trail draw
+                return true;
+
+            return base.PreDraw(ref lightColor);
+        }
     }
-  }
 }

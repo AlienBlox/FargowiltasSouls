@@ -1,30 +1,24 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.SuperchargedBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs
 {
-  public class SuperchargedBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class SuperchargedBuff : ModBuff
     {
-      Main.buffNoSave[this.Type] = true;
-      Main.debuff[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Supercharged");
+            // Description.SetDefault("20% increased move speed, 10% increased attack speed, your attacks electrify");
+            Main.buffNoSave[Type] = true;
+            Main.debuff[Type] = true;
+            Terraria.ID.BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.moveSpeed += 0.2f;
-      player.FargoSouls().AttackSpeed += 0.1f;
-      player.FargoSouls().Supercharged = true;
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.moveSpeed += 0.20f;
+            player.FargoSouls().AttackSpeed += 0.10f;
+            player.FargoSouls().Supercharged = true;
+        }
     }
-  }
 }

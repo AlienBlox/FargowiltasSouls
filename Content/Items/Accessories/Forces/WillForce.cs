@@ -1,60 +1,76 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Forces.WillForce
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+﻿using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+using FargowiltasSouls.Content.Projectiles.Minions;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
+using FargowiltasSouls.Core.Toggler.Content;
+using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Forces
 {
-  public class WillForce : BaseForce
-  {
-    public override void SetStaticDefaults()
+    public class WillForce : BaseForce
     {
-      BaseForce.Enchants[this.Type] = new int[5]
-      {
-        ModContent.ItemType<GoldEnchant>(),
-        ModContent.ItemType<PlatinumEnchant>(),
-        ModContent.ItemType<GladiatorEnchant>(),
-        ModContent.ItemType<RedRidingEnchant>(),
-        ModContent.ItemType<ValhallaKnightEnchant>()
-      };
+        public override void SetStaticDefaults()
+        {
+            Enchants[Type] =
+            [
+                ModContent.ItemType<GoldEnchant>(),
+                ModContent.ItemType<PlatinumEnchant>(),
+                ModContent.ItemType<GladiatorEnchant>(),
+                ModContent.ItemType<RedRidingEnchant>(),
+                ModContent.ItemType<ValhallaKnightEnchant>()
+            ];
+        }
+        public override void UpdateInventory(Player player)
+        {
+            player.AddEffect<GoldToPiggy>(Item);
+        }
+        public override void UpdateVanity(Player player)
+        {
+            player.AddEffect<GoldToPiggy>(Item);
+        }
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            SetActive(player);
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            player.AddEffect<WillEffect>(Item);
+
+            // gladi
+            player.AddEffect<GladiatorBanner>(Item);
+            // gold
+            player.AddEffect<GoldToPiggy>(Item);
+            player.AddEffect<GoldEffect>(Item);
+            // platinum
+            modPlayer.PlatinumEffect = Item;
+            // red riding
+            player.AddEffect<HuntressEffect>(Item);
+            player.AddEffect<RedRidingHuntressEffect>(Item);
+            // valhalla
+            player.FargoSouls().ValhallaEnchantActive = true;
+            player.AddEffect<ValhallaDash>(Item);
+            SquireEnchant.SquireEffect(player, Item);
+
+            if (!player.HasEffect<WillEffect>())
+            {
+                player.AddEffect<GladiatorSpears>(Item);
+                player.AddEffect<GoldEffect>(Item);
+                player.AddEffect<RedRidingEffect>(Item);
+            }
+        }
+
+        public override void AddRecipes()
+        {
+            Recipe recipe = CreateRecipe();
+            foreach (int ench in Enchants[Type])
+                recipe.AddIngredient(ench);
+            recipe.AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"));
+            recipe.Register();
+        }
     }
-
-    public virtual void UpdateInventory(Player player) => player.AddEffect<GoldToPiggy>(this.Item);
-
-    public virtual void UpdateVanity(Player player) => player.AddEffect<GoldToPiggy>(this.Item);
-
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
+    public class WillEffect : AccessoryEffect
     {
-      this.SetActive(player);
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      player.AddEffect<GoldEffect>(this.Item);
-      player.AddEffect<GoldToPiggy>(this.Item);
-      Item obj = this.Item;
-      fargoSoulsPlayer.PlatinumEffect = obj;
-      player.AddEffect<GladiatorBanner>(this.Item);
-      player.AddEffect<GladiatorSpears>(this.Item);
-      player.AddEffect<RedRidingEffect>(this.Item);
-      player.AddEffect<HuntressEffect>(this.Item);
-      player.FargoSouls().ValhallaEnchantActive = true;
-      player.AddEffect<ValhallaDash>(this.Item);
-      SquireEnchant.SquireEffect(player, this.Item);
+        public override Header ToggleHeader => null;
+        //public override int ToggleItemType => ModContent.ItemType<WillForce>();
+       
     }
-
-    public virtual void AddRecipes()
-    {
-      Recipe recipe = this.CreateRecipe(1);
-      foreach (int num in BaseForce.Enchants[this.Type])
-        recipe.AddIngredient(num, 1);
-      recipe.AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"));
-      recipe.Register();
-    }
-  }
 }

@@ -1,220 +1,213 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.PrismaRegaliaProj
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class PrismaRegaliaProj : ModProjectile
-  {
-    public float maxCharge = 150f;
-    public int SwingDirection = 1;
-    public float Extension;
-    private int OrigAnimMax = 30;
-    private bool Charged;
-    private Vector2 ChargeVector = Vector2.Zero;
-
-    public virtual void SetStaticDefaults()
+    public class PrismaRegaliaProj : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 4;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.aiStyle = -1;
-      ((Entity) this.Projectile).width = 244;
-      ((Entity) this.Projectile).height = 244;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft = 3600;
-      this.Projectile.tileCollide = false;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 150;
-      this.Projectile.DamageType = DamageClass.MeleeNoSpeed;
-      this.Projectile.FargoSouls().NinjaCanSpeedup = false;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Prisma Regalia");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 4;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+        }
 
-    public virtual void ModifyDamageHitbox(ref Rectangle hitbox)
-    {
-      Vector2 vector2_1;
-      // ISSUE: explicit constructor call
-      ((Vector2) ref vector2_1).\u002Ector(88f * this.Projectile.scale, 88f * this.Projectile.scale);
-      Vector2 center = ((Entity) this.Projectile).Center;
-      Vector2 velocity = ((Entity) this.Projectile).velocity;
-      Vector2 size = ((Entity) this.Projectile).Size;
-      double num = (double) ((Vector2) ref size).Length() / 2.0 - (double) ((Vector2) ref vector2_1).Length() / 2.0;
-      Vector2 vector2_2 = Vector2.op_Multiply(velocity, (float) num);
-      Vector2 vector2_3 = Vector2.op_Addition(center, vector2_2);
-      hitbox = new Rectangle((int) ((double) vector2_3.X - (double) vector2_1.X / 2.0), (int) ((double) vector2_3.Y - (double) vector2_1.Y / 2.0), (int) vector2_1.X, (int) vector2_1.Y);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.aiStyle = -1;
+            Projectile.width = 244;
+            Projectile.height = 244;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft = 3600;
+            Projectile.tileCollide = false;
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 150;
+            Projectile.DamageType = DamageClass.MeleeNoSpeed;
 
-    public virtual void AI()
-    {
-      ref float local1 = ref this.Projectile.ai[0];
-      ref float local2 = ref this.Projectile.ai[1];
-      Player player1 = Main.player[this.Projectile.owner];
-      player1.heldProj = ((Entity) this.Projectile).whoAmI;
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.OrigAnimMax = player1.itemAnimationMax;
-        this.Projectile.localAI[0] = 1f;
-      }
-      Vector2 size1 = ((Entity) this.Projectile).Size;
-      float num1 = ((Vector2) ref size1).Length() / 2f;
-      Vector2 size2 = ((Entity) this.Projectile).Size;
-      float num2 = -((Vector2) ref size2).Length() / 6f;
-      if (player1.channel)
-      {
-        ((Entity) this.Projectile).velocity = Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) player1, Main.MouseWorld);
-        ((Entity) this.Projectile).Center = Vector2.op_Addition(player1.MountedCenter, Vector2.op_Multiply(((Entity) this.Projectile).velocity, num2));
-        this.Projectile.friendly = false;
-        if ((double) local1 < (double) this.maxCharge)
-          ++local1;
-        if ((double) local1 == (double) ((int) this.maxCharge - 1) && ((Entity) player1).whoAmI == Main.myPlayer)
-        {
-          SoundStyle soundStyle = new SoundStyle("FargowiltasSouls/Assets/Sounds/ChargeSound", (SoundType) 0);
-          ref SoundStyle local3 = ref soundStyle;
-          Vector2 center = ((Entity) this.Projectile).Center;
-          Vector2 velocity = ((Entity) this.Projectile).velocity;
-          Vector2 size3 = ((Entity) this.Projectile).Size;
-          double num3 = (double) ((Vector2) ref size3).Length();
-          Vector2 vector2 = Vector2.op_Division(Vector2.op_Multiply(velocity, (float) num3), 2f);
-          Vector2? nullable = new Vector2?(Vector2.op_Addition(center, vector2));
-          SoundEngine.PlaySound(ref local3, nullable, (SoundUpdateCallback) null);
+            Projectile.FargoSouls().NinjaCanSpeedup = false;
         }
-        this.Projectile.localAI[1] = local1;
-        bool flag = (double) local1 >= (double) this.maxCharge - 1.0;
-        Player player2 = player1;
-        Vector2 size4 = ((Entity) this.Projectile).Size;
-        double distance = (double) ((Vector2) ref size4).Length() * 0.949999988079071;
-        Color color = flag ? Color.HotPink : Color.DeepPink;
-        int particleType = flag ? 1 : 0;
-        FargoSoulsUtil.AuraParticles((Entity) player2, (float) distance, color, particleType: particleType);
-      }
-      else
-      {
-        this.Projectile.friendly = true;
-        if ((double) local1 > -1.0)
+        public override void ModifyDamageHitbox(ref Rectangle hitbox)
         {
-          this.Projectile.damage = (int) ((double) this.Projectile.damage * (1.1499999761581421 + (double) local1 / 60.0));
-          this.Charged = (double) local1 == (double) this.maxCharge;
-          local1 = -1f;
+            Vector2 HitboxSize = new(88 * Projectile.scale, 88 * Projectile.scale);
+            Vector2 HitboxCenter = Projectile.Center + Projectile.velocity * (Projectile.Size.Length() / 2f - HitboxSize.Length() / 2f);
+            hitbox = new Rectangle((int)(HitboxCenter.X - HitboxSize.X / 2f), (int)(HitboxCenter.Y - HitboxSize.Y / 2f), (int)HitboxSize.X, (int)HitboxSize.Y);
         }
-        int num4 = (int) ((double) this.OrigAnimMax / 1.5);
-        int num5 = this.OrigAnimMax / 5;
-        if ((double) local2 == 0.0)
-          this.SwingDirection = Utils.NextBool(Main.rand, 2) ? 1 : -1;
-        float num6 = 13f;
-        this.Projectile.localNPCHitCooldown = this.OrigAnimMax;
-        if (this.Projectile.timeLeft > this.OrigAnimMax)
-          this.Projectile.timeLeft = this.OrigAnimMax;
-        if ((double) local2 <= (double) (num4 / 2))
+        public float maxCharge = 60 * 2.5f;
+        public int SwingDirection = 1;
+        public float Extension = 0;
+        int OrigAnimMax = 30;
+        bool Charged;
+        public override void AI()
         {
-          this.Extension = local2 / (float) (num4 / 2);
-          ((Entity) this.Projectile).velocity = Utils.RotatedBy(((Entity) this.Projectile).velocity, (double) (this.SwingDirection * this.Projectile.spriteDirection) * (-1.0 * Math.PI) / ((double) num6 * (double) this.OrigAnimMax), new Vector2());
-        }
-        else if ((double) local2 <= (double) (num4 / 2 + num5))
-        {
-          this.Extension = 1f;
-          ((Entity) this.Projectile).velocity = Utils.RotatedBy(((Entity) this.Projectile).velocity, (double) (this.SwingDirection * this.Projectile.spriteDirection) * (1.5 * (double) num4 / (double) num5) * Math.PI / ((double) num6 * (double) this.OrigAnimMax), new Vector2());
-        }
-        else
-        {
-          this.Projectile.friendly = false;
-          this.Extension = ((float) (num4 + num5) - local2) / (float) (num4 / 2);
-          ((Entity) this.Projectile).velocity = Utils.RotatedBy(((Entity) this.Projectile).velocity, (double) (this.SwingDirection * this.Projectile.spriteDirection) * (-1.0 * Math.PI) / ((double) num6 * (double) this.OrigAnimMax), new Vector2());
-        }
-        if ((double) local2 == (double) (num4 / 2))
-        {
-          float num7 = this.Charged ? -1f : 0.0f;
-          SoundStyle soundStyle = SoundID.Item1;
-          ((SoundStyle) ref soundStyle).Pitch = num7;
-          SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) player1).Center), (SoundUpdateCallback) null);
-        }
-        ++local2;
-        ((Entity) this.Projectile).velocity = Vector2.Normalize(((Entity) this.Projectile).velocity);
-        ((Entity) this.Projectile).Center = Vector2.op_Addition(player1.MountedCenter, Vector2.SmoothStep(Vector2.op_Multiply(((Entity) this.Projectile).velocity, num2), Vector2.op_Multiply(((Entity) this.Projectile).velocity, num1), this.Extension));
-      }
-      this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-      this.Projectile.spriteDirection = ((Entity) this.Projectile).direction;
-      player1.ChangeDir(((Entity) this.Projectile).direction);
-      player1.itemRotation = Utils.ToRotation(Vector2.op_Multiply(((Entity) this.Projectile).velocity, (float) ((Entity) this.Projectile).direction));
-      player1.itemTime = 2;
-      player1.itemAnimation = 2;
-      if (this.Projectile.spriteDirection == -1)
-        this.Projectile.rotation += MathHelper.ToRadians(-45f) + 3.14159274f;
-      else
-        this.Projectile.rotation += MathHelper.ToRadians(-135f) + 3.14159274f;
-    }
+            ref float chargeLevel = ref Projectile.ai[0];
+            ref float timer = ref Projectile.ai[1];
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      Vector2 center = ((Entity) this.Projectile).Center;
-      Vector2 velocity = ((Entity) this.Projectile).velocity;
-      Vector2 size = ((Entity) this.Projectile).Size;
-      double num1 = (double) ((Vector2) ref size).Length() / 2.0;
-      Vector2 vector2_1 = Vector2.op_Multiply(velocity, (float) num1);
-      Vector2 vector2_2 = Vector2.op_Addition(center, vector2_1);
-      int num2 = 0;
-      if (this.Charged)
-        num2 = 4;
-      if ((double) this.Extension > 0.675000011920929)
-      {
-        SoundEngine.PlaySound(ref SoundID.Item68, new Vector2?(vector2_2), (SoundUpdateCallback) null);
-        num2 += 3;
-      }
-      if (num2 == 0)
-        return;
-      for (int index1 = 0; index1 < num2; ++index1)
-      {
-        int index2 = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), vector2_2, Vector2.op_Multiply(Utils.ToRotationVector2(Utils.NextFloat(Main.rand, 6.28318548f)), 10f), 931, this.Projectile.damage / 6, this.Projectile.knockBack, this.Projectile.owner, -1f, Utils.NextFloat(Main.rand, 1f), 0.0f);
-        if (Main.projectile[index2] != null && index2 != Main.maxProjectiles)
-          Main.projectile[index2].DamageType = DamageClass.MeleeNoSpeed;
-      }
-    }
+            Player player = Main.player[Projectile.owner];
+            player.heldProj = Projectile.whoAmI;
+            if (Projectile.localAI[0] == 0)
+            {
+                OrigAnimMax = player.itemAnimationMax;
+                Projectile.localAI[0] = 1;
+            }
+            float HoldoutRangeMax = (float)Projectile.Size.Length() / 2; //since sprite is diagonal
+            float HoldoutRangeMin = (float)-Projectile.Size.Length() / 6;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection == -1 ? (SpriteEffects) 1 : (SpriteEffects) 0;
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      Vector2 vector2_2 = Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY));
-      if (!Main.player[this.Projectile.owner].channel)
-      {
-        for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-        {
-          Color color = Color.op_Multiply(alpha, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-          Vector2 oldPo = this.Projectile.oldPos[index];
-          float rotation = this.Projectile.rotation;
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
+            if (player.channel)
+            {
+                Projectile.velocity = player.SafeDirectionTo(Main.MouseWorld);
+                Projectile.Center = player.MountedCenter + Projectile.velocity * HoldoutRangeMin;
+                Projectile.friendly = false;
+                if (chargeLevel < maxCharge)
+                    chargeLevel++;
+                if (chargeLevel == (int)maxCharge - 1 && player.whoAmI == Main.myPlayer)
+                {
+                    SoundEngine.PlaySound(new SoundStyle("FargowiltasSouls/Assets/Sounds/Accessories/ChargeSound"), Projectile.Center + Projectile.velocity * Projectile.Size.Length() / 2);
+                }
+                Projectile.localAI[1] = chargeLevel; //store the charge amount
+                                                     //int d = Dust.NewDust(player.MountedCenter + Projectile.velocity * Projectile.Size.Length() * 0.95f, 0, 0, DustID.CrystalPulse);
+                                                     //Main.dust[d].noGravity = true;
+                bool charged = chargeLevel >= maxCharge - 1;
+                FargoSoulsUtil.AuraParticles(player, Projectile.Size.Length() * 0.95f, color: charged ? Color.HotPink : Color.DeepPink, particleType: charged ? 1 : 0);
+            }
+            else
+            {
+                Projectile.friendly = true;
+                if (chargeLevel > -1) //check once
+                {
+                    Projectile.damage = (int)(Projectile.damage * (1.15f + chargeLevel / 60f)); //modify this to change damage charge
+                    Charged = chargeLevel == maxCharge;
+                    chargeLevel = -1;
+
+                }
+                int duration = (int)(OrigAnimMax / 1.5f);
+                int WaitTime = OrigAnimMax / 5;
+
+
+                if (timer == 0)
+                    SwingDirection = Main.rand.NextBool(2) ? 1 : -1;
+                float Swing = 13; //higher value = less swing
+                Projectile.localNPCHitCooldown = OrigAnimMax;   //only hit once per swing
+                                                                //projectile.ai[1] is time from spawn
+                                                                //Extension is between 0 and 1
+                if (Projectile.timeLeft > OrigAnimMax)
+                {
+                    Projectile.timeLeft = OrigAnimMax;
+                }
+                if (timer <= duration / 2)
+                {
+                    Extension = timer / (duration / 2);
+                    Projectile.velocity = Projectile.velocity.RotatedBy(SwingDirection * Projectile.spriteDirection * -Math.PI / (Swing * OrigAnimMax));
+                }
+                else if (timer <= duration / 2 + WaitTime)
+                {
+                    Extension = 1;
+                    Projectile.velocity = Projectile.velocity.RotatedBy(SwingDirection * Projectile.spriteDirection * (1.5 * duration / WaitTime) * Math.PI / (Swing * OrigAnimMax)); //i know how wacky this looks
+                }
+                else
+                {
+                    Projectile.friendly = false; //no hit on backswing
+                    Extension = (duration + WaitTime - timer) / (duration / 2);
+                    Projectile.velocity = Projectile.velocity.RotatedBy(SwingDirection * Projectile.spriteDirection * -Math.PI / (Swing * OrigAnimMax));
+                }
+
+                if (timer == duration / 2)
+                {
+                    float pitch = Charged ? -1 : 0;
+                    SoundEngine.PlaySound(SoundID.Item1 with { Pitch = pitch }, player.Center);
+                }
+
+                timer++;
+                Projectile.velocity = Vector2.Normalize(Projectile.velocity); //store direction
+                Projectile.Center = player.MountedCenter + Vector2.SmoothStep(Projectile.velocity * HoldoutRangeMin, Projectile.velocity * HoldoutRangeMax, Extension);
+                //}
+            }
+            Projectile.rotation = Projectile.velocity.ToRotation();
+            Projectile.spriteDirection = Projectile.direction;
+            player.ChangeDir(Projectile.direction);
+            player.itemRotation = (Projectile.velocity * Projectile.direction).ToRotation();
+            player.itemTime = 2;
+            player.itemAnimation = 2;
+            if (Projectile.spriteDirection == -1)
+            {
+                Projectile.rotation += MathHelper.ToRadians(-45f) + (float)Math.PI;
+            }
+            else
+            {
+                Projectile.rotation += MathHelper.ToRadians(-135f) + (float)Math.PI;
+            }
+
         }
-      }
-      for (int index = 0; index < 16; ++index)
-      {
-        float num3 = (float) (4.0 * ((double) this.Projectile.localAI[1] / (double) this.maxCharge));
-        Vector2 vector2_3 = Vector2.op_Multiply(Utils.ToRotationVector2((float) (6.2831854820251465 * (double) index / 12.0)), num3);
-        Color color = Color.op_Multiply(Main.DiscoColor, 0.3f);
-        Main.spriteBatch.Draw(texture2D, Vector2.op_Addition(vector2_2, vector2_3), new Rectangle?(), color, this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, vector2_2, new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            Vector2 pos = Projectile.Center + Projectile.velocity * (Projectile.Size.Length() / 2f);
+            int count = 0;
+            if (Charged)
+            {
+                count = 4;
+            }
+            if (Extension > 0.675f)
+            {
+                SoundEngine.PlaySound(SoundID.Item68, pos);
+                count += 3;
+            }
+            if (count == 0)
+            {
+                return;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), pos, Main.rand.NextFloat(MathHelper.TwoPi).ToRotationVector2() * 10,
+                    ProjectileID.FairyQueenMagicItemShot, Projectile.damage / 6, Projectile.knockBack, Projectile.owner, -1, Main.rand.NextFloat(1)); //random ai1 decides color completely randomly
+                if (Main.projectile[p] != null && p != Main.maxProjectiles)
+                {
+                    Main.projectile[p].DamageType = DamageClass.MeleeNoSpeed;
+                    //Main.projectile[p].
+                }
+            }
+        }
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            SpriteEffects effects = Projectile.spriteDirection == -1 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+            Vector2 pos = Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY);
+
+
+            if (!Main.player[Projectile.owner].channel)
+            {
+                for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+                {
+                    Color color27 = color26;
+                    color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                    Vector2 value4 = Projectile.oldPos[i];
+                    float num165 = Projectile.rotation;//Projectile.oldRot[i];
+                    Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+                }
+            }
+
+            //offset glow
+            for (int j = 0; j < 16; j++)
+            {
+                float offsetDistance = 4f * (Projectile.localAI[1] / maxCharge);
+                Vector2 afterimageOffset = (MathHelper.TwoPi * j / 12f).ToRotationVector2() * offsetDistance;
+                Color glowColor = Main.DiscoColor * 0.3f;
+                Main.spriteBatch.Draw(texture2D13, pos + afterimageOffset, null, glowColor, Projectile.rotation, origin2, Projectile.scale, effects, 0f);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, pos, new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

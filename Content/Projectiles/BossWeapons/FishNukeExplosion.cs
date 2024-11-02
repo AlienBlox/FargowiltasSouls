@@ -1,107 +1,137 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.FishNukeExplosion
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class FishNukeExplosion : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_645";
-
-    public virtual void SetStaticDefaults()
+    public class FishNukeExplosion : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = Main.projFrames[645];
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-    }
+        public override string Texture => "Terraria/Images/Projectile_645";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 400;
-      ((Entity) this.Projectile).height = 400;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Ranged;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft = 60;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 1;
-    }
-
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = 1f;
-        SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        for (int index1 = 0; index1 < 20; ++index1)
+        public override void SetStaticDefaults()
         {
-          int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 100, new Color(), 3f);
-          Dust dust = Main.dust[index2];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
+            // DisplayName.SetDefault("Fish Nuke");
+            Main.projFrames[Projectile.type] = Main.projFrames[ProjectileID.LunarFlare];
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
         }
-        for (int index3 = 0; index3 < 30; ++index3)
+
+        public override void SetDefaults()
         {
-          int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 135, 0.0f, 0.0f, 0, new Color(), 3.5f);
-          Main.dust[index4].noGravity = true;
-          Main.dust[index4].noLight = true;
-          Dust dust = Main.dust[index4];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
+            Projectile.width = 400;
+            Projectile.height = 400;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Ranged;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft = 60;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.FargoSouls().DeletionImmuneRank = 1;
         }
-        for (int index5 = 0; index5 < 20; ++index5)
+
+        public override void AI()
         {
-          int index6 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 3.5f);
-          Main.dust[index6].noGravity = true;
-          Dust dust1 = Main.dust[index6];
-          dust1.velocity = Vector2.op_Multiply(dust1.velocity, 7f);
-          int index7 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-          Dust dust2 = Main.dust[index7];
-          dust2.velocity = Vector2.op_Multiply(dust2.velocity, 3f);
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = 1;
+
+                SoundEngine.PlaySound(SoundID.Item14, Projectile.Center);
+                for (int i = 0; i < 20; i++)
+                {
+                    int dust = Dust.NewDust(Projectile.position, Projectile.width,
+                        Projectile.height, DustID.Smoke, 0f, 0f, 100, default, 3f);
+                    Main.dust[dust].velocity *= 1.4f;
+                }
+                for (int i = 0; i < 30; i++)
+                {
+                    int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.IceTorch, 0f, 0f, 0, default, 3.5f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].noLight = true;
+                    Main.dust[d].velocity *= 4f;
+                }
+                for (int i = 0; i < 20; i++)
+                {
+                    int dust = Dust.NewDust(Projectile.position, Projectile.width,
+                        Projectile.height, DustID.Torch, 0f, 0f, 100, default, 3.5f);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].velocity *= 7f;
+                    dust = Dust.NewDust(Projectile.position, Projectile.width,
+                        Projectile.height, DustID.Torch, 0f, 0f, 100, default, 1.5f);
+                    Main.dust[dust].velocity *= 3f;
+                }
+
+                /*for (int i = 0; i < 5; i++)
+                {
+                    float scaleFactor9 = 0.5f;
+                    if (i == 1 || i == 3) scaleFactor9 = 1f;
+
+                    for (int j = 0; j < 4; j++)
+                    {
+                        int gore = Gore.NewGore(Projectile.Center,
+                            default(Vector2),
+                            Main.rand.Next(61, 64));
+
+                        Main.gore[gore].velocity *= scaleFactor9;
+                        Main.gore[gore].velocity.X += 1f;
+                        Main.gore[gore].velocity.Y += 1f;
+                    }
+                }*/
+            }
+
+            if (++Projectile.frameCounter > 2)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame >= Main.projFrames[Projectile.type])
+                {
+                    Projectile.frame--;
+                    Projectile.Kill();
+                }
+            }
         }
-      }
-      if (++this.Projectile.frameCounter <= 2)
-        return;
-      this.Projectile.frameCounter = 0;
-      if (++this.Projectile.frame < Main.projFrames[this.Projectile.type])
-        return;
-      --this.Projectile.frame;
-      this.Projectile.Kill();
-    }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.AddBuff(44, 300, false);
-    }
+        /*public override void ModifyHitNPC(NPC target, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
+        {
+            if (target.whoAmI == NPCs.FargoSoulsGlobalNPC.fishBossEX)
+            {
+                target.life += damage;
+                if (target.life > target.lifeMax)
+                    target.life = target.lifeMax;
+                CombatText.NewText(target.Hitbox, CombatText.HealLife, damage);
+                damage = 0;
+                modifiers.DisableCrit();
+            }
+        }*/
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      Color color = Color.op_Multiply(Color.LightBlue, this.Projectile.Opacity);
-      ((Color) ref color).A = (byte) 0;
-      return new Color?(color);
-    }
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            //target.immune[Projectile.owner] = 0;
+            /*target.AddBuff(ModContent.BuffType<OceanicMaul>(), 900);
+            target.AddBuff(ModContent.BuffType<MutantNibble>(), 900);
+            target.AddBuff(ModContent.BuffType<CurseoftheMoon>(), 900);*/
+            target.AddBuff(BuffID.Frostburn, 300);
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale * 4f, (SpriteEffects) 0, 0.0f);
-      return false;
+        public override Color? GetAlpha(Color lightColor)
+        {
+            Color color = Color.LightBlue * Projectile.Opacity;
+            color.A = 0;
+            return color;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY),
+                new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2,
+                Projectile.scale * 4, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

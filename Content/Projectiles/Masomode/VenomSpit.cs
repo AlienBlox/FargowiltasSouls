@@ -1,70 +1,60 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.VenomSpit
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class VenomSpit : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_472";
-
-    public virtual void SetStaticDefaults()
+    public class VenomSpit : ModProjectile
     {
-    }
+        public override string Texture => "Terraria/Images/Projectile_472";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 8;
-      ((Entity) this.Projectile).height = 8;
-      this.Projectile.aiStyle = 1;
-      this.AIType = 472;
-      this.Projectile.hostile = true;
-      this.Projectile.timeLeft = 300;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Venom Spit");
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index1 = 0; index1 < 20; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 30, 0.0f, 0.0f, 0, new Color(), 1f);
-        Main.dust[index2].noGravity = true;
-        Dust dust1 = Main.dust[index2];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 0.45f);
-        Dust dust2 = Main.dust[index2];
-        dust2.velocity = Vector2.op_Addition(dust2.velocity, Vector2.op_Multiply(((Entity) this.Projectile).velocity, 0.9f));
-      }
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 8;
+            Projectile.height = 8;
+            Projectile.aiStyle = 1;
+            AIType = ProjectileID.WebSpit;
+            Projectile.hostile = true;
+            Projectile.timeLeft = 300;
+        }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(new Color((int) byte.MaxValue, (int) ((Color) ref lightColor).G, (int) byte.MaxValue, (int) ((Color) ref lightColor).A));
-    }
+        public override void OnKill(int timeLeft)
+        {
+            for (int index1 = 0; index1 < 20; ++index1)
+            {
+                int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Web);
+                Main.dust[d].noGravity = true;
+                Main.dust[d].velocity *= 0.45f;
+                Main.dust[d].velocity += Projectile.velocity * 0.9f;
+            }
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(70, 180, true, false);
-    }
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(255, lightColor.G, 255, lightColor.A);
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(BuffID.Venom, 180);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

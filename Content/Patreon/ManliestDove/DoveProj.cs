@@ -1,46 +1,48 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.ManliestDove.DoveProj
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
-using Terraria;
+﻿using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.ManliestDove
 {
-  public class DoveProj : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class DoveProj : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 5;
-      Main.projPet[this.Projectile.type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            Main.projFrames[Projectile.type] = 5;
+            Main.projPet[Projectile.type] = true;
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(208);
-      this.AIType = 208;
-      ((Entity) this.Projectile).height = 22;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.Parrot);
+            AIType = ProjectileID.Parrot;
+            Projectile.height = 22;
+        }
 
-    public virtual bool PreAI()
-    {
-      Main.player[this.Projectile.owner].parrot = false;
-      return true;
-    }
+        public override bool PreAI()
+        {
+            Player player = Main.player[Projectile.owner];
+            player.parrot = false; // Relic from AIType
+            return true;
+        }
 
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      PatreonPlayer modPlayer = player.GetModPlayer<PatreonPlayer>();
-      if (player.dead)
-        modPlayer.DovePet = false;
-      if (!modPlayer.DovePet)
-        return;
-      this.Projectile.timeLeft = 2;
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            PatreonPlayer modPlayer = player.GetModPlayer<PatreonPlayer>();
+            if (player.dead)
+            {
+                modPlayer.DovePet = false;
+            }
+            if (modPlayer.DovePet)
+            {
+                Projectile.timeLeft = 2;
+            }
+
+            /*int num113 = Dust.NewDust(new Vector2(Projectile.Center.X - Projectile.direction * (Projectile.width / 2), Projectile.Center.Y + Projectile.height / 2), Projectile.width, 6, 76, 0f, 0f, 0, default(Color), 1f);
+            Main.dust[num113].noGravity = true;
+            Main.dust[num113].velocity *= 0.3f;
+            Main.dust[num113].noLight = true;*/
+        }
     }
-  }
 }

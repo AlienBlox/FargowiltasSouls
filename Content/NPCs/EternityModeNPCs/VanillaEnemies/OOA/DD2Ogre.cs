@@ -1,48 +1,54 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.OOA.DD2Ogre
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
-using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.GameContent.Events;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.OOA
 {
-  public class DD2Ogre : EModeNPCBehaviour
-  {
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(576, 577);
-
-    public virtual void SetDefaults(NPC entity)
+    public class DD2Ogre : EModeNPCBehaviour
     {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(entity);
-      entity.scale *= 2f;
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.DD2OgreT2,
+            NPCID.DD2OgreT3
+        );
 
-    public virtual void OnSpawn(NPC npc, IEntitySource source)
-    {
-      base.OnSpawn(npc, source);
-      FargoSoulsUtil.NewNPCEasy(((Entity) npc).GetSource_FromAI((string) null), ((Entity) npc).Center, 564, target: npc.target, velocity: new Vector2());
-    }
+        public override void SetDefaults(NPC entity)
+        {
+            base.SetDefaults(entity);
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      EModeGlobalNPC.Aura(npc, 500f, 120, dustid: 188, color: new Color());
-    }
+            entity.scale *= 2;
+        }
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.FargoSouls().AddBuffNoStack(ModContent.BuffType<StunnedBuff>(), 60);
-      target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300, true, false);
-      target.AddBuff(36, 300, true, false);
+        public override void OnSpawn(NPC npc, IEntitySource source)
+        {
+            base.OnSpawn(npc, source);
+
+            FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, NPCID.DD2DarkMageT1, target: npc.target);
+        }
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            if (npc.Distance(Main.LocalPlayer.Center) > 3000 && !DD2Event.Ongoing)
+            {
+                npc.active = false;
+            }
+
+            EModeGlobalNPC.Aura(npc, 500, BuffID.Stinky, false, 188);
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.FargoSouls().AddBuffNoStack(ModContent.BuffType<StunnedBuff>(), 60);
+            target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300);
+            target.AddBuff(BuffID.BrokenArmor, 300);
+        }
     }
-  }
 }

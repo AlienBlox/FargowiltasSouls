@@ -1,29 +1,24 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.LihzahrdCurseBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class LihzahrdCurseBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class LihzahrdCurseBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.buffNoSave[this.Type] = true;
-      Main.buffNoTimeDisplay[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Lihzahrd Curse");
+            // Description.SetDefault("Wires disabled in Jungle Temple");
+            Main.debuff[Type] = true;
+            Main.buffNoSave[Type] = true;
+            Main.buffNoTimeDisplay[Type] = true;
+            BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().LihzahrdCurse = true;
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.FargoSouls().LihzahrdCurse = true;
+        }
     }
-  }
 }

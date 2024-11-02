@@ -1,53 +1,60 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Cavern.ExclusiveEnemies
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Terraria;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Cavern
 {
-  public class ExclusiveEnemies : EModeNPCBehaviour
-  {
-    public override NPCMatcher CreateMatcher()
+    public class ExclusiveEnemies : EModeNPCBehaviour
     {
-      return new NPCMatcher().MatchTypeRange(494, 496, 498, 499, 500, 501, 497, 502, 503, 504, 505, 495);
-    }
+        public override NPCMatcher CreateMatcher() =>
+            new NPCMatcher().MatchTypeRange(
+                NPCID.Crawdad,
+                NPCID.GiantShelly,
+                NPCID.Salamander,
+                NPCID.Salamander2,
+                NPCID.Salamander3,
+                NPCID.Salamander4,
+                NPCID.GiantShelly2,
+                NPCID.Salamander5,
+                NPCID.Salamander6,
+                NPCID.Salamander7,
+                NPCID.Salamander8,
+                NPCID.Crawdad2
+            );
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      switch (npc.type)
-      {
-        case 494:
-        case 496:
-          if (!Utils.NextBool(Main.rand, 5))
-            break;
-          npc.Transform(Main.rand.Next(498, 507));
-          break;
-        case 495:
-        case 502:
-        case 503:
-        case 504:
-        case 505:
-          if (!Utils.NextBool(Main.rand, 5))
-            break;
-          npc.Transform(Main.rand.Next(496, 498));
-          break;
-        case 497:
-        case 498:
-        case 499:
-        case 500:
-        case 501:
-          if (!Utils.NextBool(Main.rand, 5))
-            break;
-          npc.Transform(Main.rand.Next(494, 496));
-          break;
-      }
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
+
+            switch (npc.type)
+            {
+                case NPCID.Crawdad:
+                case NPCID.GiantShelly:
+                    if (Main.rand.NextBool(5)) //pick a random salamander
+                        npc.Transform(Main.rand.Next(498, 507));
+                    break;
+
+                case NPCID.Salamander:
+                case NPCID.Salamander2:
+                case NPCID.Salamander3:
+                case NPCID.Salamander4:
+                case NPCID.GiantShelly2:
+                    if (Main.rand.NextBool(5)) //pick a random crawdad
+                        npc.Transform(Main.rand.Next(494, 496));
+                    break;
+
+                case NPCID.Salamander5:
+                case NPCID.Salamander6:
+                case NPCID.Salamander7:
+                case NPCID.Salamander8:
+                case NPCID.Crawdad2:
+                    if (Main.rand.NextBool(5)) //pick a random shelly
+                        npc.Transform(Main.rand.Next(496, 498));
+                    break;
+
+                default: break;
+            }
+        }
     }
-  }
 }

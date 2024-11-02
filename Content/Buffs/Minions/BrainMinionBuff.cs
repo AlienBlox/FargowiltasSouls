@@ -1,37 +1,35 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Minions.BrainMinionBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.Minions;
-using FargowiltasSouls.Core.ModPlayers;
+﻿using FargowiltasSouls.Content.Projectiles.Minions;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
+
 namespace FargowiltasSouls.Content.Buffs.Minions
 {
-  public class BrainMinionBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class BrainMinionBuff : ModBuff
     {
-      Main.buffNoSave[this.Type] = true;
-      Main.buffNoTimeDisplay[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Brain of Cthulhu");
+            // Description.SetDefault("The mini Brain of Cthulhu will fight for you");
+            Main.buffNoSave[Type] = true;
+            Main.buffNoTimeDisplay[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "克苏鲁之脑");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "迷你克苏鲁之脑将会为你而战");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (player.ownedProjectileCounts[ModContent.ProjectileType<BrainMinion>()] > 0)
-        fargoSoulsPlayer.BrainMinion = true;
-      if (!fargoSoulsPlayer.BrainMinion)
-      {
-        player.DelBuff(buffIndex);
-        --buffIndex;
-      }
-      else
-        player.buffTime[buffIndex] = 18000;
+        public override void Update(Player player, ref int buffIndex)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (player.ownedProjectileCounts[ModContent.ProjectileType<BrainMinion>()] > 0) modPlayer.BrainMinion = true;
+            if (!modPlayer.BrainMinion)
+            {
+                player.DelBuff(buffIndex);
+                buffIndex--;
+            }
+            else
+            {
+                player.buffTime[buffIndex] = 18000;
+            }
+        }
     }
-  }
 }

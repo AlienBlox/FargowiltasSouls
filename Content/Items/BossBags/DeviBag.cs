@@ -1,36 +1,29 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.BossBags.DeviBag
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Bosses.DeviBoss;
 using FargowiltasSouls.Content.Items.Materials;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.BossBags
 {
-  public class DeviBag : BossBag
-  {
-    protected override bool IsPreHMBag => true;
-
-    public virtual void RightClick(Player player)
+    public class DeviBag : BossBag
     {
-      for (int index = -1; index < 2; ++index)
-      {
-        Vector2 vector2 = Vector2.op_Addition(Vector2.op_Multiply(Vector2.UnitY, 0.5f), Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, 6f), (float) index));
-        Projectile.NewProjectile(player.GetSource_OpenItem(this.Type, (string) null), ((Entity) player).Center, vector2, 371, 0, 0.0f, ((Entity) player).whoAmI, 0.0f, 0.0f, 0.0f);
-      }
-      base.RightClick(player);
+        protected override bool IsPreHMBag => true;
+        public override void RightClick(Player player)
+        {
+            for (int i = -1; i < 2; i++)
+            {
+                Vector2 vel = Vector2.UnitY * 0.5f + Vector2.UnitX * 6 * i;
+                Projectile.NewProjectile(player.GetSource_OpenItem(Type), player.Center, vel, ProjectileID.FoulPotion, 0, 0, player.whoAmI);
+            }
+            base.RightClick(player);
+        }
+        public override void ModifyItemLoot(ItemLoot itemLoot)
+        {
+            itemLoot.Add(ItemDropRule.Common(ModContent.ItemType<DeviatingEnergy>(), 1, 15, 30));
+            itemLoot.Add(ItemDropRule.CoinsBasedOnNPCValue(ModContent.NPCType<DeviBoss>()));
+        }
     }
-
-    public virtual void ModifyItemLoot(ItemLoot itemLoot)
-    {
-      ((ItemLoot) ref itemLoot).Add(ItemDropRule.Common(ModContent.ItemType<DeviatingEnergy>(), 1, 15, 30));
-      ((ItemLoot) ref itemLoot).Add(ItemDropRule.CoinsBasedOnNPCValue(ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>()));
-    }
-  }
 }

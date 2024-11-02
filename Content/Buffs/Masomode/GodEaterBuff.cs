@@ -1,39 +1,37 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.GodEaterBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class GodEaterBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class GodEaterBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-      BuffID.Sets.IsATagBuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("God Eater");
+            // Description.SetDefault("Your soul is cursed by divine wrath");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            BuffID.Sets.IsATagBuff[Type] = true; //ignore most debuff immunity
+                                                 //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "噬神者");
+                                                 //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "你的灵魂被神明的忿怒所诅咒");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().GodEater = true;
-      player.FargoSouls().noDodge = true;
-      player.FargoSouls().MutantPresence = true;
-      player.moonLeech = true;
-    }
+        public override void Update(Player player, ref int buffIndex)
+        {
+            //defense removed, endurance removed, colossal DOT (45 per second)
+            player.FargoSouls().GodEater = true;
+            player.FargoSouls().noDodge = true;
+            player.FargoSouls().MutantPresence = true;
+            player.moonLeech = true;
+        }
 
-    public virtual void Update(NPC npc, ref int buffIndex)
-    {
-      npc.defense = 0;
-      npc.defDefense = 0;
-      npc.FargoSouls().GodEater = true;
-      npc.FargoSouls().HellFire = true;
+        public override void Update(NPC npc, ref int buffIndex)
+        {
+            npc.defense = 0;
+            npc.defDefense = 0;
+            npc.FargoSouls().GodEater = true;
+            npc.FargoSouls().HellFire = true;
+        }
     }
-  }
 }

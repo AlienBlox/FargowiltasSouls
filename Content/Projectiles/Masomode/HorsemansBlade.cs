@@ -1,81 +1,79 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.HorsemansBlade
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class HorsemansBlade : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Item_1826";
-
-    public virtual void SetStaticDefaults()
+    public class HorsemansBlade : ModProjectile
     {
-    }
+        public override string Texture => "Terraria/Images/Item_1826";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 30;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.scale = 1.15f;
-      this.Projectile.timeLeft = 300;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("The Horseman's Blade");
+        }
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = 1f;
-        SoundEngine.PlaySound(ref SoundID.Item1, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      }
-      ++this.Projectile.ai[1];
-      if ((double) this.Projectile.ai[1] > 60.0)
-      {
-        ((Entity) this.Projectile).velocity.X *= 0.97f;
-        ((Entity) this.Projectile).velocity.Y += 0.45f;
-      }
-      else if ((double) this.Projectile.ai[1] == 60.0 && FargoSoulsUtil.HostCheck)
-      {
-        for (int index = 0; index < 4; ++index)
-          Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.op_Multiply(Utils.RotatedBy(Vector2.Normalize(((Entity) this.Projectile).velocity), Math.PI / 2.0 * (double) index, new Vector2()), 8f), ModContent.ProjectileType<FlamingJack>(), this.Projectile.damage, 0.0f, Main.myPlayer, this.Projectile.ai[0], 30f, 0.0f);
-      }
-      this.Projectile.rotation += ((Vector2) ref ((Entity) this.Projectile).velocity).Length() / ((double) ((Entity) this.Projectile).velocity.X > 0.0 ? 30f : -30f);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 30;
+            Projectile.height = 30;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.tileCollide = false;
+            Projectile.scale = 1.15f;
+            Projectile.timeLeft = 300;
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(24, 600, true, false);
-      target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 600, true, false);
-    }
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0f)
+            {
+                Projectile.localAI[0] = 1f;
+                SoundEngine.PlaySound(SoundID.Item1, Projectile.Center);
+            }
 
-    public virtual Color? GetAlpha(Color lightColor) => new Color?(new Color(200, 200, 200, 0));
+            Projectile.ai[1]++;
+            if (Projectile.ai[1] > 60f)
+            {
+                Projectile.velocity.X *= 0.97f;
+                Projectile.velocity.Y += 0.45f;
+            }
+            else if (Projectile.ai[1] == 60f && FargoSoulsUtil.HostCheck)
+            {
+                const int max = 4;
+                for (int i = 0; i < max; i++)
+                    Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.Normalize(Projectile.velocity).RotatedBy(2 * Math.PI / max * i) * 8f,
+                        ModContent.ProjectileType<FlamingJack>(), Projectile.damage, 0f, Main.myPlayer, Projectile.ai[0], 30f);
+            }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+            Projectile.rotation += Projectile.velocity.Length() / (Projectile.velocity.X > 0 ? 30f : -30f);
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(BuffID.OnFire, 600);
+            target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 600);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(200, 200, 200, 0);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

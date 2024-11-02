@@ -1,56 +1,49 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.Challengers.SnowballStaff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.BossBags;
+﻿using FargowiltasSouls.Content.Items.BossBags;
 using FargowiltasSouls.Content.Projectiles.ChallengerItems;
 using Terraria;
-using Terraria.Audio;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.Challengers
 {
-  public class SnowballStaff : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class SnowballStaff : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("The Snowball Effect");
+            // Tooltip.SetDefault("Creates a snowball that grows as you roll it\nMust use continuously to sustain snowball\nRight click to recall the snowball to yourself");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "雪球法杖");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "制造一个会越滚越大的雪球，你可以通过主动推雪球来滚它\n长按左键才能维持雪球\n右键点击可让雪球回到你身上");
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 14;
-      this.Item.DamageType = DamageClass.Magic;
-      ((Entity) this.Item).width = 40;
-      ((Entity) this.Item).height = 40;
-      this.Item.useTime = 60;
-      this.Item.useAnimation = 60;
-      this.Item.useStyle = 1;
-      this.Item.knockBack = 1f;
-      this.Item.value = Item.sellPrice(0, 0, 50, 0);
-      this.Item.rare = 1;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item8);
-      this.Item.autoReuse = true;
-      this.Item.shoot = ModContent.ProjectileType<RollingSnowball>();
-      this.Item.shootSpeed = 6f;
-      this.Item.noMelee = true;
-      this.Item.channel = true;
-      this.Item.mana = 5;
-    }
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual bool CanShoot(Player player)
-    {
-      return player.ownedProjectileCounts[this.Item.shoot] < 1;
-    }
+        public override void SetDefaults()
+        {
+            Item.damage = 14;
+            Item.DamageType = DamageClass.Magic;
+            Item.width = 40;
+            Item.height = 40;
+            Item.useTime = 60;
+            Item.useAnimation = 60;
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.knockBack = 1f;
+            Item.value = Item.sellPrice(0, 0, 50);
+            Item.rare = ItemRarityID.Blue;
+            Item.UseSound = SoundID.Item8;
+            Item.autoReuse = true;
+            Item.shoot = ModContent.ProjectileType<RollingSnowball>();
+            Item.shootSpeed = 6f;
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient<TrojanSquirrelBag>(2).AddTile(220).DisableDecraft().Register();
+            Item.noMelee = true;
+            Item.channel = true;
+            Item.mana = 5;
+        }
+
+        public override bool CanShoot(Player player) => player.ownedProjectileCounts[Item.shoot] < 1;
+        public override void AddRecipes()
+        {
+            CreateRecipe().AddIngredient<TrojanSquirrelBag>(2).AddTile(TileID.Solidifier).DisableDecraft().Register();
+        }
     }
-  }
 }

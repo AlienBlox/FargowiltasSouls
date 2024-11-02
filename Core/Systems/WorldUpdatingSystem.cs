@@ -1,177 +1,300 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Core.Systems.WorldUpdatingSystem
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Bosses.CursedCoffin;
+using FargowiltasSouls.Content.WorldGeneration;
+using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
-using System.Runtime.CompilerServices;
+using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
+using static FargowiltasSouls.Core.Systems.WorldSavingSystem;
 
-#nullable disable
 namespace FargowiltasSouls.Core.Systems
 {
-  public class WorldUpdatingSystem : ModSystem
-  {
-    public virtual void PreUpdateNPCs()
+    public class WorldUpdatingSystem : ModSystem
     {
-      Mod mod;
-      int num;
-      if (Terraria.ModLoader.ModLoader.TryGetMod("Fargowiltas", ref mod))
-        num = (bool) mod.Call(new object[1]
-        {
-          (object) "SwarmActive"
-        }) ? 1 : 0;
-      else
-        num = 0;
-      WorldSavingSystem.SwarmActive = num != 0;
-    }
+        public static int rainCD;
 
-    public virtual void PostUpdateWorld()
-    {
-      if (!WorldSavingSystem.PlacedMutantStatue && (Main.zenithWorld || Main.remixWorld))
-      {
-        int spawnTileX = Main.spawnTileX;
-        int spawnTileY = Main.spawnTileY;
-        int num1 = -30;
-        int num2 = 10;
-        bool flag = false;
-        for (int index1 = -50; index1 <= 50; ++index1)
+        public override void PreUpdateNPCs() => SwarmActive = FargowiltasSouls.MutantMod is Mod fargo && (bool)fargo.Call("SwarmActive");
+
+        public override void PostUpdateWorld()
         {
-          for (int index2 = num1; index2 <= num2; ++index2)
-          {
-            if (WorldGenSystem.TryPlacingStatue(spawnTileX + index1, spawnTileY + index2))
+            //NPC.LunarShieldPowerMax = NPC.downedMoonlord ? 50 : 100;
+
+            if (!downedBoss[(int)Downed.CursedCoffin] && !Main.hardMode)
             {
-              flag = true;
-              WorldSavingSystem.PlacedMutantStatue = true;
-              break;
+                bool noCoffin = !NPC.AnyNPCs(ModContent.NPCType<CursedCoffinInactive>()) && !NPC.AnyNPCs(ModContent.NPCType<CursedCoffin>());
+
+                if (noCoffin || !ShiftingSandEvent)
+                {
+                    Vector2 coffinArenaCenter = CoffinArena.Center.ToWorldCoordinates();
+                    for (int i = 0; i < Main.maxPlayers; i++)
+                    {
+                        Player player = Main.player[i];
+                        if (player != null && player.Alive())
+                        {
+                            float xDif = MathF.Abs(player.Center.X - coffinArenaCenter.X);
+                            if (noCoffin && xDif < 2500 && Math.Abs(player.Center.Y - coffinArenaCenter.Y) < 2500)
+                                NPC.NewNPC(NPC.GetSource_NaturalSpawn(), (int)coffinArenaCenter.X, (int)coffinArenaCenter.Y, ModContent.NPCType<CursedCoffinInactive>());
+                            if (!ShiftingSandEvent && player.Center.Y < coffinArenaCenter.Y && xDif < CoffinArena.VectorWidth / 2)
+                            {
+                                ShiftingSandEvent = true;
+                                FargoSoulsUtil.PrintLocalization($"Mods.{Mod.Name}.Message.{Name}.ShiftingSands", Color.Goldenrod);
+                                if (Main.netMode == NetmodeID.Server)
+                                    NetMessage.SendData(MessageID.WorldData);
+                                ScreenShakeSystem.StartShake(5f, shakeStrengthDissipationIncrement: 5f / 200);
+                                
+                                for (int x = -10; x < 10; x++)
+                                {
+                                    for (int y = 0; y < 50; y++)
+                                    {
+                                        Tile t = Main.tile[x + (int)(player.Center.X / 16f), y + (int)(player.Center.Y / 16f)];
+                                        if (t.HasTile && t.TileType == TileID.Sand)
+                                        {
+                                            for (int d = 0; d < 3; d++)
+                                            {
+                                                Dust.NewDust(player.Center + Vector2.UnitX * (x * 16 - 8) + Vector2.UnitY * (y * 16 - 8), 16, 16, DustID.Sand);
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                            }
+                    }
+                    }
+                }
             }
-          }
-          if (flag)
-            break;
+
+
+            if (!PlacedMutantStatue && (Main.zenithWorld || Main.remixWorld))
+            {
+                int positionX = Main.spawnTileX; //offset by dimensions of statue
+                int positionY = Main.spawnTileY;
+                int checkUp = -30;
+                int checkDown = 10;
+                bool placed = false;
+                for (int offsetX = -50; offsetX <= 50; offsetX++)
+                {
+                    for (int offsetY = checkUp; offsetY <= checkDown; offsetY++)
+                    {
+                        if (WorldGenSystem.TryPlacingStatue(positionX + offsetX, positionY + offsetY))
+                        {
+                            placed = true;
+                            PlacedMutantStatue = true;
+                            break;
+                        }
+                    }
+
+                    if (placed)
+                        break;
+                }
+            }
+
+            if (ShouldBeEternityMode)
+            {
+                if (EternityMode && !FargoSoulsUtil.WorldIsExpertOrHarder())
+                {
+                    EternityMode = false;
+                    FargoSoulsUtil.PrintLocalization($"Mods.{Mod.Name}.Message.{Name}.EternityWrongDifficulty", new Color(175, 75, 255));
+                    if (Main.netMode == NetmodeID.Server)
+                        NetMessage.SendData(MessageID.WorldData);
+                    if (!Main.dedServ)
+                        SoundEngine.PlaySound(SoundID.Roar, Main.LocalPlayer.Center);
+                }
+                else if (!EternityMode && FargoSoulsUtil.WorldIsExpertOrHarder() && !LumUtils.AnyBosses())
+                {
+                    EternityMode = true;
+                    FargoSoulsUtil.PrintLocalization($"Mods.{Mod.Name}.Message.{Name}.EternityOn", new Color(175, 75, 255));
+                    if (Main.masterMode && !CanPlayMaso)
+                        FargoSoulsUtil.PrintLocalization($"Mods.{Mod.Name}.Message.{Name}.EternityMasterWarning", new Color(255, 255, 0));
+                    if (Main.netMode == NetmodeID.Server)
+                        NetMessage.SendData(MessageID.WorldData);
+                    if (!Main.dedServ)
+                        SoundEngine.PlaySound(SoundID.Roar, Main.LocalPlayer.Center);
+                }
+            }
+            else if (EternityMode)
+            {
+                EternityMode = false;
+                FargoSoulsUtil.PrintLocalization($"Mods.{Mod.Name}.Message.{Name}.EternityOff", new Color(175, 75, 255));
+                if (Main.netMode == NetmodeID.Server)
+                    NetMessage.SendData(MessageID.WorldData);
+                if (!Main.dedServ)
+                    SoundEngine.PlaySound(SoundID.Roar, Main.LocalPlayer.Center);
+            }
+
+            if (EternityMode)
+            {
+                //NPC.LunarShieldPowerMax = 25;
+
+                if (/*Main.raining || Sandstorm.Happening || */Main.bloodMoon)
+                {
+                    if (!HaveForcedAbomFromGoblins && !DownedAnyBoss //pre boss, disable some events
+                        && ModContent.TryFind("Fargowiltas", "Abominationn", out ModNPC abom) && !NPC.AnyNPCs(abom.Type))
+                    {
+                        /*
+                        Main.raining = false;
+                        Main.rainTime = 0;
+                        Main.maxRaining = 0;
+                        Sandstorm.Happening = false;
+                        Sandstorm.TimeLeft = 0;
+                        if (Main.bloodMoon)
+                        */
+                        FargoSoulsUtil.PrintLocalization($"Mods.{Mod.Name}.Message.{Name}.BloodMoonCancel", new Color(175, 75, 255));
+                        Main.bloodMoon = false;
+                        if (Main.netMode == NetmodeID.Server)
+                            NetMessage.SendData(MessageID.WorldData);
+                    }
+                }
+
+                if (!MasochistModeReal && EternityMode && CanActuallyPlayMaso && !LumUtils.AnyBosses())
+                {
+                    MasochistModeReal = true;
+                    FargoSoulsUtil.PrintLocalization($"Mods.{Mod.Name}.Message.{Name}.MasochistOn{(Main.zenithWorld ? "Zenith" : "")}", new Color(51, 255, 191, 0));
+                    if (Main.getGoodWorld)
+                        FargoSoulsUtil.PrintLocalization($"Mods.{Mod.Name}.Message.{Name}.MasochistFTWWarning", new Color(51, 255, 191, 0));
+                    if (Main.netMode == NetmodeID.Server)
+                        NetMessage.SendData(MessageID.WorldData);
+                    if (!Main.dedServ)
+                        SoundEngine.PlaySound(SoundID.Roar, Main.LocalPlayer.Center);
+                }
+            }
+
+            if (MasochistModeReal && !(EternityMode && CanActuallyPlayMaso))
+            {
+                MasochistModeReal = false;
+                FargoSoulsUtil.PrintLocalization($"Mods.{Mod.Name}.Message.{Name}.MasochistOff", new Color(51, 255, 191, 0));
+                if (Main.netMode == NetmodeID.Server)
+                    NetMessage.SendData(MessageID.WorldData);
+                if (!Main.dedServ)
+                    SoundEngine.PlaySound(SoundID.Roar, Main.LocalPlayer.Center);
+            }
+
+            if (rainCD > 0)
+            {
+                rainCD--;
+            }
+
+            //Main.NewText(BuilderMode);
+
+            #region commented
+
+            //right when day starts
+            /*if(/*Main.time == 0 && Main.dayTime && !Main.eclipse && WorldSavingSystem.masochistMode)
+            {
+                    SoundEngine.PlaySound(SoundID.Roar, player.Center);
+
+                    if (Main.netMode == NetmodeID.SinglePlayer)
+                    {
+                        Main.eclipse = true;
+                        //Main.NewText(Lang.misc[20], 50, 255, 130, false);
+                    }
+                    else
+                    {
+                        //NetMessage.SendData(61, -1, -1, "", player.whoAmI, -6f, 0f, 0f, 0, 0, 0);
+                    }
+
+
+            }*/
+
+            // if (this.itemTime == 0 && this.itemAnimation > 0 && item.type == 361 && Main.CanStartInvasion(1, true))
+            // {
+            // this.itemTime = item.useTime;
+            // SoundEngine.PlaySound(SoundID.Roar, this.Center);
+            // if (FargoSoulsUtil.HostCheck)
+            // {
+            // if (Main.invasionType == 0)
+            // {
+            // Main.invasionDelay = 0;
+            // Main.StartInvasion(1);
+            // }
+            // }
+            // else
+            // {
+            // NetMessage.SendData(61, -1, -1, "", this.whoAmI, -1f, 0f, 0f, 0, 0, 0);
+            // }
+            // }
+            // if (this.itemTime == 0 && this.itemAnimation > 0 && item.type == 602 && Main.CanStartInvasion(2, true))
+            // {
+            // this.itemTime = item.useTime;
+            // SoundEngine.PlaySound(SoundID.Roar, this.Center);
+            // if (FargoSoulsUtil.HostCheck)
+            // {
+            // if (Main.invasionType == 0)
+            // {
+            // Main.invasionDelay = 0;
+            // Main.StartInvasion(2);
+            // }
+            // }
+            // else
+            // {
+            // NetMessage.SendData(61, -1, -1, "", this.whoAmI, -2f, 0f, 0f, 0, 0, 0);
+            // }
+            // }
+            // if (this.itemTime == 0 && this.itemAnimation > 0 && item.type == 1315 && Main.CanStartInvasion(3, true))
+            // {
+            // this.itemTime = item.useTime;
+            // SoundEngine.PlaySound(SoundID.Roar, this.Center);
+            // if (FargoSoulsUtil.HostCheck)
+            // {
+            // if (Main.invasionType == 0)
+            // {
+            // Main.invasionDelay = 0;
+            // Main.StartInvasion(3);
+            // }
+            // }
+            // else
+            // {
+            // NetMessage.SendData(61, -1, -1, "", this.whoAmI, -3f, 0f, 0f, 0, 0, 0);
+            // }
+            // }
+            // if (this.itemTime == 0 && this.itemAnimation > 0 && item.type == 1844 && !Main.dayTime && !Main.pumpkinMoon && !Main.snowMoon && !DD2Event.Ongoing)
+            // {
+            // this.itemTime = item.useTime;
+            // SoundEngine.PlaySound(SoundID.Roar, this.Center);
+            // if (FargoSoulsUtil.HostCheck)
+            // {
+            // Main.NewText(Lang.misc[31], 50, 255, 130, false);
+            // Main.startPumpkinMoon();
+            // }
+            // else
+            // {
+            // NetMessage.SendData(61, -1, -1, "", this.whoAmI, -4f, 0f, 0f, 0, 0, 0);
+            // }
+            // }
+
+            // if (this.itemTime == 0 && this.itemAnimation > 0 && item.type == 3601 && NPC.downedGolemBoss && Main.hardMode && !NPC.AnyDanger() && !NPC.AnyoneNearCultists())
+            // {
+            // SoundEngine.PlaySound(SoundID.Roar, this.Center);
+            // this.itemTime = item.useTime;
+            // if (Main.netMode == NetmodeID.SinglePlayer)
+            // {
+            // WorldGen.StartImpendingDoom();
+            // }
+            // else
+            // {
+            // NetMessage.SendData(61, -1, -1, "", this.whoAmI, -8f, 0f, 0f, 0, 0, 0);
+            // }
+            // }
+            // if (this.itemTime == 0 && this.itemAnimation > 0 && item.type == 1958 && !Main.dayTime && !Main.pumpkinMoon && !Main.snowMoon && !DD2Event.Ongoing)
+            // {
+            // this.itemTime = item.useTime;
+            // SoundEngine.PlaySound(SoundID.Roar, this.Center);
+            // if (FargoSoulsUtil.HostCheck)
+            // {
+            // Main.NewText(Lang.misc[34], 50, 255, 130, false);
+            // Main.startSnowMoon();
+            // }
+            // else
+            // {
+            // NetMessage.SendData(61, -1, -1, "", this.whoAmI, -5f, 0f, 0f, 0, 0, 0);
+            // }
+            // }
+
+            #endregion
         }
-      }
-      DefaultInterpolatedStringHandler interpolatedStringHandler;
-      if (WorldSavingSystem.ShouldBeEternityMode)
-      {
-        if (WorldSavingSystem.EternityMode && !FargoSoulsUtil.WorldIsExpertOrHarder())
-        {
-          WorldSavingSystem.EternityMode = false;
-          interpolatedStringHandler = new DefaultInterpolatedStringHandler(38, 2);
-          interpolatedStringHandler.AppendLiteral("Mods.");
-          interpolatedStringHandler.AppendFormatted(((ModType) this).Mod.Name);
-          interpolatedStringHandler.AppendLiteral(".Message.");
-          interpolatedStringHandler.AppendFormatted(((ModType) this).Name);
-          interpolatedStringHandler.AppendLiteral(".EternityWrongDifficulty");
-          FargoSoulsUtil.PrintLocalization(interpolatedStringHandler.ToStringAndClear(), new Color(175, 75, (int) byte.MaxValue));
-          if (Main.netMode == 2)
-            NetMessage.SendData(7, -1, -1, (NetworkText) null, 0, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-          if (!Main.dedServ)
-            SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) Main.LocalPlayer).Center), (SoundUpdateCallback) null);
-        }
-        else if (!WorldSavingSystem.EternityMode && FargoSoulsUtil.WorldIsExpertOrHarder() && !Luminance.Common.Utilities.Utilities.AnyBosses())
-        {
-          WorldSavingSystem.EternityMode = true;
-          interpolatedStringHandler = new DefaultInterpolatedStringHandler(25, 2);
-          interpolatedStringHandler.AppendLiteral("Mods.");
-          interpolatedStringHandler.AppendFormatted(((ModType) this).Mod.Name);
-          interpolatedStringHandler.AppendLiteral(".Message.");
-          interpolatedStringHandler.AppendFormatted(((ModType) this).Name);
-          interpolatedStringHandler.AppendLiteral(".EternityOn");
-          FargoSoulsUtil.PrintLocalization(interpolatedStringHandler.ToStringAndClear(), new Color(175, 75, (int) byte.MaxValue));
-          if (Main.masterMode && !WorldSavingSystem.CanPlayMaso)
-          {
-            interpolatedStringHandler = new DefaultInterpolatedStringHandler(36, 2);
-            interpolatedStringHandler.AppendLiteral("Mods.");
-            interpolatedStringHandler.AppendFormatted(((ModType) this).Mod.Name);
-            interpolatedStringHandler.AppendLiteral(".Message.");
-            interpolatedStringHandler.AppendFormatted(((ModType) this).Name);
-            interpolatedStringHandler.AppendLiteral(".EternityMasterWarning");
-            FargoSoulsUtil.PrintLocalization(interpolatedStringHandler.ToStringAndClear(), new Color((int) byte.MaxValue, (int) byte.MaxValue, 0));
-          }
-          if (Main.netMode == 2)
-            NetMessage.SendData(7, -1, -1, (NetworkText) null, 0, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-          if (!Main.dedServ)
-            SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) Main.LocalPlayer).Center), (SoundUpdateCallback) null);
-        }
-      }
-      else if (WorldSavingSystem.EternityMode)
-      {
-        WorldSavingSystem.EternityMode = false;
-        interpolatedStringHandler = new DefaultInterpolatedStringHandler(26, 2);
-        interpolatedStringHandler.AppendLiteral("Mods.");
-        interpolatedStringHandler.AppendFormatted(((ModType) this).Mod.Name);
-        interpolatedStringHandler.AppendLiteral(".Message.");
-        interpolatedStringHandler.AppendFormatted(((ModType) this).Name);
-        interpolatedStringHandler.AppendLiteral(".EternityOff");
-        FargoSoulsUtil.PrintLocalization(interpolatedStringHandler.ToStringAndClear(), new Color(175, 75, (int) byte.MaxValue));
-        if (Main.netMode == 2)
-          NetMessage.SendData(7, -1, -1, (NetworkText) null, 0, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-        if (!Main.dedServ)
-          SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) Main.LocalPlayer).Center), (SoundUpdateCallback) null);
-      }
-      if (WorldSavingSystem.EternityMode)
-      {
-        ModNPC modNpc;
-        if (Main.bloodMoon && !WorldSavingSystem.HaveForcedAbomFromGoblins && !WorldSavingSystem.DownedAnyBoss && ModContent.TryFind<ModNPC>("Fargowiltas", "Abominationn", ref modNpc) && !NPC.AnyNPCs(modNpc.Type))
-        {
-          interpolatedStringHandler = new DefaultInterpolatedStringHandler(30, 2);
-          interpolatedStringHandler.AppendLiteral("Mods.");
-          interpolatedStringHandler.AppendFormatted(((ModType) this).Mod.Name);
-          interpolatedStringHandler.AppendLiteral(".Message.");
-          interpolatedStringHandler.AppendFormatted(((ModType) this).Name);
-          interpolatedStringHandler.AppendLiteral(".BloodMoonCancel");
-          FargoSoulsUtil.PrintLocalization(interpolatedStringHandler.ToStringAndClear(), new Color(175, 75, (int) byte.MaxValue));
-          Main.bloodMoon = false;
-          if (Main.netMode == 2)
-            NetMessage.SendData(7, -1, -1, (NetworkText) null, 0, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-        }
-        if (!WorldSavingSystem.MasochistModeReal && WorldSavingSystem.EternityMode && (FargoSoulsUtil.WorldIsMaster() && WorldSavingSystem.CanPlayMaso || Main.zenithWorld) && !Luminance.Common.Utilities.Utilities.AnyBosses())
-        {
-          WorldSavingSystem.MasochistModeReal = true;
-          interpolatedStringHandler = new DefaultInterpolatedStringHandler(26, 3);
-          interpolatedStringHandler.AppendLiteral("Mods.");
-          interpolatedStringHandler.AppendFormatted(((ModType) this).Mod.Name);
-          interpolatedStringHandler.AppendLiteral(".Message.");
-          interpolatedStringHandler.AppendFormatted(((ModType) this).Name);
-          interpolatedStringHandler.AppendLiteral(".MasochistOn");
-          interpolatedStringHandler.AppendFormatted(Main.zenithWorld ? "Zenith" : "");
-          FargoSoulsUtil.PrintLocalization(interpolatedStringHandler.ToStringAndClear(), new Color(51, (int) byte.MaxValue, 191, 0));
-          if (Main.getGoodWorld)
-          {
-            interpolatedStringHandler = new DefaultInterpolatedStringHandler(34, 2);
-            interpolatedStringHandler.AppendLiteral("Mods.");
-            interpolatedStringHandler.AppendFormatted(((ModType) this).Mod.Name);
-            interpolatedStringHandler.AppendLiteral(".Message.");
-            interpolatedStringHandler.AppendFormatted(((ModType) this).Name);
-            interpolatedStringHandler.AppendLiteral(".MasochistFTWWarning");
-            FargoSoulsUtil.PrintLocalization(interpolatedStringHandler.ToStringAndClear(), new Color(51, (int) byte.MaxValue, 191, 0));
-          }
-          if (Main.netMode == 2)
-            NetMessage.SendData(7, -1, -1, (NetworkText) null, 0, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-          if (!Main.dedServ)
-            SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) Main.LocalPlayer).Center), (SoundUpdateCallback) null);
-        }
-      }
-      if (!WorldSavingSystem.MasochistModeReal || WorldSavingSystem.EternityMode && (FargoSoulsUtil.WorldIsMaster() && WorldSavingSystem.CanPlayMaso || Main.zenithWorld))
-        return;
-      WorldSavingSystem.MasochistModeReal = false;
-      interpolatedStringHandler = new DefaultInterpolatedStringHandler(27, 2);
-      interpolatedStringHandler.AppendLiteral("Mods.");
-      interpolatedStringHandler.AppendFormatted(((ModType) this).Mod.Name);
-      interpolatedStringHandler.AppendLiteral(".Message.");
-      interpolatedStringHandler.AppendFormatted(((ModType) this).Name);
-      interpolatedStringHandler.AppendLiteral(".MasochistOff");
-      FargoSoulsUtil.PrintLocalization(interpolatedStringHandler.ToStringAndClear(), new Color(51, (int) byte.MaxValue, 191, 0));
-      if (Main.netMode == 2)
-        NetMessage.SendData(7, -1, -1, (NetworkText) null, 0, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-      if (Main.dedServ)
-        return;
-      SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) Main.LocalPlayer).Center), (SoundUpdateCallback) null);
+
+        public static bool CanActuallyPlayMaso => (FargoSoulsUtil.WorldIsMaster() && CanPlayMaso) || Main.zenithWorld;
     }
-  }
 }

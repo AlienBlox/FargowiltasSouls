@@ -1,67 +1,123 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Forces.TerraForce
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+﻿using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+using FargowiltasSouls.Content.Projectiles.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
+using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Forces
 {
-  [AutoloadEquip]
-  public class TerraForce : BaseForce
-  {
-    public override void SetStaticDefaults()
+    [AutoloadEquip(EquipType.Shield)]
+    public class TerraForce : BaseForce
     {
-      BaseForce.Enchants[this.Type] = new int[7]
-      {
-        ModContent.ItemType<CopperEnchant>(),
-        ModContent.ItemType<TinEnchant>(),
-        ModContent.ItemType<IronEnchant>(),
-        ModContent.ItemType<LeadEnchant>(),
-        ModContent.ItemType<SilverEnchant>(),
-        ModContent.ItemType<TungstenEnchant>(),
-        ModContent.ItemType<ObsidianEnchant>()
-      };
-    }
 
-    public virtual void UpdateInventory(Player player)
-    {
-      AshWoodEnchant.PassiveEffect(player);
-      IronEnchant.AddEffects(player, this.Item);
-    }
+        public override void SetStaticDefaults()
+        {
+            Enchants[Type] =
+            [
+                ModContent.ItemType<CopperEnchant>(),
+                ModContent.ItemType<TinEnchant>(),
+                ModContent.ItemType<IronEnchant>(),
+                ModContent.ItemType<LeadEnchant>(),
+                ModContent.ItemType<SilverEnchant>(),
+                ModContent.ItemType<TungstenEnchant>(),
+                ModContent.ItemType<ObsidianEnchant>()
+            ];
+        }
 
-    public virtual void UpdateVanity(Player player)
-    {
-      AshWoodEnchant.PassiveEffect(player);
-      IronEnchant.AddEffects(player, this.Item);
-    }
+        public override void UpdateInventory(Player player)
+        {
+            AshWoodEnchant.PassiveEffect(player);
+            IronEnchant.AddEffects(player, Item);
+        }
+        public override void UpdateVanity(Player player)
+        {
+            AshWoodEnchant.PassiveEffect(player);
+            IronEnchant.AddEffects(player, Item);
+        }
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            SetActive(player);
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.FargoSouls();
-      this.SetActive(player);
-      player.AddEffect<CopperEffect>(this.Item);
-      player.AddEffect<TinEffect>(this.Item);
-      IronEnchant.AddEffects(player, this.Item);
-      player.AddEffect<LeadEffect>(this.Item);
-      player.AddEffect<LeadPoisonEffect>(this.Item);
-      player.AddEffect<SilverEffect>(this.Item);
-      player.AddEffect<TungstenEffect>(this.Item);
-      ObsidianEnchant.AddEffects(player, this.Item);
-    }
+            player.AddEffect<TerraLightningEffect>(Item);
+            // tin
+            player.AddEffect<TinEffect>(Item);
+            // copper
+            player.AddEffect<CopperEffect>(Item);
+            // iron
+            IronEnchant.AddEffects(player, Item);
+            // lead
+            player.AddEffect<LeadEffect>(Item);
+            // silver
+            player.AddEffect<SilverEffect>(Item);
+            // tungsten
+            player.AddEffect<TungstenEffect>(Item);
+            // obsidian
+            ObsidianEnchant.AddEffects(player, Item);
+        }
 
-    public virtual void AddRecipes()
-    {
-      Recipe recipe = this.CreateRecipe(1);
-      foreach (int num in BaseForce.Enchants[this.Type])
-        recipe.AddIngredient(num, 1);
-      recipe.AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"));
-      recipe.Register();
+        public override void AddRecipes()
+        {
+            Recipe recipe = CreateRecipe();
+            foreach (int ench in Enchants[Type])
+                recipe.AddIngredient(ench);
+            recipe.AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"));
+            recipe.Register();
+        }
     }
-  }
+    public class TerraLightningEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => null;
+        //public override int ToggleItemType => ModContent.ItemType<TerraForce>();
+        
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (modPlayer.TerraProcCD > 0)
+                modPlayer.TerraProcCD--;
+        }
+        public override void OnHitNPCEither(Player player, NPC target, NPC.HitInfo hitInfo, DamageClass damageClass, int baseDamage, Projectile projectile, Item item)
+        {
+            bool wetCheck = target.HasBuff(BuffID.Wet);
+            if ((hitInfo.Crit || wetCheck))
+            {
+                LightningProc(player, target);
+            }
+        }
+
+        public static void LightningProc(Player player, NPC target, float damageMultiplier = 1f)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (modPlayer.TerraProcCD == 0 && player.HasEffect<CopperEffect>())
+            {
+                int dmg = (int)(1500 * damageMultiplier);
+                int cdLength = 300;
+
+                // cooldown scaling from 2x to 1x depending on how recently you got hurt
+                /*
+                int maxHurtTime = 60 * 30;
+                if (modPlayer.TimeSinceHurt < maxHurtTime)
+                {
+                    float multiplier = 2f - (modPlayer.TimeSinceHurt / maxHurtTime) * 1f;
+                    cdLength = (int)(cdLength * multiplier);
+                }
+                */
+
+                Vector2 ai = target.Center - player.Center;
+                Vector2 velocity = Vector2.Normalize(ai) * 20;
+
+                int damage = FargoSoulsUtil.HighestDamageTypeScaling(modPlayer.Player, dmg);
+                FargoSoulsUtil.NewProjectileDirectSafe(modPlayer.Player.GetSource_ItemUse(modPlayer.Player.HeldItem), player.Center, velocity, ModContent.ProjectileType<TerraLightning>(), damage, 0f, modPlayer.Player.whoAmI, ai.ToRotation());
+
+                modPlayer.TerraProcCD = cdLength;
+            }
+        }
+        public override void OnHurt(Player player, Player.HurtInfo info)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            modPlayer.TerraProcCD = 300 * 2;
+        }
+    }
 }

@@ -1,125 +1,128 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.Whirlpool
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class Whirlpool : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_386";
-
-    public virtual void SetStaticDefaults() => Main.projFrames[this.Projectile.type] = 6;
-
-    public virtual void SetDefaults()
+    public class Whirlpool : ModProjectile
     {
-      ((Entity) this.Projectile).width = 75;
-      ((Entity) this.Projectile).height = 21;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.timeLeft = 3600;
-      this.Projectile.friendly = true;
-      this.Projectile.hostile = false;
-      this.Projectile.tileCollide = false;
-      this.Projectile.penetrate = -1;
-      this.Projectile.scale = 0.5f;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.DamageType = DamageClass.Ranged;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
+        public override string Texture => "Terraria/Images/Projectile_386";
 
-    public virtual void AI()
-    {
-      int num1 = 16;
-      int num2 = 16;
-      float num3 = 1.5f;
-      int num4 = 150;
-      int num5 = 42;
-      if ((double) ((Entity) this.Projectile).velocity.X != 0.0)
-        ((Entity) this.Projectile).direction = this.Projectile.spriteDirection = -Math.Sign(((Entity) this.Projectile).velocity.X);
-      ++this.Projectile.frameCounter;
-      if (this.Projectile.frameCounter > 2)
-      {
-        ++this.Projectile.frame;
-        this.Projectile.frameCounter = 0;
-      }
-      if (this.Projectile.frame >= 6)
-        this.Projectile.frame = 0;
-      if ((double) this.Projectile.localAI[0] == 0.0 && Main.myPlayer == this.Projectile.owner)
-      {
-        this.Projectile.localAI[0] = 1f;
-        ((Entity) this.Projectile).position.X = ((Entity) this.Projectile).position.X + (float) (((Entity) this.Projectile).width / 2);
-        ((Entity) this.Projectile).position.Y = ((Entity) this.Projectile).position.Y + (float) (((Entity) this.Projectile).height / 2);
-        this.Projectile.scale = ((float) (num1 + num2) - this.Projectile.ai[1]) * num3 / (float) (num2 + num1);
-        ((Entity) this.Projectile).width = (int) ((double) num4 * (double) this.Projectile.scale);
-        ((Entity) this.Projectile).height = (int) ((double) num5 * (double) this.Projectile.scale);
-        ((Entity) this.Projectile).position.X = ((Entity) this.Projectile).position.X - (float) (((Entity) this.Projectile).width / 2);
-        ((Entity) this.Projectile).position.Y = ((Entity) this.Projectile).position.Y - (float) (((Entity) this.Projectile).height / 2);
-        this.Projectile.netUpdate = true;
-      }
-      if ((double) this.Projectile.ai[1] != -1.0)
-      {
-        this.Projectile.scale = ((float) (num1 + num2) - this.Projectile.ai[1]) * num3 / (float) (num2 + num1);
-        ((Entity) this.Projectile).width = (int) ((double) num4 * (double) this.Projectile.scale);
-        ((Entity) this.Projectile).height = (int) ((double) num5 * (double) this.Projectile.scale);
-      }
-      if (!Collision.SolidCollision(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height))
-      {
-        this.Projectile.alpha -= 30;
-        if (this.Projectile.alpha < 100)
-          this.Projectile.alpha = 100;
-      }
-      else
-      {
-        this.Projectile.alpha += 30;
-        if (this.Projectile.alpha > 150)
-          this.Projectile.alpha = 150;
-      }
-      if ((double) this.Projectile.ai[0] > 0.0)
-        --this.Projectile.ai[0];
-      if ((double) this.Projectile.ai[0] == 1.0 && (double) this.Projectile.ai[1] > 0.0 && this.Projectile.owner == Main.myPlayer)
-      {
-        this.Projectile.netUpdate = true;
-        Vector2 center = ((Entity) this.Projectile).Center;
-        center.Y -= (float) ((double) num5 * (double) this.Projectile.scale / 2.0);
-        float num6 = (float) ((double) (num1 + num2) - (double) this.Projectile.ai[1] + 1.0) * num3 / (float) (num2 + num1);
-        center.Y -= (float) ((double) num5 * (double) num6 / 2.0);
-        center.Y += 2f;
-        Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), center.X, center.Y, ((Entity) this.Projectile).velocity.X, ((Entity) this.Projectile).velocity.Y, ModContent.ProjectileType<Whirlpool>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 10f, this.Projectile.ai[1] - 1f, 0.0f);
-      }
-      if ((double) this.Projectile.ai[0] > 0.0)
-        return;
-      double num7 = 0.10471975803375244;
-      float num8 = (float) ((Entity) this.Projectile).width / 5f;
-      if (this.Projectile.type == 386)
-        num8 *= 2f;
-      ((Entity) this.Projectile).position.X = ((Entity) this.Projectile).position.X - (float) (Math.Cos(num7 * -(double) this.Projectile.ai[0]) - 0.5) * num8 * (float) -(double) ((Entity) this.Projectile).direction;
-      --this.Projectile.ai[0];
-      ((Entity) this.Projectile).position.X = ((Entity) this.Projectile).position.X + (float) (Math.Cos(num7 * -(double) this.Projectile.ai[0]) - 0.5) * num8 * (float) -(double) ((Entity) this.Projectile).direction;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Whirlpool");
+            Main.projFrames[Projectile.type] = 6;
+        }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 75;
+            Projectile.height = 21;
+            Projectile.aiStyle = -1;
+            Projectile.timeLeft = 3600;
+            Projectile.friendly = true;
+            Projectile.hostile = false;
+            Projectile.tileCollide = false;
+            Projectile.penetrate = -1;
+            Projectile.scale = 0.5f;
+            Projectile.alpha = 255;
+            Projectile.ignoreWater = true;
+            Projectile.DamageType = DamageClass.Ranged;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index1 = 0; index1 < 20; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 172, (float) (((Entity) this.Projectile).direction * 2), 0.0f, 100, new Color(), 1.4f);
-        Dust dust = Main.dust[index2];
-        dust.color = Color.CornflowerBlue;
-        dust.color = Color.Lerp(dust.color, Color.White, 0.3f);
-        dust.noGravity = true;
-      }
+        public override void AI()
+        {
+            int num599 = 16;
+            int num600 = 16;
+            float num601 = 1.5f;
+            int num602 = 150;
+            int num603 = 42;
+
+            if (Projectile.velocity.X != 0f) Projectile.direction = Projectile.spriteDirection = -Math.Sign(Projectile.velocity.X);
+            Projectile.frameCounter++;
+            if (Projectile.frameCounter > 2)
+            {
+                Projectile.frame++;
+                Projectile.frameCounter = 0;
+            }
+
+            if (Projectile.frame >= 6) Projectile.frame = 0;
+            if (Projectile.localAI[0] == 0f && Main.myPlayer == Projectile.owner)
+            {
+                Projectile.localAI[0] = 1f;
+                Projectile.position.X = Projectile.position.X + Projectile.width / 2;
+                Projectile.position.Y = Projectile.position.Y + Projectile.height / 2;
+                Projectile.scale = (num599 + num600 - Projectile.ai[1]) * num601 / (num600 + num599);
+                Projectile.width = (int)(num602 * Projectile.scale);
+                Projectile.height = (int)(num603 * Projectile.scale);
+                Projectile.position.X = Projectile.position.X - Projectile.width / 2;
+                Projectile.position.Y = Projectile.position.Y - Projectile.height / 2;
+                Projectile.netUpdate = true;
+            }
+
+            if (Projectile.ai[1] != -1f)
+            {
+                Projectile.scale = (num599 + num600 - Projectile.ai[1]) * num601 / (num600 + num599);
+                Projectile.width = (int)(num602 * Projectile.scale);
+                Projectile.height = (int)(num603 * Projectile.scale);
+            }
+
+            if (!Collision.SolidCollision(Projectile.position, Projectile.width, Projectile.height))
+            {
+                Projectile.alpha -= 30;
+                if (Projectile.alpha < 100) Projectile.alpha = 100;
+            }
+            else
+            {
+                Projectile.alpha += 30;
+                if (Projectile.alpha > 150) Projectile.alpha = 150;
+            }
+
+            if (Projectile.ai[0] > 0f) Projectile.ai[0] -= 1f;
+            if (Projectile.ai[0] == 1f && Projectile.ai[1] > 0f && Projectile.owner == Main.myPlayer)
+            {
+                Projectile.netUpdate = true;
+                Vector2 center = Projectile.Center;
+                center.Y -= num603 * Projectile.scale / 2f;
+                float num604 = (num599 + num600 - Projectile.ai[1] + 1f) * num601 / (num600 + num599);
+                center.Y -= num603 * num604 / 2f;
+                center.Y += 2f;
+                Projectile.NewProjectile(Projectile.GetSource_FromThis(), center.X, center.Y, Projectile.velocity.X, Projectile.velocity.Y, ModContent.ProjectileType<Whirlpool>(), Projectile.damage, Projectile.knockBack, Projectile.owner, 10f,
+                    Projectile.ai[1] - 1f);
+                //int num605 = 2;
+            }
+
+            if (Projectile.ai[0] <= 0f)
+            {
+                float num608 = 0.104719758f;
+                float num609 = Projectile.width / 5f;
+                if (Projectile.type == 386) num609 *= 2f;
+                float num610 = (float)(Math.Cos(num608 * -(double)Projectile.ai[0]) - 0.5) * num609;
+                Projectile.position.X = Projectile.position.X - num610 * -(float)Projectile.direction;
+                Projectile.ai[0] -= 1f;
+                num610 = (float)(Math.Cos(num608 * -(double)Projectile.ai[0]) - 0.5) * num609;
+                Projectile.position.X = Projectile.position.X + num610 * -(float)Projectile.direction;
+            }
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                int num254 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.DungeonWater, Projectile.direction * 2, 0f, 100, default, 1.4f);
+                Dust dust13 = Main.dust[num254];
+                dust13.color = Color.CornflowerBlue;
+                dust13.color = Color.Lerp(dust13.color, Color.White, 0.3f);
+                dust13.noGravity = true;
+            }
+        }
     }
-  }
 }

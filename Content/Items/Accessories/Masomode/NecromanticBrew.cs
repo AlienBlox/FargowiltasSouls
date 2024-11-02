@@ -1,52 +1,66 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.NecromanticBrew
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Content.Buffs.Minions;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
+using FargowiltasSouls.Core.Toggler.Content;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class NecromanticBrew : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class NecromanticBrew : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 3;
-      this.Item.value = Item.sellPrice(0, 3, 0, 0);
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[ModContent.BuffType<LethargicBuff>()] = true;
-      player.FargoSouls().NecromanticBrewItem = this.Item;
-      player.AddEffect<NecroBrewSpin>(this.Item);
-      player.AddEffect<SkeleMinionEffect>(this.Item);
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Orange;
+            Item.value = Item.sellPrice(0, 3);
+        }
 
-    public static float NecroBrewDashDR(Player player)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      float num = 0.0f;
-      if (fargoSoulsPlayer.NecromanticBrewItem != null && fargoSoulsPlayer.IsInADashState)
-        num += 0.15f;
-      return num;
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[ModContent.BuffType<LethargicBuff>()] = true;
+            player.FargoSouls().NecromanticBrewItem = Item;
+            player.AddEffect<NecroBrewSpin>(Item);
+            player.AddEffect<SkeleMinionEffect>(Item);
+
+        }
+
+        public static float NecroBrewDashDR(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            float dr = 0;
+            if (modPlayer.NecromanticBrewItem != null && modPlayer.IsInADashState)
+            {
+                dr += 0.15f;
+            }
+
+            return dr;
+        }
     }
-  }
+    public class NecroBrewSpin : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupremeFairyHeader>();
+        public override int ToggleItemType => ModContent.ItemType<NecromanticBrew>();
+    }
+    public class SkeleMinionEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupremeFairyHeader>();
+        public override int ToggleItemType => ModContent.ItemType<NecromanticBrew>();
+        public override bool MinionEffect => true;
+        public override void PostUpdateEquips(Player player)
+        {
+            if (!player.HasBuff<SouloftheMasochistBuff>())
+                player.AddBuff(ModContent.BuffType<SkeletronArmsBuff>(), 2);
+        }
+    }
 }

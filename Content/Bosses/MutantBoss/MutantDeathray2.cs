@@ -1,10 +1,5 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.MutantBoss.MutantDeathray2
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
+﻿using FargowiltasSouls.Assets.ExtraTextures;
 
-using FargowiltasSouls.Assets.ExtraTextures;
 using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Projectiles.Deathrays;
@@ -13,146 +8,180 @@ using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.MutantBoss
 {
-  public class MutantDeathray2 : MutantSpecialDeathray, IPixelatedPrimitiveRenderer
-  {
-    public MutantDeathray2()
-      : base(180)
+    public class MutantDeathray2 : MutantSpecialDeathray, IPixelatedPrimitiveRenderer
     {
-    }
+        public MutantDeathray2() : base(180) { }
 
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public virtual bool? CanDamage()
-    {
-      return new bool?((double) this.Projectile.scale >= 0.699999988079071);
-    }
-
-    public virtual bool CanHitPlayer(Player target) => target.hurtCooldowns[1] == 0;
-
-    public override void AI()
-    {
-      base.AI();
-      Vector2? nullable = new Vector2?();
-      if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-      if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        if (!Main.dedServ)
+        public override void SetStaticDefaults()
         {
-          SoundStyle zombie104 = SoundID.Zombie104;
-          ((SoundStyle) ref zombie104).Volume = 0.5f;
-          SoundEngine.PlaySound(ref zombie104, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
+            base.SetStaticDefaults();
+
+            // DisplayName.SetDefault("Phantasmal Deathray");
         }
-        this.Projectile.frame = Main.rand.Next(10);
-      }
-      float num1 = 0.7f;
-      ++this.Projectile.localAI[0];
-      if ((double) this.Projectile.localAI[0] >= (double) this.maxTime)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        this.Projectile.scale = (float) Math.Sin((double) this.Projectile.localAI[0] * 3.1415927410125732 / (double) this.maxTime) * 2.5f * num1;
-        if ((double) this.Projectile.scale > (double) num1)
-          this.Projectile.scale = num1;
-        float length = 3f;
-        int width = ((Entity) this.Projectile).width;
-        Vector2 center = ((Entity) this.Projectile).Center;
-        if (nullable.HasValue)
+
+        public override bool? CanDamage()
         {
-          Vector2 vector2_1 = nullable.Value;
+            return Projectile.scale >= .7f;
         }
-        float[] numArray = new float[(int) length];
-        for (int index = 0; index < numArray.Length; ++index)
-          numArray[index] = 3000f;
-        float num2 = 0.0f;
-        for (int index = 0; index < numArray.Length; ++index)
-          num2 += numArray[index];
-        this.Projectile.localAI[1] = MathHelper.Lerp(this.Projectile.localAI[1], num2 / length, 0.5f);
-        Vector2 vector2_2 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, this.Projectile.localAI[1] - 14f));
-        for (int index1 = 0; index1 < 2; ++index1)
+
+        public override bool CanHitPlayer(Player target)
         {
-          float num3 = Utils.ToRotation(((Entity) this.Projectile).velocity) + (float) ((Utils.NextBool(Main.rand, 2) ? -1.0 : 1.0) * 1.5707963705062866);
-          float num4 = (float) (Main.rand.NextDouble() * 2.0 + 2.0);
-          Vector2 vector2_3;
-          // ISSUE: explicit constructor call
-          ((Vector2) ref vector2_3).\u002Ector((float) Math.Cos((double) num3) * num4, (float) Math.Sin((double) num3) * num4);
-          int index2 = Dust.NewDust(vector2_2, 0, 0, 244, vector2_3.X, vector2_3.Y, 0, new Color(), 1f);
-          Main.dust[index2].noGravity = true;
-          Main.dust[index2].scale = 1.7f;
+            return target.hurtCooldowns[1] == 0;
         }
-        if (Utils.NextBool(Main.rand, 5))
+
+        public override void AI()
         {
-          Vector2 vector2_4 = Vector2.op_Multiply(Vector2.op_Multiply(Utils.RotatedBy(((Entity) this.Projectile).velocity, 1.5707963705062866, new Vector2()), (float) Main.rand.NextDouble() - 0.5f), (float) ((Entity) this.Projectile).width);
-          int index = Dust.NewDust(Vector2.op_Subtraction(Vector2.op_Addition(vector2_2, vector2_4), Vector2.op_Multiply(Vector2.One, 4f)), 8, 8, 244, 0.0f, 0.0f, 100, new Color(), 1.5f);
-          Dust dust = Main.dust[index];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 0.5f);
-          Main.dust[index].velocity.Y = -Math.Abs(Main.dust[index].velocity.Y);
+            base.AI();
+
+            Vector2? vector78 = null;
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+            /*if (Main.npc[(int)Projectile.ai[1]].active && Main.npc[(int)Projectile.ai[1]].type == ModContent.NPCType<Bosses.MutantBoss.MutantBoss>())
+            {
+                Projectile.Center = Main.npc[(int)Projectile.ai[1]].Center;
+            }
+            else
+            {
+                Projectile.Kill();
+                return;
+            }*/
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+            if (Projectile.localAI[0] == 0f)
+            {
+                Projectile.frame = Main.rand.Next(10);
+            }
+            float num801 = .7f;
+            Projectile.localAI[0] += 1f;
+            if (Projectile.localAI[0] >= maxTime)
+            {
+                Projectile.Kill();
+                return;
+            }
+            Projectile.scale = (float)Math.Sin(Projectile.localAI[0] * 3.14159274f / maxTime) * 2.5f * num801;
+            if (Projectile.scale > num801)
+            {
+                Projectile.scale = num801;
+            }
+            //float num804 = Projectile.velocity.ToRotation();
+            //num804 += Projectile.ai[0];
+            //Projectile.rotation = num804 - 1.57079637f;
+            //float num804 = Main.npc[(int)Projectile.ai[1]].ai[3] - 1.57079637f;
+            //if (Projectile.ai[0] != 0f) num804 -= (float)Math.PI;
+            //Projectile.rotation = num804;
+            //num804 += 1.57079637f;
+            //Projectile.velocity = num804.ToRotationVector2();
+            float num805 = 3f;
+            float num806 = Projectile.width;
+            Vector2 samplingPoint = Projectile.Center;
+            if (vector78.HasValue)
+            {
+                samplingPoint = vector78.Value;
+            }
+            float[] array3 = new float[(int)num805];
+            //Collision.LaserScan(samplingPoint, Projectile.velocity, num806 * Projectile.scale, 3000f, array3);
+            for (int i = 0; i < array3.Length; i++)
+                array3[i] = 3000f;
+            float num807 = 0f;
+            int num3;
+            for (int num808 = 0; num808 < array3.Length; num808 = num3 + 1)
+            {
+                num807 += array3[num808];
+                num3 = num808;
+            }
+            num807 /= num805;
+            float amount = 0.5f;
+            Projectile.localAI[1] = MathHelper.Lerp(Projectile.localAI[1], num807, amount);
+            Vector2 vector79 = Projectile.Center + Projectile.velocity * (Projectile.localAI[1] - 14f);
+            for (int num809 = 0; num809 < 2; num809 = num3 + 1)
+            {
+                float num810 = Projectile.velocity.ToRotation() + (Main.rand.NextBool(2) ? -1f : 1f) * 1.57079637f;
+                float num811 = (float)Main.rand.NextDouble() * 2f + 2f;
+                Vector2 vector80 = new((float)Math.Cos((double)num810) * num811, (float)Math.Sin((double)num810) * num811);
+                int num812 = Dust.NewDust(vector79, 0, 0, DustID.CopperCoin, vector80.X, vector80.Y, 0, default, 1f);
+                Main.dust[num812].noGravity = true;
+                Main.dust[num812].scale = 1.7f;
+                num3 = num809;
+            }
+            if (Main.rand.NextBool(5))
+            {
+                Vector2 value29 = Projectile.velocity.RotatedBy(1.5707963705062866, default) * ((float)Main.rand.NextDouble() - 0.5f) * Projectile.width;
+                int num813 = Dust.NewDust(vector79 + value29 - Vector2.One * 4f, 8, 8, DustID.CopperCoin, 0f, 0f, 100, default, 1.5f);
+                Dust dust = Main.dust[num813];
+                dust.velocity *= 0.5f;
+                Main.dust[num813].velocity.Y = -Math.Abs(Main.dust[num813].velocity.Y);
+            }
+            //DelegateMethods.v3_1 = new Vector3(0.3f, 0.65f, 0.7f);
+            //Utils.PlotTileLine(Projectile.Center, Projectile.Center + Projectile.velocity * Projectile.localAI[1], (float)Projectile.width * Projectile.scale, new Utils.PerLinePoint(DelegateMethods.CastLight));
+
+            Projectile.position -= Projectile.velocity;
+            Projectile.rotation = Projectile.velocity.ToRotation() - 1.57079637f;
         }
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).position = Vector2.op_Subtraction(((Entity) projectile).position, ((Entity) this.Projectile).velocity);
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) - 1.57079637f;
-      }
-    }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.FargoSouls().MaxLifeReduction += 100;
-        target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400, true, false);
-        target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180, true, false);
-      }
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600, true, false);
-    }
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.FargoSouls().MaxLifeReduction += 100;
+                target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400);
+                target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180);
+            }
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600);
+        }
 
-    public override bool PreDraw(ref Color lightColor) => false;
+        public override bool PreDraw(ref Color lightColor) => false;
 
-    public float WidthFunction(float trailInterpolant)
-    {
-      return (float) ((double) ((Entity) this.Projectile).width * (double) this.Projectile.scale * 1.2999999523162842);
-    }
+        public float WidthFunction(float trailInterpolant) => Projectile.width * Projectile.scale * 1.3f;
 
-    public static Color ColorFunction(float trailInterpolant)
-    {
-      Color color = FargoSoulsUtil.AprilFools ? Color.Red : Color.Cyan;
-      ((Color) ref color).A = (byte) 100;
-      return color;
-    }
+        public static Color ColorFunction(float trailInterpolant)
+        {
+            Color color = FargoSoulsUtil.AprilFools ? Color.Red : Color.Cyan;//Color.Lerp(new(31, 187, 192), new(51, 255, 191), trailInterpolant) * Projectile.Opacity;
+            color.A = 100;
+            return color;
+        }
 
-    public void RenderPixelatedPrimitives(SpriteBatch spriteBatch)
-    {
-      if (this.Projectile.hide)
-        return;
-      ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.GenericDeathray");
-      Vector2 vector2_1 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Multiply(Utils.SafeNormalize(((Entity) this.Projectile).velocity, Vector2.UnitY), (float) this.drawDistance), 1.1f));
-      Vector2 vector2_2 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, 85f));
-      Vector2[] vector2Array = new Vector2[8];
-      for (int index = 0; index < vector2Array.Length; ++index)
-        vector2Array[index] = Vector2.Lerp(vector2_2, vector2_1, (float) index / ((float) vector2Array.Length - 1f));
-      FargosTextureRegistry.MutantStreak.Value.SetTexture1();
-      shader.TrySetParameter("mainColor", (object) (FargoSoulsUtil.AprilFools ? new Color((int) byte.MaxValue, (int) byte.MaxValue, 183, 100) : new Color(183, 252, 253, 100)));
-      shader.TrySetParameter("stretchAmount", (object) 3);
-      shader.TrySetParameter("scrollSpeed", (object) 2f);
-      shader.TrySetParameter("uColorFadeScaler", (object) 1f);
-      shader.TrySetParameter("useFadeIn", (object) true);
-      // ISSUE: method pointer
-      // ISSUE: reference to a compiler-generated field
-      // ISSUE: reference to a compiler-generated field
-      // ISSUE: method pointer
-      PrimitiveRenderer.RenderTrail((IEnumerable<Vector2>) vector2Array, new PrimitiveSettings(new PrimitiveSettings.VertexWidthFunction((object) this, __methodptr(WidthFunction)), MutantDeathray2.\u003C\u003EO.\u003C0\u003E__ColorFunction ?? (MutantDeathray2.\u003C\u003EO.\u003C0\u003E__ColorFunction = new PrimitiveSettings.VertexColorFunction((object) null, __methodptr(ColorFunction))), (PrimitiveSettings.VertexOffsetFunction) null, true, true, shader, new int?(), new int?(), false, new (Vector2, Vector2)?()), new int?(20));
+        public void RenderPixelatedPrimitives(SpriteBatch spriteBatch)
+        {
+            if (Projectile.hide)
+                return;
+
+            ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.GenericDeathray");
+
+            // Get the laser end position.
+            Vector2 laserEnd = Projectile.Center + Projectile.velocity.SafeNormalize(Vector2.UnitY) * drawDistance * 1.1f;
+
+            // Create 8 points that span across the draw distance from the projectile center.
+
+            // This allows the drawing to be pushed back, which is needed due to the shader fading in at the start to avoid
+            // sharp lines.
+            Vector2 initialDrawPoint = Projectile.Center - Projectile.velocity * 85f;
+            Vector2[] baseDrawPoints = new Vector2[8];
+            for (int i = 0; i < baseDrawPoints.Length; i++)
+                baseDrawPoints[i] = Vector2.Lerp(initialDrawPoint, laserEnd, i / (float)(baseDrawPoints.Length - 1f));
+
+            // Set shader parameters. This one takes a fademap and a color.
+
+            // GameShaders.Misc["FargoswiltasSouls:MutantDeathray"].UseImage1(); cannot be used due to only accepting vanilla paths.
+            FargoSoulsUtil.SetTexture1(FargosTextureRegistry.MutantStreak.Value);
+            shader.TrySetParameter("mainColor", FargoSoulsUtil.AprilFools ? new Color(255, 255, 183, 100) : new Color(183, 252, 253, 100));
+            shader.TrySetParameter("stretchAmount", 3);
+            shader.TrySetParameter("scrollSpeed", 2f);
+            shader.TrySetParameter("uColorFadeScaler", 1f);
+            shader.TrySetParameter("useFadeIn", true);
+
+            PrimitiveRenderer.RenderTrail(baseDrawPoints, new(WidthFunction, ColorFunction, Pixelate: true, Shader: shader), 20);
+
+        }
     }
-  }
 }

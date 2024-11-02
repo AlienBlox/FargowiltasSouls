@@ -1,45 +1,50 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.SkullCharm
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Buffs.Minions;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  [AutoloadEquip]
-  public class SkullCharm : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class SkullCharm : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 1;
-      this.Item.value = Item.sellPrice(0, 6, 0, 0);
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[160] = true;
-      ref StatModifier local = ref player.GetDamage(DamageClass.Generic);
-      local = StatModifier.op_Addition(local, 0.15f);
-      player.endurance -= 0.1f;
-      player.aggro -= 400;
-      player.FargoSouls().SkullCharm = true;
-      player.AddEffect<PungentMinion>(this.Item);
+        public override void SetDefaults()
+        {
+            Item.width = 40;
+            Item.height = 42;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Blue;
+            Item.value = Item.sellPrice(0, 6);
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[BuffID.Dazed] = true;
+            player.GetDamage(DamageClass.Generic) += 0.15f;
+            player.endurance -= 0.1f;
+            player.aggro -= 400;
+            player.FargoSouls().SkullCharm = true;
+            player.AddEffect<PungentMinion>(Item);
+
+        }
     }
-  }
+    public class PungentMinion : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<LumpofFleshHeader>();
+        public override int ToggleItemType => ModContent.ItemType<SkullCharm>();
+        public override bool MinionEffect => true;
+        public override void PostUpdateEquips(Player player)
+        {
+            if (!player.FargoSouls().LumpOfFlesh && !player.HasBuff<SouloftheMasochistBuff>())
+                player.AddBuff(ModContent.BuffType<Buffs.Minions.CrystalSkullBuff>(), 5);
+        }
+    }
 }

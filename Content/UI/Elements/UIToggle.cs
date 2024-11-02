@@ -1,145 +1,222 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.UI.Elements.UIToggle
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Assets.UI;
+﻿using FargowiltasSouls.Assets.UI;
 using FargowiltasSouls.Content.Items.Accessories.Enchantments;
 using FargowiltasSouls.Content.Items.Accessories.Essences;
 using FargowiltasSouls.Content.Items.Accessories.Expert;
+using FargowiltasSouls.Content.Items.Accessories.Forces;
 using FargowiltasSouls.Content.Projectiles.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
-using FargowiltasSouls.Core.Toggler;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Graphics;
-using System.Runtime.CompilerServices;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 
-#nullable disable
 namespace FargowiltasSouls.Content.UI.Elements
 {
-  public class UIToggle : UIElement
-  {
-    public const int CheckboxTextSpace = 4;
-    public AccessoryEffect Effect;
-    public string Mod;
-
-    public static DynamicSpriteFont Font => FontAssets.ItemStack.Value;
-
-    public UIToggle(AccessoryEffect effect, string mod)
+    public class UIToggle : UIElement
     {
-      this.Effect = effect;
-      this.Mod = mod;
-      ((StyleDimension) ref this.Width).Set(19f, 0.0f);
-      ((StyleDimension) ref this.Height).Set(21f, 0.0f);
-    }
+        public const int CheckboxTextSpace = 4;
 
-    protected virtual void DrawSelf(SpriteBatch spriteBatch)
-    {
-      base.DrawSelf(spriteBatch);
-      CalculatedStyle dimensions = this.GetDimensions();
-      Vector2 vector2_1 = ((CalculatedStyle) ref dimensions).Position();
-      FargoSoulsPlayer fargoSoulsPlayer = Main.LocalPlayer.FargoSouls();
-      if (this.IsMouseHovering && Main.mouseLeft && Main.mouseLeftRelease)
-      {
-        fargoSoulsPlayer.Toggler.Toggles[this.Effect].ToggleBool = !fargoSoulsPlayer.Toggler.Toggles[this.Effect].ToggleBool;
-        if (Main.netMode == 1)
-          fargoSoulsPlayer.SyncToggle(this.Effect);
-      }
-      int num1 = this.Effect.MinionEffect || this.Effect.ExtraAttackEffect ? (fargoSoulsPlayer.PrimeSoulActive ? 1 : 0) : 0;
-      bool flag1 = fargoSoulsPlayer.MutantPresence && !this.Effect.IgnoresMutantPresence;
-      bool flag2 = this.Effect.MinionEffect && fargoSoulsPlayer.Toggler_MinionsDisabled || this.Effect.ExtraAttackEffect && fargoSoulsPlayer.Toggler_ExtraAttacksDisabled;
-      bool toggleValue = Main.LocalPlayer.GetToggleValue(this.Effect, true);
-      spriteBatch.Draw(FargoUIManager.CheckBox.Value, vector2_1, Color.White);
-      if (num1 != 0)
-        spriteBatch.Draw(FargoUIManager.Cross.Value, vector2_1, Color.Cyan);
-      else if (((!flag1 ? 0 : (fargoSoulsPlayer.PresenceTogglerTimer <= 50 ? 1 : 0)) | (flag2 ? 1 : 0)) != 0)
-        spriteBatch.Draw(FargoUIManager.Cross.Value, vector2_1, toggleValue ? Color.White : Color.Gray);
-      else if (toggleValue)
-        spriteBatch.Draw(FargoUIManager.CheckMark.Value, vector2_1, Color.White);
-      string str1 = this.Effect.ToggleDescription;
-      Vector2 vector2_2 = Vector2.op_Addition(Vector2.op_Addition(Vector2.op_Addition(vector2_1, new Vector2(this.Width.Pixels * Main.UIScale, 0.0f)), new Vector2(4f, 0.0f)), new Vector2(0.0f, UIToggle.Font.MeasureString(str1).Y * 0.175f));
-      Color color1 = Color.White;
-      if (this.Effect.ToggleItemType > 0)
-      {
-        Item obj = ContentSamples.ItemsByType[this.Effect.ToggleItemType];
-        if (obj.ModItem != null)
+        public static DynamicSpriteFont Font => Terraria.GameContent.FontAssets.ItemStack.Value;
+
+        public AccessoryEffect Effect;
+        public string Mod;
+
+        public UIToggle(AccessoryEffect effect, string mod)
         {
-          if (obj.ModItem is BaseEnchant modItem2)
-            color1 = modItem2.nameColor;
-          else if (obj.ModItem is BaseEssence modItem1)
-            color1 = modItem1.nameColor;
+            Effect = effect;
+            Mod = mod;
+
+            Width.Set(19, 0);
+            Height.Set(21, 0);
         }
-      }
-      if (num1 != 0)
-      {
-        color1 = Color.op_Multiply(Color.Cyan, 0.5f);
-        string str2 = str1;
-        DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(5, 1);
-        interpolatedStringHandler.AppendLiteral(" [i:");
-        interpolatedStringHandler.AppendFormatted<int>(ModContent.ItemType<PrimeSoul>());
-        interpolatedStringHandler.AppendLiteral("]");
-        string stringAndClear = interpolatedStringHandler.ToStringAndClear();
-        str1 = str2 + stringAndClear;
-      }
-      else if (flag1)
-      {
-        Color color2 = Color.op_Multiply(Color.Gray, 0.5f);
-        if (fargoSoulsPlayer.PresenceTogglerTimer > 50)
+
+        protected override void DrawSelf(SpriteBatch spriteBatch)
         {
-          color1 = Color.Lerp(color2, color1, (float) (fargoSoulsPlayer.PresenceTogglerTimer - 50) / 50f);
+            base.DrawSelf(spriteBatch);
+            Vector2 position = GetDimensions().Position();
+            Player player = Main.LocalPlayer;
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (IsMouseHovering && Main.mouseLeft && Main.mouseLeftRelease)
+            {
+                modPlayer.Toggler.Toggles[Effect].ToggleBool = !modPlayer.Toggler.Toggles[Effect].ToggleBool;
+
+                if (Main.netMode == NetmodeID.MultiplayerClient)
+                    modPlayer.SyncToggle(Effect);
+            }
+
+            bool disabledByMinos = Effect.MinionEffect && modPlayer.GalacticMinionsDeactivated;
+            bool disabledByPresence = modPlayer.MutantPresence && (Effect.MutantsPresenceAffects || Effect.MinionEffect);
+            bool disabledByGlobalToggle = (Effect.MinionEffect && modPlayer.Toggler_MinionsDisabled) || (Effect.ExtraAttackEffect && modPlayer.Toggler_ExtraAttacksDisabled);
+            bool toggled = Main.LocalPlayer.GetToggleValue(Effect, true);
+
+            spriteBatch.Draw(FargoUIManager.CheckBox.Value, position, Color.White);
+
+            if (disabledByMinos)
+                spriteBatch.Draw(FargoUIManager.Cross.Value, position, Color.Cyan);
+            else if ((disabledByPresence && modPlayer.PresenceTogglerTimer <= 50) || disabledByGlobalToggle)
+                spriteBatch.Draw(FargoUIManager.Cross.Value, position, toggled ? Color.White : Color.Gray);
+            else if (toggled)
+                spriteBatch.Draw(FargoUIManager.CheckMark.Value, position, Color.White);
+
+            string text = Effect.ToggleDescription;
+            position += new Vector2(Width.Pixels * Main.UIScale, 0);
+            position += new Vector2(CheckboxTextSpace, 0);
+            position += new Vector2(0, Font.MeasureString(text).Y * 0.175f);
+            Color color = Color.White;
+            if (Effect.ToggleItemType > 0)
+            {
+                Item item = ContentSamples.ItemsByType[Effect.ToggleItemType];
+                if (item.ModItem != null)
+                {
+                    if (item.ModItem is BaseEnchant enchant)
+                        color = enchant.nameColor;
+                    else if (item.ModItem is BaseEssence essence)
+                        color = essence.nameColor;
+                    else if (item.ModItem is BaseForce force)
+                        color = Color.BlueViolet;
+                }
+
+            }
+            if (disabledByMinos)
+            {
+                color = Color.Cyan * 0.5f;
+                //text += $" [i:{ModContent.ItemType<GalacticGlobe>()}]";
+            }
+            else if (disabledByPresence)
+            {
+                Color gray = Color.Gray * 0.5f;
+                if (modPlayer.PresenceTogglerTimer > 50)
+                    color = Color.Lerp(gray, color, (modPlayer.PresenceTogglerTimer - 50) / 50f);
+                else
+                {
+                    color = gray;
+                    text += $" [i:{ModContent.ItemType<OncomingMutantItem>()}]";
+                }
+            }
+            Utils.DrawBorderString(spriteBatch, text, position, color);
+
+            if (modPlayer.PresenceTogglerTimer > 0) // draw slash
+            {
+                //TODO: this doesn't work rn. fix later. probably change to something else
+
+                Vector2 offset = Vector2.UnitX * (float)Utils.Lerp(-1500, 1500, modPlayer.PresenceTogglerTimer / 100f);
+                Vector2 start = position + offset;
+                Vector2 end = start + Vector2.UnitX * 50;
+
+                Texture2D texture = TextureAssets.Projectile[ModContent.ProjectileType<MonkDashDamage>()].Value;
+                Rectangle rect = new(0, 0, texture.Width, texture.Height);
+                Vector2 origin = rect.Size() / 2;
+                int num149 = 18;
+                int num147 = 0;
+                int num148 = -2;
+                float value12 = 1.3f;
+                float num150 = 15f;
+
+                for (int num152 = num149; (num148 > 0 && num152 < num147) || (num148 < 0 && num152 > num147); num152 += num148)
+                {
+                    Color color32 = Color.Cyan;
+
+                    float num157 = num147 - num152;
+                    if (num148 < 0)
+                    {
+                        num157 = num149 - num152;
+                    }
+                    color32 *= num157 / ((float)10 * 1.5f);
+                    Vector2 vector29 = start + (end - start) * num157 / ((float)10 * 1.5f);
+                    float num158 = 0;
+                    SpriteEffects effects2 = SpriteEffects.None;
+                    if (vector29 == Vector2.Zero)
+                    {
+                        continue;
+                    }
+                    Vector2 position3 = vector29;
+                    Main.EntitySpriteDraw(texture, position3, rect, color32, num158, origin, MathHelper.Lerp(1, value12, (float)num152 / num150), effects2);
+                }
+                //spriteBatch.Draw(TextureAssets.Extra[33].Value, start, null, Color.Cyan, 0, Vector2.Zero, scale, SpriteEffects.None, 0f);
+            }
         }
-        else
-        {
-          color1 = color2;
-          string str3 = str1;
-          DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(5, 1);
-          interpolatedStringHandler.AppendLiteral(" [i:");
-          interpolatedStringHandler.AppendFormatted<int>(ModContent.ItemType<OncomingMutantItem>());
-          interpolatedStringHandler.AppendLiteral("]");
-          string stringAndClear = interpolatedStringHandler.ToStringAndClear();
-          str1 = str3 + stringAndClear;
-        }
-      }
-      Utils.DrawBorderString(spriteBatch, str1, vector2_2, color1, 1f, 0.0f, 0.0f, -1);
-      if (fargoSoulsPlayer.PresenceTogglerTimer <= 0)
-        return;
-      Vector2 vector2_3 = Vector2.op_Multiply(Vector2.UnitX, (float) Utils.Lerp(-1500.0, 1500.0, (double) fargoSoulsPlayer.PresenceTogglerTimer / 100.0));
-      Vector2 vector2_4 = Vector2.op_Addition(vector2_2, vector2_3);
-      Vector2 vector2_5 = Vector2.op_Addition(vector2_4, Vector2.op_Multiply(Vector2.UnitX, 50f));
-      Texture2D texture2D = TextureAssets.Projectile[ModContent.ProjectileType<MonkDashDamage>()].Value;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, 0, texture2D.Width, texture2D.Height);
-      Vector2 vector2_6 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      int num2 = 18;
-      int num3 = 0;
-      int num4 = -2;
-      float num5 = 1.3f;
-      float num6 = 15f;
-      for (int index = num2; num4 > 0 && index < num3 || num4 < 0 && index > num3; index += num4)
-      {
-        Color cyan = Color.Cyan;
-        float num7 = (float) (num3 - index);
-        if (num4 < 0)
-          num7 = (float) (num2 - index);
-        Color color3 = Color.op_Multiply(cyan, num7 / 15f);
-        Vector2 vector2_7 = Vector2.op_Addition(vector2_4, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_Subtraction(vector2_5, vector2_4), num7), 15f));
-        float num8 = 0.0f;
-        SpriteEffects spriteEffects = (SpriteEffects) 0;
-        if (!Vector2.op_Equality(vector2_7, Vector2.Zero))
-        {
-          Vector2 vector2_8 = vector2_7;
-          Main.EntitySpriteDraw(texture2D, vector2_8, new Rectangle?(rectangle), color3, num8, vector2_6, MathHelper.Lerp(1f, num5, (float) index / num6), spriteEffects, 0.0f);
-        }
-      }
     }
-  }
+    public class ExtraAttacksToggle : UIElement
+    {
+        public const int CheckboxTextSpace = UIToggle.CheckboxTextSpace;
+
+        public static DynamicSpriteFont Font => UIToggle.Font;
+
+
+        public ExtraAttacksToggle()
+        {
+
+            Width.Set(19, 0);
+            Height.Set(21, 0);
+        }
+
+        protected override void DrawSelf(SpriteBatch spriteBatch)
+        {
+            base.DrawSelf(spriteBatch);
+            Vector2 position = GetDimensions().Position();
+            Player player = Main.LocalPlayer;
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (IsMouseHovering && Main.mouseLeft && Main.mouseLeftRelease)
+            {
+                modPlayer.Toggler_ExtraAttacksDisabled = !modPlayer.Toggler_ExtraAttacksDisabled;
+            }
+
+            spriteBatch.Draw(FargoUIManager.CheckBox.Value, position, Color.White);
+
+            if (modPlayer.Toggler_ExtraAttacksDisabled)
+                spriteBatch.Draw(FargoUIManager.CheckMark.Value, position, Color.White);
+
+            string text = Language.GetTextValue($"Mods.FargowiltasSouls.Toggler.DisableAllAttackEffects");
+            position += new Vector2(Width.Pixels * Main.UIScale, 0);
+            position += new Vector2(CheckboxTextSpace, 0);
+            position += new Vector2(0, Font.MeasureString(text).Y * 0.175f);
+            Color color = Color.White;
+            Utils.DrawBorderString(spriteBatch, text, position, color);
+        }
+    }
+    public class MinionsToggle : UIElement
+    {
+        public const int CheckboxTextSpace = UIToggle.CheckboxTextSpace;
+
+        public static DynamicSpriteFont Font => UIToggle.Font;
+
+        public MinionsToggle()
+        {
+
+            Width.Set(19, 0);
+            Height.Set(21, 0);
+        }
+
+        protected override void DrawSelf(SpriteBatch spriteBatch)
+        {
+            base.DrawSelf(spriteBatch);
+            Vector2 position = GetDimensions().Position();
+            Player player = Main.LocalPlayer;
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (IsMouseHovering && Main.mouseLeft && Main.mouseLeftRelease)
+            {
+                modPlayer.Toggler_MinionsDisabled = !modPlayer.Toggler_MinionsDisabled;
+            }
+
+            spriteBatch.Draw(FargoUIManager.CheckBox.Value, position, Color.White);
+
+            if (modPlayer.Toggler_MinionsDisabled)
+                spriteBatch.Draw(FargoUIManager.CheckMark.Value, position, Color.White);
+
+            string text = Language.GetTextValue($"Mods.FargowiltasSouls.Toggler.DisableAllMinionEffects");
+            position += new Vector2(Width.Pixels * Main.UIScale, 0);
+            position += new Vector2(CheckboxTextSpace, 0);
+            position += new Vector2(0, Font.MeasureString(text).Y * 0.175f);
+            Color color = Color.White;
+            Utils.DrawBorderString(spriteBatch, text, position, color);
+        }
+    }
 }

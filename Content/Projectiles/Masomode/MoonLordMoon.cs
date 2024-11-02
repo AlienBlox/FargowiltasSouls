@@ -1,9 +1,3 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.MoonLordMoon
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Bosses.Champions.Cosmos;
 using FargowiltasSouls.Content.Bosses.VanillaEternity;
 using FargowiltasSouls.Core.Globals;
@@ -15,155 +9,166 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class MoonLordMoon : CosmosMoon
-  {
-    public virtual string Texture => "FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosMoon";
-
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override void SetDefaults()
+    public class MoonLordMoon : CosmosMoon
     {
-      base.SetDefaults();
-      this.Projectile.alpha = 200;
-    }
+        public override string Texture => "FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosMoon";
 
-    public virtual bool? CanDamage()
-    {
-      bool? nullable = base.CanDamage();
-      bool flag = false;
-      return nullable.GetValueOrDefault() == flag & nullable.HasValue ? new bool?(false) : new bool?((double) this.Projectile.localAI[0] > 120.0);
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+            // DisplayName.SetDefault("Moon");
+        }
 
-    public override void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-        SoundEngine.PlaySound(ref SoundID.Item89, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-        if (!Main.dedServ && ((Entity) Main.LocalPlayer).active)
-          ScreenShakeSystem.StartShake(10f, 6.28318548f, new Vector2?(), 0.333333343f);
-        for (int index1 = 0; index1 < 20; ++index1)
+        public override void SetDefaults()
         {
-          int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 100, new Color(), 1.5f);
-          Dust dust = Main.dust[index2];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
+            base.SetDefaults();
+            Projectile.alpha = 200;
         }
-        for (int index3 = 0; index3 < 40; ++index3)
+
+        public override bool? CanDamage()
         {
-          int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 3.5f);
-          Main.dust[index4].noGravity = true;
-          Dust dust1 = Main.dust[index4];
-          dust1.velocity = Vector2.op_Multiply(dust1.velocity, 7f);
-          int index5 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-          Dust dust2 = Main.dust[index5];
-          dust2.velocity = Vector2.op_Multiply(dust2.velocity, 3f);
+            if (base.CanDamage() == false)
+                return false;
+
+            return Projectile.localAI[0] > 120;
         }
-        for (int index6 = 0; index6 < 2; ++index6)
+
+        public override void AI()
         {
-          float num = 0.4f;
-          if (index6 == 1)
-            num = 0.8f;
-          int index7 = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-          Gore gore1 = Main.gore[index7];
-          gore1.velocity = Vector2.op_Multiply(gore1.velocity, num);
-          ++Main.gore[index7].velocity.X;
-          ++Main.gore[index7].velocity.Y;
-          int index8 = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-          Gore gore2 = Main.gore[index8];
-          gore2.velocity = Vector2.op_Multiply(gore2.velocity, num);
-          --Main.gore[index8].velocity.X;
-          ++Main.gore[index8].velocity.Y;
-          int index9 = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-          Gore gore3 = Main.gore[index9];
-          gore3.velocity = Vector2.op_Multiply(gore3.velocity, num);
-          ++Main.gore[index9].velocity.X;
-          --Main.gore[index9].velocity.Y;
-          int index10 = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-          Gore gore4 = Main.gore[index10];
-          gore4.velocity = Vector2.op_Multiply(gore4.velocity, num);
-          --Main.gore[index10].velocity.X;
-          --Main.gore[index10].velocity.Y;
+            if (Projectile.localAI[0] == 0)
+            {
+                SoundEngine.PlaySound(SoundID.Item92, Projectile.Center);
+                Projectile.rotation = Projectile.velocity.ToRotation();
+
+                SoundEngine.PlaySound(SoundID.Item89, Projectile.position);
+
+                if (!Main.dedServ && Main.LocalPlayer.active)
+                    ScreenShakeSystem.StartShake(10, shakeStrengthDissipationIncrement: 10f / 30);
+
+                for (int num615 = 0; num615 < 20; num615++)
+                {
+                    int num616 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0f, 0f, 100, default, 1.5f);
+                    Main.dust[num616].velocity *= 1.4f;
+                }
+
+                for (int num617 = 0; num617 < 40; num617++)
+                {
+                    int num618 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Torch, 0f, 0f, 100, default, 3.5f);
+                    Main.dust[num618].noGravity = true;
+                    Main.dust[num618].velocity *= 7f;
+                    num618 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Torch, 0f, 0f, 100, default, 1.5f);
+                    Main.dust[num618].velocity *= 3f;
+                }
+
+                for (int num619 = 0; num619 < 2; num619++)
+                {
+                    float scaleFactor9 = 0.4f;
+                    if (num619 == 1) scaleFactor9 = 0.8f;
+                    int num620 = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, default, Main.rand.Next(61, 64));
+                    Main.gore[num620].velocity *= scaleFactor9;
+                    Gore gore97 = Main.gore[num620];
+                    gore97.velocity.X++;
+                    Gore gore98 = Main.gore[num620];
+                    gore98.velocity.Y++;
+                    num620 = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, default, Main.rand.Next(61, 64));
+                    Main.gore[num620].velocity *= scaleFactor9;
+                    Gore gore99 = Main.gore[num620];
+                    gore99.velocity.X--;
+                    Gore gore100 = Main.gore[num620];
+                    gore100.velocity.Y++;
+                    num620 = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, default, Main.rand.Next(61, 64));
+                    Main.gore[num620].velocity *= scaleFactor9;
+                    Gore gore101 = Main.gore[num620];
+                    gore101.velocity.X++;
+                    Gore gore102 = Main.gore[num620];
+                    gore102.velocity.Y--;
+                    num620 = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, default, Main.rand.Next(61, 64));
+                    Main.gore[num620].velocity *= scaleFactor9;
+                    Gore gore103 = Main.gore[num620];
+                    gore103.velocity.X--;
+                    Gore gore104 = Main.gore[num620];
+                    gore104.velocity.Y--;
+                }
+
+
+                for (int k = 0; k < 20; k++) //make visual dust
+                {
+                    Vector2 dustPos = Projectile.position;
+                    dustPos.X += Main.rand.Next(Projectile.width);
+                    dustPos.Y += Main.rand.Next(Projectile.height);
+
+                    for (int i = 0; i < 15; i++)
+                    {
+                        int dust = Dust.NewDust(dustPos, 32, 32, DustID.Smoke, 0f, 0f, 100, default, 3f);
+                        Main.dust[dust].velocity *= 1.4f;
+                    }
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        int dust = Dust.NewDust(dustPos, 32, 32, DustID.Torch, 0f, 0f, 100, default, 3.5f);
+                        Main.dust[dust].noGravity = true;
+                        Main.dust[dust].velocity *= 7f;
+                        dust = Dust.NewDust(dustPos, 32, 32, DustID.Torch, 0f, 0f, 100, default, 1.5f);
+                        Main.dust[dust].velocity *= 3f;
+                    }
+
+                    float scaleFactor9 = 0.5f;
+                    for (int j = 0; j < 4; j++)
+                    {
+                        int gore = Gore.NewGore(Projectile.GetSource_FromThis(), dustPos, default, Main.rand.Next(61, 64));
+                        Main.gore[gore].velocity *= scaleFactor9;
+                        Main.gore[gore].velocity.X += 1f;
+                        Main.gore[gore].velocity.Y += 1f;
+                    }
+                }
+
+                const int num226 = 30;
+                for (int num227 = 0; num227 < num226; num227++)
+                {
+                    Vector2 vector6 = Vector2.UnitX * 40f;
+                    vector6 = vector6.RotatedBy((num227 - (num226 / 2 - 1)) * 6.28318548f / num226, default) + Projectile.Center;
+                    Vector2 vector7 = vector6 - Projectile.Center;
+                    int num228 = Dust.NewDust(vector6 + vector7, 0, 0, DustID.Torch, 0f, 0f, 0, default, 3f);
+                    Main.dust[num228].noGravity = true;
+                    Main.dust[num228].velocity = vector7;
+                }
+            }
+
+            NPC moonLord = FargoSoulsUtil.NPCExists(EModeGlobalNPC.moonBoss, NPCID.MoonLordCore);
+            Projectile arena = FargoSoulsUtil.ProjectileExists(FargoSoulsUtil.GetProjectileByIdentity(Projectile.owner, Projectile.ai[0], ModContent.ProjectileType<LunarRitual>()));
+            if (moonLord != null && arena != null && moonLord.ai[0] != 2f)
+            {
+                if (moonLord.GetGlobalNPC<MoonLordCore>().VulnerabilityState == 4)
+                    Projectile.timeLeft = 60;
+
+                float orbitRange = Math.Abs(Projectile.ai[1]) + 400f * moonLord.life / moonLord.lifeMax;
+
+                if (++Projectile.localAI[0] < 60)
+                {
+                    Vector2 desiredPosition = arena.Center + Projectile.velocity * orbitRange;
+                    Projectile.Center = Vector2.Lerp(Projectile.Center, desiredPosition, 0.05f);
+
+                    Projectile.position += arena.velocity;
+                    Projectile.position -= Projectile.velocity;
+
+                    Projectile.alpha -= 10;
+                    if (Projectile.alpha < 0)
+                        Projectile.alpha = 0;
+                }
+                else
+                {
+                    Projectile.alpha = 0;
+                    Projectile.velocity = Vector2.Zero;
+                    Projectile.rotation += MathHelper.ToRadians(3.5f) * Math.Min(1f, (Projectile.localAI[0] - 60) / 180) * Math.Sign(Projectile.ai[1]);
+                    Projectile.Center = arena.Center + orbitRange * Projectile.rotation.ToRotationVector2();
+                }
+            }
+            else if (FargoSoulsUtil.HostCheck)
+            {
+                Projectile.Kill();
+            }
         }
-        for (int index11 = 0; index11 < 20; ++index11)
-        {
-          Vector2 position = ((Entity) this.Projectile).position;
-          position.X += (float) Main.rand.Next(((Entity) this.Projectile).width);
-          position.Y += (float) Main.rand.Next(((Entity) this.Projectile).height);
-          for (int index12 = 0; index12 < 15; ++index12)
-          {
-            int index13 = Dust.NewDust(position, 32, 32, 31, 0.0f, 0.0f, 100, new Color(), 3f);
-            Dust dust = Main.dust[index13];
-            dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
-          }
-          for (int index14 = 0; index14 < 10; ++index14)
-          {
-            int index15 = Dust.NewDust(position, 32, 32, 6, 0.0f, 0.0f, 100, new Color(), 3.5f);
-            Main.dust[index15].noGravity = true;
-            Dust dust3 = Main.dust[index15];
-            dust3.velocity = Vector2.op_Multiply(dust3.velocity, 7f);
-            int index16 = Dust.NewDust(position, 32, 32, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-            Dust dust4 = Main.dust[index16];
-            dust4.velocity = Vector2.op_Multiply(dust4.velocity, 3f);
-          }
-          float num = 0.5f;
-          for (int index17 = 0; index17 < 4; ++index17)
-          {
-            int index18 = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), position, new Vector2(), Main.rand.Next(61, 64), 1f);
-            Gore gore = Main.gore[index18];
-            gore.velocity = Vector2.op_Multiply(gore.velocity, num);
-            ++Main.gore[index18].velocity.X;
-            ++Main.gore[index18].velocity.Y;
-          }
-        }
-        for (int index19 = 0; index19 < 30; ++index19)
-        {
-          Vector2 vector2_1 = Vector2.op_Addition(Utils.RotatedBy(Vector2.op_Multiply(Vector2.UnitX, 40f), (double) (index19 - 14) * 6.2831854820251465 / 30.0, new Vector2()), ((Entity) this.Projectile).Center);
-          Vector2 vector2_2 = Vector2.op_Subtraction(vector2_1, ((Entity) this.Projectile).Center);
-          int index20 = Dust.NewDust(Vector2.op_Addition(vector2_1, vector2_2), 0, 0, 6, 0.0f, 0.0f, 0, new Color(), 3f);
-          Main.dust[index20].noGravity = true;
-          Main.dust[index20].velocity = vector2_2;
-        }
-      }
-      NPC npc = FargoSoulsUtil.NPCExists(EModeGlobalNPC.moonBoss, new int[1]
-      {
-        398
-      });
-      Projectile projectile1 = FargoSoulsUtil.ProjectileExists(FargoSoulsUtil.GetProjectileByIdentity(this.Projectile.owner, this.Projectile.ai[0], ModContent.ProjectileType<LunarRitual>()), Array.Empty<int>());
-      if (npc != null && projectile1 != null && (double) npc.ai[0] != 2.0)
-      {
-        if (npc.GetGlobalNPC<MoonLordCore>().VulnerabilityState == 4)
-          this.Projectile.timeLeft = 60;
-        float num = Math.Abs(this.Projectile.ai[1]) + 400f * (float) npc.life / (float) npc.lifeMax;
-        if ((double) ++this.Projectile.localAI[0] < 60.0)
-        {
-          ((Entity) this.Projectile).Center = Vector2.Lerp(((Entity) this.Projectile).Center, Vector2.op_Addition(((Entity) projectile1).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, num)), 0.05f);
-          Projectile projectile2 = this.Projectile;
-          ((Entity) projectile2).position = Vector2.op_Addition(((Entity) projectile2).position, ((Entity) projectile1).velocity);
-          Projectile projectile3 = this.Projectile;
-          ((Entity) projectile3).position = Vector2.op_Subtraction(((Entity) projectile3).position, ((Entity) this.Projectile).velocity);
-          this.Projectile.alpha -= 10;
-          if (this.Projectile.alpha >= 0)
-            return;
-          this.Projectile.alpha = 0;
-        }
-        else
-        {
-          this.Projectile.alpha = 0;
-          ((Entity) this.Projectile).velocity = Vector2.Zero;
-          this.Projectile.rotation += MathHelper.ToRadians(3.5f) * Math.Min(1f, (float) (((double) this.Projectile.localAI[0] - 60.0) / 180.0)) * (float) Math.Sign(this.Projectile.ai[1]);
-          ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) projectile1).Center, Vector2.op_Multiply(num, Utils.ToRotationVector2(this.Projectile.rotation)));
-        }
-      }
-      else
-      {
-        if (!FargoSoulsUtil.HostCheck)
-          return;
-        this.Projectile.Kill();
-      }
     }
-  }
 }

@@ -1,42 +1,39 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.PirateInvasion.PirateDeadeye
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.PirateInvasion
 {
-  public class PirateDeadeye : EModeNPCBehaviour
-  {
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(214);
-
-    public virtual void AI(NPC npc)
+    public class PirateDeadeye : EModeNPCBehaviour
     {
-      base.AI(npc);
-      if ((double) npc.ai[2] <= 0.0 || (double) npc.ai[1] > 25.0)
-        return;
-      if (FargoSoulsUtil.HostCheck)
-      {
-        Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) Main.player[npc.target]).Center, ((Entity) npc).Center);
-        vector2_1.X += (float) Main.rand.Next(-20, 21);
-        vector2_1.Y += (float) Main.rand.Next(-20, 21);
-        ((Vector2) ref vector2_1).Normalize();
-        Vector2 vector2_2 = Vector2.op_Multiply(vector2_1, 14f);
-        int num = Main.expertMode ? 20 : 25;
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, vector2_2, 36, num, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      }
-      SoundEngine.PlaySound(ref SoundID.Item11, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-      npc.ai[2] = 0.0f;
-      npc.ai[1] = 0.0f;
-      npc.netUpdate = true;
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.PirateDeadeye);
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            //num3 = 40, num5 = 14f, num8 = 0f, damage = 20/25, num12 = 550f?
+            if (npc.ai[2] > 0f && npc.ai[1] <= 25f)
+            {
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    Vector2 speed = Main.player[npc.target].Center - npc.Center;
+                    speed.X += Main.rand.Next(-20, 21);
+                    speed.Y += Main.rand.Next(-20, 21);
+                    speed.Normalize();
+                    speed *= 14f;
+
+                    int damage = Main.expertMode ? 20 : 25;
+                    Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, speed, ProjectileID.MeteorShot, damage, 0f, Main.myPlayer);
+                }
+                SoundEngine.PlaySound(SoundID.Item11, npc.Center);
+                npc.ai[2] = 0f;
+                npc.ai[1] = 0f;
+                npc.netUpdate = true;
+            }
+        }
     }
-  }
 }

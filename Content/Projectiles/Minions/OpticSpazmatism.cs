@@ -1,208 +1,224 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.OpticSpazmatism
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class OpticSpazmatism : ModProjectile
-  {
-    private bool spawn;
-
-    public virtual void SetStaticDefaults()
+    public class OpticSpazmatism : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-      ProjectileID.Sets.MinionTargettingFeature[this.Projectile.type] = true;
-      ProjectileID.Sets.MinionSacrificable[this.Projectile.type] = true;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 100;
-      ((Entity) this.Projectile).height = 100;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.minion = true;
-      this.Projectile.minionSlots = 1.5f;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.netImportant = true;
-      this.Projectile.scale = 0.5f;
-    }
-
-    public virtual void AI()
-    {
-      if (!this.spawn)
-      {
-        this.spawn = true;
-        this.Projectile.ai[0] = -1f;
-      }
-      Player player = Main.player[this.Projectile.owner];
-      if (((Entity) player).active && !player.dead && player.FargoSouls().TwinsEX)
-        this.Projectile.timeLeft = 2;
-      bool flag = true;
-      if ((double) this.Projectile.ai[0] >= 0.0 && (double) this.Projectile.ai[0] < 200.0)
-      {
-        NPC minionAttackTargetNpc = this.Projectile.OwnerMinionAttackTargetNPC;
-        if (minionAttackTargetNpc != null && (double) this.Projectile.ai[0] != (double) ((Entity) minionAttackTargetNpc).whoAmI && minionAttackTargetNpc.CanBeChasedBy((object) this.Projectile, false))
-          this.Projectile.ai[0] = (float) ((Entity) minionAttackTargetNpc).whoAmI;
-        NPC npc = Main.npc[(int) this.Projectile.ai[0]];
-        if (npc.CanBeChasedBy((object) this.Projectile, false))
+        public override void SetStaticDefaults()
         {
-          if ((double) this.Projectile.ai[1] <= 0.0)
-          {
-            Projectile projectile = this.Projectile;
-            ((Entity) projectile).position = Vector2.op_Addition(((Entity) projectile).position, Vector2.op_Division(((Entity) npc).velocity, 2f));
-            Vector2 targetPos = Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply(((Entity) this.Projectile).DirectionFrom(((Entity) npc).Center), 300f));
-            if ((double) ((Entity) this.Projectile).Distance(targetPos) > 50.0)
-              this.Movement(targetPos, 0.5f);
-            else if ((double) --this.Projectile.ai[1] < -30.0)
+            // DisplayName.SetDefault("Spazmatism");
+            Main.projFrames[Projectile.type] = 6;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+            ProjectileID.Sets.MinionTargettingFeature[Projectile.type] = true;
+            ProjectileID.Sets.MinionSacrificable[Projectile.type] = true;
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.width = 100;
+            Projectile.height = 100;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.minion = true;
+            Projectile.minionSlots = 1.5f;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.aiStyle = -1;
+            Projectile.netImportant = true;
+            Projectile.scale = .5f;
+
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 10;
+        }
+
+        private bool spawn;
+
+        public override void AI()
+        {
+            if (!spawn)
             {
-              ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply(((Entity) npc).velocity, 10f))), 30f);
-              this.Projectile.ai[1] = 20f;
-              this.Projectile.netUpdate = true;
-              flag = false;
+                spawn = true;
+                Projectile.ai[0] = -1;
             }
-            this.Projectile.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center)) - 1.57079637f;
-            if ((double) ++this.Projectile.localAI[0] > 7.0)
+
+            Player player = Main.player[Projectile.owner];
+            if (player.active && !player.dead && player.FargoSouls().TwinsEX)
+                Projectile.timeLeft = 2;
+
+            bool collide = true;
+
+            if (Projectile.ai[0] >= 0 && Projectile.ai[0] < 200) //has target
             {
-              this.Projectile.localAI[0] = 0.0f;
-              SoundEngine.PlaySound(ref SoundID.Item34, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-              if (this.Projectile.owner == Main.myPlayer)
-                Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation + 1.57079637f), 60f)), Vector2.op_Multiply(8f, Utils.RotatedByRandom(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center), (double) MathHelper.ToRadians(12f))), ModContent.ProjectileType<OpticFlame>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
+                NPC minionAttackTargetNpc = Projectile.OwnerMinionAttackTargetNPC;
+                if (minionAttackTargetNpc != null && Projectile.ai[0] != minionAttackTargetNpc.whoAmI && minionAttackTargetNpc.CanBeChasedBy(Projectile))
+                    Projectile.ai[0] = minionAttackTargetNpc.whoAmI;
+
+                NPC npc = Main.npc[(int)Projectile.ai[0]];
+                if (npc.CanBeChasedBy(Projectile))
+                {
+                    if (Projectile.ai[1] <= 0)
+                    {
+                        Projectile.position += npc.velocity / 2f;
+
+                        Vector2 targetPos = npc.Center + Projectile.DirectionFrom(npc.Center) * 300;
+                        if (Projectile.Distance(targetPos) > 50)
+                        {
+                            Movement(targetPos, 0.5f);
+                        }
+                        else if (--Projectile.ai[1] < -30) //in target range for 1 second, initiate dash
+                        {
+                            Projectile.velocity = Projectile.SafeDirectionTo(npc.Center + npc.velocity * 10) * 30f;
+                            Projectile.ai[1] = 20;
+                            Projectile.netUpdate = true;
+                            collide = false;
+                        }
+                        Projectile.rotation = Projectile.SafeDirectionTo(npc.Center).ToRotation() - (float)Math.PI / 2;
+
+                        if (++Projectile.localAI[0] > 7)
+                        {
+                            Projectile.localAI[0] = 0;
+                            SoundEngine.PlaySound(SoundID.Item34, Projectile.Center);
+                            if (Projectile.owner == Main.myPlayer)
+                            {
+                                Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center - (Projectile.rotation + (float)Math.PI / 2).ToRotationVector2() * 60,
+                                    8 * Projectile.SafeDirectionTo(npc.Center).RotatedByRandom(MathHelper.ToRadians(12)), ModContent.ProjectileType<OpticFlame>(),
+                                    Projectile.damage, Projectile.knockBack, Projectile.owner);
+                            }
+                        }
+                    }
+                    else //is dashing
+                    {
+                        Projectile.ai[1]--;
+                        Projectile.rotation = Projectile.velocity.ToRotation() - (float)Math.PI / 2;
+                        collide = false;
+                    }
+                }
+                else //forget target
+                {
+                    Projectile.ai[0] = FargoSoulsUtil.FindClosestHostileNPCPrioritizingMinionFocus(Projectile, 1500);
+                    Projectile.ai[1] = 0;
+                    Projectile.netUpdate = true;
+                }
             }
-          }
-          else
-          {
-            --this.Projectile.ai[1];
-            this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) - 1.57079637f;
-            flag = false;
-          }
+            else //no target
+            {
+                Vector2 targetPos = player.Center;
+                targetPos.Y -= 100;
+
+                if (Projectile.Distance(targetPos) > 3000)
+                    Projectile.Center = player.Center;
+                else if (Projectile.Distance(targetPos) > 200)
+                    Movement(targetPos, 0.5f);
+
+                Projectile.rotation = Projectile.velocity.ToRotation() - (float)Math.PI / 2;
+                Projectile.ai[1] = 0;
+
+                if (++Projectile.localAI[1] > 6)
+                {
+                    Projectile.localAI[1] = 0;
+                    Projectile.ai[0] = FargoSoulsUtil.FindClosestHostileNPCPrioritizingMinionFocus(Projectile, 1500);
+                    if (Projectile.ai[0] != -1)
+                        Projectile.netUpdate = true;
+                }
+            }
+
+            if (++Projectile.frameCounter > 4)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame >= 6)
+                    Projectile.frame = 3;
+            }
+            if (Projectile.frame < 3)
+                Projectile.frame = 3;
+
+            if (collide)
+            {
+                const float IdleAccel = 0.05f;
+                int otherMinion = ModContent.ProjectileType<OpticSpazmatism>();
+                foreach (Projectile p in Main.projectile.Where(p => p.active && p.owner == Projectile.owner && (p.type == Projectile.type || p.type == otherMinion) && p.whoAmI != Projectile.whoAmI && p.Distance(Projectile.Center) < Projectile.width))
+                {
+                    Projectile.velocity.X += IdleAccel * (Projectile.Center.X < p.Center.X ? -1 : 1);
+                    Projectile.velocity.Y += IdleAccel * (Projectile.Center.Y < p.Center.Y ? -1 : 1);
+                    p.velocity.X += IdleAccel * (p.Center.X < Projectile.Center.X ? -1 : 1);
+                    p.velocity.Y += IdleAccel * (p.Center.Y < Projectile.Center.Y ? -1 : 1);
+                }
+            }
         }
-        else
+
+        private void Movement(Vector2 targetPos, float speedModifier)
         {
-          this.Projectile.ai[0] = (float) FargoSoulsUtil.FindClosestHostileNPCPrioritizingMinionFocus(this.Projectile, 1500f, center: new Vector2());
-          this.Projectile.ai[1] = 0.0f;
-          this.Projectile.netUpdate = true;
+            if (Projectile.Center.X < targetPos.X)
+            {
+                Projectile.velocity.X += speedModifier;
+                if (Projectile.velocity.X < 0)
+                    Projectile.velocity.X += speedModifier * 2;
+            }
+            else
+            {
+                Projectile.velocity.X -= speedModifier;
+                if (Projectile.velocity.X > 0)
+                    Projectile.velocity.X -= speedModifier * 2;
+            }
+            if (Projectile.Center.Y < targetPos.Y)
+            {
+                Projectile.velocity.Y += speedModifier;
+                if (Projectile.velocity.Y < 0)
+                    Projectile.velocity.Y += speedModifier * 2;
+            }
+            else
+            {
+                Projectile.velocity.Y -= speedModifier;
+                if (Projectile.velocity.Y > 0)
+                    Projectile.velocity.Y -= speedModifier * 2;
+            }
+            if (Math.Abs(Projectile.velocity.X) > 24)
+                Projectile.velocity.X = 24 * Math.Sign(Projectile.velocity.X);
+            if (Math.Abs(Projectile.velocity.Y) > 24)
+                Projectile.velocity.Y = 24 * Math.Sign(Projectile.velocity.Y);
         }
-      }
-      else
-      {
-        Vector2 center = ((Entity) player).Center;
-        center.Y -= 100f;
-        if ((double) ((Entity) this.Projectile).Distance(center) > 3000.0)
-          ((Entity) this.Projectile).Center = ((Entity) player).Center;
-        else if ((double) ((Entity) this.Projectile).Distance(center) > 200.0)
-          this.Movement(center, 0.5f);
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) - 1.57079637f;
-        this.Projectile.ai[1] = 0.0f;
-        if ((double) ++this.Projectile.localAI[1] > 6.0)
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
         {
-          this.Projectile.localAI[1] = 0.0f;
-          this.Projectile.ai[0] = (float) FargoSoulsUtil.FindClosestHostileNPCPrioritizingMinionFocus(this.Projectile, 1500f, center: new Vector2());
-          if ((double) this.Projectile.ai[0] != -1.0)
-            this.Projectile.netUpdate = true;
+            target.immune[Projectile.owner] = 8;
+            target.AddBuff(BuffID.Ichor, 600);
         }
-      }
-      if (++this.Projectile.frameCounter > 4)
-      {
-        this.Projectile.frameCounter = 0;
-        if (++this.Projectile.frame >= 6)
-          this.Projectile.frame = 3;
-      }
-      if (this.Projectile.frame < 3)
-        this.Projectile.frame = 3;
-      if (!flag)
-        return;
-      int otherMinion = ModContent.ProjectileType<OpticSpazmatism>();
-      foreach (Projectile projectile in ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (p => ((Entity) p).active && p.owner == this.Projectile.owner && (p.type == this.Projectile.type || p.type == otherMinion) && ((Entity) p).whoAmI != ((Entity) this.Projectile).whoAmI && (double) ((Entity) p).Distance(((Entity) this.Projectile).Center) < (double) ((Entity) this.Projectile).width)))
-      {
-        ((Entity) this.Projectile).velocity.X += (float) (0.05000000074505806 * ((double) ((Entity) this.Projectile).Center.X < (double) ((Entity) projectile).Center.X ? -1.0 : 1.0));
-        ((Entity) this.Projectile).velocity.Y += (float) (0.05000000074505806 * ((double) ((Entity) this.Projectile).Center.Y < (double) ((Entity) projectile).Center.Y ? -1.0 : 1.0));
-        ((Entity) projectile).velocity.X += (float) (0.05000000074505806 * ((double) ((Entity) projectile).Center.X < (double) ((Entity) this.Projectile).Center.X ? -1.0 : 1.0));
-        ((Entity) projectile).velocity.Y += (float) (0.05000000074505806 * ((double) ((Entity) projectile).Center.Y < (double) ((Entity) this.Projectile).Center.Y ? -1.0 : 1.0));
-      }
-    }
 
-    private void Movement(Vector2 targetPos, float speedModifier)
-    {
-      if ((double) ((Entity) this.Projectile).Center.X < (double) targetPos.X)
-      {
-        ((Entity) this.Projectile).velocity.X += speedModifier;
-        if ((double) ((Entity) this.Projectile).velocity.X < 0.0)
-          ((Entity) this.Projectile).velocity.X += speedModifier * 2f;
-      }
-      else
-      {
-        ((Entity) this.Projectile).velocity.X -= speedModifier;
-        if ((double) ((Entity) this.Projectile).velocity.X > 0.0)
-          ((Entity) this.Projectile).velocity.X -= speedModifier * 2f;
-      }
-      if ((double) ((Entity) this.Projectile).Center.Y < (double) targetPos.Y)
-      {
-        ((Entity) this.Projectile).velocity.Y += speedModifier;
-        if ((double) ((Entity) this.Projectile).velocity.Y < 0.0)
-          ((Entity) this.Projectile).velocity.Y += speedModifier * 2f;
-      }
-      else
-      {
-        ((Entity) this.Projectile).velocity.Y -= speedModifier;
-        if ((double) ((Entity) this.Projectile).velocity.Y > 0.0)
-          ((Entity) this.Projectile).velocity.Y -= speedModifier * 2f;
-      }
-      if ((double) Math.Abs(((Entity) this.Projectile).velocity.X) > 24.0)
-        ((Entity) this.Projectile).velocity.X = (float) (24 * Math.Sign(((Entity) this.Projectile).velocity.X));
-      if ((double) Math.Abs(((Entity) this.Projectile).velocity.Y) <= 24.0)
-        return;
-      ((Entity) this.Projectile).velocity.Y = (float) (24 * Math.Sign(((Entity) this.Projectile).velocity.Y));
-    }
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.immune[this.Projectile.owner] = 8;
-      target.AddBuff(69, 600, false);
-    }
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(alpha, 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color26 * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

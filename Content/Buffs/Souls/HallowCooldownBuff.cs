@@ -1,22 +1,17 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Souls.HallowCooldownBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Souls
 {
-  public class HallowCooldownBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class HallowCooldownBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-      Main.buffNoSave[this.Type] = true;
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Hallowed Shield Cooldown");
+            // Description.SetDefault("Your shield cannot reflect projectiles yet");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            Main.buffNoSave[Type] = true;
+        }
     }
-  }
 }

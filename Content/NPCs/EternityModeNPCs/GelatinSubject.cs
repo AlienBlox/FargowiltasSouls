@@ -1,172 +1,235 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.GelatinSubject
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using Fargowiltas;
 using FargowiltasSouls.Content.Bosses.VanillaEternity;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
-using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs
 {
-  public class GelatinSubject : ModNPC
-  {
-    public virtual string Texture => "Terraria/Images/NPC_660";
-
-    public virtual void SetStaticDefaults()
+    public class GelatinSubject : ModNPC
     {
-      Main.npcFrameCount[this.NPC.type] = Main.npcFrameCount[660];
-      NPCID.Sets.TrailCacheLength[this.NPC.type] = 6;
-      NPCID.Sets.TrailingMode[this.NPC.type] = 1;
-      NPCID.Sets.CantTakeLunchMoney[this.Type] = true;
-      NPCID.Sets.SpecificDebuffImmunity[this.Type] = NPCID.Sets.SpecificDebuffImmunity[657];
-      Luminance.Common.Utilities.Utilities.ExcludeFromBestiary((ModNPC) this);
-    }
+        public override string Texture => "Terraria/Images/NPC_660";
 
-    public virtual void SetDefaults()
-    {
-      this.NPC.CloneDefaults(660);
-      this.AIType = 660;
-      this.NPC.lifeMax = 120;
-      this.NPC.damage = 50;
-      this.NPC.lifeMax *= 10;
-      this.NPC.timeLeft = NPC.activeTime * 30;
-      this.NPC.scale *= 1.5f;
-      ((Entity) this.NPC).width = ((Entity) this.NPC).height = (int) ((double) ((Entity) this.NPC).height * 0.9);
-      if (!WorldSavingSystem.MasochistModeReal)
-        return;
-      this.NPC.knockBackResist *= 0.1f;
-    }
-
-    public virtual void AI()
-    {
-      if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.queenSlimeBoss, 657) && !NPC.AnyNPCs(657))
-      {
-        this.NPC.life = 0;
-        this.NPC.HitEffect(0, 10.0, new bool?());
-        this.NPC.checkDead();
-      }
-      else
-      {
-        foreach (NPC npc in ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && n.type == this.NPC.type && ((Entity) n).whoAmI != ((Entity) this.NPC).whoAmI && (double) ((Entity) this.NPC).Distance(((Entity) n).Center) < (double) ((Entity) this.NPC).width)))
+        public override void SetStaticDefaults()
         {
-          ((Entity) this.NPC).velocity.X += (float) (0.02500000037252903 * ((double) ((Entity) this.NPC).Center.X < (double) ((Entity) npc).Center.X ? -1.0 : 1.0));
-          ((Entity) this.NPC).velocity.Y += (float) (0.02500000037252903 * ((double) ((Entity) this.NPC).Center.Y < (double) ((Entity) npc).Center.Y ? -1.0 : 1.0));
-          ((Entity) npc).velocity.X += (float) (0.02500000037252903 * ((double) ((Entity) npc).Center.X < (double) ((Entity) this.NPC).Center.X ? -1.0 : 1.0));
-          ((Entity) npc).velocity.Y += (float) (0.02500000037252903 * ((double) ((Entity) npc).Center.Y < (double) ((Entity) this.NPC).Center.Y ? -1.0 : 1.0));
+            // DisplayName.SetDefault("Gelatin Subject");
+            Main.npcFrameCount[NPC.type] = Main.npcFrameCount[NPCID.QueenSlimeMinionPurple];
+            NPCID.Sets.TrailCacheLength[NPC.type] = 6;
+            NPCID.Sets.TrailingMode[NPC.type] = 1;
+            NPCID.Sets.CantTakeLunchMoney[Type] = true;
+            NPCID.Sets.SpecificDebuffImmunity[Type] = NPCID.Sets.SpecificDebuffImmunity[NPCID.QueenSlimeBoss];
+
+            this.ExcludeFromBestiary();
         }
-        this.NPC.spriteDirection = ((Entity) this.NPC).direction;
-        this.NPC.rotation = Math.Abs(((Entity) this.NPC).velocity.X * 0.1f) * (float) ((Entity) this.NPC).direction;
-        if ((double) ((Entity) this.NPC).Distance(((Entity) Main.player[this.NPC.target]).Center) < 600.0 && (Main.npc[EModeGlobalNPC.queenSlimeBoss].GetGlobalNPC<QueenSlime>().RainTimer > 0 || NPC.AnyNPCs(ModContent.NPCType<GelatinSlime>())))
-          this.NPC.localAI[0] = 90f;
-        if ((double) ((Entity) this.NPC).Distance(((Entity) Main.npc[EModeGlobalNPC.queenSlimeBoss]).Center) > 2000.0)
-          ((Entity) this.NPC).Center = ((Entity) Main.npc[EModeGlobalNPC.queenSlimeBoss]).Center;
-        if ((double) this.NPC.localAI[0] > 0.0)
-          --this.NPC.localAI[0];
-        if (!this.NPC.HasValidTarget || (double) Math.Abs(MathHelper.WrapAngle(Utils.ToRotation(((Entity) this.NPC).velocity) - Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) Main.player[this.NPC.target]).Center)))) >= 1.5707963705062866)
-          return;
-        if ((double) ((Entity) this.NPC).Distance(((Entity) Main.player[this.NPC.target]).Center) < 80.0)
+
+        public override void SetDefaults()
         {
-          NPC npc = this.NPC;
-          ((Entity) npc).position = Vector2.op_Subtraction(((Entity) npc).position, Vector2.op_Multiply(((Entity) this.NPC).velocity, 0.33f));
+            NPC.CloneDefaults(NPCID.QueenSlimeMinionPurple);
+            AIType = NPCID.QueenSlimeMinionPurple;
+
+            //because they will double dip on expert/master scaling otherwise
+            NPC.lifeMax = 120;
+            NPC.damage = 50;
+
+            NPC.lifeMax *= 10;
+            NPC.timeLeft = NPC.activeTime * 30;
+            NPC.scale *= 1.5f;
+            NPC.width = NPC.height = (int)(NPC.height * 0.9);
+            NPC.knockBackResist *= 0.5f;
+            if (WorldSavingSystem.MasochistModeReal)
+                NPC.knockBackResist *= 0.2f;
         }
-        else
+        public int ShotTimer;
+        const int ShotCD = 60 * 5;
+        public override void AI()
         {
-          if ((double) this.NPC.localAI[0] <= 0.0)
-            return;
-          float num = this.NPC.localAI[0] / 90f;
-          NPC npc = this.NPC;
-          ((Entity) npc).position = Vector2.op_Subtraction(((Entity) npc).position, Vector2.op_Multiply(Vector2.op_Multiply(((Entity) this.NPC).velocity, 0.66f), num));
+            if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.queenSlimeBoss, NPCID.QueenSlimeBoss)
+                && !NPC.AnyNPCs(NPCID.QueenSlimeBoss))
+            {
+                NPC.life = 0;
+                NPC.HitEffect();
+                NPC.checkDead();
+                return;
+            }
+
+            const float IdleAccel = 0.025f;
+            foreach (NPC n in Main.npc.Where(n => n.active && n.type == NPC.type && n.whoAmI != NPC.whoAmI && NPC.Distance(n.Center) < NPC.width))
+            {
+                NPC.velocity.X += IdleAccel * (NPC.Center.X < n.Center.X ? -1 : 1);
+                NPC.velocity.Y += IdleAccel * (NPC.Center.Y < n.Center.Y ? -1 : 1);
+                n.velocity.X += IdleAccel * (n.Center.X < NPC.Center.X ? -1 : 1);
+                n.velocity.Y += IdleAccel * (n.Center.Y < NPC.Center.Y ? -1 : 1);
+            }
+
+            //if (NPC.HasValidTarget && NPC.Distance(Main.player[NPC.target].Center) > 300)
+            //    NPC.velocity += NPC.SafeDirectionTo(Main.player[NPC.target].Center) * 0.05f;
+
+            NPC.spriteDirection = NPC.direction;
+            NPC.rotation = Math.Abs(NPC.velocity.X * .1f) * NPC.direction;
+
+            const int cooldown = 90;
+            NPC parent = Main.npc[EModeGlobalNPC.queenSlimeBoss];
+
+            //move slower during rain attack
+            if (NPC.Distance(Main.player[NPC.target].Center) < 600 &&
+                (parent.GetGlobalNPC<QueenSlime>().RainTimer > 0
+                || NPC.AnyNPCs(ModContent.NPCType<GelatinSlime>())))
+            {
+                NPC.localAI[0] = cooldown;
+            }
+
+            if (NPC.Distance(parent.Center) > 2000)
+                NPC.Center = parent.Center;
+
+            if (NPC.localAI[0] > 0)
+            {
+                NPC.localAI[0]--;
+            }
+
+            //if moving towards you, slow down
+            if (NPC.HasValidTarget && Math.Abs(MathHelper.WrapAngle(NPC.velocity.ToRotation() - NPC.SafeDirectionTo(Main.player[NPC.target].Center).ToRotation())) < MathHelper.PiOver2)
+            {
+                if (NPC.Distance(Main.player[NPC.target].Center) < 16 * 5)
+                {
+                    NPC.position -= NPC.velocity * 0.33f;
+                }
+                else if (NPC.localAI[0] > 0)
+                {
+                    float ratio = NPC.localAI[0] / cooldown;
+                    NPC.position -= NPC.velocity * 0.66f * ratio;
+                }
+            }
+
+            // in p1, occasionally stop and fire projectile
+            if (parent.GetLifePercent() > 0.5f && parent.GetGlobalNPC<QueenSlime>().StompTimer < 0)
+            {
+                
+                // sync projectile timer
+                foreach (NPC otherNPC in Main.npc.Where(n => n.TypeAlive<GelatinSubject>()))
+                {
+                    if (otherNPC.whoAmI > NPC.whoAmI)
+                        otherNPC.As<GelatinSubject>().ShotTimer = ShotTimer;
+                }
+                
+
+                if (NPC.HasValidTarget)
+                    ShotTimer++;
+                else
+                    ShotTimer = 0;
+                if (ShotTimer == ShotCD) // telegraph
+                {
+                    FargoSoulsUtil.DustRing(NPC.Center, 32, DustID.PinkSlime, 5f, default, 2f);
+                    NPC.netUpdate = true;
+                    SoundEngine.PlaySound(SoundID.Item154, NPC.Center);
+                }
+                if (ShotTimer > ShotCD) // stop
+                {
+                    NPC.velocity *= 0.5f;
+                }
+                if (ShotTimer > ShotCD + 30 && NPC.HasValidTarget) // fire and reset
+                {
+                    Player player = Main.player[NPC.target];
+                    Vector2 shotVel = NPC.DirectionTo(player.Center) * 14f;
+                    if (FargoSoulsUtil.HostCheck)
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, shotVel, ProjectileID.QueenSlimeMinionBlueSpike, FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                    NPC.velocity -= shotVel / 3;
+                    ShotTimer = 0;
+                    NPC.netUpdate = true;
+                }
+            }
         }
-      }
-    }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
-    {
-      target.AddBuff(137, 180, true, false);
-    }
+        public override void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
+        {
+            target.AddBuff(BuffID.Slimed, 180);
+        }
 
-    public virtual bool CheckActive() => false;
+        public override bool CheckActive()
+        {
+            return false;
+        }
 
-    public virtual bool CheckDead()
-    {
-      if (this.NPC.DeathSound.HasValue)
-      {
-        SoundStyle soundStyle = this.NPC.DeathSound.Value;
-        SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-      }
-      ((Entity) this.NPC).active = false;
-      return false;
-    }
+        public override bool CheckDead()
+        {
+            if (NPC.DeathSound != null)
+                SoundEngine.PlaySound(NPC.DeathSound.Value, NPC.Center);
 
-    public virtual void HitEffect(NPC.HitInfo hit)
-    {
-      if (this.NPC.life > 0)
-        return;
-      for (int index1 = 0; index1 < 20; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height, 5, 0.0f, 0.0f, 0, new Color(), 1f);
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 3f);
-        Main.dust[index2].scale += 0.75f;
-      }
-      for (int index = 0; index < 2; ++index)
-      {
-        if (!Main.dedServ)
-          Gore.NewGore(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).position, new Vector2((float) Main.rand.Next(((Entity) this.NPC).width), (float) Main.rand.Next(((Entity) this.NPC).height))), Vector2.op_Division(((Entity) this.NPC).velocity, 2f), 1260, this.NPC.scale);
-      }
-    }
+            NPC.active = false;
 
-    public virtual void FindFrame(int frameHeight)
-    {
-      ++this.NPC.frameCounter;
-      if (this.NPC.frameCounter > 4.0)
-      {
-        this.NPC.frame.Y += frameHeight;
-        this.NPC.frameCounter = 0.0;
-      }
-      if (this.NPC.frame.Y < Main.npcFrameCount[this.NPC.type] * frameHeight)
-        return;
-      this.NPC.frame.Y = 0;
-    }
+            return false;
+        }
 
-    public virtual bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
-    {
-      if (!TextureAssets.Npc[660].IsLoaded)
-        return false;
-      Texture2D texture2D = TextureAssets.Npc[660].Value;
-      Rectangle frame = this.NPC.frame;
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(frame), 2f);
-      Color alpha = this.NPC.GetAlpha(drawColor);
-      SpriteEffects spriteEffects = this.NPC.spriteDirection < 1 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      spriteBatch.End();
-      spriteBatch.Begin((SpriteSortMode) 1, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, (Effect) null, Main.Transform);
-      GameShaders.Misc["HallowBoss"].Apply(new DrawData?());
-      for (int index = 0; index < NPCID.Sets.TrailCacheLength[this.NPC.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(alpha, 0.5f), (float) (NPCID.Sets.TrailCacheLength[this.NPC.type] - index) / (float) NPCID.Sets.TrailCacheLength[this.NPC.type]);
-        Vector2 oldPo = this.NPC.oldPos[index];
-        float rotation = this.NPC.rotation;
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.NPC).Size, 2f)), screenPos), new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(frame), color, rotation, vector2, this.NPC.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.NPC).Center, screenPos), new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(frame), alpha, this.NPC.rotation, vector2, this.NPC.scale, spriteEffects, 0.0f);
-      spriteBatch.End();
-      spriteBatch.Begin((SpriteSortMode) 0, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      return false;
+        public override void HitEffect(NPC.HitInfo hit)
+        {
+            if (NPC.life <= 0)
+            {
+                //SoundEngine.PlaySound(NPC.DeathSound, NPC.Center);
+                for (int i = 0; i < 20; i++)
+                {
+                    int d = Dust.NewDust(NPC.position, NPC.width, NPC.height, DustID.Blood);
+                    Main.dust[d].velocity *= 3f;
+                    Main.dust[d].scale += 0.75f;
+                }
+
+                for (int i = 0; i < 2; i++)
+                    if (!Main.dedServ)
+                        Gore.NewGore(NPC.GetSource_FromThis(), NPC.position + new Vector2(Main.rand.Next(NPC.width), Main.rand.Next(NPC.height)), NPC.velocity / 2, 1260, NPC.scale);
+            }
+        }
+
+        public override void FindFrame(int frameHeight)
+        {
+            NPC.frameCounter++;
+            if (NPC.frameCounter > 4)
+            {
+                NPC.frame.Y += frameHeight;
+                NPC.frameCounter = 0;
+            }
+            if (NPC.frame.Y >= Main.npcFrameCount[NPC.type] * frameHeight)
+                NPC.frame.Y = 0;
+        }
+
+        public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
+        {
+            if (!Terraria.GameContent.TextureAssets.Npc[NPCID.QueenSlimeMinionPurple].IsLoaded)
+                return false;
+
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Npc[NPCID.QueenSlimeMinionPurple].Value;
+            Rectangle rectangle = NPC.frame;
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = drawColor;
+            color26 = NPC.GetAlpha(color26);
+
+            SpriteEffects effects = NPC.spriteDirection < 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+
+            spriteBatch.End(); spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Main.Transform);
+            GameShaders.Misc["HallowBoss"].Apply(new Terraria.DataStructures.DrawData?());
+
+            for (int i = 0; i < NPCID.Sets.TrailCacheLength[NPC.type]; i++)
+            {
+                Color color27 = color26 * 0.5f;
+                color27 *= (float)(NPCID.Sets.TrailCacheLength[NPC.type] - i) / NPCID.Sets.TrailCacheLength[NPC.type];
+                Vector2 value4 = NPC.oldPos[i];
+                float num165 = NPC.rotation; //NPC.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + NPC.Size / 2f - screenPos + new Vector2(0, NPC.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, NPC.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, NPC.Center - screenPos + new Vector2(0f, NPC.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, NPC.rotation, origin2, NPC.scale, effects, 0);
+
+            spriteBatch.End();
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
+
+            return false;
+        }
     }
-  }
 }

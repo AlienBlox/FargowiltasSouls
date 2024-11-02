@@ -1,74 +1,85 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Earth.EarthGeyser
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Earth
 {
-  public class EarthGeyser : ModProjectile
-  {
-    public virtual string Texture => FargoSoulsUtil.EmptyTexture;
-
-    public virtual void SetStaticDefaults()
+    public class EarthGeyser : ModProjectile
     {
-    }
+        public override string Texture => FargoSoulsUtil.EmptyTexture;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 2;
-      ((Entity) this.Projectile).height = 2;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft = 600;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.hide = true;
-      this.Projectile.extraUpdates = 14;
-    }
-
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public virtual void AI()
-    {
-      Tile tileSafely = Framing.GetTileSafely(((Entity) this.Projectile).Center);
-      if ((double) this.Projectile.ai[1] == 0.0)
-      {
-        ((Entity) this.Projectile).position.Y -= 16f;
-        if (!((Tile) ref tileSafely).HasUnactuatedTile || !Main.tileSolid[(int) ((Tile) ref tileSafely).TileType])
+        public override void SetStaticDefaults()
         {
-          this.Projectile.ai[1] = 1f;
-          this.Projectile.netUpdate = true;
+            // DisplayName.SetDefault("Geyser");
         }
-      }
-      else if (((Tile) ref tileSafely).HasUnactuatedTile && Main.tileSolid[(int) ((Tile) ref tileSafely).TileType] && ((Tile) ref tileSafely).TileType != (ushort) 19 && ((Tile) ref tileSafely).TileType != (ushort) 380)
-      {
-        if (this.Projectile.timeLeft > 90)
-          this.Projectile.timeLeft = 90;
-        this.Projectile.extraUpdates = 0;
-        ((Entity) this.Projectile).position.Y -= 16f;
-        int index = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, -8f, 0, new Color(), 1f);
-        Dust dust = Main.dust[index];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 3f);
-      }
-      else
-        ((Entity) this.Projectile).position.Y += 16f;
-      if (this.Projectile.timeLeft > 120)
-        return;
-      Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 0, new Color(), 1f);
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.UnitY, -8f), 654, this.Projectile.damage, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
+        public override void SetDefaults()
+        {
+            Projectile.width = 2;
+            Projectile.height = 2;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft = 600;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.hide = true;
+            Projectile.extraUpdates = 14;
+        }
+
+        public override bool? CanDamage()
+        {
+            return false;
+        }
+
+        public override void AI()
+        {
+            Tile tile = Framing.GetTileSafely(Projectile.Center);
+
+            if (Projectile.ai[1] == 0) //spawned, while in ground tile
+            {
+                Projectile.position.Y -= 16;
+                if (!(tile.HasUnactuatedTile && Main.tileSolid[tile.TileType])) //if reached air tile
+                {
+                    Projectile.ai[1] = 1;
+                    Projectile.netUpdate = true;
+                }
+            }
+            else //has exited ground tiles and reached air tiles, now stop the next time you reach a ground tile
+            {
+                if (tile.HasUnactuatedTile && Main.tileSolid[tile.TileType] && tile.TileType != TileID.Platforms && tile.TileType != TileID.PlanterBox) //if inside solid tile, go back down
+                {
+                    if (Projectile.timeLeft > 90)
+                        Projectile.timeLeft = 90;
+                    Projectile.extraUpdates = 0;
+                    Projectile.position.Y -= 16;
+                    //make warning dusts
+                    int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Torch, 0f, -8f);
+                    Main.dust[d].velocity *= 3f;
+                }
+                else //if in air, go up
+                {
+                    Projectile.position.Y += 16;
+                }
+            }
+
+            if (Projectile.timeLeft <= 120) //about to erupt, make more dust
+                Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Torch);
+
+            /*NPC golem = Main.npc[ai0];
+            if (golem.GetGlobalNPC<NPCs.FargoSoulsGlobalNPC>().Counter == 2 && FargoSoulsUtil.HostCheck) //when golem does second stomp, erupt
+            {
+                Projectile.NewProjectile(Projectile.InheritSource(Projectile), Projectile.Center, Vector2.UnitY * 8, ProjectileID.GeyserTrap, Projectile.damage, 0f, Main.myPlayer);
+                Projectile.Kill();
+                return;
+            }*/
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            if (FargoSoulsUtil.HostCheck)
+                Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.UnitY * -8, ProjectileID.GeyserTrap, Projectile.damage, 0f, Main.myPlayer);
+        }
     }
-  }
 }

@@ -1,22 +1,52 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Common.EternityWorldIconManager
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Systems;
+﻿using FargowiltasSouls.Core.Systems;
+using Luminance.Core.MenuInfoUI;
+using System.Collections.Generic;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Common
 {
-  public class EternityWorldIconManager : ModSystem
-  {
-    public virtual void SaveWorldHeader(TagCompound tag)
+    public class EternityWorldIconManager : ModSystem
     {
-      tag["EternityWorld"] = (object) WorldSavingSystem.EternityMode;
-      tag["MasochistWorld"] = (object) WorldSavingSystem.MasochistModeReal;
+        public override void SaveWorldHeader(TagCompound tag)
+        {
+            tag["EternityWorld"] = WorldSavingSystem.EternityMode;
+            tag["MasochistWorld"] = WorldSavingSystem.MasochistModeReal;
+        }
     }
-  }
+    public class ÉternityInfoUIManager : InfoUIManager
+    {
+        public static bool EternityWorld(TagCompound tag) => tag.ContainsKey("EternityWorld") && tag.GetBool("EternityWorld");
+        public static bool MasoWorld(TagCompound tag) => tag.ContainsKey("MasochistWorld") && tag.GetBool("MasochistWorld");
+        public override IEnumerable<WorldInfoIcon> GetWorldInfoIcons()
+        {
+            yield return new WorldInfoIcon(
+                EternityIconPath, 
+                "Mods.FargowiltasSouls.UI.EternityEnabled", 
+                worldFileData =>
+                {
+                    if (worldFileData.TryGetHeaderData<EternityWorldIconManager>(out TagCompound tag))
+                        if (EternityWorld(tag) && !MasoWorld(tag))
+                            return true;
+                    return false;
+                },
+                byte.MinValue);
+            yield return new WorldInfoIcon(
+                MasochistIconPath,
+                "Mods.FargowiltasSouls.UI.MasochistEnabled",
+                worldFileData =>
+                {
+                    if (worldFileData.TryGetHeaderData<EternityWorldIconManager>(out TagCompound tag))
+                        if (MasoWorld(tag))
+                            return true;
+                    return false;
+                },
+                byte.MinValue);
+        }
+
+        internal static string EternityIconPath => "FargowiltasSouls/Assets/UI/OncomingMutant";
+        internal static string MasochistIconPath => "FargowiltasSouls/Assets/UI/OncomingMutantWithAura";
+        
+    }
+
 }

@@ -1,267 +1,331 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.LunarTowers
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Masomode;
-using FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Nebula;
-using FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Solar;
-using FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Stardust;
 using FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Vortex;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.Systems;
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents
 {
-  public abstract class LunarTowers : PillarBehaviour
-  {
-    protected readonly int DebuffNotToInflict;
-    protected readonly int AuraDust;
-    public int AuraSize = 5000;
-    public int AttackTimer;
-    public int HealCounter;
-    public int AuraSync;
-    public bool SpawnedDuringLunarEvent;
-    public int Attack;
-    public int OldAttack;
-    public bool spawned;
-
-    public abstract int ShieldStrength { get; set; }
-
-    public abstract int MaxHP { get; }
-
-    public abstract int Damage { get; }
-
-    protected LunarTowers(int debuffNotToInflict, int auraDust)
+    public abstract class LunarTowers : PillarBehaviour
     {
-      this.DebuffNotToInflict = debuffNotToInflict;
-      this.AuraDust = auraDust;
-    }
+        public abstract int ShieldStrength { get; set; }
 
-    public abstract void ShieldsDownAI(NPC npc);
+        protected readonly int DebuffNotToInflict;
+        protected readonly int AuraDust;
+        public int AuraSize = 5000;
 
-    public abstract List<int> RandomAttacks { get; }
+        public abstract int MaxHP { get; }
+        public abstract int Damage { get; }
 
-    public virtual void SetDefaults(NPC npc)
-    {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(npc);
-      npc.lifeMax = this.MaxHP;
-      npc.damage = this.Damage;
-    }
-
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
-    {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      binaryWriter.Write7BitEncodedInt(this.AttackTimer);
-      binaryWriter.Write7BitEncodedInt(this.Attack);
-      bitWriter.WriteBit(this.SpawnedDuringLunarEvent);
-    }
-
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      this.AttackTimer = binaryReader.Read7BitEncodedInt();
-      this.Attack = binaryReader.Read7BitEncodedInt();
-      this.SpawnedDuringLunarEvent = bitReader.ReadBit();
-    }
-
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      if (npc.type == 493)
-        npc.ai[1] = 1000f;
-      npc.buffImmune[68] = true;
-      npc.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
-    }
-
-    public bool AnyPlayerWithin(NPC npc, int range)
-    {
-      foreach (Player player in ((IEnumerable<Player>) Main.player).Where<Player>((Func<Player, bool>) (x => ((Entity) x).active && !x.dead)))
-      {
-        if ((double) ((Entity) npc).Distance(((Entity) player).Center) <= (double) range)
-          return true;
-      }
-      return false;
-    }
-
-    public virtual void AI(NPC npc)
-    {
-      if ((npc.type != 517 ? 0 : (this.Attack == 1 ? 1 : 0)) == 0)
-        base.AI(npc);
-      if (!WorldSavingSystem.EternityMode || !NPC.LunarApocalypseIsUp)
-        return;
-      if (npc.type == 493)
-        npc.ai[1] = 1000f;
-      if (!this.spawned)
-      {
-        npc.lifeMax = npc.life = this.MaxHP;
-        npc.damage = this.Damage;
-        this.spawned = true;
-        this.SpawnedDuringLunarEvent = NPC.LunarApocalypseIsUp;
-        npc.damage += 150;
-        npc.defDamage += 150;
-        npc.netUpdate = true;
-        npc.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
-      }
-      if (npc.dontTakeDamage && (double) ((Entity) npc).velocity.Y > 1.0)
-        ((Entity) npc).velocity.Y = 1f;
-      if (this.SpawnedDuringLunarEvent && this.ShieldStrength > NPC.LunarShieldPowerMax)
-        this.ShieldStrength = NPC.LunarShieldPowerMax;
-      if (this.SpawnedDuringLunarEvent)
-      {
-        Aura(ModContent.BuffType<AtrophiedBuff>());
-        Aura(ModContent.BuffType<JammedBuff>());
-        Aura(ModContent.BuffType<ReverseManaFlowBuff>());
-        Aura(ModContent.BuffType<AntisocialBuff>());
-        if (++this.AuraSync > 60)
+        protected LunarTowers(int debuffNotToInflict, int auraDust)
         {
-          this.AuraSync -= 600;
-          PillarBehaviour.NetSync(npc);
+            DebuffNotToInflict = debuffNotToInflict;
+            AuraDust = auraDust;
         }
-      }
-      if (++this.HealCounter > 60)
-      {
-        this.HealCounter = 0;
-        npc.TargetClosest(false);
-        if (!npc.HasValidTarget || (double) ((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center) > (double) this.AuraSize)
+        public abstract void ShieldsDownAI(NPC npc);
+
+        public int AttackTimer;
+        public int HealCounter;
+        public int AuraSync;
+        public bool SpawnedDuringLunarEvent = true;
+
+        public int Attack = 0;
+        public int OldAttack = 0;
+        public abstract List<int> RandomAttacks { get; }
+
+        public bool spawned;
+        public bool DeathAnimation = false;
+
+        public override void SetDefaults(NPC npc)
         {
-          npc.life += 5000;
-          if (npc.life > npc.lifeMax)
-            npc.life = npc.lifeMax;
-          CombatText.NewText(((Entity) npc).Hitbox, CombatText.HealLife, 5000, false, false);
+            base.SetDefaults(npc);
+            npc.lifeMax = MaxHP;
+            npc.damage = Damage;
         }
-      }
-      bool flag = this.AnyPlayerWithin(npc, this.AuraSize);
-      if (flag)
-      {
-        ++this.AttackTimer;
-        npc.defense = npc.defDefense;
-      }
-      if (npc.dontTakeDamage)
-      {
-        this.AuraSize = 5000;
-        if (flag && this.ShieldStrength <= 70)
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
         {
-          foreach (NPC npc1 in Main.npc)
-          {
-            int[] source;
-            switch (npc.type)
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+            if (!WorldSavingSystem.EternityMode)
             {
-              case 422:
-                source = VortexEnemies.VortexEnemyIDs;
-                break;
-              case 493:
-                source = StardustEnemies.StardustEnemyIDs;
-                break;
-              case 507:
-                source = NebulaEnemies.NebulaEnemyIDs;
-                break;
-              case 517:
-                source = SolarEnemies.SolarEnemyIDs;
-                break;
-              default:
-                ((ModType) this).Mod.Logger.Warn((object) ("Lunar Pillar eternity behavior: NPC type of " + npc.TypeName + " does not match any of the Pillars (why is this running?)"));
                 return;
             }
-            if (((IEnumerable<int>) source).Contains<int>(npc1.type))
-              npc1.StrikeInstantKill();
-          }
-          this.ShieldStrength = 0;
+            binaryWriter.Write7BitEncodedInt(AttackTimer);
+            binaryWriter.Write7BitEncodedInt(Attack);
+            bitWriter.WriteBit(SpawnedDuringLunarEvent);
         }
-        if (npc.life >= npc.lifeMax)
-          return;
-        npc.life = npc.lifeMax;
-      }
-      else
-      {
-        if (this.AuraSize > 1500)
-          this.AuraSize -= 40;
-        else
-          this.AuraSize = 1500;
-        if (flag)
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
         {
-          this.ShieldsDownAI(npc);
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+            if (!WorldSavingSystem.EternityMode)
+            {
+                return;
+            }
+            AttackTimer = binaryReader.Read7BitEncodedInt();
+            Attack = binaryReader.Read7BitEncodedInt();
+            SpawnedDuringLunarEvent = bitReader.ReadBit();
         }
-        else
+
+        public override void OnFirstTick(NPC npc)
         {
-          if (npc.type != 422 || this.Attack != 1)
-            return;
-          this.EndAttack(npc);
-          foreach (Projectile projectile in ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (p => p.TypeAlive<VortexVortex>())))
-            projectile.Kill();
+            base.OnFirstTick(npc);
+            if (!WorldSavingSystem.EternityMode)
+            {
+                return;
+            }
+            if (npc.type == NPCID.LunarTowerStardust)
+            {
+                npc.ai[1] = 1000; //disable first tick vanilla constellation spawn
+            }
+            npc.buffImmune[BuffID.Suffocation] = true;
+            npc.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
         }
-      }
+        public bool AnyPlayerWithin(NPC npc, int range)
+        {
+            foreach (Player p in Main.player.Where(x => x.active && !x.dead))
+            {
+                if (npc.Distance(p.Center) <= range)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public override void HitEffect(NPC npc, NPC.HitInfo hit)
+        {
+            if (npc.life < 0)
+            {
+                DeathAnimation = true;
+            }
+        }
+        public override void AI(NPC npc)
+        {
+            bool DontRunAI = npc.type == NPCID.LunarTowerSolar && (Attack == 1);//don't run vanilla AI during solar slam attack or fireball spit attack
+            if (!DontRunAI)
+            {
+                base.AI(npc);
+            }
+            if (!WorldSavingSystem.EternityMode || !SpawnedDuringLunarEvent)
+            {
+                return;
+            }
+            if (npc.type == NPCID.LunarTowerStardust)
+            {
+                npc.ai[1] = 1000; //disable vanilla constellation spawn
+            }
+            if (!spawned)
+            {
+                spawned = true;
+                SpawnedDuringLunarEvent = NPC.LunarApocalypseIsUp;
+                if (!SpawnedDuringLunarEvent)
+                    return;
+                npc.lifeMax = npc.life = MaxHP;
+                npc.damage = Damage;
+                npc.damage += 150;
+                npc.defDamage += 150;
+                npc.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
+                npc.netUpdate = true;
+            }
+            //fix the funny where solar pillar rockets down when killed mid-dive attack
+            if (npc.dontTakeDamage && npc.velocity.Y > 1)
+                npc.velocity.Y = 1;
 
-      void Aura(int debuff)
-      {
-        if (this.DebuffNotToInflict == debuff)
-          return;
-        EModeGlobalNPC.Aura(npc, (float) this.AuraSize, debuff, dustid: this.AuraDust, color: new Color());
-      }
-    }
+            if (SpawnedDuringLunarEvent && ShieldStrength > NPC.LunarShieldPowerMax)
+                ShieldStrength = NPC.LunarShieldPowerMax;
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600, true, false);
-    }
+            void Aura(int debuff)
+            {
+                if (DebuffNotToInflict != debuff)
+                    EModeGlobalNPC.Aura(npc, AuraSize, debuff, dustid: AuraDust);
+            }
 
-    public override void ModifyHitByAnything(
-      NPC npc,
-      Player player,
-      ref NPC.HitModifiers modifiers)
-    {
-      base.ModifyHitByAnything(npc, player, ref modifiers);
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      if ((double) ((Entity) npc).Distance(((Entity) player).Center) > (double) this.AuraSize)
-      {
-        modifiers.Null();
-      }
-      else
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Division(local, 2f);
-      }
-    }
+            if (SpawnedDuringLunarEvent)
+            {
+                Aura(ModContent.BuffType<AtrophiedBuff>());
+                Aura(ModContent.BuffType<JammedBuff>());
+                Aura(ModContent.BuffType<ReverseManaFlowBuff>());
+                Aura(ModContent.BuffType<AntisocialBuff>());
 
-    public void RandomAttack(NPC npc)
-    {
-      npc.TargetClosest(false);
-      this.Attack = Utils.Next<int>(Main.rand, (IList<int>) this.RandomAttacks);
-      while (this.Attack == this.OldAttack)
-        this.Attack = Utils.Next<int>(Main.rand, (IList<int>) this.RandomAttacks);
-      this.OldAttack = this.Attack;
-      if ((double) npc.life < (double) npc.lifeMax * 0.30000001192092896 && npc.type == 422)
-        this.Attack = 1;
-      this.AttackTimer = 0;
-      PillarBehaviour.NetSync(npc);
-    }
+                if (++AuraSync > 60)
+                {
+                    AuraSync -= 600;
+                    NetSync(npc);
+                }
+            }
 
-    public void EndAttack(NPC npc)
-    {
-      npc.TargetClosest(false);
-      PillarBehaviour.NetSync(npc);
-      this.Attack = 0;
-      this.AttackTimer = 0;
+            if (++HealCounter > 60)
+            {
+                HealCounter = 0;
+                npc.TargetClosest(false);
+                if (!npc.HasValidTarget || npc.Distance(Main.player[npc.target].Center) > AuraSize)
+                {
+                    const int heal = 5000;
+                    npc.life += heal;
+                    if (npc.life > npc.lifeMax)
+                        npc.life = npc.lifeMax;
+                    CombatText.NewText(npc.Hitbox, CombatText.HealLife, heal);
+                }
+            }
+            if (DeathAnimation)
+                return;
+            bool anyPlayersClose = AnyPlayerWithin(npc, AuraSize);
+            if (anyPlayersClose)
+            {
+                AttackTimer++;
+                npc.defense = npc.defDefense;
+            }
+            if (ShieldStrength <= 0)
+                npc.dontTakeDamage = false;
+
+            if (npc.dontTakeDamage && npc.life > npc.lifeMax / 2)
+            {
+                AuraSize = 5000;
+                if (anyPlayersClose)
+                {
+                    if (ShieldStrength <= 70) //at 70 shield, kill all shield and pillar enemies and go to attack phase
+                    {
+                        foreach (NPC n in Main.npc)
+                        {
+                            int[] IDs;
+                            switch (npc.type)
+                            {
+                                case NPCID.LunarTowerSolar:
+                                    IDs = Solar.SolarEnemies.SolarEnemyIDs;
+                                    break;
+                                case NPCID.LunarTowerVortex:
+                                    IDs = Vortex.VortexEnemies.VortexEnemyIDs;
+                                    break;
+                                case NPCID.LunarTowerNebula:
+                                    IDs = Nebula.NebulaEnemies.NebulaEnemyIDs;
+                                    break;
+                                case NPCID.LunarTowerStardust:
+                                    IDs = Stardust.StardustEnemies.StardustEnemyIDs;
+                                    break;
+                                default:
+                                    //something is very wrong. this ai shouldn't be running in the first place. leave
+                                    Mod.Logger.Warn($"Lunar Pillar eternity behavior: NPC type of {npc.TypeName} does not match any of the Pillars (why is this running?)");
+                                    return;
+                            }
+                            if (IDs.Contains(n.type))
+                            {
+                                n.StrikeInstantKill();
+                            }
+                        }
+                        ShieldStrength = 0;
+                        npc.netUpdate = true;
+                        npc.dontTakeDamage = false;
+                        NetSync(npc);
+                    }
+                }
+                if (npc.life < npc.lifeMax)
+                {
+                    npc.life = npc.lifeMax;
+                }
+            }
+            else if (!npc.dontTakeDamage)
+            {
+                if (AuraSize > 1500)
+                {
+                    AuraSize -= 40;
+                }
+                else
+                {
+                    AuraSize = 1500;
+                }
+                if (anyPlayersClose)
+                {
+                    /*
+                    //when shields down, if life is lower than threshhold, put shields back up, go to next non-attacking phase, and ignore rest of AI.
+                    if ((float)npc.life / npc.lifeMax < PhaseHealthRatio && Phase >= 0)
+                    {
+                        Phase = -(Phase + 1);
+                        AttackTimer = 0;
+                        SoundEngine.PlaySound(SoundID.NPCDeath58, npc.Center);
+                        ShieldStrength = NPC.LunarShieldPowerMax;
+                        return;
+                    }
+                    */
+                    ShieldsDownAI(npc);
+                }
+                else
+                {
+                    if (npc.type == NPCID.LunarTowerVortex)
+                    {
+                        if (Attack == (int)LunarTowerVortex.Attacks.VortexVortex)
+                        {
+                            EndAttack(npc);
+                            foreach (Projectile projectile in Main.projectile.Where(p => p.TypeAlive<VortexVortex>()))
+                            {
+                                projectile.Kill();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            if (!WorldSavingSystem.EternityMode)
+            {
+                return;
+            }
+
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600);
+        }
+
+        public override void ModifyHitByAnything(NPC npc, Player player, ref NPC.HitModifiers modifiers)
+        {
+            base.ModifyHitByAnything(npc, player, ref modifiers);
+
+            if (!WorldSavingSystem.EternityMode)
+            {
+                return;
+            }
+
+            if (npc.Distance(player.Center) > AuraSize)
+            {
+                modifiers.Null();
+            }
+            else
+            {
+                modifiers.FinalDamage /= 2;
+            }
+        }
+        #region Help Methods
+        public void RandomAttack(NPC npc)
+        {
+            npc.TargetClosest(false);
+            Attack = Main.rand.Next(RandomAttacks);
+            while (Attack == OldAttack)
+            {
+                Attack = Main.rand.Next(RandomAttacks);
+            }
+            OldAttack = Attack;
+            if (npc.life < npc.lifeMax * 0.3f && npc.type == NPCID.LunarTowerVortex)
+            {
+                Attack = (int)Vortex.LunarTowerVortex.Attacks.VortexVortex;
+            }
+            AttackTimer = 0;
+            npc.netUpdate = true;
+            NetSync(npc);
+        }
+        public void EndAttack(NPC npc)
+        {
+            npc.TargetClosest(false);
+            NetSync(npc);
+            Attack = 0;
+            AttackTimer = 0;
+        }
+        #endregion
     }
-  }
 }

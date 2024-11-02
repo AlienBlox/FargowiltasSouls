@@ -1,53 +1,52 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Placables.MusicBoxes.ChampionMusicBox
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Tiles.MusicBoxes;
-using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Placables.MusicBoxes
 {
-  public class ChampionMusicBox : ModItem
-  {
-    public virtual void SetStaticDefaults()
+    public class ChampionMusicBox : ModItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-      Mod mod;
-      if (!Terraria.ModLoader.ModLoader.TryGetMod("FargowiltasMusic", ref mod))
-        return;
-      MusicLoader.AddMusicBox(((ModType) this).Mod, MusicLoader.GetMusicSlot(mod, "Assets/Music/Champions"), ModContent.ItemType<ChampionMusicBox>(), ModContent.TileType<ChampionMusicBoxSheet>(), 0);
-    }
+        public override void SetStaticDefaults()
+        {
 
-    public virtual void ModifyTooltips(List<TooltipLine> list)
-    {
-      foreach (TooltipLine tooltipLine in list)
-      {
-        if (tooltipLine.Mod == "Terraria" && tooltipLine.Name == "ItemName")
-          tooltipLine.OverrideColor = new Color?(Main.DiscoColor);
-      }
-    }
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
 
-    public virtual void SetDefaults()
-    {
-      this.Item.useStyle = 1;
-      this.Item.useTurn = true;
-      this.Item.useAnimation = 15;
-      this.Item.useTime = 10;
-      this.Item.autoReuse = true;
-      this.Item.consumable = true;
-      this.Item.createTile = ModContent.TileType<ChampionMusicBoxSheet>();
-      ((Entity) this.Item).width = 32;
-      ((Entity) this.Item).height = 32;
-      this.Item.rare = 11;
-      this.Item.value = Item.sellPrice(0, 7, 0, 0);
-      this.Item.accessory = true;
+            if (ModLoader.TryGetMod("FargowiltasMusic", out Mod musicMod))
+            {
+                MusicLoader.AddMusicBox(
+                    Mod,
+                    MusicLoader.GetMusicSlot(musicMod, "Assets/Music/Champions"),
+                    ModContent.ItemType<ChampionMusicBox>(),
+                    ModContent.TileType<Tiles.MusicBoxes.ChampionMusicBoxSheet>());
+            }
+        }
+
+        public override void ModifyTooltips(List<TooltipLine> list)
+        {
+            foreach (TooltipLine line2 in list)
+            {
+                if (line2.Mod == "Terraria" && line2.Name == "ItemName")
+                {
+                    line2.OverrideColor = Main.DiscoColor;
+                }
+            }
+        }
+
+        public override void SetDefaults()
+        {
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.useTurn = true;
+            Item.useAnimation = 15;
+            Item.useTime = 10;
+            Item.autoReuse = true;
+            Item.consumable = true;
+            Item.createTile = ModContent.TileType<Tiles.MusicBoxes.ChampionMusicBoxSheet>();
+            Item.width = 32;
+            Item.height = 32;
+            Item.rare = ItemRarityID.Purple;
+            Item.value = Item.sellPrice(0, 7, 0, 0);
+            Item.accessory = true;
+        }
     }
-  }
 }

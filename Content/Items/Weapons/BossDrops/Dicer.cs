@@ -1,47 +1,45 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.BossDrops.Dicer
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.BossWeapons;
+﻿using FargowiltasSouls.Content.Projectiles.BossWeapons;
 using Terraria;
-using Terraria.Audio;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.BossDrops
 {
-  public class Dicer : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class Dicer : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-      ItemID.Sets.Yoyo[this.Item.type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("The Dicer");
+            // Tooltip.SetDefault("'A defeated foe's attack now on a string'");
 
-    public virtual void SetDefaults()
-    {
-      this.Item.useStyle = 5;
-      ((Entity) this.Item).width = 24;
-      ((Entity) this.Item).height = 24;
-      this.Item.noUseGraphic = true;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item1);
-      this.Item.DamageType = DamageClass.Melee;
-      this.Item.channel = true;
-      this.Item.noMelee = true;
-      this.Item.shoot = ModContent.ProjectileType<DicerYoyo>();
-      this.Item.useAnimation = 25;
-      this.Item.useTime = 25;
-      this.Item.shootSpeed = 16f;
-      this.Item.knockBack = 2.5f;
-      this.Item.damage = 60;
-      this.Item.value = Item.sellPrice(0, 10, 0, 0);
-      this.Item.rare = 8;
-    }
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "切肉器");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "'一个被击败的敌人的攻击,用线拴着'");
 
-    public virtual void HoldItem(Player player) => player.stringColor = 5;
-  }
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+
+            ItemID.Sets.Yoyo[Item.type] = true;
+        }
+
+        public override void SetDefaults()
+        {
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.width = 24;
+            Item.height = 24;
+            Item.noUseGraphic = true;
+            Item.UseSound = SoundID.Item1;
+            Item.DamageType = DamageClass.Melee;
+            Item.channel = true;
+            Item.noMelee = true;
+            Item.shoot = ModContent.ProjectileType<DicerYoyo>();
+            Item.useAnimation = 25;
+            Item.useTime = 25;
+            Item.shootSpeed = 16f;
+            Item.knockBack = 2.5f;
+            Item.damage = 80;
+            Item.value = Item.sellPrice(0, 10);
+            Item.rare = ItemRarityID.Yellow;
+        }
+
+        public override void HoldItem(Player player) => player.stringColor = 5;
+    }
 }

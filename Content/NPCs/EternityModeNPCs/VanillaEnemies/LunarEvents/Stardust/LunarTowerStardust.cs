@@ -1,382 +1,396 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Stardust.LunarTowerStardust
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.BossBars;
+﻿using FargowiltasSouls.Content.BossBars;
 using FargowiltasSouls.Content.Buffs.Masomode;
-using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent.UI.BigProgressBar;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using static FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Stardust.StardustMinion;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Stardust
 {
-  public class LunarTowerStardust : LunarTowers
-  {
-    private List<int> DragonParts;
-    private bool gotBossBar;
-    public const int CellAmount = 20;
-    public float CellRotation;
-    private int DragonTimer;
-    private const int IdleTime = 60;
-
-    public override int ShieldStrength
+    public class LunarTowerStardust : LunarTowers
     {
-      get => NPC.ShieldStrengthTowerStardust;
-      set => NPC.ShieldStrengthTowerStardust = value;
-    }
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(493);
-
-    public LunarTowerStardust()
-    {
-      List<int> intList = new List<int>();
-      CollectionsMarshal.SetCount<int>(intList, 6);
-      Span<int> span = CollectionsMarshal.AsSpan<int>(intList);
-      int num1 = 0;
-      span[num1] = 454;
-      int num2 = num1 + 1;
-      span[num2] = 455;
-      int num3 = num2 + 1;
-      span[num3] = 456;
-      int num4 = num3 + 1;
-      span[num4] = 457;
-      int num5 = num4 + 1;
-      span[num5] = 458;
-      int num6 = num5 + 1;
-      span[num6] = 459;
-      int num7 = num6 + 1;
-      this.DragonParts = intList;
-      // ISSUE: explicit constructor call
-      base.\u002Ector(ModContent.BuffType<AntisocialBuff>(), 20);
-    }
-
-    public override int MaxHP => 20000;
-
-    public override int Damage => 0;
-
-    private string DragonName
-    {
-      get => Language.GetTextValue("Mods.FargowiltasSouls.NPCs.StardustDragon.DisplayName");
-    }
-
-    public virtual bool CheckDead(NPC npc)
-    {
-      foreach (NPC npc1 in ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && this.DragonParts.Contains(n.type))))
-      {
-        npc1.StrikeInstantKill();
-        npc1.checkDead();
-      }
-      return base.CheckDead(npc);
-    }
-
-    public override List<int> RandomAttacks
-    {
-      get
-      {
-        List<int> randomAttacks = new List<int>();
-        CollectionsMarshal.SetCount<int>(randomAttacks, 4);
-        Span<int> span = CollectionsMarshal.AsSpan<int>(randomAttacks);
-        int num1 = 0;
-        span[num1] = 1;
-        int num2 = num1 + 1;
-        span[num2] = 2;
-        int num3 = num2 + 1;
-        span[num3] = 3;
-        int num4 = num3 + 1;
-        span[num4] = 4;
-        int num5 = num4 + 1;
-        return randomAttacks;
-      }
-    }
-
-    public override void ShieldsDownAI(NPC npc)
-    {
-      if (!this.gotBossBar)
-      {
-        npc.BossBar = (IBigProgressBar) ModContent.GetInstance<CompositeBossBar>();
-        this.gotBossBar = true;
-      }
-      int num1 = 0;
-      int num2 = 0;
-      foreach (NPC npc1 in ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && n.type == ModContent.NPCType<StardustMinion>() && (double) n.ai[2] == (double) ((Entity) npc).whoAmI)))
-      {
-        if (npc1.frame.Y == 0)
-          ++num2;
-        ++num1;
-      }
-      foreach (NPC npc2 in ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && this.DragonParts.Contains(n.type) && n.GivenName != this.DragonName)))
-        npc2.GivenName = this.DragonName;
-      if (num1 < 20)
-      {
-        for (int i = 0; i < 20; i++)
+        public override int ShieldStrength
         {
-          bool flag = false;
-          using (IEnumerator<NPC> enumerator = ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && n.type == ModContent.NPCType<StardustMinion>() && (double) n.ai[2] == (double) ((Entity) npc).whoAmI && (double) n.ai[3] == (double) i)).GetEnumerator())
-          {
-            if (enumerator.MoveNext())
+            get => NPC.ShieldStrengthTowerStardust;
+            set => NPC.ShieldStrengthTowerStardust = value;
+        }
+
+        public override NPCMatcher CreateMatcher() =>
+            new NPCMatcher().MatchType(NPCID.LunarTowerStardust);
+
+        public LunarTowerStardust() : base(ModContent.BuffType<AntisocialBuff>(), 20) { }
+        public override int MaxHP => 20000;
+        public override int Damage => 0;
+
+        List<int> DragonParts =
+        [
+                    NPCID.CultistDragonHead,
+                    NPCID.CultistDragonBody1,
+                    NPCID.CultistDragonBody2,
+                    NPCID.CultistDragonBody3,
+                    NPCID.CultistDragonBody4,
+                    NPCID.CultistDragonTail
+                ];
+
+        private string DragonName => Language.GetTextValue("Mods.FargowiltasSouls.NPCs.StardustDragon.DisplayName");
+
+        public override bool CheckDead(NPC npc)
+        {
+            foreach (NPC n in Main.npc.Where(n => n.active && DragonParts.Contains(n.type)))
             {
-              NPC current = enumerator.Current;
-              flag = true;
+                n.StrikeInstantKill();
+                n.checkDead();
             }
-          }
-          if (!flag)
-          {
-            this.SpawnMinion(npc, i);
-            ++num2;
-          }
+            return base.CheckDead(npc);
         }
-      }
-      if (NPC.CountNPCS(454) <= 0 && WorldSavingSystem.MasochistModeReal && this.DragonTimer <= 0)
-      {
-        if (FargoSoulsUtil.HostCheck)
+        public enum Attacks
         {
-          int index = NPC.NewNPC(((Entity) npc).GetSource_FromThis((string) null), (int) ((Entity) npc).Center.X, (int) ((double) ((Entity) npc).Center.Y - (double) ((Entity) npc).height * 0.44999998807907104), 454, 0, 0.0f, 0.0f, 0.0f, 0.0f, (int) byte.MaxValue);
-          if (((Entity) Main.npc[index]).active)
-            Main.npc[index].GivenName = this.DragonName;
+            Idle,
+            CellExpandContract,
+            CellRush,
+            CellCurves,
+            CellScissor
         }
-        SoundEngine.PlaySound(ref SoundID.Item119, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-        this.DragonTimer = 0;
-      }
-      ++this.DragonTimer;
-      if (num2 > 0)
-      {
-        npc.defense = 99999999;
-        npc.life = npc.lifeMax;
-        Player player = Main.player[npc.target];
-        if (!npc.HasPlayerTarget || !((Entity) player).active)
-          return;
-        switch (this.Attack)
+        public override List<int> RandomAttacks =>
+        //these are randomly chosen attacks in p1
+        [
+            (int)Attacks.CellExpandContract,
+            (int)Attacks.CellRush,
+            (int)Attacks.CellCurves,
+            (int)Attacks.CellScissor
+        ];
+        private bool gotBossBar = false;
+        public const int CellAmount = 20;
+        public float CellRotation = 0;
+        int DragonTimer = 0;
+        public override void ShieldsDownAI(NPC npc)
         {
-          case 0:
-            this.Idle(npc, player);
-            ++this.CellRotation;
-            break;
-          case 1:
-            this.CellExpandContract(npc, player);
-            ++this.CellRotation;
-            break;
-          case 2:
-            this.CellRush(npc, player);
-            ++this.CellRotation;
-            break;
-          case 3:
-            this.CellCurves(npc, player);
-            ++this.CellRotation;
-            break;
-          case 4:
-            this.CellScissor(npc, player);
-            break;
+            if (!gotBossBar)
+            {
+                npc.BossBar = ModContent.GetInstance<CompositeBossBar>();
+                gotBossBar = true;
+            }
+            int cells = 0;
+            int bigCells = 0;
+            foreach (NPC n in Main.npc.Where(n => n.active && n.type == ModContent.NPCType<StardustMinion>() && n.ai[2] == npc.whoAmI))
+            {
+                if (n.frame.Y == 0) //frame check is to check if big
+                {
+                    bigCells++;
+                }
+                cells++;
+            }
+            foreach (NPC n in Main.npc.Where(n => n.active && DragonParts.Contains(n.type) && n.GivenName != DragonName))
+            {
+                n.GivenName = DragonName;
+            }
+            //cells are sorted by a unique key, stored in their NPC.ai[3], that determines their behavior during attacks, for example spot in a circle. 
+            //here it only spawns new cells if there's missing keys, and missing cells.
+            //yes this will probably lag some pcs a bit, it's a lot to check in one frame
+            if (cells < CellAmount)
+            {
+                for (int i = 0; i < CellAmount; i++)
+                {
+                    bool foundCell = false;
+                    foreach (NPC n in Main.npc.Where(n => n.active && n.type == ModContent.NPCType<StardustMinion>() && n.ai[2] == npc.whoAmI && n.ai[3] == i)) //frame check is to check if big
+                    {
+                        foundCell = true;
+                        break;
+                    }
+                    if (!foundCell)
+                    {
+                        SpawnMinion(npc, i);
+                        bigCells++;
+                    }
+                }
+
+            }
+            if (NPC.CountNPCS(NPCID.CultistDragonHead) <= 0 && WorldSavingSystem.MasochistModeReal && DragonTimer <= 0) //spawn james in maso
+            {
+                if (FargoSoulsUtil.HostCheck)
+                {
+
+                    int n = NPC.NewNPC(npc.GetSource_FromThis(), (int)npc.Center.X, (int)(npc.Center.Y - npc.height * 0.45f), NPCID.CultistDragonHead);
+                    if (Main.npc[n].active)
+                    {
+                        Main.npc[n].GivenName = DragonName;
+
+                    }
+                }
+                SoundEngine.PlaySound(SoundID.Item119, npc.Center);
+                DragonTimer = 0;
+            }
+            DragonTimer++;
+            if (bigCells > 0)
+            {
+                //The pillar is purposefully not immune because it's meant to bait aggro, this is a mechanic you need to deal with. Same goes for the dragon.
+                npc.defense = 99999999;
+                npc.life = npc.lifeMax;
+            }
+            else
+            {
+                npc.dontTakeDamage = false;
+                ShieldStrength = 0;
+                if (npc.defense != 0) //trigger shield going down animation
+                {
+                    CellState((int)States.Idle);
+                    npc.defense = 0;
+                    npc.ai[3] = 1f;
+                    npc.netUpdate = true;
+                    npc.dontTakeDamage = false;
+                    NetSync(npc);
+                }
+                if (NPC.CountNPCS(NPCID.CultistDragonHead) <= 0) //spawn james
+                {
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        int n = NPC.NewNPC(npc.GetSource_FromThis(), (int)npc.Center.X, (int)(npc.Center.Y - npc.height * 0.45f), NPCID.CultistDragonHead);
+                        if (Main.npc[n].active)
+                        {
+                            Main.npc[n].GivenName = DragonName;
+                            Main.npc[n].dontTakeDamage = true;
+
+                        }
+                    }
+                    SoundEngine.PlaySound(SoundID.Item119, npc.Center);
+                }
+                return;
+            }
+            Player target = Main.player[npc.target];
+            if (npc.HasPlayerTarget && target.active)
+            {
+                switch (Attack)
+                {
+                    case (int)Attacks.CellExpandContract:
+                        CellExpandContract(npc, target);
+                        CellRotation++;
+                        break;
+                    case (int)Attacks.CellRush:
+                        CellRush(npc, target);
+                        CellRotation++;
+                        break;
+                    case (int)Attacks.CellCurves:
+                        CellCurves(npc, target);
+                        CellRotation++;
+                        break;
+                    case (int)Attacks.CellScissor:
+                        CellScissor(npc, target);
+                        break;
+                    case (int)Attacks.Idle:
+                        Idle(npc, target);
+                        CellRotation++;
+                        break;
+                }
+            }
         }
-      }
-      else
-      {
-        if (npc.defense != 0)
+        #region Attacks
+        private void CellExpandContract(NPC npc, Player player)
         {
-          this.CellState(1);
-          npc.defense = 0;
-          npc.ai[3] = 1f;
-          npc.netUpdate = true;
-          PillarBehaviour.NetSync(npc);
+            const int WindupDuration = 90;
+            const int AttackDuration = 60 * 6;
+            const int EndlagDuration = 60 * 1;
+            void Windup()
+            {
+                if (AttackTimer == 1)
+                {
+                    SoundEngine.PlaySound(SoundID.Item77, npc.Center);
+                    CellState((int)States.PrepareExpand);
+                }
+            }
+            void Attack()
+            {
+                if (AttackTimer - WindupDuration == 1)
+                {
+                    SoundEngine.PlaySound(SoundID.Item92, npc.Center);
+                    CellState((int)States.Expand);
+                }
+            }
+            void Endlag()
+            {
+
+            }
+            if (AttackTimer <= WindupDuration)
+            {
+                Windup();
+            }
+            else if (AttackTimer <= WindupDuration + AttackDuration)
+            {
+                Attack();
+            }
+            else
+            {
+                Endlag();
+            }
+            if (AttackTimer > WindupDuration + AttackDuration + EndlagDuration)
+            {
+                EndAttack(npc);
+            }
         }
-        if (NPC.CountNPCS(454) > 0)
-          return;
-        if (FargoSoulsUtil.HostCheck)
+        private void CellRush(NPC npc, Player player)
         {
-          int index = NPC.NewNPC(((Entity) npc).GetSource_FromThis((string) null), (int) ((Entity) npc).Center.X, (int) ((double) ((Entity) npc).Center.Y - (double) ((Entity) npc).height * 0.44999998807907104), 454, 0, 0.0f, 0.0f, 0.0f, 0.0f, (int) byte.MaxValue);
-          if (((Entity) Main.npc[index]).active)
-          {
-            Main.npc[index].GivenName = this.DragonName;
-            Main.npc[index].dontTakeDamage = true;
-          }
+            const int AttackDuration = 60 * 9;
+            const int ForceSendTime = 60 * 4;
+            void Attack()
+            {
+                if (AttackTimer == 1)
+                {
+                    SoundEngine.PlaySound(SoundID.Item44, npc.Center);
+                    CellState((int)States.PrepareRush);
+                }
+                if (AttackTimer == ForceSendTime)
+                {
+                    SoundEngine.PlaySound(SoundID.Item96, npc.Center);
+                    foreach (NPC n in Main.npc.Where(n => n.active && n.type == ModContent.NPCType<StardustMinion>() && n.ai[2] == npc.whoAmI && n.ai[1] != (float)States.Rush && n.ai[1] != (float)States.Contract))
+                    {
+                        n.ai[1] = (float)States.Rush;
+                    }
+                }
+            }
+            Attack();
+            if (AttackTimer > AttackDuration)
+            {
+                EndAttack(npc);
+            }
         }
-        SoundEngine.PlaySound(ref SoundID.Item119, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-      }
-    }
-
-    private void CellExpandContract(NPC npc, Player player)
-    {
-      if (this.AttackTimer <= 90)
-        Windup();
-      else if (this.AttackTimer <= 450)
-        Attack();
-      else
-        Endlag();
-      if (this.AttackTimer <= 510)
-        return;
-      this.EndAttack(npc);
-
-      void Windup()
-      {
-        if (this.AttackTimer != 1)
-          return;
-        SoundEngine.PlaySound(ref SoundID.Item77, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-        this.CellState(2);
-      }
-
-      void Attack()
-      {
-        if (this.AttackTimer - 90 != 1)
-          return;
-        SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-        this.CellState(3);
-      }
-
-      static void Endlag()
-      {
-      }
-    }
-
-    private void CellRush(NPC npc, Player player)
-    {
-      Attack();
-      if (this.AttackTimer <= 540)
-        return;
-      this.EndAttack(npc);
-
-      void Attack()
-      {
-        if (this.AttackTimer == 1)
+        private void CellCurves(NPC npc, Player player)
         {
-          SoundEngine.PlaySound(ref SoundID.Item44, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-          this.CellState(5);
+            const int WindupDuration = 90;
+            const int AttackDuration = 10 * CellAmount;
+            const int EndlagDuration = 60 * 6;
+            void Windup()
+            {
+                if (AttackTimer == 1)
+                {
+                    SoundEngine.PlaySound(SoundID.Item88, npc.Center);
+                    CellState((int)States.Idle);
+                }
+            }
+            void Attack()
+            {
+                const int AttackCD = 10;
+                if (AttackTimer % AttackCD == AttackCD - 1)
+                {
+                    SoundEngine.PlaySound(SoundID.Item115, npc.Center);
+                    foreach (NPC n in Main.npc.Where(n => n.active && n.type == ModContent.NPCType<StardustMinion>() && n.ai[2] == npc.whoAmI && n.ai[1] != (float)States.Curve))
+                    {
+                        n.ai[1] = (float)States.Curve;
+                        break;
+                    }
+                }
+            }
+            void Endlag()
+            {
+            }
+            if (AttackTimer <= WindupDuration)
+            {
+                Windup();
+            }
+            else if (AttackTimer <= WindupDuration + AttackDuration)
+            {
+                Attack();
+            }
+            else
+            {
+                Endlag();
+            }
+            if (AttackTimer > WindupDuration + AttackDuration + EndlagDuration)
+            {
+                EndAttack(npc);
+            }
         }
-        if (this.AttackTimer != 240)
-          return;
-        SoundEngine.PlaySound(ref SoundID.Item96, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-        foreach (NPC npc in ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && n.type == ModContent.NPCType<StardustMinion>() && (double) n.ai[2] == (double) ((Entity) npc).whoAmI && (double) n.ai[1] != 6.0 && (double) n.ai[1] != 4.0)))
-          npc.ai[1] = 6f;
-      }
-    }
-
-    private void CellCurves(NPC npc, Player player)
-    {
-      if (this.AttackTimer <= 90)
-        Windup();
-      else if (this.AttackTimer <= 290)
-        Attack();
-      else
-        Endlag();
-      if (this.AttackTimer <= 650)
-        return;
-      this.EndAttack(npc);
-
-      static void Endlag()
-      {
-      }
-
-      void Windup()
-      {
-        if (this.AttackTimer != 1)
-          return;
-        SoundEngine.PlaySound(ref SoundID.Item88, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-        this.CellState(1);
-      }
-
-      void Attack()
-      {
-        if (this.AttackTimer % 10 != 9)
-          return;
-        SoundEngine.PlaySound(ref SoundID.Item115, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-        using (IEnumerator<NPC> enumerator = ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && n.type == ModContent.NPCType<StardustMinion>() && (double) n.ai[2] == (double) ((Entity) npc).whoAmI && (double) n.ai[1] != 10.0)).GetEnumerator())
+        private void CellScissor(NPC npc, Player player)
         {
-          if (!enumerator.MoveNext())
+            const int WindupDuration = 90;
+            const int AttackDuration = 60 * 4 + 20;
+            const int EndlagDuration = 60 * 2;
+            void Windup()
+            {
+                if (AttackTimer == 1)
+                {
+                    SoundEngine.PlaySound(SoundID.Item113, npc.Center);
+                    CellState((int)States.PrepareScissor);
+                }
+                CellRotation = 45; //degrees
+            }
+            void Attack()
+            {
+                if (AttackTimer - WindupDuration == 1)
+                {
+                    SoundEngine.PlaySound(SoundID.Item113, npc.Center);
+                    CellState((int)States.Scissor);
+                }
+            }
+            void Endlag()
+            {
+                if (AttackTimer - WindupDuration - AttackDuration == 1)
+                {
+                    CellState((int)States.ScissorContract);
+                    CellRotation = 0;
+                }
+            }
+            if (AttackTimer <= WindupDuration)
+            {
+                Windup();
+            }
+            else if (AttackTimer <= WindupDuration + AttackDuration)
+            {
+                Attack();
+            }
+            else
+            {
+                Endlag();
+            }
+            if (AttackTimer > WindupDuration + AttackDuration + EndlagDuration)
+            {
+                EndAttack(npc);
+            }
+        }
+        private void CellState(int state)
+        {
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                if (Main.npc[i].active && Main.npc[i].type == ModContent.NPCType<StardustMinion>())
+                {
+                    Main.npc[i].ai[1] = state;
+                    Main.npc[i].netUpdate = true;
+                }
+            }
+        }
+        private void SpawnMinion(NPC npc, int cell)
+        {
+            if (FargoSoulsUtil.HostCheck)
+            {
+                NPC spawn = NPC.NewNPCDirect(npc.GetSource_FromThis(), npc.Center + Main.rand.Next(-20, 20) * Vector2.UnitX + Main.rand.Next(-20, 20) * Vector2.UnitY, ModContent.NPCType<StardustMinion>());
+                spawn.ai[1] = 1;
+                spawn.ai[2] = npc.whoAmI;
+                spawn.ai[3] = cell;
+                NetSync(spawn);
+            }
             return;
-          enumerator.Current.ai[1] = 10f;
         }
-      }
-    }
-
-    private void CellScissor(NPC npc, Player player)
-    {
-      if (this.AttackTimer <= 90)
-        Windup();
-      else if (this.AttackTimer <= 350)
-        Attack();
-      else
-        Endlag();
-      if (this.AttackTimer <= 470)
-        return;
-      this.EndAttack(npc);
-
-      void Windup()
-      {
-        if (this.AttackTimer == 1)
+        const int IdleTime = 60;
+        private void Idle(NPC npc, Player player)
         {
-          SoundEngine.PlaySound(ref SoundID.Item113, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-          this.CellState(7);
+            if (AttackTimer == 1)
+            {
+                CellState((int)States.Idle);
+            }
+            if (AttackTimer > IdleTime)
+            {
+                for (int i = 0; i < Main.maxNPCs; i++)
+                {
+
+                }
+                RandomAttack(npc);
+            }
         }
-        this.CellRotation = 45f;
-      }
-
-      void Attack()
-      {
-        if (this.AttackTimer - 90 != 1)
-          return;
-        SoundEngine.PlaySound(ref SoundID.Item113, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-        this.CellState(8);
-      }
-
-      void Endlag()
-      {
-        if (this.AttackTimer - 90 - 260 != 1)
-          return;
-        this.CellState(9);
-        this.CellRotation = 0.0f;
-      }
+        #endregion
     }
-
-    private void CellState(int state)
-    {
-      for (int index = 0; index < Main.maxNPCs; ++index)
-      {
-        if (((Entity) Main.npc[index]).active && Main.npc[index].type == ModContent.NPCType<StardustMinion>())
-          Main.npc[index].ai[1] = (float) state;
-      }
-    }
-
-    private void SpawnMinion(NPC npc, int cell)
-    {
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      NPC npc1 = NPC.NewNPCDirect(((Entity) npc).GetSource_FromThis((string) null), Vector2.op_Addition(Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply((float) Main.rand.Next(-20, 20), Vector2.UnitX)), Vector2.op_Multiply((float) Main.rand.Next(-20, 20), Vector2.UnitY)), ModContent.NPCType<StardustMinion>(), 0, 0.0f, 0.0f, 0.0f, 0.0f, (int) byte.MaxValue);
-      npc1.ai[1] = 1f;
-      npc1.ai[2] = (float) ((Entity) npc).whoAmI;
-      npc1.ai[3] = (float) cell;
-    }
-
-    private void Idle(NPC npc, Player player)
-    {
-      if (this.AttackTimer == 1)
-        this.CellState(1);
-      if (this.AttackTimer <= 60)
-        return;
-      int num = 0;
-      while (num < Main.maxNPCs)
-        ++num;
-      this.RandomAttack(npc);
-    }
-
-    public enum Attacks
-    {
-      Idle,
-      CellExpandContract,
-      CellRush,
-      CellCurves,
-      CellScissor,
-    }
-  }
 }

@@ -1,109 +1,132 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Vortex.VortexVortexProjectile
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using System;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Vortex
 {
-  public class VortexVortexProjectile : ModProjectile
-  {
-    public virtual void SetStaticDefaults() => Main.projFrames[this.Projectile.type] = 9;
-
-    public virtual void SetDefaults()
+    public class VortexVortexProjectile : ModProjectile
     {
-      ((Entity) this.Projectile).width = 16;
-      ((Entity) this.Projectile).height = 16;
-      this.Projectile.hostile = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.penetrate = -1;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.timeLeft = 3600;
-      this.Projectile.scale = 2f;
-    }
 
-    private int GetBiome()
-    {
-      double num = (double) this.Projectile.localAI[0];
-      ref float local = ref this.Projectile.ai[0];
-      Player localPlayer = Main.LocalPlayer;
-      if (((Entity) Main.projectile[(int) local]).active && (double) ((Entity) Main.projectile[(int) local]).Center.Y - (double) ((Entity) this.Projectile).Center.Y > 0.0)
-        return 8;
-      if (localPlayer.ZoneCorrupt)
-        return 1;
-      if (localPlayer.ZoneCrimson)
-        return 2;
-      if (localPlayer.ZoneHallow)
-        return 3;
-      if (localPlayer.ZoneSnow)
-        return 4;
-      if (localPlayer.ZoneDesert)
-        return 5;
-      if (localPlayer.ZoneJungle)
-        return 6;
-      if (localPlayer.ZoneBeach)
-        return 5;
-      return localPlayer.ZoneDungeon ? 7 : 0;
-    }
-
-    public virtual void AI()
-    {
-      ref float local1 = ref this.Projectile.ai[0];
-      ref float local2 = ref this.Projectile.ai[1];
-      ref float local3 = ref this.Projectile.localAI[0];
-      ref float local4 = ref this.Projectile.ai[1];
-      if ((double) local2 < 60.0)
-      {
-        if ((double) local3 <= 0.0)
+        public override void SetStaticDefaults()
         {
-          local3 = (float) (this.GetBiome() + 1);
-          this.Projectile.frame = (int) local3 - 1;
-          local4 = Utils.NextFloat(Main.rand, -0.209439516f, 0.209439516f);
+            // DisplayName.SetDefault("Vortex");
+            Main.projFrames[Projectile.type] = 9;
         }
-        if (this.Projectile.alpha > 0)
-          this.Projectile.alpha -= 12;
-      }
-      else
-      {
-        Projectile projectile = Main.projectile[(int) local1];
-        if (projectile.TypeAlive<VortexVortex>())
+
+        public override void SetDefaults()
         {
-          Vector2 vector2 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, ((Entity) projectile).Center);
-          if ((double) ((Vector2) ref vector2).LengthSquared() < 256.0)
-            this.Projectile.Kill();
-          int num = 12;
-          ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(((Entity) projectile).Center, ((Entity) this.Projectile).Center)), (float) num);
+            Projectile.width = 16;
+            Projectile.height = 16;
+            Projectile.hostile = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.penetrate = -1;
+            Projectile.alpha = 255;
+            Projectile.timeLeft = 60 * 60;
+
+            Projectile.scale = 2f;
         }
-        else
-          this.Projectile.Kill();
-      }
-      this.Projectile.rotation += local4;
-      ++local2;
-    }
+        public enum Biomes
+        {
+            Purity,
+            Corruption,
+            Crimson,
+            Hallow,
+            Snow,
+            Desert,
+            Jungle,
+            Dungeon,
+            Cloud
+        }
+        private int GetBiome() //purposefully not networked
+        {
+            ref float Biome = ref Projectile.localAI[0];
+            ref float ParentID = ref Projectile.ai[0];
+            Player player = Main.LocalPlayer;
+            if (Main.projectile[(int)ParentID].active && Main.projectile[(int)ParentID].Center.Y - Projectile.Center.Y > 0) //if coming from up angle, use cloud texture
+            {
+                return (int)Biomes.Cloud;
+            }
+            if (player.ZoneCorrupt)
+            {
+                return (int)Biomes.Corruption;
+            }
+            if (player.ZoneCrimson)
+            {
+                return (int)Biomes.Crimson;
+            }
+            if (player.ZoneHallow)
+            {
+                return (int)Biomes.Hallow;
+            }
+            if (player.ZoneSnow)
+            {
+                return (int)Biomes.Snow;
+            }
+            if (player.ZoneDesert)
+            {
+                return (int)Biomes.Desert;
+            }
+            if (player.ZoneJungle)
+            {
+                return (int)Biomes.Jungle;
+            }
+            if (player.ZoneBeach)
+            {
+                return (int)Biomes.Desert;
+            }
+            if (player.ZoneDungeon)
+            {
+                return (int)Biomes.Dungeon;
+            }
+            return (int)Biomes.Purity;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      FargoSoulsUtil.GenericProjectileDraw(this.Projectile, lightColor);
-      return false;
+        public override void AI()
+        {
+            ref float ParentID = ref Projectile.ai[0];
+            ref float Timer = ref Projectile.ai[1];
+            ref float Biome = ref Projectile.localAI[0];
+            ref float Rotate = ref Projectile.ai[1];
+            if (Timer < 60)
+            {
+                if (Biome <= 0)
+                {
+                    Biome = GetBiome() + 1;
+                    Projectile.frame = (int)Biome - 1;
+                    Rotate = Main.rand.NextFloat((float)(-Math.PI / 15), (float)(Math.PI / 15));
+                }
+                if (Projectile.alpha > 0)
+                {
+                    Projectile.alpha -= (int)(255f / 20);
+                }
+            }
+            else
+            {
+                Projectile parent = Main.projectile[(int)ParentID];
+                if (parent.TypeAlive<VortexVortex>())
+                {
+                    if ((Projectile.Center - parent.Center).LengthSquared() < 16 * 16)
+                    {
+                        Projectile.Kill();
+                    }
+                    int speed = 12;
+                    Vector2 diff = Vector2.Normalize(parent.Center - Projectile.Center);
+                    Projectile.velocity = diff * speed;
+                }
+                else
+                {
+                    Projectile.Kill();
+                }
+            }
+            Projectile.rotation += Rotate;
+            Timer++;
+        }
+        public override bool PreDraw(ref Color lightColor)
+        {
+            FargoSoulsUtil.GenericProjectileDraw(Projectile, lightColor);
+            return false;
+        }
     }
-
-    public enum Biomes
-    {
-      Purity,
-      Corruption,
-      Crimson,
-      Hallow,
-      Snow,
-      Desert,
-      Jungle,
-      Dungeon,
-      Cloud,
-    }
-  }
 }

@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.FinalUpgrades.HentaiSpear
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Accessories.Masomode;
+﻿using FargowiltasSouls.Content.Items.Accessories.Masomode;
 using FargowiltasSouls.Content.Items.Materials;
 using FargowiltasSouls.Content.Projectiles.BossWeapons;
 using Luminance.Core.Graphics;
@@ -12,213 +6,254 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.FinalUpgrades
 {
-  public class HentaiSpear : SoulsItem
-  {
-    private int forceSwordTimer;
-
-    public virtual void SetStaticDefaults()
+    public class HentaiSpear : SoulsItem
     {
-      Main.RegisterItemAnimation(this.Item.type, (DrawAnimation) new DrawAnimationVertical(3, 10, false));
-      ItemID.Sets.AnimatesAsSoul[this.Item.type] = true;
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("The Penetrator");
+            /* Tooltip.SetDefault("Has different attacks when using left or right click" +
+                "\nHas different attacks when used while holding up, down, or both" +
+                "\n'The reward for embracing eternity...'"); */
+
+            Main.RegisterItemAnimation(Item.type, new DrawAnimationVertical(3, 10));
+            ItemID.Sets.AnimatesAsSoul[Item.type] = true;
+            ItemID.Sets.ItemsThatAllowRepeatedRightClick[Type] = true;
+
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
+
+        public override void SetDefaults()
+        {
+            Item.damage = 1700;
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.useAnimation = 16;
+            Item.useTime = 16;
+            Item.shootSpeed = 6f;
+            Item.knockBack = 7f;
+            Item.width = 72;
+            Item.height = 72;
+            //Item.scale = 1.3f;
+            Item.rare = ItemRarityID.Purple;
+            Item.UseSound = SoundID.Item1;
+            Item.shoot = ModContent.ProjectileType<Projectiles.BossWeapons.HentaiSpear>();
+            Item.value = Item.sellPrice(0, 70);
+            Item.noMelee = true;
+            Item.noUseGraphic = true;
+            Item.DamageType = DamageClass.Melee;
+            Item.autoReuse = true;
+        }
+
+        public override Color? GetAlpha(Color lightColor) => Color.White;
+
+        public override bool AltFunctionUse(Player player) => true;
+
+        int forceSwordTimer;
+
+        public override bool CanUseItem(Player player)
+        {
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.useTurn = false;
+
+            if (forceSwordTimer > 0)
+            {
+                Item.shoot = ModContent.ProjectileType<HentaiSword>();
+                Item.shootSpeed = 6f;
+
+                Item.useAnimation = 16;
+                Item.useTime = 16;
+
+                Item.useStyle = ItemUseStyleID.Swing;
+                Item.DamageType = DamageClass.Melee;
+            }
+            else if (player.altFunctionUse == 2)
+            {
+                if (player.controlUp && player.controlDown)
+                {
+                    Item.shoot = ModContent.ProjectileType<HentaiSpearWand>();
+                    Item.shootSpeed = 6f;
+                    Item.useAnimation = 16;
+                    Item.useTime = 16;
+                }
+                else if (player.controlUp && !player.controlDown)
+                {
+                    /*Item.shoot = ModContent.ProjectileType<HentaiSpearSpinThrown>();
+                    Item.shootSpeed = 6f;
+                    Item.useAnimation = 16;
+                    Item.useTime = 16;*/
+
+                    Item.shoot = ModContent.ProjectileType<HentaiSpearSpinBoundary>();
+                    Item.shootSpeed = 1f;
+                    Item.useAnimation = 16;
+                    Item.useTime = 16;
+                    Item.useTurn = true;
+                }
+                else if (player.controlDown && !player.controlUp)
+                {
+                    Item.shoot = ModContent.ProjectileType<HentaiSpearSpinBoundary>();
+                    Item.shootSpeed = 1f;
+                    Item.useAnimation = 16;
+                    Item.useTime = 16;
+                    Item.useTurn = true;
+                }
+                else
+                {
+                    Item.shoot = ModContent.ProjectileType<HentaiSpearThrown>();
+                    Item.shootSpeed = 25f;
+                    Item.useAnimation = 85;
+                    Item.useTime = 85;
+                }
+
+                Item.DamageType = DamageClass.Ranged;
+            }
+            else
+            {
+                if (player.controlUp && !player.controlDown)
+                {
+                    Item.shoot = ModContent.ProjectileType<HentaiSpearSpin>();
+                    Item.shootSpeed = 1f;
+                    Item.useTurn = true;
+                }
+                else if (player.controlDown && !player.controlUp)
+                {
+                    Item.shoot = ModContent.ProjectileType<HentaiSpearDive>();
+                    Item.shootSpeed = 6f;
+                }
+                else if (player.controlDown && player.controlUp)
+                {
+                    Item.shoot = ModContent.ProjectileType<Projectiles.BossWeapons.HentaiSpear>();
+                    Item.shootSpeed = 6f;
+                }
+                else
+                {
+                    Item.shoot = ModContent.ProjectileType<HentaiSword>();
+                    Item.shootSpeed = 6f;
+                    Item.useStyle = ItemUseStyleID.Swing;
+                }
+
+                Item.useAnimation = 16;
+                Item.useTime = 16;
+
+                Item.DamageType = DamageClass.Melee;
+            }
+
+            return true;
+        }
+
+        public override void UpdateInventory(Player player)
+        {
+            if (forceSwordTimer > 0)
+                forceSwordTimer -= 1;
+
+            if (player.ownedProjectileCounts[ModContent.ProjectileType<HentaiSword>()] > 0)
+                forceSwordTimer = 3;
+        }
+
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            if (forceSwordTimer > 0 || (player.altFunctionUse != 2 && !player.controlUp && !player.controlDown))
+            {
+                velocity = new Vector2(velocity.X < 0 ? 1 : -1, -1);
+                velocity.Normalize();
+                velocity *= HentaiSword.MUTANT_SWORD_SPACING;
+                Projectile.NewProjectile(source, position, velocity, type, damage, knockback, player.whoAmI, -Math.Sign(velocity.X));
+                return false;
+            }
+            else if (player.altFunctionUse == 2) // Right-click
+            {
+                if (player.controlUp)
+                {
+                    if (player.controlDown) // Giga-beam
+                        return player.ownedProjectileCounts[Item.shoot] < 1;
+
+                    /*if (player.ownedProjectileCounts[Item.shoot] < 1) // Remember to transfer any changes here to hentaispearspinthrown!
+                    {
+                        Vector2 speed = Main.MouseWorld - player.MountedCenter;
+
+                        if (speed.Length() < 360)
+                            speed = Vector2.Normalize(speed) * 360;
+
+                        Projectile.NewProjectile(source, position, Vector2.Normalize(speed), Item.shoot, damage, knockback, player.whoAmI, speed.X, speed.Y);
+                    }*/
+
+                    Projectile.NewProjectile(source, position, velocity, type, damage, knockback, player.whoAmI, ai2: 1);
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            if (player.ownedProjectileCounts[Item.shoot] < 1)
+            {
+                if (player.controlUp && !player.controlDown)
+                    return true;
+
+                if (player.ownedProjectileCounts[ModContent.ProjectileType<Dash>()] < 1 && player.ownedProjectileCounts[ModContent.ProjectileType<Dash2>()] < 1)
+                {
+                    float dashAI = 0;
+                    float speedModifier = 2f;
+                    int dashType = ModContent.ProjectileType<Dash>();
+
+                    if (player.controlUp && player.controlDown) // Super-dash
+                    {
+                        dashAI = 1;
+                        speedModifier = 2.5f;
+                    }
+
+                    Vector2 speed = velocity;
+
+                    if (player.controlDown && !player.controlUp) //dive
+                    {
+                        dashAI = 2;
+                        speed = new Vector2(Math.Sign(velocity.X) * 0.0001f, speed.Length());
+                        dashType = ModContent.ProjectileType<Dash2>();
+                    }
+
+                    int p = Projectile.NewProjectile(source, position, Vector2.Normalize(speed) * speedModifier * Item.shootSpeed,
+                        dashType, damage, knockback, player.whoAmI, speed.ToRotation(), dashAI);
+                    if (p != Main.maxProjectiles)
+                        Projectile.NewProjectile(source, position, speed, Item.shoot, damage, knockback, player.whoAmI, Main.projectile[p].identity, 1f);
+                }
+            }
+
+            return false;
+        }
+
+        public override bool PreDrawTooltipLine(DrawableTooltipLine line, ref int yOffset)
+        {
+            if (line.Mod == "Terraria" && line.Name == "ItemName")
+            {
+                Main.spriteBatch.End(); //end and begin main.spritebatch to apply a shader
+                Main.spriteBatch.Begin(SpriteSortMode.Immediate, null, null, null, null, null, Main.UIScaleMatrix);
+                ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.Text");
+                shader.TrySetParameter("mainColor", new Color(28, 222, 152));
+                shader.TrySetParameter("secondaryColor", new Color(168, 245, 228));
+                shader.Apply("PulseUpwards");
+                Utils.DrawBorderString(Main.spriteBatch, line.Text, new Vector2(line.X, line.Y), Color.White, 1); //draw the tooltip manually
+                Main.spriteBatch.End(); //then end and begin again to make remaining tooltip lines draw in the default way
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, Main.UIScaleMatrix);
+                return false;
+            }
+            return true;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddIngredient(ModContent.Find<ModItem>("Fargowiltas", "EnergizerMoon"))
+                .AddIngredient(ModContent.ItemType<EternalEnergy>(), 30)
+                .AddIngredient(ModContent.ItemType<AbomEnergy>(), 30)
+                .AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 30)
+                .AddIngredient(ModContent.ItemType<PhantasmalEnergy>())
+                .AddIngredient(ModContent.ItemType<MutantEye>())
+                .AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"))
+                .Register();
+        }
     }
-
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 1700;
-      this.Item.useStyle = 5;
-      this.Item.useAnimation = 16;
-      this.Item.useTime = 16;
-      this.Item.shootSpeed = 6f;
-      this.Item.knockBack = 7f;
-      ((Entity) this.Item).width = 72;
-      ((Entity) this.Item).height = 72;
-      this.Item.rare = 11;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item1);
-      this.Item.shoot = ModContent.ProjectileType<FargowiltasSouls.Content.Projectiles.BossWeapons.HentaiSpear>();
-      this.Item.value = Item.sellPrice(0, 70, 0, 0);
-      this.Item.noMelee = true;
-      this.Item.noUseGraphic = true;
-      this.Item.DamageType = DamageClass.Melee;
-      this.Item.autoReuse = true;
-    }
-
-    public virtual Color? GetAlpha(Color lightColor) => new Color?(Color.White);
-
-    public virtual bool AltFunctionUse(Player player) => true;
-
-    public virtual bool CanUseItem(Player player)
-    {
-      this.Item.useStyle = 5;
-      this.Item.useTurn = false;
-      if (this.forceSwordTimer > 0)
-      {
-        this.Item.shoot = ModContent.ProjectileType<HentaiSword>();
-        this.Item.shootSpeed = 6f;
-        this.Item.useAnimation = 16;
-        this.Item.useTime = 16;
-        this.Item.useStyle = 1;
-        this.Item.DamageType = DamageClass.Melee;
-      }
-      else if (player.altFunctionUse == 2)
-      {
-        if (player.controlUp && player.controlDown)
-        {
-          this.Item.shoot = ModContent.ProjectileType<HentaiSpearWand>();
-          this.Item.shootSpeed = 6f;
-          this.Item.useAnimation = 16;
-          this.Item.useTime = 16;
-        }
-        else if (player.controlUp && !player.controlDown)
-        {
-          this.Item.shoot = ModContent.ProjectileType<HentaiSpearSpinBoundary>();
-          this.Item.shootSpeed = 1f;
-          this.Item.useAnimation = 16;
-          this.Item.useTime = 16;
-          this.Item.useTurn = true;
-        }
-        else if (player.controlDown && !player.controlUp)
-        {
-          this.Item.shoot = ModContent.ProjectileType<HentaiSpearSpinBoundary>();
-          this.Item.shootSpeed = 1f;
-          this.Item.useAnimation = 16;
-          this.Item.useTime = 16;
-          this.Item.useTurn = true;
-        }
-        else
-        {
-          this.Item.shoot = ModContent.ProjectileType<HentaiSpearThrown>();
-          this.Item.shootSpeed = 25f;
-          this.Item.useAnimation = 85;
-          this.Item.useTime = 85;
-        }
-        this.Item.DamageType = DamageClass.Ranged;
-      }
-      else
-      {
-        if (player.controlUp && !player.controlDown)
-        {
-          this.Item.shoot = ModContent.ProjectileType<HentaiSpearSpin>();
-          this.Item.shootSpeed = 1f;
-          this.Item.useTurn = true;
-        }
-        else if (player.controlDown && !player.controlUp)
-        {
-          this.Item.shoot = ModContent.ProjectileType<HentaiSpearDive>();
-          this.Item.shootSpeed = 6f;
-        }
-        else if (player.controlDown && player.controlUp)
-        {
-          this.Item.shoot = ModContent.ProjectileType<FargowiltasSouls.Content.Projectiles.BossWeapons.HentaiSpear>();
-          this.Item.shootSpeed = 6f;
-        }
-        else
-        {
-          this.Item.shoot = ModContent.ProjectileType<HentaiSword>();
-          this.Item.shootSpeed = 6f;
-          this.Item.useStyle = 1;
-        }
-        this.Item.useAnimation = 16;
-        this.Item.useTime = 16;
-        this.Item.DamageType = DamageClass.Melee;
-      }
-      return true;
-    }
-
-    public virtual void UpdateInventory(Player player)
-    {
-      if (this.forceSwordTimer > 0)
-        --this.forceSwordTimer;
-      if (player.ownedProjectileCounts[ModContent.ProjectileType<HentaiSword>()] <= 0)
-        return;
-      this.forceSwordTimer = 3;
-    }
-
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      if (this.forceSwordTimer > 0 || player.altFunctionUse != 2 && !player.controlUp && !player.controlDown)
-      {
-        // ISSUE: explicit constructor call
-        ((Vector2) ref velocity).\u002Ector((double) velocity.X < 0.0 ? 1f : -1f, -1f);
-        ((Vector2) ref velocity).Normalize();
-        velocity = Vector2.op_Multiply(velocity, 80f);
-        Projectile.NewProjectile((IEntitySource) source, position, velocity, type, damage, knockback, ((Entity) player).whoAmI, (float) -Math.Sign(velocity.X), 0.0f, 0.0f);
-        return false;
-      }
-      if (player.altFunctionUse == 2)
-      {
-        if (!player.controlUp)
-          return true;
-        if (player.controlDown)
-          return player.ownedProjectileCounts[this.Item.shoot] < 1;
-        Projectile.NewProjectile((IEntitySource) source, position, velocity, type, damage, knockback, ((Entity) player).whoAmI, 0.0f, 0.0f, 1f);
-        return false;
-      }
-      if (player.ownedProjectileCounts[this.Item.shoot] < 1)
-      {
-        if (player.controlUp && !player.controlDown)
-          return true;
-        if (player.ownedProjectileCounts[ModContent.ProjectileType<Dash>()] < 1 && player.ownedProjectileCounts[ModContent.ProjectileType<Dash2>()] < 1)
-        {
-          float num1 = 0.0f;
-          float num2 = 2f;
-          int num3 = ModContent.ProjectileType<Dash>();
-          if (player.controlUp && player.controlDown)
-          {
-            num1 = 1f;
-            num2 = 2.5f;
-          }
-          Vector2 vector2 = velocity;
-          if (player.controlDown && !player.controlUp)
-          {
-            num1 = 2f;
-            // ISSUE: explicit constructor call
-            ((Vector2) ref vector2).\u002Ector((float) Math.Sign(velocity.X) * 0.0001f, ((Vector2) ref vector2).Length());
-            num3 = ModContent.ProjectileType<Dash2>();
-          }
-          int index = Projectile.NewProjectile((IEntitySource) source, position, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.Normalize(vector2), num2), this.Item.shootSpeed), num3, damage, knockback, ((Entity) player).whoAmI, Utils.ToRotation(vector2), num1, 0.0f);
-          if (index != Main.maxProjectiles)
-            Projectile.NewProjectile((IEntitySource) source, position, vector2, this.Item.shoot, damage, knockback, ((Entity) player).whoAmI, (float) Main.projectile[index].identity, 1f, 0.0f);
-        }
-      }
-      return false;
-    }
-
-    public virtual bool PreDrawTooltipLine(DrawableTooltipLine line, ref int yOffset)
-    {
-      if (!(((TooltipLine) line).Mod == "Terraria") || !(((TooltipLine) line).Name == "ItemName"))
-        return true;
-      Main.spriteBatch.End();
-      Main.spriteBatch.Begin((SpriteSortMode) 1, (BlendState) null, (SamplerState) null, (DepthStencilState) null, (RasterizerState) null, (Effect) null, Main.UIScaleMatrix);
-      ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.Text");
-      shader.TrySetParameter("mainColor", (object) new Color(28, 222, 152));
-      shader.TrySetParameter("secondaryColor", (object) new Color(168, 245, 228));
-      shader.Apply("PulseUpwards");
-      Utils.DrawBorderString(Main.spriteBatch, line.Text, new Vector2((float) line.X, (float) line.Y), Color.White, 1f, 0.0f, 0.0f, -1);
-      Main.spriteBatch.End();
-      Main.spriteBatch.Begin((SpriteSortMode) 0, (BlendState) null, (SamplerState) null, (DepthStencilState) null, (RasterizerState) null, (Effect) null, Main.UIScaleMatrix);
-      return false;
-    }
-
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.Find<ModItem>("Fargowiltas", "EnergizerMoon"), 1).AddIngredient(ModContent.ItemType<EternalEnergy>(), 30).AddIngredient(ModContent.ItemType<AbomEnergy>(), 30).AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 30).AddIngredient(ModContent.ItemType<PhantasmalEnergy>(), 1).AddIngredient(ModContent.ItemType<MutantEye>(), 1).AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet")).Register();
-    }
-  }
 }

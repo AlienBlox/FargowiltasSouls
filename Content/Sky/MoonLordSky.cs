@@ -1,63 +1,83 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Sky.MoonLordSky
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Bosses.VanillaEternity;
 using FargowiltasSouls.Core.Globals;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.Graphics.Effects;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Sky
 {
-  public class MoonLordSky : CustomSky
-  {
-    private bool isActive;
-
-    public virtual void Update(GameTime gameTime)
+    public class MoonLordSky : CustomSky
     {
-      int vulState = -1;
-      int num = 0;
-      bool flag = false;
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.moonBoss, 398))
-      {
-        vulState = Main.npc[EModeGlobalNPC.moonBoss].GetGlobalNPC<MoonLordCore>().VulnerabilityState;
-        num = (int) Main.npc[EModeGlobalNPC.moonBoss].GetGlobalNPC<MoonLordCore>().VulnerabilityTimer;
-        flag = true;
-      }
-      if (Main.dedServ || num % 30 != 0 || !(HandleScene("Solar", 0) & HandleScene("Vortex", 1) & HandleScene("Nebula", 2) & HandleScene("Stardust", 3) & !flag))
-        return;
-      ((GameEffect) this).Deactivate(Array.Empty<object>());
+        private bool isActive = false;
 
-      bool HandleScene(string name, int neededState)
-      {
-        if (!((EffectManager<Filter>) Filters.Scene)["FargowiltasSouls:" + name].IsActive())
-          return true;
-        if (vulState != neededState)
-          ((EffectManager<Filter>) Filters.Scene).Deactivate("FargowiltasSouls:" + name, Array.Empty<object>());
-        return false;
-      }
+        public override void Update(GameTime gameTime)
+        {
+            int vulState = -1;
+            int vulTimer = 0;
+            bool bossAlive = false;
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.moonBoss, NPCID.MoonLordCore))
+            {
+                vulState = Main.npc[EModeGlobalNPC.moonBoss].GetGlobalNPC<MoonLordCore>().VulnerabilityState;
+                vulTimer = (int)Main.npc[EModeGlobalNPC.moonBoss].GetGlobalNPC<MoonLordCore>().VulnerabilityTimer;
+                bossAlive = true;
+            }
+
+            if (!Main.dedServ && vulTimer % 30 == 0)
+            {
+                bool HandleScene(string name, int neededState)
+                {
+                    if (Filters.Scene[$"FargowiltasSouls:{name}"].IsActive())
+                    {
+                        if (vulState != neededState)
+                            Filters.Scene.Deactivate($"FargowiltasSouls:{name}");
+                        return false;
+                    }
+                    return true;
+                }
+
+                if (HandleScene("Solar", 0) & HandleScene("Vortex", 1)
+                    & HandleScene("Nebula", 2) & HandleScene("Stardust", 3) & !bossAlive)
+                {
+                    Deactivate();
+                }
+            }
+        }
+
+        public override void Draw(SpriteBatch spriteBatch, float minDepth, float maxDepth)
+        {
+
+        }
+
+        public override float GetCloudAlpha()
+        {
+            return base.GetCloudAlpha();
+        }
+
+        public override void Activate(Vector2 position, params object[] args)
+        {
+            isActive = true;
+        }
+
+        public override void Deactivate(params object[] args)
+        {
+            isActive = false;
+        }
+
+        public override void Reset()
+        {
+            isActive = false;
+        }
+
+        public override bool IsActive()
+        {
+            return isActive;
+        }
+
+        public override Color OnTileColor(Color inColor)
+        {
+            return base.OnTileColor(inColor);
+        }
     }
-
-    public virtual void Draw(SpriteBatch spriteBatch, float minDepth, float maxDepth)
-    {
-    }
-
-    public virtual float GetCloudAlpha() => base.GetCloudAlpha();
-
-    public virtual void Activate(Vector2 position, params object[] args) => this.isActive = true;
-
-    public virtual void Deactivate(params object[] args) => this.isActive = false;
-
-    public virtual void Reset() => this.isActive = false;
-
-    public virtual bool IsActive() => this.isActive;
-
-    public virtual Color OnTileColor(Color inColor) => base.OnTileColor(inColor);
-  }
 }

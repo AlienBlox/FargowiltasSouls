@@ -1,185 +1,214 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Ammos.FargoArrowProj
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Ammos
 {
-  public class FargoArrowProj : ModProjectile
-  {
-    private readonly int[] dusts = new int[5]
+    public class FargoArrowProj : ModProjectile
     {
-      130,
-      55,
-      133,
-      131,
-      132
-    };
-    private int currentDust;
-    private int timer;
-    private Vector2 velocity;
+        private readonly int[] dusts = [130, 55, 133, 131, 132];
+        private int currentDust = 0;
+        private int timer = 0;
+        private Vector2 velocity;
 
-    public virtual void SetStaticDefaults()
-    {
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Fargo Arrow");
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.width = 10;
+            Projectile.height = 10;
+            Projectile.aiStyle = 1;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Ranged;
+            Projectile.arrow = true;
+            Projectile.penetrate = -1; //same as luminite
+            Projectile.timeLeft = 200;
+            Projectile.light = 1f;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = true;
+            Projectile.extraUpdates = 1;
+            AIType = ProjectileID.WoodenArrowFriendly;
+
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 2;
+        }
+
+
+        public override void AI()
+        {
+            //dust
+            Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, dusts[currentDust], Projectile.velocity.X * 0.5f, Projectile.velocity.Y * 0.5f, 150, default, 1.2f);
+            currentDust++;
+            if (currentDust > 4)
+            {
+                currentDust = 0;
+            }
+
+            //luminite
+            if (Projectile.localAI[0] == 0f && Projectile.localAI[1] == 0f)
+            {
+                Projectile.localAI[0] = Projectile.Center.X;
+                Projectile.localAI[1] = Projectile.Center.Y;
+                velocity = new Vector2(Projectile.velocity.X, Projectile.velocity.Y);
+            }
+
+            timer++;
+            if (timer >= 60)
+            {
+                Player player = Main.player[Projectile.owner];
+
+                int num271 = Main.rand.Next(5, 10);
+                for (int num272 = 0; num272 < num271; num272++)
+                {
+                    int num273 = Dust.NewDust(Projectile.Center, 0, 0, DustID.FireworkFountain_Green, 0f, 0f, 100, default, 0.5f);
+                    Main.dust[num273].velocity *= 1.6f;
+                    Dust expr_9845_cp_0 = Main.dust[num273];
+                    expr_9845_cp_0.velocity.Y--;
+                    Main.dust[num273].position = Vector2.Lerp(Main.dust[num273].position, Projectile.Center, 0.5f);
+                    Main.dust[num273].noGravity = true;
+                }
+                int num274 = 1;
+                int nextSlot = Projectile.GetNextSlot();
+                if (Main.ProjectileUpdateLoopIndex < nextSlot && Main.ProjectileUpdateLoopIndex != -1)
+                {
+                    num274++;
+                }
+                int luminiteArrow = Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.localAI[0], Projectile.localAI[1], velocity.X, velocity.Y, ProjectileID.MoonlordArrowTrail, Projectile.damage, Projectile.knockBack, Projectile.owner, 0f, num274);
+                timer = 0;
+
+                Main.projectile[luminiteArrow].localNPCHitCooldown = 5;
+                Main.projectile[luminiteArrow].usesLocalNPCImmunity = true;
+            }
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            OnHit();
+
+            //chloro
+            Projectile.ai[1] += 1f;
+            if (Projectile.ai[1] == 1f)
+            {
+                Projectile.damage = (int)(Projectile.damage * 0.66f);
+            }
+            if (Projectile.ai[1] >= 10f)
+            {
+                Projectile.Kill();
+            }
+            Projectile.velocity.X = -velocity.X;
+            Projectile.velocity.Y = -velocity.Y;
+            int num22 = Projectile.FindTargetWithLineOfSight(800f);
+            if (num22 != -1)
+            {
+                NPC npc = Main.npc[num22];
+                float t = Projectile.Distance(npc.Center);
+                Vector2 value3 = -Vector2.UnitY * MathHelper.Lerp(npc.height * 0.1f, npc.height * 0.5f, Utils.GetLerpValue(0f, 300f, t, false));
+                Projectile.velocity = Projectile.SafeDirectionTo(npc.Center + value3).SafeNormalize(-Vector2.UnitY) * Projectile.velocity.Length();
+                Projectile.netUpdate = true;
+            }
+
+            return false;
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            OnHit();
+
+            //flame
+            target.AddBuff(BuffID.OnFire, 600);
+
+            //frostburn
+            target.AddBuff(BuffID.Frostburn, 600);
+
+            //cursed
+            target.AddBuff(BuffID.CursedInferno, 600);
+
+            //ichor
+            target.AddBuff(BuffID.Ichor, 600);
+
+            //venom
+            target.AddBuff(BuffID.Venom, 600);
+        }
+
+        public void OnHit()
+        {
+            //holy stars
+            SoundEngine.PlaySound(SoundID.Item10, Projectile.position);
+            for (int num479 = 0; num479 < 10; num479++)
+            {
+                Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Enchanted_Pink, Projectile.velocity.X * 0.1f, Projectile.velocity.Y * 0.1f, 150, default, 1.2f);
+            }
+            for (int num480 = 0; num480 < 3; num480++)
+            {
+                if (!Main.dedServ)
+                    Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.position, new Vector2(Projectile.velocity.X * 0.05f, Projectile.velocity.Y * 0.05f), Main.rand.Next(16, 18), 1f);
+            }
+            float x = Projectile.position.X + Main.rand.Next(-400, 400);
+            float y = Projectile.position.Y - Main.rand.Next(600, 900);
+            Vector2 vector12 = new(x, y);
+            float num483 = Projectile.position.X + Projectile.width / 2 - vector12.X;
+            float num484 = Projectile.position.Y + Projectile.height / 2 - vector12.Y;
+            int num485 = 22;
+            float num486 = (float)Math.Sqrt((double)(num483 * num483 + num484 * num484));
+            num486 = num485 / num486;
+            num483 *= num486;
+            num484 *= num486;
+            int num487 = Projectile.damage;
+            int num488 = Projectile.NewProjectile(Projectile.GetSource_FromThis(), x, y, num483, num484, ProjectileID.HallowStar, num487, Projectile.knockBack, Projectile.owner, 0f, 0);
+            Main.projectile[num488].ai[1] = Projectile.position.Y;
+            Main.projectile[num488].ai[0] = 1f;
+
+            Main.projectile[num488].localNPCHitCooldown = 2;
+            Main.projectile[num488].usesLocalNPCImmunity = true;
+
+            //hellfire explode
+            SoundEngine.PlaySound(SoundID.Item14, Projectile.position);
+            for (int num613 = 0; num613 < 10; num613++)
+            {
+                Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0f, 0f, 100, default, 1.5f);
+            }
+            for (int num614 = 0; num614 < 5; num614++)
+            {
+                int num615 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Torch, 0f, 0f, 100, default, 2.5f);
+                Main.dust[num615].noGravity = true;
+                Main.dust[num615].velocity *= 3f;
+                num615 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Torch, 0f, 0f, 100, default, 1.5f);
+                Main.dust[num615].velocity *= 2f;
+            }
+            int num616 = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.position, default, Main.rand.Next(61, 64), 1f);
+            Main.gore[num616].velocity *= 0.4f;
+            Gore expr_14419_cp_0 = Main.gore[num616];
+            expr_14419_cp_0.velocity.X += Main.rand.Next(-10, 11) * 0.1f;
+            Gore expr_14449_cp_0 = Main.gore[num616];
+            expr_14449_cp_0.velocity.Y += Main.rand.Next(-10, 11) * 0.1f;
+            num616 = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.position, default, Main.rand.Next(61, 64), 1f);
+            Main.gore[num616].velocity *= 0.4f;
+            Gore expr_144DD_cp_0 = Main.gore[num616];
+            expr_144DD_cp_0.velocity.X += Main.rand.Next(-10, 11) * 0.1f;
+            Gore expr_1450D_cp_0 = Main.gore[num616];
+            expr_1450D_cp_0.velocity.Y += Main.rand.Next(-10, 11) * 0.1f;
+            if (Projectile.owner == Main.myPlayer)
+            {
+                Projectile.penetrate = -1;
+                Projectile.position.X = Projectile.position.X + Projectile.width / 2;
+                Projectile.position.Y = Projectile.position.Y + Projectile.height / 2;
+                Projectile.width = 64;
+                Projectile.height = 64;
+                Projectile.position.X = Projectile.position.X - Projectile.width / 2;
+                Projectile.position.Y = Projectile.position.Y - Projectile.height / 2;
+                Projectile.Damage();
+            }
+        }
+
+        public override void OnKill(int timeleft)
+        {
+            OnHit();
+        }
     }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 10;
-      ((Entity) this.Projectile).height = 10;
-      this.Projectile.aiStyle = 1;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Ranged;
-      this.Projectile.arrow = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft = 200;
-      this.Projectile.light = 1f;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = true;
-      this.Projectile.extraUpdates = 1;
-      this.AIType = 1;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 2;
-    }
-
-    public virtual void AI()
-    {
-      Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, this.dusts[this.currentDust], ((Entity) this.Projectile).velocity.X * 0.5f, ((Entity) this.Projectile).velocity.Y * 0.5f, 150, new Color(), 1.2f);
-      ++this.currentDust;
-      if (this.currentDust > 4)
-        this.currentDust = 0;
-      if ((double) this.Projectile.localAI[0] == 0.0 && (double) this.Projectile.localAI[1] == 0.0)
-      {
-        this.Projectile.localAI[0] = ((Entity) this.Projectile).Center.X;
-        this.Projectile.localAI[1] = ((Entity) this.Projectile).Center.Y;
-        this.velocity = new Vector2(((Entity) this.Projectile).velocity.X, ((Entity) this.Projectile).velocity.Y);
-      }
-      ++this.timer;
-      if (this.timer < 60)
-        return;
-      Player player = Main.player[this.Projectile.owner];
-      int num1 = Main.rand.Next(5, 10);
-      for (int index1 = 0; index1 < num1; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).Center, 0, 0, 220, 0.0f, 0.0f, 100, new Color(), 0.5f);
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 1.6f);
-        --Main.dust[index2].velocity.Y;
-        Main.dust[index2].position = Vector2.Lerp(Main.dust[index2].position, ((Entity) this.Projectile).Center, 0.5f);
-        Main.dust[index2].noGravity = true;
-      }
-      int num2 = 1;
-      int nextSlot = Projectile.GetNextSlot();
-      if (Main.ProjectileUpdateLoopIndex < nextSlot && Main.ProjectileUpdateLoopIndex != -1)
-        ++num2;
-      int index = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), this.Projectile.localAI[0], this.Projectile.localAI[1], this.velocity.X, this.velocity.Y, 640, this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, (float) num2, 0.0f);
-      this.timer = 0;
-      Main.projectile[index].localNPCHitCooldown = 5;
-      Main.projectile[index].usesLocalNPCImmunity = true;
-    }
-
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      this.OnHit();
-      ++this.Projectile.ai[1];
-      if ((double) this.Projectile.ai[1] == 1.0)
-        this.Projectile.damage = (int) ((double) this.Projectile.damage * 0.6600000262260437);
-      if ((double) this.Projectile.ai[1] >= 10.0)
-        this.Projectile.Kill();
-      ((Entity) this.Projectile).velocity.X = -this.velocity.X;
-      ((Entity) this.Projectile).velocity.Y = -this.velocity.Y;
-      int targetWithLineOfSight = this.Projectile.FindTargetWithLineOfSight(800f);
-      if (targetWithLineOfSight != -1)
-      {
-        NPC npc = Main.npc[targetWithLineOfSight];
-        float num = ((Entity) this.Projectile).Distance(((Entity) npc).Center);
-        Vector2 vector2 = Vector2.op_Multiply(Vector2.op_UnaryNegation(Vector2.UnitY), MathHelper.Lerp((float) ((Entity) npc).height * 0.1f, (float) ((Entity) npc).height * 0.5f, Utils.GetLerpValue(0.0f, 300f, num, false)));
-        ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Utils.SafeNormalize(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, Vector2.op_Addition(((Entity) npc).Center, vector2)), Vector2.op_UnaryNegation(Vector2.UnitY)), ((Vector2) ref ((Entity) this.Projectile).velocity).Length());
-        this.Projectile.netUpdate = true;
-      }
-      return false;
-    }
-
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      this.OnHit();
-      target.AddBuff(24, 600, false);
-      target.AddBuff(44, 600, false);
-      target.AddBuff(39, 600, false);
-      target.AddBuff(69, 600, false);
-      target.AddBuff(70, 600, false);
-    }
-
-    public void OnHit()
-    {
-      SoundEngine.PlaySound(ref SoundID.Item10, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-      for (int index = 0; index < 10; ++index)
-        Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 58, ((Entity) this.Projectile).velocity.X * 0.1f, ((Entity) this.Projectile).velocity.Y * 0.1f, 150, new Color(), 1.2f);
-      for (int index = 0; index < 3; ++index)
-      {
-        if (!Main.dedServ)
-          Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).position, new Vector2(((Entity) this.Projectile).velocity.X * 0.05f, ((Entity) this.Projectile).velocity.Y * 0.05f), Main.rand.Next(16, 18), 1f);
-      }
-      float num1 = ((Entity) this.Projectile).position.X + (float) Main.rand.Next(-400, 400);
-      float num2 = ((Entity) this.Projectile).position.Y - (float) Main.rand.Next(600, 900);
-      Vector2 vector2;
-      // ISSUE: explicit constructor call
-      ((Vector2) ref vector2).\u002Ector(num1, num2);
-      float num3 = ((Entity) this.Projectile).position.X + (float) (((Entity) this.Projectile).width / 2) - vector2.X;
-      float num4 = ((Entity) this.Projectile).position.Y + (float) (((Entity) this.Projectile).height / 2) - vector2.Y;
-      float num5 = 22f / (float) Math.Sqrt((double) num3 * (double) num3 + (double) num4 * (double) num4);
-      float num6 = num3 * num5;
-      float num7 = num4 * num5;
-      int damage = this.Projectile.damage;
-      int index1 = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), num1, num2, num6, num7, 92, damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-      Main.projectile[index1].ai[1] = ((Entity) this.Projectile).position.Y;
-      Main.projectile[index1].ai[0] = 1f;
-      Main.projectile[index1].localNPCHitCooldown = 2;
-      Main.projectile[index1].usesLocalNPCImmunity = true;
-      SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-      for (int index2 = 0; index2 < 10; ++index2)
-        Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 100, new Color(), 1.5f);
-      for (int index3 = 0; index3 < 5; ++index3)
-      {
-        int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 2.5f);
-        Main.dust[index4].noGravity = true;
-        Dust dust1 = Main.dust[index4];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 3f);
-        int index5 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-        Dust dust2 = Main.dust[index5];
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 2f);
-      }
-      int index6 = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).position, new Vector2(), Main.rand.Next(61, 64), 1f);
-      Gore gore1 = Main.gore[index6];
-      gore1.velocity = Vector2.op_Multiply(gore1.velocity, 0.4f);
-      Main.gore[index6].velocity.X += (float) Main.rand.Next(-10, 11) * 0.1f;
-      Main.gore[index6].velocity.Y += (float) Main.rand.Next(-10, 11) * 0.1f;
-      int index7 = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).position, new Vector2(), Main.rand.Next(61, 64), 1f);
-      Gore gore2 = Main.gore[index7];
-      gore2.velocity = Vector2.op_Multiply(gore2.velocity, 0.4f);
-      Main.gore[index7].velocity.X += (float) Main.rand.Next(-10, 11) * 0.1f;
-      Main.gore[index7].velocity.Y += (float) Main.rand.Next(-10, 11) * 0.1f;
-      if (this.Projectile.owner != Main.myPlayer)
-        return;
-      this.Projectile.penetrate = -1;
-      ((Entity) this.Projectile).position.X = ((Entity) this.Projectile).position.X + (float) (((Entity) this.Projectile).width / 2);
-      ((Entity) this.Projectile).position.Y = ((Entity) this.Projectile).position.Y + (float) (((Entity) this.Projectile).height / 2);
-      ((Entity) this.Projectile).width = 64;
-      ((Entity) this.Projectile).height = 64;
-      ((Entity) this.Projectile).position.X = ((Entity) this.Projectile).position.X - (float) (((Entity) this.Projectile).width / 2);
-      ((Entity) this.Projectile).position.Y = ((Entity) this.Projectile).position.Y - (float) (((Entity) this.Projectile).height / 2);
-      this.Projectile.Damage();
-    }
-
-    public virtual void OnKill(int timeleft) => this.OnHit();
-  }
 }

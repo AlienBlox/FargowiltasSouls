@@ -1,93 +1,92 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.AbomBoss.AbomReticle
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Core.Globals;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.AbomBoss
 {
-  public class AbomReticle : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class AbomReticle : ModProjectile
     {
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 110;
-      ((Entity) this.Projectile).height = 110;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.penetrate = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.timeLeft = 70;
-    }
-
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public virtual void AI()
-    {
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.abomBoss, ModContent.NPCType<FargowiltasSouls.Content.Bosses.AbomBoss.AbomBoss>()) && !Main.npc[EModeGlobalNPC.abomBoss].dontTakeDamage)
-      {
-        if ((double) this.Projectile.localAI[0] == 0.0)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.localAI[0] = Utils.NextBool(Main.rand) ? -1f : 1f;
-          this.Projectile.rotation = Utils.NextFloat(Main.rand, 6.28318548f);
+            // DisplayName.SetDefault("Abominationn Reticle");
         }
-        this.Projectile.scale = (float) (1.5 - 0.0083333337679505348 * (double) Math.Min(60, 70 - this.Projectile.timeLeft));
-        ((Entity) this.Projectile).velocity = Vector2.Zero;
-        if ((double) ++this.Projectile.localAI[1] < 15.0)
-          this.Projectile.rotation += MathHelper.ToRadians(12f) * this.Projectile.localAI[0];
-      }
-      if (this.Projectile.timeLeft % 20 == 0 && !Main.dedServ)
-      {
-        SoundStyle soundStyle = new SoundStyle("FargowiltasSouls/Assets/Sounds/ReticleBeep", (SoundType) 0);
-        SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      }
-      if (this.Projectile.timeLeft < 10)
-        this.Projectile.alpha += 26;
-      else
-        this.Projectile.alpha -= 26;
-      if (this.Projectile.alpha < 0)
-      {
-        this.Projectile.alpha = 0;
-      }
-      else
-      {
-        if (this.Projectile.alpha <= (int) byte.MaxValue)
-          return;
-        this.Projectile.alpha = (int) byte.MaxValue;
-      }
-    }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, 128), (float) (1.0 - (double) this.Projectile.alpha / (double) byte.MaxValue)));
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 110;
+            Projectile.height = 110;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.aiStyle = -1;
+            Projectile.penetrate = -1;
+            Projectile.hostile = true;
+            Projectile.alpha = 255;
+            Projectile.timeLeft = 70;
+            //CooldownSlot = 1;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+        public override bool? CanDamage()
+        {
+            return false;
+        }
+
+        public override void AI()
+        {
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.abomBoss, ModContent.NPCType<AbomBoss>())
+                && !Main.npc[EModeGlobalNPC.abomBoss].dontTakeDamage)
+            {
+                if (Projectile.localAI[0] == 0)
+                {
+                    Projectile.localAI[0] = Main.rand.NextBool() ? -1 : 1;
+                    Projectile.rotation = Main.rand.NextFloat(2 * MathHelper.Pi);
+                }
+
+                int modifier = Math.Min(60, 70 - Projectile.timeLeft);
+
+                Projectile.scale = 1.5f - 0.5f / 60f * modifier; //start big, shrink down
+
+                Projectile.velocity = Vector2.Zero;
+
+                if (++Projectile.localAI[1] < 15)
+                    Projectile.rotation += MathHelper.ToRadians(12) * Projectile.localAI[0];
+            }
+
+            if (Projectile.timeLeft % 20 == 0)
+            {
+                if (!Main.dedServ)
+                    SoundEngine.PlaySound(FargosSoundRegistry.ReticleBeep, Projectile.Center);
+            }
+
+            if (Projectile.timeLeft < 10) //fade in and out
+                Projectile.alpha += 26;
+            else
+                Projectile.alpha -= 26;
+
+            if (Projectile.alpha < 0)
+                Projectile.alpha = 0;
+            else if (Projectile.alpha > 255)
+                Projectile.alpha = 255;
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(255, 255, 255, 128) * (1f - Projectile.alpha / 255f);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

@@ -1,117 +1,151 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.MoonLordSunBlast
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Bosses.Champions.Cosmos;
 using FargowiltasSouls.Content.Bosses.Champions.Earth;
+using FargowiltasSouls.Content.Bosses.MutantBoss;
 using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Globals;
 using Microsoft.Xna.Framework;
 using System;
+using System.IO;
 using Terraria;
 using Terraria.Audio;
+using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class MoonLordSunBlast : EarthChainBlast
-  {
-    public override string Texture => "Terraria/Images/Projectile_687";
-
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override void SetDefaults()
+    public class MoonLordSunBlast : EarthChainBlast
     {
-      base.SetDefaults();
-      ((Entity) this.Projectile).width = 70;
-      ((Entity) this.Projectile).height = 70;
-      this.CooldownSlot = 1;
-    }
+        public override string Texture => "Terraria/Images/Projectile_687";
 
-    public override bool? CanDamage()
-    {
-      return new bool?(this.Projectile.frame == 3 || this.Projectile.frame == 4);
-    }
-
-    public override void AI()
-    {
-      if (Utils.HasNaNs(((Entity) this.Projectile).position))
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if (++this.Projectile.frameCounter >= 2)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.frameCounter = 0;
-          if (++this.Projectile.frame >= Main.projFrames[this.Projectile.type])
-          {
-            --this.Projectile.frame;
-            this.Projectile.Kill();
-            return;
-          }
-          if (this.Projectile.frame == 3)
-            this.Projectile.FargoSouls().GrazeCD = 0;
+            base.SetStaticDefaults();
+            // DisplayName.SetDefault("Sun Blast");
         }
-        if ((double) this.Projectile.localAI[1] == 0.0)
+
+        public override void SetDefaults()
         {
-          SoundEngine.PlaySound(ref SoundID.Item88, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          ((Entity) this.Projectile).position = ((Entity) this.Projectile).Center;
-          this.Projectile.scale = Utils.NextFloat(Main.rand, 1.5f, 4f);
-          this.Projectile.rotation = Utils.NextFloat(Main.rand, 6.28318548f);
-          ((Entity) this.Projectile).width = (int) ((double) ((Entity) this.Projectile).width * (double) this.Projectile.scale);
-          ((Entity) this.Projectile).height = (int) ((double) ((Entity) this.Projectile).height * (double) this.Projectile.scale);
-          ((Entity) this.Projectile).Center = ((Entity) this.Projectile).position;
+            base.SetDefaults();
+            Projectile.width = 70;
+            Projectile.height = 70;
+            CooldownSlot = 1;
         }
-        if ((double) ++this.Projectile.localAI[1] != 6.0 || (double) this.Projectile.ai[1] <= 0.0 || !FargoSoulsUtil.HostCheck)
-          return;
-        --this.Projectile.ai[1];
-        Vector2 rotationVector2 = Utils.ToRotationVector2(this.Projectile.ai[0]);
-        float radians = MathHelper.ToRadians(15f);
-        if ((double) this.Projectile.localAI[0] != 2.0)
+
+        public override void OnSpawn(IEntitySource source)
         {
-          float num = Math.Min(5f, this.Projectile.ai[1]);
-          int index = Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), Vector2.op_Addition(((Entity) this.Projectile).Center, Utils.NextVector2Circular(Main.rand, 20f, 20f)), Vector2.Zero, this.Projectile.type, this.Projectile.damage, 0.0f, this.Projectile.owner, this.Projectile.ai[0], num, 0.0f);
-          if (index != Main.maxProjectiles)
-            Main.projectile[index].localAI[0] = 1f;
+            if (source is EntitySource_Parent parent && parent.Entity is NPC npc
+                && (npc.type == NPCID.GolemFistLeft || npc.type == NPCID.GolemFistRight))
+                Projectile.localAI[2] = 1;
         }
-        if ((double) this.Projectile.localAI[0] == 1.0)
-          return;
-        Vector2 vector2 = Vector2.op_Multiply((float) ((double) ((Entity) this.Projectile).width / (double) this.Projectile.scale * 10.0 / 7.0), Utils.RotatedBy(rotationVector2, (double) Utils.NextFloat(Main.rand, -radians, radians), new Vector2()));
-        int index1 = Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), Vector2.op_Addition(((Entity) this.Projectile).Center, vector2), Vector2.Zero, this.Projectile.type, this.Projectile.damage, 0.0f, this.Projectile.owner, this.Projectile.ai[0], this.Projectile.ai[1], 0.0f);
-        if (index1 == Main.maxProjectiles)
-          return;
-        Main.projectile[index1].localAI[0] = this.Projectile.localAI[0];
-      }
-    }
 
-    public virtual void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
-    {
-      if (!NPC.AnyNPCs(ModContent.NPCType<CosmosChampion>()))
-        return;
-      ref AddableFloat local = ref modifiers.ScalingArmorPenetration;
-      local = AddableFloat.op_Addition(local, 0.25f);
-    }
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(Projectile.localAI[2]);
+        }
 
-    public override void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(67, 120, true, false);
-      target.AddBuff(24, 300, true, false);
-      if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.mutantBoss, ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>()))
-        return;
-      target.FargoSouls().MaxLifeReduction += 100;
-      target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400, true, false);
-      target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180, true, false);
-    }
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            Projectile.localAI[2] = reader.ReadSingle();
+        }
 
-    public override Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, 100), this.Projectile.Opacity));
+        public override bool? CanDamage()
+        {
+            return Projectile.frame == 3 || Projectile.frame == 4;
+        }
+
+        public override void AI()
+        {
+            if (Projectile.position.HasNaNs())
+            {
+                Projectile.Kill();
+                return;
+            }
+            /*Dust dust = Main.dust[Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 229, 0f, 0f, 0, new Color(), 1f)];
+            dust.position = Projectile.Center;
+            dust.velocity = Vector2.Zero;
+            dust.noGravity = true;
+            dust.noLight = true;*/
+
+            if (++Projectile.frameCounter >= 2)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame >= Main.projFrames[Projectile.type])
+                {
+                    Projectile.frame--;
+                    Projectile.Kill();
+                    return;
+                }
+                if (Projectile.frame == 3)
+                    Projectile.FargoSouls().GrazeCD = 0;
+            }
+            //if (++Projectile.ai[0] > Main.projFrames[Projectile.type] * 3) Projectile.Kill();
+
+            if (Projectile.localAI[1] == 0)
+            {
+                SoundEngine.PlaySound(SoundID.Item88, Projectile.Center);
+                Projectile.position = Projectile.Center;
+                Projectile.scale = Projectile.localAI[2] == 0 ? Main.rand.NextFloat(1.5f, 4f) //ensure no gaps
+                    : 3f;
+                Projectile.rotation = Main.rand.NextFloat(MathHelper.TwoPi);
+                Projectile.width = (int)(Projectile.width * Projectile.scale);
+                Projectile.height = (int)(Projectile.height * Projectile.scale);
+                Projectile.Center = Projectile.position;
+            }
+
+            if (++Projectile.localAI[1] == 6 && Projectile.ai[1] > 0 && FargoSoulsUtil.HostCheck)
+            {
+                Projectile.ai[1]--;
+
+                Vector2 baseDirection = Projectile.ai[0].ToRotationVector2();
+                float random = MathHelper.ToRadians(15);
+
+                if (Projectile.localAI[0] != 2f)
+                {
+                    //spawn stationary blasts
+                    float stationaryPersistence = Math.Min(5, Projectile.ai[1]); //stationaries always count down from this
+                    int p = Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center + Main.rand.NextVector2Circular(20, 20), Vector2.Zero, Projectile.type,
+                        Projectile.damage, 0f, Projectile.owner, Projectile.ai[0], stationaryPersistence);
+                    if (p != Main.maxProjectiles)
+                        Main.projectile[p].localAI[0] = 1f; //only make more stationaries, don't propagate forward
+                }
+
+                //propagate forward
+                if (Projectile.localAI[0] != 1f)
+                {
+                    //10f / 7f is to compensate for shrunken hitbox
+                    float length = Projectile.width / Projectile.scale * 10f / 7f;
+                    Vector2 offset = length * baseDirection.RotatedBy(Main.rand.NextFloat(-random, random));
+                    int p = Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center + offset, Vector2.Zero, Projectile.type,
+                          Projectile.damage, 0f, Projectile.owner, Projectile.ai[0], Projectile.ai[1]);
+                    if (p != Main.maxProjectiles)
+                        Main.projectile[p].localAI[0] = Projectile.localAI[0];
+                }
+            }
+        }
+
+        public override void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
+        {
+            if (NPC.AnyNPCs(ModContent.NPCType<CosmosChampion>()))
+            {
+                modifiers.ScalingArmorPenetration += 0.25f;
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(BuffID.Burning, 120);
+            target.AddBuff(BuffID.OnFire, 300);
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.mutantBoss, ModContent.NPCType<MutantBoss>()))
+            {
+                target.FargoSouls().MaxLifeReduction += 100;
+                target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400);
+                target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180);
+            }
+        }
+
+        public override Color? GetAlpha(Color lightColor) => new Color(255, 255, 255, 100) * Projectile.Opacity;
     }
-  }
 }
+

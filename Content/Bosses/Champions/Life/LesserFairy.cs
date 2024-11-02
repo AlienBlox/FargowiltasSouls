@@ -1,130 +1,135 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Life.LesserFairy
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
-using FargowiltasSouls.Core.Systems;
+﻿using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
-using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.Bestiary;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Life
 {
-  public class LesserFairy : ModNPC
-  {
-    public int counter;
-
-    public virtual string Texture => "Terraria/Images/NPC_75";
-
-    public virtual void SetStaticDefaults()
+    public class LesserFairy : ModNPC
     {
-      Main.npcFrameCount[this.NPC.type] = Main.npcFrameCount[75];
-      NPCID.Sets.BossBestiaryPriority.Add(this.NPC.type);
-      NPCID.Sets.CantTakeLunchMoney[this.Type] = true;
-    }
+        public override string Texture => "Terraria/Images/NPC_75";
 
-    public virtual void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
-    {
-      bestiaryEntry.UIInfoProvider = (IBestiaryUICollectionInfoProvider) new CommonEnemyUICollectionInfoProvider(ContentSamples.NpcBestiaryCreditIdsByNpcNetIds[ModContent.NPCType<LifeChampion>()], true);
-      bestiaryEntry.Info.AddRange((IEnumerable<IBestiaryInfoElement>) new \u003C\u003Ez__ReadOnlyArray<IBestiaryInfoElement>(new IBestiaryInfoElement[2]
-      {
-        (IBestiaryInfoElement) BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.TheHallow,
-        (IBestiaryInfoElement) new FlavorTextBestiaryInfoElement("Mods.FargowiltasSouls.Bestiary." + ((ModType) this).Name)
-      }));
-    }
+        public int counter;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.NPC).width = 20;
-      ((Entity) this.NPC).height = 20;
-      this.NPC.damage = 180;
-      this.NPC.defense = 0;
-      this.NPC.lifeMax = 1;
-      this.NPC.HitSound = new SoundStyle?(SoundID.NPCHit5);
-      this.NPC.DeathSound = new SoundStyle?(SoundID.NPCDeath7);
-      this.NPC.value = 0.0f;
-      this.NPC.knockBackResist = 0.0f;
-      this.AnimationType = 75;
-      this.NPC.aiStyle = -1;
-      this.NPC.dontTakeDamage = true;
-      this.NPC.noTileCollide = true;
-      this.NPC.noGravity = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Lesser Fairy");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "小精灵");
+            Main.npcFrameCount[NPC.type] = Main.npcFrameCount[NPCID.Pixie];
+            NPCID.Sets.BossBestiaryPriority.Add(NPC.type);
+            NPCID.Sets.CantTakeLunchMoney[Type] = true;
+        }
 
-    public virtual bool CanHitPlayer(Player target, ref int CooldownSlot)
-    {
-      CooldownSlot = 1;
-      return true;
-    }
+        public override void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
+        {
+            bestiaryEntry.UIInfoProvider = new CommonEnemyUICollectionInfoProvider(
+                ContentSamples.NpcBestiaryCreditIdsByNpcNetIds[ModContent.NPCType<LifeChampion>()],
+                quickUnlock: true
+            );
+            bestiaryEntry.Info.AddRange([
+                BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.TheHallow,
+                new FlavorTextBestiaryInfoElement($"Mods.FargowiltasSouls.Bestiary.{Name}")
+            ]);
+        }
 
-    public virtual void AI()
-    {
-      if (Utils.NextBool(Main.rand, 6))
-      {
-        int index = Dust.NewDust(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height, 87, 0.0f, 0.0f, 0, new Color(), 1f);
-        Main.dust[index].noGravity = true;
-        Dust dust = Main.dust[index];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 0.5f);
-      }
-      if (Utils.NextBool(Main.rand, 40))
-        SoundEngine.PlaySound(ref SoundID.Pixie, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-      ((Entity) this.NPC).direction = this.NPC.spriteDirection = (double) ((Entity) this.NPC).velocity.X < 0.0 ? -1 : 1;
-      this.NPC.rotation = ((Entity) this.NPC).velocity.X * 0.1f;
-      if (++this.counter > 60 && this.counter < 240)
-      {
-        if (!this.NPC.HasValidTarget)
-          this.NPC.TargetClosest(true);
-        if ((double) ((Entity) this.NPC).Distance(((Entity) Main.player[this.NPC.target]).Center) >= 300.0)
-          return;
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) Main.player[this.NPC.target]).Center), ((Vector2) ref ((Entity) this.NPC).velocity).Length());
-      }
-      else
-      {
-        if (this.counter <= 300)
-          return;
-        this.NPC.SimpleStrikeNPC(int.MaxValue, 0, false, 0.0f, (DamageClass) null, false, 0.0f, true);
-      }
-    }
+        public override void SetDefaults()
+        {
+            NPC.width = 20;
+            NPC.height = 20;
+            NPC.damage = 180;
+            NPC.defense = 0;
+            NPC.lifeMax = 1;
+            NPC.HitSound = SoundID.NPCHit5;
+            NPC.DeathSound = SoundID.NPCDeath7;
+            NPC.value = 0f;
+            NPC.knockBackResist = 0f;
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(ModContent.BuffType<PurifiedBuff>(), 300, true, false);
-    }
+            AnimationType = NPCID.Pixie;
+            NPC.aiStyle = -1;
 
-    public virtual Color? GetAlpha(Color drawColor) => new Color?(Color.White);
+            NPC.dontTakeDamage = true;
+            NPC.noTileCollide = true;
+            NPC.noGravity = true;
+        }
 
-    public virtual void FindFrame(int frameHeight)
-    {
-      if (++this.NPC.frameCounter >= 4.0)
-      {
-        this.NPC.frame.Y += frameHeight;
-        this.NPC.frameCounter = 0.0;
-      }
-      if (this.NPC.frame.Y < frameHeight * Main.npcFrameCount[this.NPC.type])
-        return;
-      this.NPC.frame.Y = 0;
-    }
+        public override bool CanHitPlayer(Player target, ref int CooldownSlot)
+        {
+            CooldownSlot = 1;
+            return true;
+        }
 
-    public virtual void HitEffect(NPC.HitInfo hit)
-    {
-      if (this.NPC.life > 0)
-        return;
-      for (int index1 = 0; index1 < 20; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height, 87, 0.0f, 0.0f, 0, new Color(), 1.5f);
-        Main.dust[index2].noGravity = true;
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
-      }
+        public override void AI()
+        {
+            if (Main.rand.NextBool(6))
+            {
+                int d = Dust.NewDust(NPC.position, NPC.width, NPC.height, DustID.GemTopaz);
+                Main.dust[d].noGravity = true;
+                Main.dust[d].velocity *= 0.5f;
+            }
+
+            if (Main.rand.NextBool(40))
+            {
+                SoundEngine.PlaySound(SoundID.Pixie, NPC.Center);
+            }
+
+            NPC.direction = NPC.spriteDirection = NPC.velocity.X < 0 ? -1 : 1;
+            NPC.rotation = NPC.velocity.X * 0.1f;
+
+            if (++counter > 60 && counter < 240)
+            {
+                if (!NPC.HasValidTarget)
+                    NPC.TargetClosest();
+
+                if (NPC.Distance(Main.player[NPC.target].Center) < 300)
+                {
+                    NPC.velocity = NPC.SafeDirectionTo(Main.player[NPC.target].Center) * NPC.velocity.Length();
+                }
+            }
+            else if (counter > 300)
+            {
+                NPC.SimpleStrikeNPC(int.MaxValue, 0, false, 0, null, false, 0, true);
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
+        {
+            if (WorldSavingSystem.EternityMode)
+                target.AddBuff(ModContent.BuffType<Buffs.Masomode.PurifiedBuff>(), 300);
+        }
+
+        public override Color? GetAlpha(Color drawColor)
+        {
+            return Color.White;
+        }
+
+        public override void FindFrame(int frameHeight)
+        {
+            if (++NPC.frameCounter >= 4)
+            {
+                NPC.frame.Y += frameHeight;
+                NPC.frameCounter = 0;
+            }
+
+            if (NPC.frame.Y >= frameHeight * Main.npcFrameCount[NPC.type])
+            {
+                NPC.frame.Y = 0;
+            }
+        }
+
+        public override void HitEffect(NPC.HitInfo hit)
+        {
+            if (NPC.life <= 0)
+            {
+                for (int i = 0; i < 20; i++)
+                {
+                    int d = Dust.NewDust(NPC.position, NPC.width, NPC.height, DustID.GemTopaz, 0f, 0f, 0, default, 1.5f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity *= 4f;
+                }
+            }
+        }
     }
-  }
 }

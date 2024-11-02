@@ -1,78 +1,91 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Souls.BeeFlower
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Buffs.Souls;
+using FargowiltasSouls.Content.Items;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Souls
 {
-  public class BeeFlower : ModProjectile
-  {
-    public virtual void SetStaticDefaults() => Main.projFrames[this.Projectile.type] = 5;
-
-    public virtual void SetDefaults()
+    public class BeeFlower : ModProjectile
     {
-      ((Entity) this.Projectile).width = 34;
-      ((Entity) this.Projectile).height = 34;
-      this.Projectile.scale = 1f;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Generic;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.timeLeft = 900;
-      this.Projectile.penetrate = 1;
-      this.Projectile.light = 1f;
-    }
 
-    public virtual bool? CanDamage()
-    {
-      return new bool?(this.Projectile.frame == Main.projFrames[this.Projectile.type] - 1);
-    }
+        public override void SetStaticDefaults()
+        {
+            Main.projFrames[Projectile.type] = 5;
+        }
 
-    public virtual void AI()
-    {
-      if (this.Projectile.frame < Main.projFrames[this.Projectile.type] - 1)
-      {
-        if (++this.Projectile.frameCounter % 60 != 0)
-          return;
-        ++this.Projectile.frame;
-      }
-      else
-      {
-        if (!((Entity) Main.LocalPlayer).active || Main.LocalPlayer.dead || Main.LocalPlayer.ghost)
-          return;
-        Rectangle hitbox = ((Entity) Main.LocalPlayer).Hitbox;
-        if (!((Rectangle) ref hitbox).Intersects(((Entity) this.Projectile).Hitbox))
-          return;
-        Main.LocalPlayer.AddBuff(48, 900, true, false);
-        this.BeeSwarm();
-        this.Projectile.Kill();
-      }
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 34;
+            Projectile.height = 34;
+            Projectile.scale = 1;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Generic;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = 60 * 15;
+            Projectile.penetrate = 1;
+            Projectile.light = 1;
+        }
+        public override bool? CanDamage() => Projectile.frame == Main.projFrames[Projectile.type] - 1; //only damage when fully grown
+        public override void AI()
+        {
+            if (Projectile.frame < Main.projFrames[Projectile.type] - 1) //petalinate
+            {
+                if (++Projectile.frameCounter % 60 == 0)
+                {
+                    Projectile.frame++;
+                }
+            }
+            else
+            {
+                if (Main.LocalPlayer.active && !Main.LocalPlayer.dead && !Main.LocalPlayer.ghost && Main.LocalPlayer.Hitbox.Intersects(Projectile.Hitbox))
+                {
+                    Main.LocalPlayer.AddBuff(BuffID.Honey, 60 * 15);
+                    BeeSwarm();
+                    if (Projectile.ai[2] == 1) // life force
+                    {
+                        Main.LocalPlayer.AddBuff(ModContent.BuffType<AmbrosiaBuff>(), 60 * 10);
+                        Main.LocalPlayer.wingTime = Main.LocalPlayer.wingTimeMax;
+                        Main.LocalPlayer.FargoSouls().HealPlayer(10);
+                    }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone) => this.BeeSwarm();
+                    FargoGlobalItem.OnRetrievePickup(Main.LocalPlayer);
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.LiquidsHoneyWater, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-    }
+                    Projectile.Kill();
+                }
+            }
 
-    public void BeeSwarm()
-    {
-      for (int index1 = 0; index1 < 7; ++index1)
-      {
-        Vector2 vector2 = Utils.NextVector2FromRectangle(Main.rand, ((Entity) this.Projectile).Hitbox);
-        int index2 = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), vector2, Vector2.op_Division(Vector2.op_Subtraction(vector2, ((Entity) this.Projectile).Center), 12f), Main.LocalPlayer.beeType(), Main.LocalPlayer.beeDamage((int) ((double) this.Projectile.damage * 0.75)), Main.LocalPlayer.beeKB(this.Projectile.knockBack), ((Entity) Main.LocalPlayer).whoAmI, 0.0f, 0.0f, 0.0f);
-        if (index2 != Main.maxProjectiles)
-          Main.projectile[index2].DamageType = this.Projectile.DamageType;
-      }
+        }
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            BeeSwarm();
+        }
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.LiquidsHoneyWater, Projectile.Center);
+        }
+
+        public void BeeSwarm()
+        {
+            int damage = (int)(Projectile.damage * 0.75f);
+            for (int i = 0; i < 7; i++)
+            {
+                Vector2 pos = Main.rand.NextVector2FromRectangle(Projectile.Hitbox);
+                int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), pos, (pos - Projectile.Center) / 12,
+                    Main.LocalPlayer.beeType(), Main.LocalPlayer.beeDamage(damage), Main.LocalPlayer.beeKB(Projectile.knockBack), Main.LocalPlayer.whoAmI);
+                if (p != Main.maxProjectiles)
+                {
+                    Main.projectile[p].DamageType = Projectile.DamageType;
+                    Main.projectile[p].usesLocalNPCImmunity = true;
+                    Main.projectile[p].localNPCHitCooldown = 15;
+                    if (Projectile.ai[2] == 1)
+                        Main.projectile[p].extraUpdates = 10;
+                }
+                    
+            }
+        }
     }
-  }
 }

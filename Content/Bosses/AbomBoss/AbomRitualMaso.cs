@@ -1,62 +1,97 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.AbomBoss.AbomRitualMaso
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Boss;
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Assets.ExtraTextures;
 using FargowiltasSouls.Content.Projectiles;
 using FargowiltasSouls.Core.Systems;
+using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
-using System;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.AbomBoss
 {
-  public class AbomRitualMaso : BaseArena
-  {
-    private const float realRotation = -0.0174532924f;
-
-    public AbomRitualMaso()
-      : base(-1f * (float) Math.PI / 180f, 1100f, ModContent.NPCType<FargowiltasSouls.Content.Bosses.AbomBoss.AbomBoss>(), 87)
+    public class AbomRitualMaso : BaseArena
     {
-    }
+        private const float realRotation = -MathHelper.Pi / 180f;
 
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
+        public AbomRitualMaso() : base(realRotation, 1100f, ModContent.NPCType<AbomBoss>(), 87) { }
 
-    protected override void Movement(NPC npc)
-    {
-      ((Entity) this.Projectile).velocity = Vector2.op_Subtraction(((Entity) npc).Center, ((Entity) this.Projectile).Center);
-      if ((double) npc.ai[0] != 8.0)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Division(((Entity) projectile).velocity, 40f);
-      }
-      this.rotationPerTick = -1f * (float) Math.PI / 180f;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+            // DisplayName.SetDefault("Abominationn Seal");
+        }
 
-    public override void AI()
-    {
-      base.AI();
-      --this.Projectile.rotation;
-    }
+        protected override void Movement(NPC npc)
+        {
+            Projectile.velocity = npc.Center - Projectile.Center;
+            if (npc.ai[0] != 8) //snaps directly to abom when preparing for p2 attack
+                Projectile.velocity /= 40f;
 
-    public override Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.op_Multiply(new Color((int) byte.MaxValue, (int) byte.MaxValue, 0, 0), this.Projectile.Opacity), (double) this.targetPlayer == (double) Main.myPlayer ? 1f : 0.15f));
-    }
+            rotationPerTick = realRotation;
+        }
 
-    public override void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.AddBuff(ModContent.BuffType<AbomFangBuff>(), 300, true, false);
-        target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 120, true, false);
-      }
-      target.AddBuff(30, 600, true, false);
+        public override void AI()
+        {
+            base.AI();
+            Projectile.rotation -= 1f;
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(255, 255, 0, 0) * Projectile.Opacity * (targetPlayer == Main.myPlayer ? 1f : 0.15f);
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.AddBuff(ModContent.BuffType<Buffs.Boss.AbomFangBuff>(), 300);
+                //player.AddBuff(ModContent.BuffType<Unstable>(), 240);
+                target.AddBuff(ModContent.BuffType<Buffs.Masomode.BerserkedBuff>(), 120);
+            }
+            target.AddBuff(BuffID.Bleeding, 600);
+        }
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Color outerColor = Color.DarkOrange;
+            outerColor.A = 0;
+
+            Color darkColor = outerColor;
+            Color mediumColor = Color.Lerp(outerColor, Color.White, 0.75f);
+            Color lightColor2 = Color.Lerp(outerColor, Color.White, 0.5f);
+
+            Vector2 auraPos = Projectile.Center;
+            float radius = threshold;
+            var target = Main.LocalPlayer;
+            var blackTile = TextureAssets.MagicPixel;
+            var diagonalNoise = FargosTextureRegistry.WavyNoise;
+            if (!blackTile.IsLoaded || !diagonalNoise.IsLoaded)
+                return false;
+            var maxOpacity = Projectile.Opacity * (targetPlayer == Main.myPlayer ? 1f : 0.15f);
+
+            ManagedShader borderShader = ShaderManager.GetShader("FargowiltasSouls.MutantP1Aura");
+            borderShader.TrySetParameter("colorMult", 7.35f);
+            borderShader.TrySetParameter("time", Main.GlobalTimeWrappedHourly);
+            borderShader.TrySetParameter("radius", radius);
+            borderShader.TrySetParameter("anchorPoint", auraPos);
+            borderShader.TrySetParameter("screenPosition", Main.screenPosition);
+            borderShader.TrySetParameter("screenSize", Main.ScreenSize.ToVector2());
+            borderShader.TrySetParameter("playerPosition", target.Center);
+            borderShader.TrySetParameter("maxOpacity", maxOpacity);
+            borderShader.TrySetParameter("darkColor", darkColor.ToVector4());
+            borderShader.TrySetParameter("midColor", mediumColor.ToVector4());
+            borderShader.TrySetParameter("lightColor", lightColor2.ToVector4());
+            Main.spriteBatch.GraphicsDevice.Textures[1] = diagonalNoise.Value;
+
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, borderShader.WrappedEffect, Main.GameViewMatrix.TransformationMatrix);
+            Rectangle rekt = new(Main.screenWidth / 2, Main.screenHeight / 2, Main.screenWidth, Main.screenHeight);
+            Main.spriteBatch.Draw(blackTile.Value, rekt, null, default, 0f, blackTile.Value.Size() * 0.5f, 0, 0f);
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+            return false;
+        }
     }
-  }
 }

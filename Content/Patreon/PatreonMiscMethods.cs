@@ -1,18 +1,14 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.PatreonMiscMethods
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
+﻿using Terraria.ModLoader;
 
-using Terraria.ModLoader;
-
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon
 {
-  public static class PatreonMiscMethods
-  {
-    public static void Load(Mod mod)
+    public static class PatreonMiscMethods
     {
+        public static void Load(Mod mod)
+        {
+            //mod.AddEquipTexture(null, EquipType.Legs, "BetaLeg", "FargowiltasSouls/Content/Patreon/JojoTheGamer/Beta_Legs");
+            //mod.AddEquipTexture(null, EquipType.Body, "BetaBody", "FargowiltasSouls/Content/Patreon/JojoTheGamer/Beta_Body", "FargowiltasSouls/Content/Patreon/JojoTheGamer/Beta_Arms");
+            //mod.AddEquipTexture(null, EquipType.Head, "BetaHead", "FargowiltasSouls/Content/Patreon/JojoTheGamer/Beta_Head");
+        }
     }
-  }
 }

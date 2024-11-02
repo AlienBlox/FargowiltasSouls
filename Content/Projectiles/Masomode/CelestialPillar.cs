@@ -1,244 +1,233 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.CelestialPillar
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class CelestialPillar : ModProjectile
-  {
-    private int target = -1;
-
-    public virtual void SetStaticDefaults()
+    public class CelestialPillar : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 4;
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 10;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        private int target = -1;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 120;
-      ((Entity) this.Projectile).height = 120;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.hostile = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.timeLeft = 600;
-      this.CooldownSlot = 1;
-      this.Projectile.penetrate = -1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 1;
-    }
-
-    public virtual bool? CanDamage() => new bool?(this.Projectile.alpha == 0);
-
-    public virtual void SendExtraAI(BinaryWriter writer) => writer.Write(this.target);
-
-    public virtual void ReceiveExtraAI(BinaryReader reader) => this.target = reader.ReadInt32();
-
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = 1f;
-        int num1;
-        switch ((int) this.Projectile.ai[0])
+        public override void SetStaticDefaults()
         {
-          case 0:
-            num1 = 242;
-            break;
-          case 1:
-            num1 = (int) sbyte.MaxValue;
-            break;
-          case 2:
-            num1 = 229;
-            break;
-          default:
-            num1 = 135;
-            break;
+            // DisplayName.SetDefault("Celestial Pillar");
+            Main.projFrames[Projectile.type] = 4;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 10;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-        int num2 = num1;
-        for (int index = 0; index < 50; ++index)
+
+        public override void SetDefaults()
         {
-          Dust dust1 = Main.dust[Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, num2, 0.0f, 0.0f, 0, new Color(), 1f)];
-          Dust dust2 = dust1;
-          dust2.velocity = Vector2.op_Multiply(dust2.velocity, 10f);
-          dust1.fadeIn = 1f;
-          dust1.scale = (float) (1.0 + (double) Utils.NextFloat(Main.rand) + (double) Main.rand.Next(4) * 0.30000001192092896);
-          if (!Utils.NextBool(Main.rand, 3))
-          {
-            dust1.noGravity = true;
-            Dust dust3 = dust1;
-            dust3.velocity = Vector2.op_Multiply(dust3.velocity, 3f);
-            dust1.scale *= 2f;
-          }
+            Projectile.width = 120;
+            Projectile.height = 120;
+            Projectile.aiStyle = -1;
+            Projectile.alpha = 255;
+            Projectile.hostile = true;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.timeLeft = 600;
+            CooldownSlot = 1;
+            Projectile.penetrate = -1;
+            Projectile.FargoSouls().DeletionImmuneRank = 1;
         }
-      }
-      if (this.Projectile.alpha > 0)
-      {
-        this.Projectile.alpha -= 2;
-        if (this.Projectile.alpha <= 0)
+
+        public override bool? CanDamage()
         {
-          this.Projectile.alpha = 0;
-          if (this.target != -1)
-          {
-            SoundEngine.PlaySound(ref SoundID.Item89, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-            ((Entity) this.Projectile).velocity = Vector2.op_Subtraction(((Entity) Main.player[this.target]).Center, ((Entity) this.Projectile).Center);
-            float num = ((Vector2) ref ((Entity) this.Projectile).velocity).Length();
-            ((Vector2) ref ((Entity) this.Projectile).velocity).Normalize();
-            Projectile projectile = this.Projectile;
-            ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 22f);
-            this.Projectile.timeLeft = (int) ((double) num / 22.0);
-            this.Projectile.netUpdate = true;
-            return;
-          }
-          this.Projectile.Kill();
+            return Projectile.alpha == 0;
         }
-        ((Entity) this.Projectile).velocity.Y += 0.0833333358f;
-        this.Projectile.rotation += ((Vector2) ref ((Entity) this.Projectile).velocity).Length() / 20f;
-        if (this.target >= 0 && ((Entity) Main.player[this.target]).active && !Main.player[this.target].dead)
+
+        public override void SendExtraAI(BinaryWriter writer)
         {
-          if (this.Projectile.alpha < 100)
-            this.Projectile.rotation = Utils.AngleLerp(this.Projectile.rotation, Utils.ToRotation(Vector2.op_Subtraction(((Entity) Main.player[this.target]).Center, ((Entity) this.Projectile).Center)), (float) ((double) ((int) byte.MaxValue - this.Projectile.alpha) / (double) byte.MaxValue * 0.079999998211860657));
+            writer.Write(target);
         }
-        else
+
+        public override void ReceiveExtraAI(BinaryReader reader)
         {
-          int num3 = -1;
-          float num4 = 9000f;
-          for (int index = 0; index < (int) byte.MaxValue; ++index)
-          {
-            if (((Entity) Main.player[index]).active && !Main.player[index].dead)
+            target = reader.ReadInt32();
+        }
+
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0f)
             {
-              float num5 = ((Entity) this.Projectile).Distance(((Entity) Main.player[index]).Center);
-              if ((double) num5 < (double) num4)
-              {
-                num3 = index;
-                num4 = num5;
-              }
+                Projectile.localAI[0] = 1f;
+                var type = (int)Projectile.ai[0] switch
+                {
+                    0 => 242,
+                    1 => 127,
+                    2 => 229,
+                    _ => 135,
+                };
+                for (int index = 0; index < 50; ++index)
+                {
+                    Dust dust = Main.dust[Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, type, 0.0f, 0.0f, 0, new Color(), 1f)];
+                    dust.velocity *= 10f;
+                    dust.fadeIn = 1f;
+                    dust.scale = 1 + Main.rand.NextFloat() + Main.rand.Next(4) * 0.3f;
+                    if (!Main.rand.NextBool(3))
+                    {
+                        dust.noGravity = true;
+                        dust.velocity *= 3f;
+                        dust.scale *= 2f;
+                    }
+                }
             }
-          }
-          if (num3 != -1)
-          {
-            this.target = num3;
-            this.Projectile.netUpdate = true;
-          }
+            if (Projectile.alpha > 0)
+            {
+                Projectile.alpha -= 2;
+                if (Projectile.alpha <= 0)
+                {
+                    Projectile.alpha = 0;
+                    if (target != -1)
+                    {
+                        SoundEngine.PlaySound(FargosSoundRegistry.ThrowShort with { Pitch = -0.5f }, Projectile.Center);
+                        //SoundEngine.PlaySound(SoundID.Item89, Projectile.Center);
+                        Projectile.velocity = Main.player[target].Center - Projectile.Center;
+                        float distance = Projectile.velocity.Length();
+                        Projectile.velocity.Normalize();
+                        const float speed = 22f;
+                        Projectile.velocity *= speed;
+                        Projectile.timeLeft = (int)(distance / speed);
+                        Projectile.netUpdate = true;
+                        return;
+                    }
+                    else
+                    {
+                        Projectile.Kill();
+                    }
+                }
+
+                Projectile.velocity.Y += 10f / 120f;
+                Projectile.rotation += Projectile.velocity.Length() / 20f;
+
+                if (target >= 0 && Main.player[target].active && !Main.player[target].dead)
+                {
+                    if (Projectile.alpha < 100)
+                    {
+                        Projectile.rotation = Projectile.rotation.AngleLerp(
+                          (Main.player[target].Center - Projectile.Center).ToRotation(), (255 - Projectile.alpha) / 255f * 0.08f);
+                    }
+                }
+                else
+                {
+                    int possibleTarget = -1;
+                    float maxDistance = 9000f;
+                    for (int i = 0; i < 255; i++)
+                    {
+                        if (Main.player[i].active && !Main.player[i].dead)
+                        {
+                            float distance = Projectile.Distance(Main.player[i].Center);
+                            if (distance < maxDistance)
+                            {
+                                possibleTarget = i;
+                                maxDistance = distance;
+                            }
+                        }
+                    }
+                    if (possibleTarget != -1)
+                    {
+                        target = possibleTarget;
+                        Projectile.netUpdate = true;
+                    }
+                }
+            }
+            else
+            {
+                Projectile.rotation = Projectile.velocity.ToRotation();
+            }
+            Projectile.frame = (int)Projectile.ai[0];
         }
-      }
-      else
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-      this.Projectile.frame = (int) this.Projectile.ai[0];
-    }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (target.mount.Active)
-        target.mount.Dismount(target);
-      ((Entity) target).velocity.X = (double) ((Entity) this.Projectile).velocity.X < 0.0 ? -15f : 15f;
-      ((Entity) target).velocity.Y = -10f;
-      target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 300, true, false);
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600, true, false);
-      switch ((int) this.Projectile.ai[0])
-      {
-        case 0:
-          target.AddBuff(ModContent.BuffType<ReverseManaFlowBuff>(), 360, true, false);
-          break;
-        case 1:
-          target.AddBuff(ModContent.BuffType<AtrophiedBuff>(), 360, true, false);
-          break;
-        case 2:
-          target.AddBuff(ModContent.BuffType<JammedBuff>(), 360, true, false);
-          break;
-        default:
-          target.AddBuff(ModContent.BuffType<AntisocialBuff>(), 360, true, false);
-          break;
-      }
-      this.Projectile.timeLeft = 0;
-    }
-
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      if (((Entity) Main.LocalPlayer).active && !Main.dedServ)
-        ScreenShakeSystem.StartShake(10f, 6.28318548f, new Vector2?(), 0.333333343f);
-      int num1;
-      switch ((int) this.Projectile.ai[0])
-      {
-        case 0:
-          num1 = 242;
-          break;
-        case 1:
-          num1 = (int) sbyte.MaxValue;
-          break;
-        case 2:
-          num1 = 229;
-          break;
-        default:
-          num1 = 135;
-          break;
-      }
-      int num2 = num1;
-      for (int index = 0; index < 80; ++index)
-      {
-        Dust dust1 = Main.dust[Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, num2, 0.0f, 0.0f, 0, new Color(), 1f)];
-        Dust dust2 = dust1;
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 10f);
-        dust1.fadeIn = 1f;
-        dust1.scale = (float) (1.0 + (double) Utils.NextFloat(Main.rand) + (double) Main.rand.Next(4) * 0.30000001192092896);
-        if (!Utils.NextBool(Main.rand, 3))
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
         {
-          dust1.noGravity = true;
-          Dust dust3 = dust1;
-          dust3.velocity = Vector2.op_Multiply(dust3.velocity, 3f);
-          dust1.scale *= 2f;
+            if (target.mount.Active)
+                target.mount.Dismount(target);
+            target.velocity.X = Projectile.velocity.X < 0 ? -15f : 15f;
+            target.velocity.Y = -10f;
+            target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 300);
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600);
+            switch ((int)Projectile.ai[0])
+            {
+                case 0: target.AddBuff(ModContent.BuffType<ReverseManaFlowBuff>(), 360); break; //nebula
+                case 1: target.AddBuff(ModContent.BuffType<AtrophiedBuff>(), 360); break; //solar
+                case 2: target.AddBuff(ModContent.BuffType<JammedBuff>(), 360); break; //vortex
+                default: target.AddBuff(ModContent.BuffType<AntisocialBuff>(), 360); break; //stardust
+            }
+            Projectile.timeLeft = 0;
         }
-      }
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      for (int index = 0; index < 22; ++index)
-        Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Utils.RotatedBy(Vector2.Normalize(((Entity) this.Projectile).velocity), 0.28559935092926025 * (double) index, new Vector2()), ModContent.ProjectileType<GlowLine>(), this.Projectile.damage / 3, 0.0f, Main.myPlayer, 7f, this.Projectile.ai[0], 0.0f);
-      if (!Main.getGoodWorld)
-        return;
-      FargoSoulsUtil.NewNPCEasy(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, 454, velocity: new Vector2());
-    }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue - this.Projectile.alpha));
-    }
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.Item92, Projectile.Center);
+            if (Main.LocalPlayer.active && !Main.dedServ)
+                ScreenShakeSystem.StartShake(10, shakeStrengthDissipationIncrement: 10f / 30);
+            var type = (int)Projectile.ai[0] switch
+            {
+                0 => 242,
+                1 => 127,
+                2 => 229,
+                _ => 135,
+            };
+            for (int index = 0; index < 80; ++index)
+            {
+                Dust dust = Main.dust[Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, type, 0.0f, 0.0f, 0, new Color(), 1f)];
+                dust.velocity *= 10f;
+                dust.fadeIn = 1f;
+                dust.scale = 1 + Main.rand.NextFloat() + Main.rand.Next(4) * 0.3f;
+                if (!Main.rand.NextBool(3))
+                {
+                    dust.noGravity = true;
+                    dust.velocity *= 3f;
+                    dust.scale *= 2f;
+                }
+            }
+            if (FargoSoulsUtil.HostCheck)
+            {
+                const int max = 22;
+                const float rotationInterval = 2f * (float)Math.PI / max;
+                for (int i = 0; i < max; i++)
+                {
+                    Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.Normalize(Projectile.velocity).RotatedBy(rotationInterval * i),
+                          ModContent.ProjectileType<GlowLine>(), Projectile.damage / 3, 0f, Main.myPlayer, 7, Projectile.ai[0]);
+                }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index += 3)
-      {
-        Color color = Color.op_Multiply(alpha, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+                if (Main.getGoodWorld)
+                    FargoSoulsUtil.NewNPCEasy(Projectile.GetSource_FromThis(), Projectile.Center, NPCID.CultistDragonHead);
+            }
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(255, 255, 255, 255 - Projectile.alpha);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 3)
+            {
+                Color color27 = color26;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, SpriteEffects.None, 0);
+            }
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

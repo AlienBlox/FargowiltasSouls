@@ -1,28 +1,22 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.ThiefCDBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Terraria;
-using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class ThiefCDBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class ThiefCDBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-      Main.buffNoSave[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Thief Cooldown");
+            // Description.SetDefault("Your items cannot be stolen again yet");
+            Main.debuff[Type] = true;
+            Terraria.ID.BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
+            Main.buffNoSave[Type] = true;
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.buffImmune[ModContent.BuffType<LoosePocketsBuff>()] = true;
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.buffImmune[ModContent.BuffType<LoosePocketsBuff>()] = true;
+        }
     }
-  }
 }

@@ -1,126 +1,137 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.CursedCoffin.CoffinSlamShockwave
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.CursedCoffin
 {
-  public class CoffinSlamShockwave : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class CoffinSlamShockwave : ModProjectile
     {
-      Main.projFrames[this.Type] = 3;
-      ProjectileID.Sets.TrailCacheLength[this.Type] = 12;
-      ProjectileID.Sets.TrailingMode[this.Type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 52;
-      ((Entity) this.Projectile).height = 70;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.scale = 1f;
-      this.Projectile.light = 1f;
-      this.Projectile.timeLeft = 180;
-    }
-
-    public virtual void AI()
-    {
-      this.Projectile.Animate((int) Math.Round(12.0 - (double) MathHelper.Clamp((float) (6.0 * (double) ((Entity) this.Projectile).velocity.X / 60.0), 0.0f, 6f)));
-      if ((double) Math.Abs(((Entity) this.Projectile).velocity.X) < 15.0)
-        ((Entity) this.Projectile).velocity.X *= 1.035f;
-      int closest = (int) Player.FindClosest(((Entity) this.Projectile).Center, 0, 0);
-      if (closest.IsWithinBounds((int) byte.MaxValue))
-      {
-        Player player = Main.player[closest];
-        if (player != null && player.Alive())
+        //public override string Texture => FargoSoulsUtil.EmptyTexture;
+        public override void SetStaticDefaults()
         {
-          float num = Math.Abs(((Entity) player).Center.X - ((Entity) this.Projectile).Center.X);
-          this.Projectile.light = (double) num < 500.0 ? (float) ((500.0 - (double) num) / 500.0) : 0.0f;
+            Main.projFrames[Type] = 3;
+            ProjectileID.Sets.TrailCacheLength[Type] = 12;
+            ProjectileID.Sets.TrailingMode[Type] = 2;
         }
-      }
-      ((Entity) this.Projectile).position.Y = MathF.Floor((float) (((double) ((Entity) this.Projectile).position.Y + (double) ((Entity) this.Projectile).height) / 16.0)) * 16f - (float) ((Entity) this.Projectile).height;
-      int num1 = 0;
-      do
-      {
-        ++num1;
-        Point tileCoordinates = Utils.ToTileCoordinates(((Entity) this.Projectile).Bottom);
-        Tile tile1 = ((Tilemap) ref Main.tile)[tileCoordinates.X, tileCoordinates.Y - 1];
-        Tile tile2 = ((Tilemap) ref Main.tile)[tileCoordinates.X, tileCoordinates.Y];
-        bool flag = ((Tile) ref tile1).HasUnactuatedTile && (Main.tileSolid[(int) ((Tile) ref tile1).TileType] || Main.tileSolidTop[(int) ((Tile) ref tile1).TileType]);
-        if ((!((Tile) ref tile2).HasUnactuatedTile ? 0 : (Main.tileSolid[(int) ((Tile) ref tile2).TileType] ? 1 : (Main.tileSolidTop[(int) ((Tile) ref tile2).TileType] ? 1 : 0))) == 0 || flag)
+        public override void SetDefaults()
         {
-          if (flag)
-          {
-            Projectile projectile = this.Projectile;
-            ((Entity) projectile).Center = Vector2.op_Subtraction(((Entity) projectile).Center, Vector2.op_Multiply(Vector2.UnitY, 16f));
-          }
-          else
-          {
-            Projectile projectile = this.Projectile;
-            ((Entity) projectile).Center = Vector2.op_Addition(((Entity) projectile).Center, Vector2.op_Multiply(Vector2.UnitY, 16f));
-          }
+            Projectile.width = 52;
+            Projectile.height = 70;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.scale = 1f;
+            Projectile.light = 1;
+            Projectile.timeLeft = 60 * 3;
+
+            Projectile.hide = true;
         }
-        else
-          break;
-      }
-      while (num1 < 10);
-      if (num1 < 9)
-        return;
-      this.Projectile.Kill();
-    }
+        public float ScaleX = 1;
+        public override void AI()
+        {
 
-    public virtual void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
-    {
-      modifiers.Null();
-    }
+            int frameCounterMax = (int)Math.Round(12 - MathHelper.Clamp(6 * Projectile.velocity.X / 60f, 0, 6));
+            Projectile.Animate(frameCounterMax);
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(ModContent.BuffType<StunnedBuff>(), 120, true, false);
-    }
+            if (Math.Abs(Projectile.velocity.X) < 15)
+                Projectile.velocity.X *= 1.035f;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      float rotation = this.Projectile.rotation;
-      Vector2 center = ((Entity) this.Projectile).Center;
-      Texture2D texture2D = TextureAssets.Projectile[this.Type].Value;
-      Vector2 vector2_1 = Vector2.op_Addition(Vector2.op_Multiply(Vector2.UnitX, (float) ((double) this.Projectile.scale / 2.0 + (double) Math.Abs(((Entity) this.Projectile).velocity.X) / 13.0)), Vector2.op_Multiply(Vector2.UnitY, this.Projectile.scale));
-      int num1 = texture2D.Height / Main.projFrames[this.Type];
-      int num2 = this.Projectile.frame * num1;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = (double) ((Entity) this.Projectile).velocity.X >= 0.0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Main.spriteBatch.End();
-      Main.spriteBatch.Begin((SpriteSortMode) 0, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, (Effect) null, Main.GameViewMatrix.TransformationMatrix);
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(lightColor, 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 vector2_3 = Vector2.op_Addition(this.Projectile.oldPos[index], Vector2.op_Division(((Entity) this.Projectile).Size, 2f));
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(vector2_3, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(color), num3, vector2_2, vector2_1, spriteEffects, 0.0f);
-      }
-      Main.spriteBatch.End();
-      Main.spriteBatch.Begin((SpriteSortMode) 0, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), rotation, vector2_2, vector2_1, spriteEffects, 0.0f);
-      return false;
+            ScaleX = Projectile.scale / 2 + (Math.Abs(Projectile.velocity.X) / 7);
+            Projectile.width = (int)(52f * ScaleX);
+
+            int p = Player.FindClosest(Projectile.Center, 0, 0);
+            if (p.IsWithinBounds(Main.maxPlayers) && Main.player[p] is Player player && player.Alive())
+            {
+                // scaling light amount based on distance
+                float distance = Math.Abs(player.Center.X - Projectile.Center.X);
+                Projectile.light = distance < 500 ? (500 - distance) / 500 : 0;
+            }
+            Vector2 oldPos = Projectile.position;
+            // lock on block grid
+            Projectile.position.Y = (MathF.Floor((Projectile.position.Y + Projectile.height) / 16) * 16) - Projectile.height;
+
+            int i = 0;
+            const int maxIter = 10;
+            do
+            {
+                i++;
+                Point tilePos = Projectile.Bottom.ToTileCoordinates();
+                Tile tile = Main.tile[tilePos.X, tilePos.Y - 1];
+                Tile tileBelow = Main.tile[tilePos.X, tilePos.Y];
+                bool tileSolid = tile.HasUnactuatedTile && (Main.tileSolid[tile.TileType] || Main.tileSolidTop[tile.TileType]);
+                bool tileBelowSolid = tileBelow.HasUnactuatedTile && (Main.tileSolid[tileBelow.TileType] || Main.tileSolidTop[tileBelow.TileType]);
+                if (tileBelowSolid && !tileSolid)
+                    break;
+                if (tileSolid)
+                    Projectile.Center -= Vector2.UnitY * 16;
+                else
+                    Projectile.Center += Vector2.UnitY * 16;
+            }
+            while (i < maxIter);
+
+            if (i >= maxIter - 1)
+                Projectile.Kill();
+
+            Projectile.position = Vector2.Lerp(oldPos, Projectile.position, 0.1f);
+            /*
+            for (int j = 0; j < 5; j++)
+            {
+                Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Sand, Projectile.velocity.X / 2, Main.rand.NextFloat(-5, 5), Scale: Main.rand.NextFloat(1, 3));
+            }
+            */
+        }
+        public override void DrawBehind(int index, List<int> behindNPCsAndTiles, List<int> behindNPCs, List<int> behindProjectiles, List<int> overPlayers, List<int> overWiresUI)
+        {
+            if (Projectile.hide)
+                behindNPCsAndTiles.Add(index);
+        }
+        public override void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
+        {
+            modifiers.Null();
+            modifiers.Knockback *= 0;
+        }
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(BuffID.Dazed, 60 * 2);
+        }
+        public override bool PreDraw(ref Color lightColor)
+        {
+            float rotation = Projectile.rotation;
+            Vector2 drawPos = Projectile.Center + Vector2.UnitY * 10;
+            Texture2D texture = TextureAssets.Projectile[Type].Value;
+
+            Vector2 scale = Vector2.UnitX * ScaleX + Vector2.UnitY * Projectile.scale;
+
+            int sizeY = texture.Height / Main.projFrames[Type]; //ypos of lower right corner of sprite to draw
+            int frameY = Projectile.frame * sizeY;
+            Rectangle rectangle = new(0, frameY, texture.Width, sizeY);
+            Vector2 origin = rectangle.Size() / 2f;
+            SpriteEffects spriteEffects = Projectile.velocity.X >= 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Main.spriteBatch.UseBlendState(BlendState.Additive);
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Type]; i++)
+            {
+                Color oldColor = Color.White;
+                oldColor *= 0.5f;
+                oldColor *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 oldPos = Projectile.oldPos[i] + Projectile.Size / 2 + Vector2.UnitY * 10;
+                float oldRot = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture, oldPos - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), rectangle, Projectile.GetAlpha(oldColor),
+                    oldRot, origin, scale, spriteEffects, 0);
+            }
+            Main.spriteBatch.ResetToDefault();
+            Main.EntitySpriteDraw(texture, drawPos - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), rectangle, Projectile.GetAlpha(Color.White),
+                    rotation, origin, scale, spriteEffects, 0);
+
+            return false;
+        }
     }
-  }
 }

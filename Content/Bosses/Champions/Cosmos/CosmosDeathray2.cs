@@ -1,11 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Cosmos.CosmosDeathray2
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Fargowiltas.NPCs;
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using Fargowiltas.NPCs;
 using FargowiltasSouls.Content.Projectiles.Deathrays;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
@@ -15,113 +8,136 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Cosmos
 {
-  public class CosmosDeathray2 : BaseDeathray
-  {
-    public virtual string Texture
+    public class CosmosDeathray2 : BaseDeathray
     {
-      get => "FargowiltasSouls/Content/Projectiles/Deathrays/ShadowDeathray";
-    }
+        public override string Texture => "FargowiltasSouls/Content/Projectiles/Deathrays/ShadowDeathray";
+        public CosmosDeathray2() : base(180, drawDistance: 3600) { }
 
-    public CosmosDeathray2()
-      : base(180f, drawDistance: 3600)
-    {
-    }
-
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public virtual bool? CanDamage() => new bool?((double) this.Projectile.scale >= 3.0);
-
-    public virtual void AI()
-    {
-      Vector2? nullable = new Vector2?();
-      if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-      if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-      if ((double) this.Projectile.localAI[0] == 0.0)
-        SoundEngine.PlaySound(ref SoundID.Zombie104, new Vector2?(Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(3000f, ((Entity) this.Projectile).velocity))), (SoundUpdateCallback) null);
-      float num1 = 3f;
-      ++this.Projectile.localAI[0];
-      if ((double) this.Projectile.localAI[0] >= (double) this.maxTime)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        this.Projectile.scale = (float) Math.Sin((double) this.Projectile.localAI[0] * 3.1415927410125732 / (double) this.maxTime) * 5f * num1;
-        if ((double) this.Projectile.scale > (double) num1)
-          this.Projectile.scale = num1;
-        float rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-        this.Projectile.rotation = rotation - 1.57079637f;
-        ((Entity) this.Projectile).velocity = Utils.ToRotationVector2(rotation);
-        float length = 3f;
-        int width = ((Entity) this.Projectile).width;
-        Vector2 center = ((Entity) this.Projectile).Center;
-        if (nullable.HasValue)
+        public override void SetStaticDefaults()
         {
-          Vector2 vector2_1 = nullable.Value;
-        }
-        float[] numArray = new float[(int) length];
-        for (int index = 0; index < numArray.Length; ++index)
-          numArray[index] = 6000f;
-        float num2 = 0.0f;
-        for (int index = 0; index < numArray.Length; ++index)
-          num2 += numArray[index];
-        this.Projectile.localAI[1] = MathHelper.Lerp(this.Projectile.localAI[1], num2 / length, 0.5f);
-        Vector2 vector2_2 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, this.Projectile.localAI[1] - 14f));
-        for (int index1 = 0; index1 < 2; ++index1)
-        {
-          float num3 = Utils.ToRotation(((Entity) this.Projectile).velocity) + (float) ((Utils.NextBool(Main.rand, 2) ? -1.0 : 1.0) * 1.5707963705062866);
-          float num4 = (float) (Main.rand.NextDouble() * 2.0 + 2.0);
-          Vector2 vector2_3;
-          // ISSUE: explicit constructor call
-          ((Vector2) ref vector2_3).\u002Ector((float) Math.Cos((double) num3) * num4, (float) Math.Sin((double) num3) * num4);
-          int index2 = Dust.NewDust(vector2_2, 0, 0, 244, vector2_3.X, vector2_3.Y, 0, new Color(), 1f);
-          Main.dust[index2].noGravity = true;
-          Main.dust[index2].scale = 1.7f;
-        }
-        if (Utils.NextBool(Main.rand, 5))
-        {
-          Vector2 vector2_4 = Vector2.op_Multiply(Vector2.op_Multiply(Utils.RotatedBy(((Entity) this.Projectile).velocity, 1.5707963705062866, new Vector2()), (float) Main.rand.NextDouble() - 0.5f), (float) ((Entity) this.Projectile).width);
-          int index = Dust.NewDust(Vector2.op_Subtraction(Vector2.op_Addition(vector2_2, vector2_4), Vector2.op_Multiply(Vector2.One, 4f)), 8, 8, 244, 0.0f, 0.0f, 100, new Color(), 1.5f);
-          Dust dust = Main.dust[index];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 0.5f);
-          Main.dust[index].velocity.Y = -Math.Abs(Main.dust[index].velocity.Y);
-        }
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).position = Vector2.op_Subtraction(((Entity) projectile).position, ((Entity) this.Projectile).velocity);
-        for (int index3 = 0; index3 < 40; ++index3)
-        {
-          int index4 = Dust.NewDust(Vector2.op_Addition(((Entity) this.Projectile).position, Vector2.op_Multiply(((Entity) this.Projectile).velocity, Utils.NextFloat(Main.rand, 6000f))), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 229, 0.0f, 0.0f, 0, new Color(), 1.5f);
-          Main.dust[index4].noGravity = true;
-          Dust dust = Main.dust[index4];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 6f);
-        }
-      }
-    }
+            base.SetStaticDefaults();
 
-    public virtual void ModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers)
-    {
-      if (target.type == ModContent.NPCType<Deviantt>())
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Multiply(local, 4f);
-      }
-      if (target.type != ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>())
-        return;
-      ref StatModifier local1 = ref modifiers.FinalDamage;
-      local1 = StatModifier.op_Multiply(local1, 12f);
-    }
+            // DisplayName.SetDefault("Cosmic Deathray");
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (WorldSavingSystem.EternityMode)
-        target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 360, true, false);
-      ((Entity) target).velocity.X = (double) ((Entity) target).Center.X < (double) ((Entity) this.Projectile).Center.X ? -15f : 15f;
-      ((Entity) target).velocity.Y = -10f;
+        public override bool? CanDamage()
+        {
+            return Projectile.scale >= 3f;
+        }
+
+        public override void AI()
+        {
+            Vector2? vector78 = null;
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+            /*if (Main.npc[(int)Projectile.ai[1]].active && Main.npc[(int)Projectile.ai[1]].type == ModContent.NPCType<CosmosChampion>())
+            {
+                
+            }
+            else
+            {
+                Projectile.Kill();
+                return;
+            }*/
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+            if (Projectile.localAI[0] == 0f)
+            {
+                SoundEngine.PlaySound(SoundID.Zombie104, Projectile.Center + 3000 * Projectile.velocity);
+            }
+            float num801 = 3f;
+            Projectile.localAI[0] += 1f;
+            if (Projectile.localAI[0] >= maxTime)
+            {
+                Projectile.Kill();
+                return;
+            }
+            Projectile.scale = (float)Math.Sin(Projectile.localAI[0] * 3.14159274f / maxTime) * 5f * num801;
+            if (Projectile.scale > num801)
+            {
+                Projectile.scale = num801;
+            }
+            float num804 = Projectile.velocity.ToRotation();
+            //num804 += Projectile.ai[0];
+            Projectile.rotation = num804 - 1.57079637f;
+            //float num804 = Main.npc[(int)Projectile.ai[1]].ai[3] - 1.57079637f + Projectile.ai[0];
+            //if (Projectile.ai[0] != 0f) num804 -= (float)Math.PI;
+            //Projectile.rotation = num804;
+            //num804 += 1.57079637f;
+            Projectile.velocity = num804.ToRotationVector2();
+            float num805 = 3f;
+            float num806 = Projectile.width;
+            Vector2 samplingPoint = Projectile.Center;
+            if (vector78.HasValue)
+            {
+                samplingPoint = vector78.Value;
+            }
+            float[] array3 = new float[(int)num805];
+            //Collision.LaserScan(samplingPoint, Projectile.velocity, num806 * Projectile.scale, 3000f, array3);
+            for (int i = 0; i < array3.Length; i++)
+                array3[i] = 6000f;
+            float num807 = 0f;
+            int num3;
+            for (int num808 = 0; num808 < array3.Length; num808 = num3 + 1)
+            {
+                num807 += array3[num808];
+                num3 = num808;
+            }
+            num807 /= num805;
+            float amount = 0.5f;
+            Projectile.localAI[1] = MathHelper.Lerp(Projectile.localAI[1], num807, amount);
+            Vector2 vector79 = Projectile.Center + Projectile.velocity * (Projectile.localAI[1] - 14f);
+            for (int num809 = 0; num809 < 2; num809 = num3 + 1)
+            {
+                float num810 = Projectile.velocity.ToRotation() + (Main.rand.NextBool(2) ? -1f : 1f) * 1.57079637f;
+                float num811 = (float)Main.rand.NextDouble() * 2f + 2f;
+                Vector2 vector80 = new((float)Math.Cos((double)num810) * num811, (float)Math.Sin((double)num810) * num811);
+                int num812 = Dust.NewDust(vector79, 0, 0, DustID.CopperCoin, vector80.X, vector80.Y, 0, default, 1f);
+                Main.dust[num812].noGravity = true;
+                Main.dust[num812].scale = 1.7f;
+                num3 = num809;
+            }
+            if (Main.rand.NextBool(5))
+            {
+                Vector2 value29 = Projectile.velocity.RotatedBy(1.5707963705062866, default) * ((float)Main.rand.NextDouble() - 0.5f) * Projectile.width;
+                int num813 = Dust.NewDust(vector79 + value29 - Vector2.One * 4f, 8, 8, DustID.CopperCoin, 0f, 0f, 100, default, 1.5f);
+                Dust dust = Main.dust[num813];
+                dust.velocity *= 0.5f;
+                Main.dust[num813].velocity.Y = -Math.Abs(Main.dust[num813].velocity.Y);
+            }
+            //DelegateMethods.v3_1 = new Vector3(0.3f, 0.65f, 0.7f);
+            //Utils.PlotTileLine(Projectile.Center, Projectile.Center + Projectile.velocity * Projectile.localAI[1], (float)Projectile.width * Projectile.scale, new Utils.PerLinePoint(DelegateMethods.CastLight));
+
+            Projectile.position -= Projectile.velocity;
+
+            for (int i = 0; i < 40; i++)
+            {
+                int d = Dust.NewDust(Projectile.position + Projectile.velocity * Main.rand.NextFloat(6000), Projectile.width, Projectile.height, DustID.Vortex, 0f, 0f, 0, default, 1.5f);
+                Main.dust[d].noGravity = true;
+                Main.dust[d].velocity *= 6f;
+            }
+        }
+
+        public override void ModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers)
+        {
+            if (target.type == ModContent.NPCType<Deviantt>())
+                modifiers.FinalDamage *= 4;
+            if (target.type == ModContent.NPCType<DeviBoss.DeviBoss>())
+                modifiers.FinalDamage *= 12;
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+                target.AddBuff(ModContent.BuffType<Buffs.Masomode.CurseoftheMoonBuff>(), 360);
+            target.velocity.X = target.Center.X < Projectile.Center.X ? -15f : 15f;
+            target.velocity.Y = -10f;
+        }
     }
-  }
 }

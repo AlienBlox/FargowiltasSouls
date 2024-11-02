@@ -1,112 +1,114 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.SoulsItem
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.UI.Elements;
+﻿using FargowiltasSouls.Content.UI.Elements;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
-using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Terraria;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using Terraria.UI;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items
 {
-  public abstract class SoulsItem : ModItem
-  {
-    public bool HasDisabledEffects;
-
-    public virtual bool Eternity => false;
-
-    public virtual List<string> Articles
+    /// <summary>
+    /// Abstract class extended by the items of this mod. <br />
+    /// Contains useful code for boilerplate reduction.
+    /// </summary>
+    public abstract class SoulsItem : ModItem
     {
-      get
-      {
-        List<string> articles = new List<string>();
-        CollectionsMarshal.SetCount<string>(articles, 1);
-        Span<string> span = CollectionsMarshal.AsSpan<string>(articles);
-        int num1 = 0;
-        span[num1] = "The";
-        int num2 = num1 + 1;
-        return articles;
-      }
+        /// <summary>
+        /// Whether or not this item is excluse to Eternity Mode. <br />
+        /// If it is, the item's text color will automatically be set to a custom color (can manually be overriden) and "Eternity" will be added to the end of the item's tooltips.
+        /// </summary>
+        public virtual bool Eternity => false;
+
+        /// <summary>
+        /// A list of articles that this item may begin with depending on localization. <br />
+        /// Used for the prefix-article fix.
+        /// </summary>
+        public virtual List<string> Articles => ["The"];
+
+        /// <summary>
+        /// Allows you to modify all the tooltips that display for this item. <br />
+        /// Called directly after the code in <see cref="SafeModifyTooltips(List{TooltipLine})"/>.
+        /// </summary>
+        /// <param name="tooltips"></param>
+        public virtual void SafeModifyTooltips(List<TooltipLine> tooltips)
+        {
+        }
+
+        /// <summary>
+        /// The location of the item's glowmask texture, defaults to the item's internal texture name with _glow
+        /// </summary>
+        public virtual string Glowmaskstring => Texture + "_glow";
+
+        /// <summary>
+        /// The amount of frames in the item's animation. <br />
+        /// </summary>
+        public virtual int NumFrames => 1;
+
+        /// <summary>
+        /// Whether this item currently has togglable effects that are disabled. Used for tooltip. <br />
+        /// </summary>
+        public bool HasDisabledEffects = false;
+
+        /// <summary>
+        /// Allows you to draw things in front of this item. This method is called even if PreDrawInWorld returns false. <br />
+        /// Runs directly after the code for PostDrawInWorld in SoulsItem.
+        /// </summary>
+        public virtual void SafePostDrawInWorld(SpriteBatch spriteBatch, Color lightColor, Color alphaColor, float rotation, float scale, int whoAmI) { }
+
+        public sealed override void PostDrawInWorld(SpriteBatch spriteBatch, Color lightColor, Color alphaColor, float rotation, float scale, int whoAmI)
+        {
+            if (Mod.RequestAssetIfExists(Glowmaskstring, out Asset<Texture2D> _))
+            {
+                Item item = Main.item[whoAmI];
+                Texture2D texture = ModContent.Request<Texture2D>(Glowmaskstring, AssetRequestMode.ImmediateLoad).Value;
+                int height = texture.Height / NumFrames;
+                int width = texture.Width;
+                int frame = NumFrames > 1 ? height * Main.itemFrame[whoAmI] : 0;
+                SpriteEffects flipdirection = item.direction < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+                Rectangle Origin = new(0, frame, width, height);
+                Vector2 DrawCenter = new(item.Center.X, item.position.Y + item.height - height / 2);
+                Main.EntitySpriteDraw(texture, DrawCenter - Main.screenPosition, Origin, Color.White, rotation, Origin.Size() / 2, scale, flipdirection, 0);
+            }
+            SafePostDrawInWorld(spriteBatch, lightColor, alphaColor, rotation, scale, whoAmI);
+        }
+
+
+        public sealed override void ModifyTooltips(List<TooltipLine> tooltips)
+        {
+            if (tooltips.TryFindTooltipLine("ItemName", out TooltipLine itemNameLine))
+            {
+                // This is often overridden.
+                if (Eternity)
+                    itemNameLine.OverrideColor = FargowiltasSouls.EModeColor();
+
+                // Call the artcle-prefix adjustment method.
+                // This automatically handles fixing item names that begin with an article.
+                //itemNameLine.ArticlePrefixAdjustment(Articles.ToArray());
+            }
+
+            string vanityKey = $"Mods.{Mod.Name}.Items.{Name}.VanityTooltip";
+            if (Language.Exists(vanityKey))
+            {
+                if (tooltips.FindIndex(line => line.Name == "SocialDesc") is int socialIndex && socialIndex != -1)
+                {
+                    tooltips.RemoveAt(socialIndex);
+                    tooltips.Insert(socialIndex, new TooltipLine(Mod, "SoulsVanityTooltip", Language.GetTextValue(vanityKey)));
+                }
+            }
+
+            SafeModifyTooltips(tooltips);
+
+            // Add the Eternity toolip after tooltip modification in order to be displayed underneath any manual tooltips (i.e. SoE cycling).
+            if (Eternity)
+                tooltips.Add(new TooltipLine(Mod, $"{Mod.Name}:Eternity", Language.GetTextValue($"Mods.FargowiltasSouls.Items.Extra.EternityItem")));
+            if (HasDisabledEffects)
+            {
+                string text = $"[i:{ModContent.ItemType<TogglerIconItem>()}] [c/BC5252:{Language.GetTextValue($"Mods.FargowiltasSouls.Items.Extra.DisabledEffects")}]";
+                tooltips.Add(new TooltipLine(Mod, $"{Mod.Name}:DisabledEffects", text));
+            }
+        }
     }
-
-    public virtual void SafeModifyTooltips(List<TooltipLine> tooltips)
-    {
-    }
-
-    public virtual string Glowmaskstring => this.Texture + "_glow";
-
-    public virtual int NumFrames => 1;
-
-    public virtual void SafePostDrawInWorld(
-      SpriteBatch spriteBatch,
-      Color lightColor,
-      Color alphaColor,
-      float rotation,
-      float scale,
-      int whoAmI)
-    {
-    }
-
-    public virtual void PostDrawInWorld(
-      SpriteBatch spriteBatch,
-      Color lightColor,
-      Color alphaColor,
-      float rotation,
-      float scale,
-      int whoAmI)
-    {
-      Asset<Texture2D> asset;
-      if (((ModType) this).Mod.RequestAssetIfExists<Texture2D>(this.Glowmaskstring, ref asset))
-      {
-        Item obj = Main.item[whoAmI];
-        Texture2D texture2D = ModContent.Request<Texture2D>(this.Glowmaskstring, (AssetRequestMode) 1).Value;
-        int num1 = texture2D.Height / this.NumFrames;
-        int width = texture2D.Width;
-        int num2 = this.NumFrames > 1 ? num1 * Main.itemFrame[whoAmI] : 0;
-        SpriteEffects spriteEffects = ((Entity) obj).direction < 0 ? (SpriteEffects) 1 : (SpriteEffects) 0;
-        Rectangle rectangle;
-        // ISSUE: explicit constructor call
-        ((Rectangle) ref rectangle).\u002Ector(0, num2, width, num1);
-        Vector2 vector2;
-        // ISSUE: explicit constructor call
-        ((Vector2) ref vector2).\u002Ector(((Entity) obj).Center.X, ((Entity) obj).position.Y + (float) ((Entity) obj).height - (float) (num1 / 2));
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Subtraction(vector2, Main.screenPosition), new Rectangle?(rectangle), Color.White, rotation, Vector2.op_Division(Utils.Size(rectangle), 2f), scale, spriteEffects, 0.0f);
-      }
-      this.SafePostDrawInWorld(spriteBatch, lightColor, alphaColor, rotation, scale, whoAmI);
-    }
-
-    public virtual void ModifyTooltips(List<TooltipLine> tooltips)
-    {
-      TooltipLine tooltipLine;
-      if (tooltips.TryFindTooltipLine("ItemName", out tooltipLine))
-      {
-        if (this.Eternity)
-          tooltipLine.OverrideColor = new Color?(FargowiltasSouls.FargowiltasSouls.EModeColor());
-        tooltipLine.ArticlePrefixAdjustment(this.Articles.ToArray());
-      }
-      this.SafeModifyTooltips(tooltips);
-      if (this.Eternity)
-        tooltips.Add(new TooltipLine(((ModType) this).Mod, ((ModType) this).Mod.Name + ":Eternity", Language.GetTextValue("Mods.FargowiltasSouls.Items.Extra.EternityItem")));
-      if (!this.HasDisabledEffects)
-        return;
-      DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(16, 2);
-      interpolatedStringHandler.AppendLiteral("[i:");
-      interpolatedStringHandler.AppendFormatted<int>(ModContent.ItemType<TogglerIconItem>());
-      interpolatedStringHandler.AppendLiteral("] [c/BC5252:");
-      interpolatedStringHandler.AppendFormatted(Language.GetTextValue("Mods.FargowiltasSouls.Items.Extra.DisabledEffects"));
-      interpolatedStringHandler.AppendLiteral("]");
-      string stringAndClear = interpolatedStringHandler.ToStringAndClear();
-      tooltips.Add(new TooltipLine(((ModType) this).Mod, ((ModType) this).Mod.Name + ":DisabledEffects", stringAndClear));
-    }
-  }
 }

@@ -1,128 +1,135 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Armor.GaiaHelmet
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Armor
 {
-  [AutoloadEquip]
-  public class GaiaHelmet : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    [AutoloadEquip(EquipType.Head)]
+    public class GaiaHelmet : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 18;
-      ((Entity) this.Item).height = 18;
-      this.Item.rare = 8;
-      this.Item.value = Item.sellPrice(0, 5, 0, 0);
-      this.Item.defense = 15;
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 18;
+            Item.height = 18;
+            Item.rare = ItemRarityID.Yellow;
+            Item.value = Item.sellPrice(0, 5);
+            Item.defense = 15;
+        }
 
-    public virtual void UpdateEquip(Player player)
-    {
-      ref StatModifier local = ref player.GetDamage(DamageClass.Generic);
-      local = StatModifier.op_Addition(local, 0.1f);
-      player.GetCritChance(DamageClass.Generic) += 5f;
-      ++player.maxMinions;
-    }
+        public override void UpdateEquip(Player player)
+        {
+            player.GetDamage(DamageClass.Generic) += 0.1f;
+            player.GetCritChance(DamageClass.Generic) += 5;
 
-    public virtual bool IsArmorSet(Item head, Item body, Item legs)
-    {
-      return body.type == ModContent.ItemType<GaiaPlate>() && legs.type == ModContent.ItemType<GaiaGreaves>();
-    }
+            player.maxMinions += 1;
+        }
 
-    public virtual void ArmorSetShadows(Player player)
-    {
-      if (!player.FargoSouls().GaiaOffense)
-        return;
-      player.armorEffectDrawOutlinesForbidden = true;
-      player.armorEffectDrawShadow = true;
-    }
+        public override bool IsArmorSet(Item head, Item body, Item legs)
+        {
+            return body.type == ModContent.ItemType<GaiaPlate>() && legs.type == ModContent.ItemType<GaiaGreaves>();
+        }
 
-    public virtual void UpdateArmorSet(Player player)
-    {
-      player.setBonus = GaiaHelmet.getSetBonusString();
-      GaiaHelmet.GaiaSetBonus(player);
-    }
+        public override void ArmorSetShadows(Player player)
+        {
+            FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+            if (fargoPlayer.GaiaOffense)
+            {
+                player.armorEffectDrawOutlinesForbidden = true;
+                player.armorEffectDrawShadow = true;
+            }
+        }
 
-    public static string getSetBonusString()
-    {
-      return Language.GetTextValue("Mods.FargowiltasSouls.SetBonus.Gaia", (object) Language.GetTextValue(Main.ReversedUpDownArmorSetBonuses ? "Key.UP" : "Key.DOWN"));
-    }
+        public override void UpdateArmorSet(Player player)
+        {
+            player.setBonus = getSetBonusString();
+            GaiaSetBonus(player);
+        }
 
-    public static void GaiaSetBonusKey(Player player)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (!fargoSoulsPlayer.GaiaSet)
-        return;
-      fargoSoulsPlayer.GaiaOffense = !fargoSoulsPlayer.GaiaOffense;
-      if (fargoSoulsPlayer.GaiaOffense)
-        SoundEngine.PlaySound(ref SoundID.Item4, new Vector2?(((Entity) player).Center), (SoundUpdateCallback) null);
-      Vector2 vector2_1 = Utils.RotatedByRandom(Vector2.UnitX, 2.0 * Math.PI);
-      for (int index1 = 0; index1 < 36; ++index1)
-      {
-        Vector2 vector2_2 = Vector2.op_Addition(Utils.RotatedBy(Vector2.op_Multiply(vector2_1, 6f), (double) (index1 - 17) * 6.2831854820251465 / 36.0, new Vector2()), ((Entity) player).Center);
-        Vector2 vector2_3 = Vector2.op_Subtraction(vector2_2, ((Entity) player).Center);
-        int index2 = Dust.NewDust(Vector2.op_Addition(vector2_2, vector2_3), 0, 0, Utils.NextBool(Main.rand) ? 107 : 110, 0.0f, 0.0f, 0, new Color(), 1f);
-        Main.dust[index2].scale = 2.5f;
-        Main.dust[index2].noGravity = true;
-        Main.dust[index2].velocity = vector2_3;
-      }
-    }
+        public static string getSetBonusString()
+        {
+            string key = Language.GetTextValue(Main.ReversedUpDownArmorSetBonuses ? "Key.UP" : "Key.DOWN");
+            return Language.GetTextValue($"Mods.FargowiltasSouls.SetBonus.Gaia", key);
+        }
+        public static void GaiaSetBonusKey(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (modPlayer.GaiaSet)
+            {
+                modPlayer.GaiaOffense = !modPlayer.GaiaOffense;
 
-    public static void GaiaSetBonus(Player player)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      fargoSoulsPlayer.GaiaSet = true;
-      player.GetAttackSpeed(DamageClass.Melee) += 0.1f;
-      player.manaCost -= 0.1f;
-      player.maxMinions += 4;
-      if (!fargoSoulsPlayer.GaiaOffense)
-        return;
-      DamageClass damageClass = player.ProcessDamageTypeFromHeldItem();
-      ref StatModifier local = ref player.GetDamage(damageClass);
-      local = StatModifier.op_Addition(local, 0.3f);
-      player.GetCritChance(damageClass) += 15f;
-      player.GetArmorPenetration(DamageClass.Generic) += 20f;
-      Player player1 = player;
-      player1.statDefense = Player.DefenseStat.op_Subtraction(player1.statDefense, 20);
-      player.statLifeMax2 -= player.statLifeMax / 10;
-      player.endurance -= 0.15f;
-      Lighting.AddLight(((Entity) player).Center, new Vector3(1f, 1f, 1f));
-      if (!Utils.NextBool(Main.rand, 3))
-        return;
-      float num1 = 2f;
-      int num2 = Utils.NextBool(Main.rand) ? 107 : 110;
-      int index = Dust.NewDust(((Entity) player).position, ((Entity) player).width, ((Entity) player).height, num2, ((Entity) player).velocity.X * 0.4f, ((Entity) player).velocity.Y * 0.4f, 87, new Color(), num1);
-      Main.dust[index].noGravity = true;
-      --Main.dust[index].velocity.Y;
-      Dust dust = Main.dust[index];
-      dust.velocity = Vector2.op_Multiply(dust.velocity, 1.8f);
-      if (!Utils.NextBool(Main.rand, 4))
-        return;
-      Main.dust[index].noGravity = false;
-      Main.dust[index].scale *= 0.5f;
-    }
+                if (modPlayer.GaiaOffense)
+                    SoundEngine.PlaySound(SoundID.Item4, player.Center);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(2218, 3).AddIngredient(1552, 6).AddIngredient(3261, 6).AddIngredient(1729, 100).AddTile(412).Register();
+                Vector2 baseVel = Vector2.UnitX.RotatedByRandom(2 * Math.PI);
+                const int max = 36; //make some indicator dusts
+                for (int i = 0; i < max; i++)
+                {
+                    Vector2 vector6 = baseVel * 6f;
+                    vector6 = vector6.RotatedBy((i - (max / 2 - 1)) * 6.28318548f / max) + player.Center;
+                    Vector2 vector7 = vector6 - player.Center;
+                    int d = Dust.NewDust(vector6 + vector7, 0, 0, Main.rand.NextBool() ? 107 : 110, 0f, 0f, 0, default);
+                    Main.dust[d].scale = 2.5f;
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity = vector7;
+                }
+            }
+        }
+        public static void GaiaSetBonus(Player player)
+        {
+            FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+            fargoPlayer.GaiaSet = true;
+
+            player.GetAttackSpeed(DamageClass.Melee) += 0.1f;
+            player.manaCost -= 0.1f;
+            player.maxMinions += 4;
+
+
+            if (fargoPlayer.GaiaOffense)
+            {
+                DamageClass damageClass = player.ProcessDamageTypeFromHeldItem();
+                player.GetDamage(damageClass) += 0.30f;
+                player.GetCritChance(damageClass) += 15;
+                player.GetArmorPenetration(DamageClass.Generic) += 20;
+                player.statDefense -= 20;
+                player.statLifeMax2 -= player.statLifeMax / 10;
+                player.endurance -= 0.15f;
+                Lighting.AddLight(player.Center, new Vector3(1, 1, 1));
+                if (Main.rand.NextBool(3)) //visual dust
+                {
+                    float scale = 2f;
+                    int type = Main.rand.NextBool() ? 107 : 110;
+                    int dust = Dust.NewDust(player.position, player.width, player.height, type, player.velocity.X * 0.4f, player.velocity.Y * 0.4f, 87, default, scale);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].velocity.Y -= 1f;
+                    Main.dust[dust].velocity *= 1.8f;
+                    if (Main.rand.NextBool(4))
+                    {
+                        Main.dust[dust].noGravity = false;
+                        Main.dust[dust].scale *= 0.5f;
+                    }
+                }
+            }
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ItemID.BeetleHusk, 3)
+            .AddIngredient(ItemID.ShroomiteBar, 6)
+            .AddIngredient(ItemID.SpectreBar, 6)
+            .AddIngredient(ItemID.SpookyWood, 100)
+            .AddTile(TileID.LunarCraftingStation)
+
+            .Register();
+        }
     }
-  }
 }

@@ -1,312 +1,370 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.GlowRing
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Common.Graphics.Particles;
 using FargowiltasSouls.Content.Bosses.VanillaEternity;
 using FargowiltasSouls.Content.NPCs.EternityModeNPCs;
+using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
-using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles
 {
-  public class GlowRing : ModProjectile
-  {
-    public Color color = new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, 0);
-
-    public virtual void SetStaticDefaults()
+    public class GlowRing : ModProjectile
     {
-      ProjectileID.Sets.DrawScreenCheckFluff[this.Projectile.type] = 2400;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 64;
-      ((Entity) this.Projectile).height = 64;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.penetrate = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.alpha = 0;
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
-
-    public virtual void AI()
-    {
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0]);
-      if (npc != null)
-        ((Entity) this.Projectile).Center = ((Entity) npc).Center;
-      float num1 = 12f;
-      int num2 = 30;
-      bool flag = false;
-      switch ((int) this.Projectile.ai[1])
-      {
-        case -24:
-          num2 = 60;
-          float num3 = this.Projectile.localAI[0] / (float) num2;
-          num1 = (float) (1.0 + 50.0 * (double) num3);
-          this.color = Color.Blue;
-          this.Projectile.alpha = (int) ((double) byte.MaxValue * (1.0 - (double) num3));
-          ((Color) ref this.color).A = (byte) 0;
-          break;
-        case -23:
-          flag = true;
-          num2 = 90;
-          float num4 = this.Projectile.localAI[0] / (float) num2;
-          float num5 = 1f - num4;
-          this.color = new Color((int) byte.MaxValue, 105, 180);
-          this.Projectile.alpha = (int) ((double) byte.MaxValue * (double) num5);
-          this.Projectile.scale = (float) (0.20000000298023224 + 0.800000011920929 * (double) num4);
-          if (npc != null)
-          {
-            Projectile projectile = this.Projectile;
-            ((Entity) projectile).Center = Vector2.op_Addition(((Entity) projectile).Center, Vector2.op_Multiply(Utils.RotatedBy(Vector2.UnitY, (double) npc.rotation, new Vector2()), 15f));
-          }
-          Vector2 worldPosition1 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitX, 6.2831854820251465), 120f * num5 * Utils.NextFloat(Main.rand, 0.6f, 1.3f)), 2f));
-          float lifetime1 = 15f;
-          Vector2 velocity1 = Vector2.op_Division(Vector2.op_Subtraction(((Entity) this.Projectile).Center, worldPosition1), lifetime1);
-          float scale1 = (float) (2.0 - (double) num4 * 1.2000000476837158);
-          new SparkParticle(worldPosition1, velocity1, this.color, scale1, (int) lifetime1).Spawn();
-          break;
-        case -22:
-          flag = true;
-          num2 = 645;
-          if (npc != null && npc.type == 114 && (npc.GetGlobalNPC<WallofFleshEye>().HasTelegraphedNormalLasers || Main.netMode == 1))
-          {
-            this.Projectile.rotation = npc.rotation + (((Entity) npc).direction > 0 ? 0.0f : 3.14159274f);
-            ((Entity) this.Projectile).velocity = Utils.ToRotationVector2(this.Projectile.rotation);
-            ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply((float) (((Entity) npc).width - 52), Utils.RotatedBy(Vector2.UnitX, (double) this.Projectile.rotation, new Vector2())));
-            if ((double) this.Projectile.localAI[0] < (double) npc.localAI[1])
-              this.Projectile.localAI[0] = (float) (int) npc.localAI[1];
-            float num6 = (float) Math.Cos(Math.PI / 2.0 / (double) num2 * (double) this.Projectile.localAI[0]);
-            this.color = Color.op_Multiply(new Color((int) byte.MaxValue, 0, (int) byte.MaxValue, 100), 1f - num6);
-            this.Projectile.alpha = (int) ((double) byte.MaxValue * (double) num6);
-            this.Projectile.scale = 18f * num6;
-            break;
-          }
-          this.Projectile.Kill();
-          return;
-        case -21:
-          num1 = 4f;
-          num2 = 60;
-          break;
-        case -20:
-          flag = true;
-          num2 = 200;
-          float num7 = this.Projectile.localAI[0] / (float) num2;
-          float num8 = 1f - num7;
-          this.color = new Color((int) byte.MaxValue, 105, 180);
-          this.Projectile.alpha = (int) ((double) byte.MaxValue * (double) num8);
-          this.Projectile.scale = (float) (0.20000000298023224 + 0.800000011920929 * (double) num7);
-          if (npc != null)
-          {
-            Projectile projectile = this.Projectile;
-            ((Entity) projectile).Center = Vector2.op_Addition(((Entity) projectile).Center, Vector2.op_Multiply(Utils.RotatedBy(Vector2.UnitY, (double) npc.rotation, new Vector2()), 15f));
-          }
-          Vector2 worldPosition2 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitX, 6.2831854820251465), 120f * num8 * Utils.NextFloat(Main.rand, 0.6f, 1.3f)));
-          float lifetime2 = 15f;
-          Vector2 velocity2 = Vector2.op_Division(Vector2.op_Subtraction(((Entity) this.Projectile).Center, worldPosition2), lifetime2);
-          float scale2 = (float) (2.0 - (double) num7 * 1.2000000476837158);
-          new SparkParticle(worldPosition2, velocity2, this.color, scale2, (int) lifetime2).Spawn();
-          break;
-        case -19:
-          this.color = Color.Yellow;
-          ((Color) ref this.color).A = (byte) 0;
-          num1 = 18f;
-          break;
-        case -18:
-          num1 = 36f;
-          num2 = 120;
-          break;
-        case -17:
-          num1 = 6f;
-          goto case -16;
-        case -16:
-          this.color = new Color((int) byte.MaxValue, 51, 153, 0);
-          break;
-        case -15:
-          num1 = 18f;
-          goto case -16;
-        case -14:
-          num1 = 24f;
-          goto case -16;
-        case -13:
-          this.color = new Color(93, (int) byte.MaxValue, 241, 0);
-          num1 = 6f;
-          num2 = 15;
-          break;
-        case -12:
-          this.color = new Color(0, 0, (int) byte.MaxValue, 0);
-          num2 = 45;
-          break;
-        case -11:
-          this.color = new Color(0, (int) byte.MaxValue, 0, 0);
-          num2 = 45;
-          break;
-        case -10:
-          this.color = new Color(0, (int) byte.MaxValue, (int) byte.MaxValue, 0);
-          num2 = 45;
-          break;
-        case -9:
-          this.color = new Color((int) byte.MaxValue, (int) byte.MaxValue, 0, 0);
-          num2 = 45;
-          break;
-        case -8:
-          this.color = new Color((int) byte.MaxValue, (int) sbyte.MaxValue, 40, 0);
-          num2 = 45;
-          break;
-        case -7:
-          this.color = new Color((int) byte.MaxValue, 0, 0, 0);
-          num2 = 45;
-          break;
-        case -6:
-          this.color = new Color((int) byte.MaxValue, (int) byte.MaxValue, 0, 0);
-          num1 = 18f;
-          break;
-        case -5:
-          this.color = new Color(200, 0, (int) byte.MaxValue, 0);
-          num1 = 18f;
-          break;
-        case -4:
-          this.color = new Color((int) byte.MaxValue, (int) byte.MaxValue, 0, 0);
-          num1 = 18f;
-          num2 = 60;
-          break;
-        case -3:
-          this.color = new Color((int) byte.MaxValue, 100, 0, 0);
-          num1 = 18f;
-          num2 = 60;
-          break;
-        case -2:
-          this.color = new Color(51, (int) byte.MaxValue, 191, 0);
-          num1 = 18f;
-          break;
-        case -1:
-          this.color = new Color(200, 0, 200, 0);
-          num2 = 60;
-          break;
-        case 4:
-          this.color = new Color(51, (int) byte.MaxValue, 191, 0);
-          num2 = 45;
-          break;
-        case 114:
-          this.color = new Color(93, (int) byte.MaxValue, 241, 0);
-          num1 = 12f;
-          num2 = 30;
-          break;
-        case 125:
-          this.color = new Color((int) byte.MaxValue, 0, 0, 0);
-          num1 = 24f;
-          num2 = 60;
-          break;
-        case 128:
-        case 129:
-        case 130:
-        case 131:
-          this.color = new Color(51, (int) byte.MaxValue, 191, 0);
-          num1 = 12f;
-          num2 = 30;
-          break;
-        case 222:
-          this.color = new Color((int) byte.MaxValue, (int) byte.MaxValue, 100, 0);
-          num2 = 45;
-          break;
-        case 396:
-        case 397:
-        case 398:
-          this.color = new Color(51, (int) byte.MaxValue, 191, 0);
-          num1 = 12f;
-          num2 = 60;
-          break;
-        case 439:
-          this.color = new Color((int) byte.MaxValue, (int) sbyte.MaxValue, 40, 0);
-          break;
-        case 657:
-          this.color = Color.HotPink;
-          ((Color) ref this.color).A = (byte) 200;
-          num1 = 6f;
-          num2 = 60;
-          if ((double) this.Projectile.localAI[0] > (double) num2 * 0.25 && NPC.AnyNPCs(ModContent.NPCType<GelatinSubject>()))
-            this.Projectile.localAI[0] = (float) num2 * 0.25f;
-          if (npc != null)
-          {
-            ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) npc).Bottom, Vector2.op_Multiply((float) (((Entity) npc).height / 2), Vector2.op_UnaryNegation(Utils.RotatedBy(Vector2.UnitY, (double) npc.rotation, new Vector2()))));
-            break;
-          }
-          break;
-        case 668:
-          this.color = npc.life < npc.lifeMax / 3 ? Color.Red : Color.LightSkyBlue;
-          ((Color) ref this.color).A = (byte) 0;
-          num1 = 9f;
-          num2 = 30;
-          if (npc != null)
-          {
-            ((Entity) this.Projectile).Center = ((Entity) npc).direction < 0 ? ((Entity) npc).TopLeft : ((Entity) npc).TopRight;
-            break;
-          }
-          break;
-        default:
-          Main.NewText("glow ring: you shouldnt be seeing this text, show terry", byte.MaxValue, byte.MaxValue, byte.MaxValue);
-          break;
-      }
-      if ((double) ++this.Projectile.localAI[0] > (double) num2)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if (!flag)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.scale = num1 * (float) Math.Sin(Math.PI / 2.0 * (double) this.Projectile.localAI[0] / (double) num2);
-          this.Projectile.alpha = (int) ((double) byte.MaxValue * (double) this.Projectile.localAI[0] / (double) num2);
+            // DisplayName.SetDefault("Glow Ring");
+            ProjectileID.Sets.DrawScreenCheckFluff[Projectile.type] = 2400;
         }
-        if (this.Projectile.alpha < 0)
-          this.Projectile.alpha = 0;
-        if (this.Projectile.alpha <= (int) byte.MaxValue)
-          return;
-        this.Projectile.alpha = (int) byte.MaxValue;
-      }
-    }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(this.color, this.Projectile.Opacity));
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 64;
+            Projectile.height = 64;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.aiStyle = -1;
+            Projectile.penetrate = -1;
+            Projectile.hostile = true;
+            Projectile.alpha = 0;
+            //Projectile.timeLeft = 1200;
+            Projectile.FargoSouls().TimeFreezeImmune = true;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      if ((double) this.Projectile.ai[1] == 657.0)
-      {
-        Main.spriteBatch.End();
-        Main.spriteBatch.Begin((SpriteSortMode) 1, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, (Effect) null, Main.Transform);
-        GameShaders.Misc["HallowBoss"].Apply(new DrawData?());
-      }
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = texture2D.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      if ((double) this.Projectile.ai[1] == 657.0)
-      {
-        Main.spriteBatch.End();
-        Main.spriteBatch.Begin((SpriteSortMode) 0, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      }
-      return false;
+        public Color color = new(255, 255, 255, 0);
+
+        public override void AI()
+        {
+
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[0]);
+            if (npc != null)
+                Projectile.Center = npc.Center;
+
+            float scale = 12f;
+            int maxTime = 30;
+            bool customScaleAlpha = false;
+
+            switch ((int)Projectile.ai[1])
+            {
+                case -24: //baron debuff apply at opening
+                    {
+                        //customScaleAlpha = true;
+                        maxTime = 60;
+                        float modifier = Projectile.localAI[0] / maxTime;
+                        scale = 1 + 50 * modifier;
+                        color = Color.Blue;
+                        Projectile.alpha = (int)(255f * (1f - modifier));
+                        color.A = 0;
+                    }
+                    break;
+                case -23: //eridanus general punch telegraph
+                    {
+                        customScaleAlpha = true;
+                        maxTime = 90;
+                        float modifier = Projectile.localAI[0] / maxTime;
+                        float progress = 1 - modifier;
+                        color = new Color(255, 105, 180);
+                        //color = new Color(51, 255, 191) * modifier; OLD BLUE
+                        //if (maxTime - Projectile.localAI[0] < 10)
+                        //color = Color.White;
+                        Projectile.alpha = (int)(255f * (progress));
+                        //Projectile.scale = 3f * 9f * (1f - modifier);
+                        Projectile.scale = 0.2f + 0.8f * modifier;
+
+                        if (npc != null)
+                            Projectile.Center += Vector2.UnitY.RotatedBy(npc.rotation) * 15;
+
+                        Vector2 sparkDir = Vector2.UnitX.RotatedByRandom(MathHelper.TwoPi);
+                        float sparkDistance = (120 * progress) * Main.rand.NextFloat(0.6f, 1.3f);
+                        Vector2 sparkCenter = Projectile.Center + sparkDir * sparkDistance * 2;
+                        float sparkTime = 15;
+                        Vector2 sparkVel = (Projectile.Center - sparkCenter) / sparkTime;
+                        float sparkScale = 2f - modifier * 1.2f;
+                        Particle spark = new SparkParticle(sparkCenter, sparkVel, color, sparkScale, (int)sparkTime);
+                        spark.Spawn();
+                    }
+                    break;
+
+                case -22: //wof vanilla laser telegraph
+                    {
+                        customScaleAlpha = true;
+                        maxTime = 645;
+
+                        if (npc != null && npc.type == NPCID.WallofFleshEye && (npc.GetGlobalNPC<WallofFleshEye>().HasTelegraphedNormalLasers || Main.netMode == NetmodeID.MultiplayerClient))
+                        {
+                            Projectile.rotation = npc.rotation + (npc.direction > 0 ? 0 : MathHelper.Pi);
+                            Projectile.velocity = Projectile.rotation.ToRotationVector2();
+                            Projectile.Center = npc.Center + (npc.width - 52) * Vector2.UnitX.RotatedBy(Projectile.rotation);
+
+                            if (Projectile.localAI[0] < npc.localAI[1])
+                                Projectile.localAI[0] = (int)npc.localAI[1];
+
+                            float modifier = (float)Math.Cos(Math.PI / 2 / maxTime * Projectile.localAI[0]);
+
+                            color = new Color(255, 0, 255, 100) * (1f - modifier);
+                            Projectile.alpha = (int)(255f * modifier);
+                            Projectile.scale = 18f * modifier;
+                        }
+                        else
+                        {
+                            Projectile.Kill();
+                            return;
+                        }
+                    }
+                    break;
+
+                case -21: //default but small, devi uses this for becoming back money
+                    scale = 4f;
+                    maxTime = 60;
+                    break;
+
+                case -20: //eridanus punch windup
+                    {
+                        customScaleAlpha = true;
+                        maxTime = 200;
+                        float modifier = Projectile.localAI[0] / maxTime;
+                        float progress = 1 - modifier;
+                        color = new Color(255, 105, 180);
+                        //color = new Color(51, 255, 191) * modifier; OLD BLUE
+                        //if (maxTime - Projectile.localAI[0] < 10)
+                        //color = Color.White;
+                        Projectile.alpha = (int)(255f * (progress));
+                        //Projectile.scale = 3f * 6f * (1f - modifier);
+
+                        Projectile.scale = 0.2f + 0.8f * modifier;
+
+                        if (npc != null)
+                            Projectile.Center += Vector2.UnitY.RotatedBy(npc.rotation) * 15;
+
+                        Vector2 sparkDir = Vector2.UnitX.RotatedByRandom(MathHelper.TwoPi);
+                        float sparkDistance = (120 * progress) * Main.rand.NextFloat(0.6f, 1.3f);
+                        Vector2 sparkCenter = Projectile.Center + sparkDir * sparkDistance;
+                        float sparkTime = 15;
+                        Vector2 sparkVel = (Projectile.Center - sparkCenter) / sparkTime;
+                        float sparkScale = 2f - modifier * 1.2f;
+                        Particle spark = new SparkParticle(sparkCenter, sparkVel, color, sparkScale, (int)sparkTime);
+                        spark.Spawn();
+                    }
+                    break;
+
+                case -19: //abom dash
+                    color = Color.Orange;
+                    color.A = 0;
+                    scale = 18f;
+                    break;
+
+                case -18: //eridanus timestop
+                    scale = 36f;
+                    maxTime = 120;
+                    break;
+
+                case -17: //devi smallest pink
+                    scale = 6f;
+                    goto case -16;
+
+                case -16: //devi scaling pink
+                    color = new Color(255, 51, 153, 0);
+                    break;
+
+                case -15: //devi scaling pink
+                    scale = 18f;
+                    goto case -16;
+
+                case -14: //deviantt biggest pink
+                    scale = 24f;
+                    goto case -16;
+
+                case -13: //wof reticle
+                    color = new Color(93, 255, 241, 0);
+                    scale = 6f;
+                    maxTime = 15;
+                    break;
+
+                case -12: //nature shroomite blue
+                    color = new Color(0, 0, 255, 0);
+                    maxTime = 45;
+                    break;
+
+                case -11: //nature chlorophyte green
+                    color = new Color(0, 255, 0, 0);
+                    maxTime = 45;
+                    break;
+
+                case -10: //nature frost cyan
+                    color = new Color(0, 255, 255, 0);
+                    maxTime = 45;
+                    break;
+
+                case -9: //nature rain yellow
+                    color = new Color(255, 255, 0, 0);
+                    maxTime = 45;
+                    break;
+
+                case -8: //nature molten orange
+                    color = new Color(255, 127, 40, 0);
+                    maxTime = 45;
+                    break;
+
+                case -7: //nature crimson red
+                    color = new Color(255, 0, 0, 0);
+                    maxTime = 45;
+                    break;
+
+                case -6: //will, spirit champ yellow
+                    color = new Color(255, 255, 0, 0);
+                    scale = 18f;
+                    break;
+
+                case -5: //shadow champ purple
+                    color = new Color(200, 0, 255, 0);
+                    scale = 18f;
+                    break;
+
+                case -4: //life champ yellow
+                    color = new Color(255, 255, 0, 0);
+                    scale = 18f;
+                    maxTime = 60;
+                    break;
+
+                case -3: //earth champ orange
+                    color = new Color(255, 100, 0, 0);
+                    scale = 18f;
+                    maxTime = 60;
+                    break;
+
+                case -2: //ml teal cyan
+                    color = new Color(51, 255, 191, 0);
+                    scale = 18f;
+                    break;
+
+                case -1: //purple shadowbeam
+                    color = new Color(200, 0, 200, 0);
+                    maxTime = 60;
+                    break;
+
+                case NPCID.EyeofCthulhu:
+                    color = new Color(51, 255, 191, 0);
+                    maxTime = 45;
+                    break;
+
+                case NPCID.QueenBee:
+                    color = new Color(255, 255, 100, 0);
+                    maxTime = 45;
+                    break;
+
+                case NPCID.WallofFleshEye:
+                    color = new Color(93, 255, 241, 0);
+                    scale = 12f;
+                    maxTime = 30;
+                    break;
+
+                case NPCID.Retinazer:
+                    color = new Color(255, 0, 0, 0);
+                    scale = 24f;
+                    maxTime = 60;
+                    break;
+
+                case NPCID.PrimeCannon:
+                case NPCID.PrimeLaser:
+                case NPCID.PrimeSaw:
+                case NPCID.PrimeVice:
+                    color = new Color(51, 255, 191, 0);
+                    scale = 12f;
+                    maxTime = 30;
+                    break;
+
+                case NPCID.QueenSlimeBoss:
+                    color = Color.HotPink;
+                    color.A = 200;
+                    scale = 6f;
+                    maxTime = 60;
+
+                    if (Projectile.localAI[0] > maxTime * 0.25f && NPC.AnyNPCs(ModContent.NPCType<GelatinSubject>()))
+                        Projectile.localAI[0] = maxTime * 0.25f;
+
+                    if (npc != null)
+                        Projectile.Center = npc.Bottom + npc.height / 2 * -Vector2.UnitY.RotatedBy(npc.rotation);
+                    break;
+
+                case NPCID.CultistBoss:
+                    color = new Color(255, 127, 40, 0);
+                    break;
+
+                case NPCID.MoonLordHand:
+                case NPCID.MoonLordHead:
+                case NPCID.MoonLordCore:
+                    color = new Color(51, 255, 191, 0);
+                    scale = 12f;
+                    maxTime = 60;
+                    break;
+
+                case NPCID.Deerclops:
+                    color.A = 0;
+                    scale = 9f;
+                    maxTime = 30;
+
+                    if (npc.Alive())
+                    {
+                        color = npc.life < npc.lifeMax / 3 ? Color.Red : Color.LightSkyBlue;
+                        Projectile.Center = npc.direction < 0 ? npc.TopLeft : npc.TopRight;
+                    }
+                        
+                    break;
+
+                default:
+                    Main.NewText("glow ring: you shouldnt be seeing this text, show terry");
+                    break;
+            }
+
+            if (++Projectile.localAI[0] > maxTime)
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            if (!customScaleAlpha)
+            {
+                Projectile.scale = scale * (float)Math.Sin(Math.PI / 2 * Projectile.localAI[0] / maxTime);
+                Projectile.alpha = (int)(255f * Projectile.localAI[0] / maxTime);
+            }
+
+            if (Projectile.alpha < 0)
+                Projectile.alpha = 0;
+            if (Projectile.alpha > 255)
+                Projectile.alpha = 255;
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return color * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            if (Projectile.ai[1] == NPCID.QueenSlimeBoss)
+            {
+                Main.spriteBatch.End();
+                Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null, Main.Transform);
+                GameShaders.Misc["HallowBoss"].Apply(new Terraria.DataStructures.DrawData?());
+            }
+
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = texture2D13.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+
+            if (Projectile.ai[1] == NPCID.QueenSlimeBoss)
+            {
+                Main.spriteBatch.End();
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
+            }
+            return false;
+        }
     }
-  }
 }

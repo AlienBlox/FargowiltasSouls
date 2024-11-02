@@ -1,67 +1,64 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.FishStickProjTornado
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
+﻿using Microsoft.Xna.Framework;
 using System.Linq;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class FishStickProjTornado : ModProjectile
-  {
-    public const int TravelTime = 30;
-
-    public virtual string Texture => FargoSoulsUtil.VanillaTextureProjectile(407);
-
-    public virtual void SetStaticDefaults() => Main.projFrames[this.Type] = Main.projFrames[407];
-
-    public virtual void SetDefaults()
+    public class FishStickProjTornado : ModProjectile
     {
-      ((Entity) this.Projectile).width = 48;
-      ((Entity) this.Projectile).height = 48;
-      this.Projectile.aiStyle = -1;
-      this.AIType = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.penetrate = 1;
-      this.Projectile.DamageType = DamageClass.Ranged;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.FargoSouls().CanSplit = false;
+        public override string Texture => FargoSoulsUtil.VanillaTextureProjectile(ProjectileID.Tempest);
+
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Fish Stick");
+            Main.projFrames[Type] = Main.projFrames[ProjectileID.Tempest];
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.width = 48;
+            Projectile.height = 48;
+            Projectile.aiStyle = -1;
+            AIType = -1;
+            Projectile.friendly = true;
+            Projectile.penetrate = 1;
+            Projectile.DamageType = DamageClass.Ranged;
+            Projectile.ignoreWater = true;
+
+            Projectile.FargoSouls().CanSplit = false;
+        }
+        public const int TravelTime = 30;
+        ref float Timer => ref Projectile.ai[2];
+        public override bool? CanDamage() => false;
+        public override void AI()
+        {
+            if (++Projectile.frameCounter > 4)
+                if (++Projectile.frame >= Main.projFrames[Type])
+                    Projectile.frame = 0;
+
+            if (Timer >= TravelTime)
+            {
+                Projectile.velocity = Vector2.Zero;
+            }
+            foreach (Projectile tornado in Main.projectile.Where(p => p.active && p.type == ModContent.ProjectileType<FishStickProjTornado>() && p.owner == Projectile.owner && p.identity > Projectile.identity))
+            {
+                tornado.Kill();
+            }
+            Timer++;
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            Projectile.position -= oldVelocity;
+            Projectile.velocity = Vector2.Zero;
+            return false;
+        }
+        public override bool PreDraw(ref Color lightColor)
+        {
+            FargoSoulsUtil.GenericProjectileDraw(Projectile, lightColor);
+            return false;
+        }
     }
-
-    private ref float Timer => ref this.Projectile.ai[2];
-
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public virtual void AI()
-    {
-      if (++this.Projectile.frameCounter > 4 && ++this.Projectile.frame >= Main.projFrames[this.Type])
-        this.Projectile.frame = 0;
-      if ((double) this.Timer >= 30.0)
-        ((Entity) this.Projectile).velocity = Vector2.Zero;
-      foreach (Projectile projectile in ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (p => ((Entity) p).active && p.type == ModContent.ProjectileType<FishStickProjTornado>() && p.owner == this.Projectile.owner && p.identity > this.Projectile.identity)))
-        projectile.Kill();
-      ++this.Timer;
-    }
-
-    public virtual bool OnTileCollide(Vector2 oldVelocity)
-    {
-      Projectile projectile = this.Projectile;
-      ((Entity) projectile).position = Vector2.op_Subtraction(((Entity) projectile).position, oldVelocity);
-      ((Entity) this.Projectile).velocity = Vector2.Zero;
-      return false;
-    }
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      FargoSoulsUtil.GenericProjectileDraw(this.Projectile, lightColor);
-      return false;
-    }
-  }
 }

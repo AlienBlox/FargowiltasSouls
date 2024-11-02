@@ -1,31 +1,29 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Minions.PlanterasChildBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
+﻿using FargowiltasSouls.Content.Projectiles.Minions;
 
-using FargowiltasSouls.Content.Projectiles.Minions;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Minions
 {
-  public class PlanterasChildBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class PlanterasChildBuff : ModBuff
     {
-      Main.buffNoTimeDisplay[this.Type] = true;
-      Main.buffNoSave[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Plantera's Child");
+            // Description.SetDefault("The child of Plantera will protect you");
+            Main.buffNoTimeDisplay[Type] = true;
+            Main.buffNoSave[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "世纪之花的孩子");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "世纪之花的孩子将会保护你");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().PlanterasChild = true;
-      if (((Entity) player).whoAmI != Main.myPlayer || player.ownedProjectileCounts[ModContent.ProjectileType<PlanterasChild>()] >= 1)
-        return;
-      FargoSoulsUtil.NewSummonProjectile(player.GetSource_Buff(buffIndex), ((Entity) player).Center, Vector2.op_UnaryNegation(Vector2.UnitY), ModContent.ProjectileType<PlanterasChild>(), 66, 3f, ((Entity) player).whoAmI);
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.FargoSouls().PlanterasChild = true;
+            const int damage = 66;
+            if (player.whoAmI == Main.myPlayer && player.ownedProjectileCounts[ModContent.ProjectileType<PlanterasChild>()] < 1)
+                FargoSoulsUtil.NewSummonProjectile(player.GetSource_Buff(buffIndex), player.Center, -Vector2.UnitY, ModContent.ProjectileType<PlanterasChild>(), damage, 3f, player.whoAmI);
+        }
     }
-  }
 }

@@ -1,129 +1,141 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.HentaiSpearSpinBoundary
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class HentaiSpearSpinBoundary : HentaiSpearSpin
-  {
-    public override string Texture
+    public class HentaiSpearSpinBoundary : HentaiSpearSpin
     {
-      get => "FargowiltasSouls/Content/Projectiles/BossWeapons/HentaiSpear";
-    }
+        public override string Texture => "FargowiltasSouls/Content/Projectiles/BossWeapons/HentaiSpear";
 
-    public override void SetStaticDefaults()
-    {
-      base.SetStaticDefaults();
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 10;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
-
-    public override void SetDefaults()
-    {
-      base.SetDefaults();
-      this.Projectile.DamageType = DamageClass.Ranged;
-    }
-
-    public override void AI()
-    {
-      int index1 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 15, ((Entity) this.Projectile).velocity.X * 0.2f, ((Entity) this.Projectile).velocity.Y * 0.2f, 100, new Color(), 2f);
-      Main.dust[index1].noGravity = true;
-      int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 15, ((Entity) this.Projectile).velocity.X * 0.2f, ((Entity) this.Projectile).velocity.Y * 0.2f, 100, new Color(), 2f);
-      Main.dust[index2].noGravity = true;
-      Player player = Main.player[this.Projectile.owner];
-      if (this.Projectile.owner == Main.myPlayer && (!player.controlUseTile || player.altFunctionUse != 2 || player.controlUp && player.controlDown))
-        this.Projectile.Kill();
-      else if (player.dead || !((Entity) player).active)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        Vector2 vector2_1 = player.RotatedRelativePoint(player.MountedCenter, false, true);
-        ((Entity) this.Projectile).direction = ((Entity) player).direction;
-        player.heldProj = ((Entity) this.Projectile).whoAmI;
-        player.itemTime = 2;
-        player.itemAnimation = 2;
-        ((Entity) this.Projectile).Center = vector2_1;
-        this.Projectile.timeLeft = 2;
-        this.Projectile.rotation = (float) Math.Atan2((double) ((Entity) this.Projectile).velocity.Y, (double) ((Entity) this.Projectile).velocity.X);
-        this.Projectile.rotation += 0.4586267f * (float) ((Entity) player).direction;
-        this.Projectile.ai[0] += (float) Math.PI / 45f;
-        ((Entity) this.Projectile).velocity = Utils.ToRotationVector2(this.Projectile.rotation);
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).position = Vector2.op_Subtraction(((Entity) projectile).position, ((Entity) this.Projectile).velocity);
-        player.itemRotation = this.Projectile.rotation;
-        player.itemRotation = MathHelper.WrapAngle(player.itemRotation);
-        if ((double) this.Projectile.ai[2] == 0.0)
+        public override void SetStaticDefaults()
         {
-          if ((double) ++this.Projectile.localAI[0] <= 2.0)
-            return;
-          SoundEngine.PlaySound(ref SoundID.Item12, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          this.Projectile.localAI[0] = 0.0f;
-          this.Projectile.localAI[1] += (float) Math.PI / 720f * ++this.Projectile.ai[1] * (float) ((Entity) player).direction;
-          if ((double) this.Projectile.localAI[1] > 3.1415927410125732)
-            this.Projectile.localAI[1] -= 6.28318548f;
-          if ((double) this.Projectile.localAI[1] < 3.1415927410125732)
-            this.Projectile.localAI[1] += 6.28318548f;
-          if (this.Projectile.owner != Main.myPlayer)
-            return;
-          for (int index3 = 0; index3 < 6; ++index3)
-            Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) player).Center, Utils.RotatedBy(new Vector2(0.0f, -9f), (double) this.Projectile.localAI[1] + Math.PI / 3.0 * (double) index3, new Vector2()), ModContent.ProjectileType<PhantasmalEyeBoundary>(), this.Projectile.damage, this.Projectile.knockBack / 2f, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
+            base.SetStaticDefaults();
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 10;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-        else
+
+        public override void SetDefaults()
         {
-          if ((double) ++this.Projectile.localAI[0] <= 5.0)
-            return;
-          SoundEngine.PlaySound(ref SoundID.Item84, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          this.Projectile.localAI[0] = -5f;
-          for (int index4 = -1; index4 <= 1; index4 += 2)
-          {
-            float num1 = 0.7853982f;
-            int num2 = ModContent.ProjectileType<HentaiSphereOkuu>();
-            int damage = this.Projectile.damage;
-            float num3 = (float) ((double) MathHelper.ToRadians(60f) * (double) this.Projectile.localAI[1] / 240.0);
-            for (int index5 = 0; index5 < 8; ++index5)
+            base.SetDefaults();
+            Projectile.DamageType = DamageClass.Ranged;
+        }
+
+        public override void AI()
+        {
+            //dust!
+            int dustId = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.MagicMirror, Projectile.velocity.X * 0.2f,
+                Projectile.velocity.Y * 0.2f, 100, default, 2f);
+            Main.dust[dustId].noGravity = true;
+            int dustId3 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.MagicMirror, Projectile.velocity.X * 0.2f,
+                Projectile.velocity.Y * 0.2f, 100, default, 2f);
+            Main.dust[dustId3].noGravity = true;
+
+            Player player = Main.player[Projectile.owner];
+            if (Projectile.owner == Main.myPlayer && (!player.controlUseTile || player.altFunctionUse != 2 || player.controlUp && player.controlDown))
             {
-              Vector2 vector2_2 = Vector2.op_Multiply(10f, Utils.RotatedBy(Vector2.UnitY, (double) num1 * (double) index5 + (double) num3, new Vector2()));
-              if (this.Projectile.owner == Main.myPlayer)
-                Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, vector2_2, num2, damage, this.Projectile.knockBack / 2f, this.Projectile.owner, (float) index4, 10f, 0.0f);
+                Projectile.Kill();
+                return;
             }
-          }
-        }
-      }
-    }
 
-    public override bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(alpha, 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+            if (player.dead || !player.active)
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            Vector2 ownerMountedCenter = player.RotatedRelativePoint(player.MountedCenter);
+            Projectile.direction = player.direction;
+            player.heldProj = Projectile.whoAmI;
+            player.itemTime = 2; //15;
+            player.itemAnimation = 2; //15;
+                                      //player.itemAnimationMax = 15;
+            Projectile.Center = ownerMountedCenter;
+            Projectile.timeLeft = 2;
+
+            Projectile.rotation = (float)Math.Atan2(Projectile.velocity.Y, Projectile.velocity.X);
+            Projectile.rotation += (float)Math.PI / 6.85f * player.direction;
+            Projectile.ai[0] += MathHelper.Pi / 45;
+            Projectile.velocity = Projectile.rotation.ToRotationVector2();
+            Projectile.position -= Projectile.velocity;
+            player.itemRotation = Projectile.rotation;
+            player.itemRotation = MathHelper.WrapAngle(player.itemRotation);
+
+            if (Projectile.ai[2] == 0)
+            {
+                if (++Projectile.localAI[0] > 2)
+                {
+                    SoundEngine.PlaySound(SoundID.Item12, Projectile.Center);
+                    Projectile.localAI[0] = 0;
+                    Projectile.localAI[1] += 2f * (float)Math.PI / 4 / 360 * ++Projectile.ai[1] * player.direction;
+                    if (Projectile.localAI[1] > (float)Math.PI)
+                        Projectile.localAI[1] -= (float)Math.PI * 2;
+                    if (Projectile.localAI[1] < (float)Math.PI)
+                        Projectile.localAI[1] += (float)Math.PI * 2;
+                    if (Projectile.owner == Main.myPlayer)
+                    {
+                        for (int i = 0; i < 6; i++)
+                        {
+                            Projectile.NewProjectile(Projectile.GetSource_FromThis(), player.Center, new Vector2(0, -9f).RotatedBy(Projectile.localAI[1] + Math.PI / 3 * i),
+                                ModContent.ProjectileType<PhantasmalEyeBoundary>(), Projectile.damage, Projectile.knockBack / 2, Projectile.owner);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                //Projectile.localAI[1] += Projectile.direction;
+
+                if (++Projectile.localAI[0] > 5)
+                {
+                    SoundEngine.PlaySound(SoundID.Item84, Projectile.Center);
+                    Projectile.localAI[0] = -5;
+                    for (int j = -1; j <= 1; j += 2)
+                    {
+                        const int max = 8;
+                        float rotation = 2f * (float)Math.PI / max;
+                        int type = ModContent.ProjectileType<HentaiSphereOkuu>();
+                        const float speed = 10;
+                        int damage = Projectile.damage;
+                        float offset = MathHelper.ToRadians(60) * Projectile.localAI[1] / 240;
+                        for (int i = 0; i < max; i++)
+                        {
+                            Vector2 vel = speed * Vector2.UnitY.RotatedBy(rotation * i + offset);
+                            if (Projectile.owner == Main.myPlayer)
+                                Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, vel, type, damage, Projectile.knockBack / 2, Projectile.owner, j, speed);
+                        }
+                    }
+                }
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color26 * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, SpriteEffects.None, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle),
+                Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

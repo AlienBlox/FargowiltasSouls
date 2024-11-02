@@ -1,89 +1,90 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Timber.TimberLaser
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Timber
 {
-  public class TimberLaser : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class TimberLaser : ModProjectile
     {
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 6;
-      ((Entity) this.Projectile).height = 6;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.timeLeft = 600;
-      this.Projectile.extraUpdates = 2;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.CooldownSlot = 1;
-      this.Projectile.scale = 2f;
-    }
-
-    public virtual void AI()
-    {
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0], ModContent.NPCType<TimberChampionHead>());
-      if (npc != null && this.Projectile.Colliding(((Entity) this.Projectile).Hitbox, ((Entity) npc).Hitbox))
-      {
-        SoundEngine.PlaySound(ref SoundID.NPCHit4, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        for (int index = 0; index < 10; ++index)
-          Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 226, ((Entity) this.Projectile).velocity.X * 0.4f, (float) (-(double) ((Entity) this.Projectile).velocity.Y * 0.40000000596046448), 0, new Color(), 1f);
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if (this.Projectile.alpha > 0)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.alpha -= 10;
-          if (this.Projectile.alpha < 0)
-            this.Projectile.alpha = 0;
+            // DisplayName.SetDefault("Laser");
         }
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-      }
-    }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(ModContent.BuffType<GuiltyBuff>(), 300, true, false);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 6;
+            Projectile.height = 6;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.timeLeft = 600;
+            Projectile.extraUpdates = 2;
+            Projectile.ignoreWater = true;
+            Projectile.alpha = 255;
+            CooldownSlot = 1;
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return this.Projectile.alpha < 200 ? new Color?(new Color((int) byte.MaxValue - this.Projectile.alpha, (int) byte.MaxValue - this.Projectile.alpha, (int) byte.MaxValue - this.Projectile.alpha, 0)) : new Color?(Color.Transparent);
-    }
+            Projectile.scale = 2f;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override void AI()
+        {
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[0], ModContent.NPCType<TimberChampionHead>());
+            if (npc != null)
+            {
+                if (Projectile.Colliding(Projectile.Hitbox, npc.Hitbox))
+                {
+                    SoundEngine.PlaySound(SoundID.NPCHit4, Projectile.Center); //indicate it hit squrrl
+                    for (int i = 0; i < 10; i++)
+                        Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Electric, Projectile.velocity.X * 0.4f, -Projectile.velocity.Y * 0.4f);
+
+                    Projectile.Kill();
+                    return;
+                }
+            }
+
+            if (Projectile.alpha > 0)
+            {
+                Projectile.alpha -= 10;
+                if (Projectile.alpha < 0)
+                    Projectile.alpha = 0;
+            }
+
+            //Lighting.AddLight(Projectile.Center, 0.525f, 0f, 0.75f);
+            Projectile.rotation = Projectile.velocity.ToRotation();
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+                target.AddBuff(ModContent.BuffType<Buffs.Masomode.GuiltyBuff>(), 300);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            if (Projectile.alpha < 200)
+                return new Color(255 - Projectile.alpha, 255 - Projectile.alpha, 255 - Projectile.alpha, 0);
+            return Color.Transparent;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

@@ -1,79 +1,100 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.DeviBoss.DeviEnergyHeart
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Content.Projectiles.Deathrays;
 using FargowiltasSouls.Core.Globals;
 using Microsoft.Xna.Framework;
+using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.DeviBoss
 {
-  public class DeviEnergyHeart : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class DeviEnergyHeart : ModProjectile
     {
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Energy Heart");
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 30;
-      this.Projectile.penetrate = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.aiStyle = -1;
-      this.CooldownSlot = 1;
-      this.Projectile.alpha = 150;
-      this.Projectile.timeLeft = 90;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 1;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 30;
+            Projectile.height = 30;
+            Projectile.penetrate = -1;
+            Projectile.hostile = true;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.aiStyle = -1;
+            CooldownSlot = 1;
 
-    public virtual bool? CanDamage() => new bool?(false);
+            Projectile.alpha = 150;
+            Projectile.timeLeft = 80;
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = 1f;
-        SoundEngine.PlaySound(ref SoundID.Item44, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      }
-      if (this.Projectile.alpha >= 60)
-        this.Projectile.alpha -= 10;
-      this.Projectile.rotation = this.Projectile.ai[0];
-      this.Projectile.scale += 0.01f;
-      float num = ((Vector2) ref ((Entity) this.Projectile).velocity).Length() + this.Projectile.ai[1];
-      ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) this.Projectile).velocity), num);
-    }
+            Projectile.FargoSouls().DeletionImmuneRank = 1;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      FargoSoulsUtil.HeartDust(((Entity) this.Projectile).Center, this.Projectile.rotation + 1.57079637f, new Vector2());
-      int num = 0;
-      while (num < 5)
-        ++num;
-      if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.deviBoss, ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>()) || !FargoSoulsUtil.HostCheck)
-        return;
-      for (int index = 0; index < 4; ++index)
-        Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Utils.RotatedBy(Vector2.UnitX, (double) this.Projectile.rotation + 1.5707963705062866 * (double) index, new Vector2()), ModContent.ProjectileType<DeviDeathray>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-    }
+        public override bool? CanDamage()
+        {
+            return false;
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(ModContent.BuffType<LovestruckBuff>(), 240, true, false);
-    }
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = 1;
+                SoundEngine.PlaySound(SoundID.Item44, Projectile.Center);
+            }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
+            // Fade into 50 alpha from 150
+            if (Projectile.alpha >= 60)
+                Projectile.alpha -= 10;
+
+            Projectile.rotation = Projectile.ai[0];
+            Projectile.scale += 0.01f;
+
+            float speed = Projectile.velocity.Length();
+            speed += Projectile.ai[1];
+            Projectile.velocity = Vector2.Normalize(Projectile.velocity) * speed;
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            FargoSoulsUtil.HeartDust(Projectile.Center, Projectile.rotation + MathHelper.PiOver2);
+            SoundEngine.PlaySound(FargosSoundRegistry.DeviHeartExplosion with { MaxInstances = 0, Volume = 0.33f }, Projectile.Center);
+            /*for (int i = 0; i < 10; i++)
+            {
+                int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 86, 0f, 0f, 0, default(Color), 2f);
+                Main.dust[d].noGravity = true;
+                Main.dust[d].velocity *= 8f;
+            }*/
+            for (int i = 0; i < 5; i++)
+            {
+                // THESE DO NOT CURRENTLY WORK, DO NOT USE.
+
+                //Vector2 velocity = Vector2.UnitY.RotatedByRandom(MathHelper.TwoPi) * Main.rand.NextFloat(4f, 6f);
+                //Particle heart = new HeartParticle(Projectile.Center, velocity, Color.HotPink, 60, 1f, 1f);
+                //ParticleManager.SpawnParticle(heart);
+            }
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.deviBoss, ModContent.NPCType<DeviBoss>()))
+            {
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.UnitX.RotatedBy(Projectile.rotation + (float)Math.PI / 2 * i),
+                            ModContent.ProjectileType<DeviDeathray>(), Projectile.damage, Projectile.knockBack, Projectile.owner);
+                    }
+                }
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(ModContent.BuffType<Buffs.Masomode.LovestruckBuff>(), 240);
+        }
+
+        public override Color? GetAlpha(Color lightColor) => Color.White * Projectile.Opacity;
     }
-  }
 }

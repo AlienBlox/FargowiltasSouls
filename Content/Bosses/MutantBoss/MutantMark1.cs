@@ -1,133 +1,128 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.MutantBoss.MutantMark1
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Boss;
+﻿using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.MutantBoss
 {
-  public class MutantMark1 : ModProjectile
-  {
-    public virtual string Texture
+    public class MutantMark1 : ModProjectile
     {
-      get
-      {
-        return !FargoSoulsUtil.AprilFools ? "Terraria/Images/Projectile_454" : "FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphere_April";
-      }
-    }
+        public override string Texture => FargoSoulsUtil.AprilFools ?
+            "FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphere_April" :
+            "Terraria/Images/Projectile_454";
 
-    public virtual void SetStaticDefaults()
-    {
-      Main.projFrames[this.Projectile.type] = 2;
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 10;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Phantasmal Sphere");
+            Main.projFrames[Projectile.type] = 2;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 10;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 46;
-      ((Entity) this.Projectile).height = 46;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.hostile = true;
-      this.Projectile.timeLeft = 90;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.scale = 0.5f;
-      this.Projectile.alpha = 0;
-      this.Projectile.penetrate = -1;
-      this.CooldownSlot = 1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 1;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 46;
+            Projectile.height = 46;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.hostile = true;
+            Projectile.timeLeft = 90;
+            Projectile.aiStyle = -1;
+            Projectile.scale = 0.5f;
+            Projectile.alpha = 0;
+            Projectile.penetrate = -1;
+            CooldownSlot = 1;
 
-    public virtual bool CanHitPlayer(Player target) => target.hurtCooldowns[1] == 0;
+            Projectile.FargoSouls().DeletionImmuneRank = 1;
+        }
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = 1f;
-        if (FargoSoulsUtil.HostCheck)
-          Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, (float) this.Projectile.timeLeft)), Vector2.Normalize(((Entity) this.Projectile).velocity), ModContent.ProjectileType<MutantDeathraySmall>(), this.Projectile.damage, 0.0f, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-      }
-      if (++this.Projectile.frameCounter < 6)
-        return;
-      this.Projectile.frameCounter = 0;
-      if (++this.Projectile.frame <= 1)
-        return;
-      this.Projectile.frame = 0;
-    }
+        public override bool CanHitPlayer(Player target)
+        {
+            return target.hurtCooldowns[1] == 0;
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.FargoSouls().MaxLifeReduction += 100;
-        target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400, true, false);
-        target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180, true, false);
-      }
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 360, true, false);
-    }
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = 1;
+                if (FargoSoulsUtil.HostCheck)
+                    Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center + Projectile.velocity * Projectile.timeLeft, Vector2.Normalize(Projectile.velocity), ModContent.ProjectileType<MutantDeathraySmall>(), Projectile.damage, 0f, Projectile.owner);
+            }
+            //Projectile.velocity *= 0.96f;
+            if (++Projectile.frameCounter >= 6)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame > 1)
+                    Projectile.frame = 0;
+            }
+        }
 
-    public virtual void OnKill(int timeleft)
-    {
-      SoundEngine.PlaySound(ref SoundID.NPCDeath6, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      ((Entity) this.Projectile).position = ((Entity) this.Projectile).Center;
-      ((Entity) this.Projectile).width = ((Entity) this.Projectile).height = 208;
-      ((Entity) this.Projectile).Center = ((Entity) this.Projectile).position;
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.Normalize(((Entity) this.Projectile).velocity), ModContent.ProjectileType<MutantDeathray1>(), this.Projectile.damage, 0.0f, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-    }
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.FargoSouls().MaxLifeReduction += 100;
+                target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400);
+                target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180);
+            }
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 360);
+        }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
+        public override void OnKill(int timeleft)
+        {
+            SoundEngine.PlaySound(SoundID.NPCDeath6, Projectile.Center);
+            Projectile.position = Projectile.Center;
+            Projectile.width = Projectile.height = 208;
+            Projectile.Center = Projectile.position;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphereGlow", (AssetRequestMode) 1).Value;
-      int height = texture2D.Height;
-      int num1 = 0;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num1, texture2D.Width, height);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color color1 = Color.Lerp(FargoSoulsUtil.AprilFools ? Color.Red : new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, 0), Color.Transparent, 0.85f);
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color2 = Color.op_Multiply(color1, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        float num2 = this.Projectile.scale * (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type];
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color2, Utils.ToRotation(((Entity) this.Projectile).velocity) + 1.57079637f, vector2, num2 * 1.5f, (SpriteEffects) 0, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).position, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, 200), Utils.ToRotation(((Entity) this.Projectile).velocity) + 1.57079637f, vector2, this.Projectile.scale * 1.5f, (SpriteEffects) 0, 0.0f);
-      return false;
-    }
+            if (FargoSoulsUtil.HostCheck)
+                Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.Normalize(Projectile.velocity), ModContent.ProjectileType<MutantDeathray1>(), Projectile.damage, 0f, Projectile.owner);
+        }
 
-    public virtual void PostDraw(Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D glow = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphereGlow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            int rect1 = glow.Height;
+            int rect2 = 0;
+            Rectangle glowrectangle = new(0, rect2, glow.Width, rect1);
+            Vector2 gloworigin2 = glowrectangle.Size() / 2f;
+            Color glowcolor = Color.Lerp(FargoSoulsUtil.AprilFools ? Color.Red : new Color(255, 255, 255, 0), Color.Transparent, 0.85f);
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++) //reused betsy fireball scaling trail thing
+            {
+
+                Color color27 = glowcolor;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                float scale = Projectile.scale * (ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                Main.EntitySpriteDraw(glow, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle), color27,
+                    Projectile.velocity.ToRotation() + MathHelper.PiOver2, gloworigin2, scale * 1.5f, SpriteEffects.None, 0);
+            }
+            Main.EntitySpriteDraw(glow, Projectile.position + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle), new Color(255, 255, 255, 200),
+                    Projectile.velocity.ToRotation() + MathHelper.PiOver2, gloworigin2, Projectile.scale * 1.5f, SpriteEffects.None, 0);
+
+            return false;
+        }
+
+        public override void PostDraw(Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+        }
     }
-  }
 }

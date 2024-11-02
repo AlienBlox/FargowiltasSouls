@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.DestroyerLaser
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core;
+﻿using FargowiltasSouls.Core;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
@@ -12,119 +6,128 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class DestroyerLaser : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_658";
-
-    public virtual void SetStaticDefaults()
+    public class DestroyerLaser : ModProjectile
     {
-    }
+        public override string Texture => "Terraria/Images/Projectile_658";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 8;
-      ((Entity) this.Projectile).height = 8;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.scale = 1.8f;
-      this.Projectile.tileCollide = false;
-      this.Projectile.extraUpdates = 4;
-      this.Projectile.timeLeft = 190 * this.Projectile.extraUpdates + 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Death Laser");
+        }
 
-    public virtual bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      if (((Rectangle) ref projHitbox).Intersects(targetHitbox))
-        return new bool?(true);
-      double num1 = (double) Math.Max((float) ((Entity) this.Projectile).width, ((Vector2) ref ((Entity) this.Projectile).velocity).Length() * 2f);
-      float num2 = 0.0f;
-      Vector2 vector2_1 = Vector2.op_Multiply((float) (num1 / 2.0) * this.Projectile.scale, Utils.ToRotationVector2(this.Projectile.rotation - MathHelper.ToRadians(135f)));
-      Vector2 vector2_2 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, vector2_1);
-      Vector2 vector2_3 = Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_1);
-      return Collision.CheckAABBvLineCollision(Utils.TopLeft(targetHitbox), Utils.Size(targetHitbox), vector2_2, vector2_3, (float) (((Entity) this.Projectile).width / 2), ref num2) ? new bool?(true) : new bool?(false);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 8;
+            Projectile.height = 8;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.alpha = 255;
+            Projectile.scale = 1.8f;
+            Projectile.tileCollide = false;
 
-    public virtual void AI()
-    {
-      int num = this.Projectile.extraUpdates + 1;
-      if ((double) this.Projectile.ai[0] == 1.0 && this.Projectile.timeLeft > 91 * num)
-        this.Projectile.timeLeft = 91 * num;
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = 1f;
-        SoundEngine.PlaySound(ref SoundID.Item12, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      }
-      this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + 1.57079637f;
-      if (this.Projectile.timeLeft % num != 0)
-        return;
-      if ((double) ++this.Projectile.localAI[1] > 20.0 && (double) this.Projectile.localAI[1] < 90.0)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 1.06f);
-      }
-      if (this.Projectile.alpha > 0 && this.Projectile.timeLeft > 10 * num)
-      {
-        this.Projectile.alpha -= 14;
-        if (this.Projectile.alpha >= 0)
-          return;
-        this.Projectile.alpha = 0;
-      }
-      else
-      {
-        if (this.Projectile.timeLeft > 10 * num)
-          return;
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 0.7f);
-        this.Projectile.alpha += 25;
-      }
-    }
+            Projectile.extraUpdates = 4;
+            Projectile.timeLeft = 190 * Projectile.extraUpdates + 1;
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.destroyBoss, 134))
-        target.AddBuff(144, 60, true, false);
-      if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.brainBoss, 266) || !WorldSavingSystem.MasochistModeReal)
-        return;
-      target.AddBuff(20, 120, true, false);
-      target.AddBuff(22, 120, true, false);
-      target.AddBuff(30, 120, true, false);
-      target.AddBuff(32, 120, true, false);
-      target.AddBuff(33, 120, true, false);
-      target.AddBuff(36, 120, true, false);
-    }
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
+        {
+            if (projHitbox.Intersects(targetHitbox))
+                return true;
 
-    public virtual bool? CanDamage()
-    {
-      return new bool?(this.Projectile.timeLeft > 10 * (this.Projectile.extraUpdates + 1));
-    }
+            float length = Math.Max(Projectile.width, Projectile.velocity.Length() * 2);
+            float dummy = 0f;
+            Vector2 offset = length / 2 * Projectile.scale * (Projectile.rotation - MathHelper.ToRadians(135f)).ToRotationVector2();
+            Vector2 end = Projectile.Center - offset;
+            Vector2 tip = Projectile.Center + offset;
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply((!WorldSavingSystem.EternityMode || !SoulConfig.Instance.BossRecolors ? 0 : ((double) this.Projectile.ai[1] == 134.0 ? 1 : 0)) != 0 ? Color.Cyan : Color.Red, this.Projectile.Opacity));
-    }
+            if (Collision.CheckAABBvLineCollision(targetHitbox.TopLeft(), targetHitbox.Size(), end, tip, Projectile.width / 2, ref dummy))
+                return true;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Vector2 vector2_2;
-      // ISSUE: explicit constructor call
-      ((Vector2) ref vector2_2).\u002Ector(1f, (float) (1.0 + (double) ((Vector2) ref ((Entity) this.Projectile).velocity).Length() / 5.0 * (double) (this.Projectile.extraUpdates + 1)));
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2_1, vector2_2, (SpriteEffects) 0, 0.0f);
-      return false;
+            return false;
+        }
+
+        public override void AI()
+        {
+            int totalUpdates = Projectile.extraUpdates + 1;
+
+            if (Projectile.ai[0] == 1f)
+            {
+                if (Projectile.timeLeft > 91 * totalUpdates) //mp sync is important for this, which is why i do it this way
+                    Projectile.timeLeft = 91 * totalUpdates;
+            }
+
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = 1;
+                SoundEngine.PlaySound(SoundID.Item12, Projectile.Center);
+            }
+            Projectile.rotation = Projectile.velocity.ToRotation() + (float)Math.PI / 2;
+
+            if (Projectile.timeLeft % totalUpdates == 0) //only run once per tick
+            {
+                if (++Projectile.localAI[1] > 20 && Projectile.localAI[1] < 90)
+                    Projectile.velocity *= 1.06f;
+
+                if (Projectile.alpha > 0 && Projectile.timeLeft > 10 * totalUpdates)
+                {
+                    Projectile.alpha -= 14;
+                    if (Projectile.alpha < 0)
+                        Projectile.alpha = 0;
+                }
+                else if (Projectile.timeLeft <= 10 * totalUpdates)
+                {
+                    Projectile.velocity *= 0.7f;
+                    Projectile.alpha += 25;
+                }
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.destroyBoss, NPCID.TheDestroyer))
+                target.AddBuff(BuffID.Electrified, 60);
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.brainBoss, NPCID.BrainofCthulhu)
+                && WorldSavingSystem.MasochistModeReal)
+            {
+                target.AddBuff(BuffID.Poisoned, 120);
+                target.AddBuff(BuffID.Darkness, 120);
+                target.AddBuff(BuffID.Bleeding, 120);
+                target.AddBuff(BuffID.Slow, 120);
+                target.AddBuff(BuffID.Weak, 120);
+                target.AddBuff(BuffID.BrokenArmor, 120);
+            }
+        }
+
+        public override bool? CanDamage() => Projectile.timeLeft > 10 * (Projectile.extraUpdates + 1);
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            bool destroyerResprite = WorldSavingSystem.EternityMode && SoulConfig.Instance.BossRecolors && Projectile.ai[1] == NPCID.TheDestroyer; // if resprites and comes from destroyer
+            return (destroyerResprite ? Color.Cyan : Color.Red) * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Vector2 scale = new(1, 1 + Projectile.velocity.Length() / 5 * (Projectile.extraUpdates + 1));
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, scale, SpriteEffects.None, 0);
+
+            /*if (Projectile.timeLeft > 10 * (Projectile.extraUpdates + 1))
+            {
+                Main.EntitySpriteDraw(hitboxindicator, Projectile.Center - Main.screenPosition, new Rectangle(0, 0, hitboxindicator.Width, hitboxindicator.Height),
+                    new Color(255, 133, 149) * Projectile.Opacity, 0, hitboxindicator.Size() / 2, 0.25f, SpriteEffects.None, 0);
+            }*/
+
+            return false;
+        }
     }
-  }
 }

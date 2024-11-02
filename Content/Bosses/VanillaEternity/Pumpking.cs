@@ -1,60 +1,92 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.VanillaEternity.Pumpking
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Projectiles.Masomode;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.VanillaEternity
 {
-  public class Pumpking : EModeNPCBehaviour
-  {
-    public int AttackTimer;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(327);
-
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    public class Pumpking : EModeNPCBehaviour
     {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.AttackTimer);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Pumpking);
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.AttackTimer = binaryReader.Read7BitEncodedInt();
-    }
+        public int AttackTimer;
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      if (++this.AttackTimer <= 300)
-        return;
-      this.AttackTimer = 0;
-      if (((Entity) npc).whoAmI != NPC.FindFirstNPC(npc.type) || !FargoSoulsUtil.HostCheck)
-        return;
-      for (int index1 = -1; index1 <= 1; ++index1)
-      {
-        if (index1 != 0)
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
         {
-          for (int index2 = 0; index2 < 20; ++index2)
-          {
-            Vector2 vector2 = Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center), 0.52359879016876221 * (Main.rand.NextDouble() - 0.5) + 1.5707963705062866 * (double) index1, new Vector2());
-            float num1 = Utils.NextFloat(Main.rand, 1.04f, 1.05f);
-            float num2 = Utils.NextFloat(Main.rand, 0.03f);
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, vector2, ModContent.ProjectileType<PumpkingFlamingScythe>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 2f), 0.0f, Main.myPlayer, num1, num2, 0.0f);
-          }
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(AttackTimer);
         }
-      }
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+        {
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            AttackTimer = binaryReader.Read7BitEncodedInt();
+        }
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            if (++AttackTimer > 300)
+            {
+                AttackTimer = 0;
+                if (npc.whoAmI == NPC.FindFirstNPC(npc.type) && FargoSoulsUtil.HostCheck)
+                {
+                    for (int j = -1; j <= 1; j++) //fire these to either side of target
+                    {
+                        if (j == 0)
+                            continue;
+
+                        for (int i = 0; i < 20; i++)
+                        {
+                            Vector2 vel = npc.SafeDirectionTo(Main.player[npc.target].Center).RotatedBy(MathHelper.Pi / 6 * (Main.rand.NextDouble() - 0.5) + MathHelper.Pi / 2 * j);
+                            float ai0 = Main.rand.NextFloat(1.04f, 1.05f);
+                            float ai1 = Main.rand.NextFloat(0.03f);
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, vel, ModContent.ProjectileType<PumpkingFlamingScythe>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 4f / 2), 0f, Main.myPlayer, ai0, ai1);
+                        }
+                    }
+                }
+            }
+            /*if (++Counter[2] >= 12)
+            {
+                Counter[2] = 0;
+                int t = npc.HasPlayerTarget ? npc.target : npc.FindClosestPlayer();
+                if (t != -1)
+                {
+                    Player player = Main.player[t];
+                    Vector2 distance = player.Center - npc.Center;
+                    if (Math.Abs(distance.X) < npc.width && FargoSoulsUtil.HostCheck) //flame rain if player roughly below me
+                        Projectile.NewProjectile(npc.Center.X, npc.position.Y, Main.rand.Next(-3, 4), Main.rand.Next(-4, 0), Main.rand.Next(326, 329), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage, 0.8f), 0f, Main.myPlayer);
+                }
+            }*/
+        }
     }
-  }
+
+    public class PumpkingPart : EModeNPCBehaviour
+    {
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(NPCID.Pumpking, NPCID.PumpkingBlade);
+
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
+
+            npc.buffImmune[ModContent.BuffType<ClippedWingsBuff>()] = true;
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(ModContent.BuffType<RottingBuff>(), 900);
+            target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 900);
+        }
+    }
 }

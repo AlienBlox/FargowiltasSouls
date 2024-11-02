@@ -1,37 +1,68 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.SpiderEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.AccessoryEffectSystem;
+﻿using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class SpiderEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(109, 78, 69);
-
-    public override void SetDefaults()
+    public class SpiderEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 5;
-      this.Item.value = 150000;
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+
+        }
+
+        public override Color nameColor => new(109, 78, 69);
+
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Pink;
+            Item.value = 150000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<SpiderEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ItemID.SpiderMask)
+            .AddIngredient(ItemID.SpiderBreastplate)
+            .AddIngredient(ItemID.SpiderGreaves)
+            .AddIngredient(ItemID.SpiderStaff)
+            .AddIngredient(ItemID.QueenSpiderStaff)
+            .AddIngredient(ItemID.WebSlinger)
+            //web rope coil
+            //rainbow string
+            //fried egg
+            //.AddIngredient(ItemID.SpiderEgg);
+
+            .AddTile(TileID.CrystalBall)
+            .Register();
+        }
     }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
+    public class SpiderEffect : AccessoryEffect
     {
-      player.AddEffect<SpiderEffect>(this.Item);
+        public override Header ToggleHeader => Header.GetHeader<LifeHeader>();
+        public override int ToggleItemType => ModContent.ItemType<SpiderEnchant>();
+        //public override bool MinionEffect => true;
+        
+        public override void PostUpdateEquips(Player player)
+        {
+            //minion crits
+            player.FargoSouls().MinionCrits = true;
+            player.GetCritChance(DamageClass.Summon) += 10;
+            if (player.FargoSouls().ForceEffect(ModContent.ItemType<SpiderEnchant>()))
+                player.GetCritChance(DamageClass.Summon) += 15;
+        }
     }
-
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(2370, 1).AddIngredient(2371, 1).AddIngredient(2372, 1).AddIngredient(2551, 1).AddIngredient(2366, 1).AddIngredient(939, 1).AddTile(125).Register();
-    }
-  }
 }

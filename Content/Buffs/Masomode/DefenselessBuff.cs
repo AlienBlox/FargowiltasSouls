@@ -1,30 +1,29 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.DefenselessBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class DefenselessBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class DefenselessBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Defenseless");
+            // Description.SetDefault("Your guard is completely broken");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "毫无防御");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "你的防御完全崩溃了");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().Defenseless = true;
-      if (!player.beetleDefense)
-        return;
-      player.beetleOrbs = 0;
-      player.beetleCounter = 0.0f;
+        public override void Update(Player player, ref int buffIndex)
+        {
+            //-30 defense, no damage reduction, cross necklace and knockback prevention effects disabled
+            player.FargoSouls().Defenseless = true;
+            if (player.beetleDefense)
+            {
+                player.beetleOrbs = 0;
+                player.beetleCounter = 0;
+            }
+        }
     }
-  }
 }

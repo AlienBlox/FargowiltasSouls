@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.FlameburstMinion
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+﻿using FargowiltasSouls.Content.Items.Accessories.Enchantments;
 using FargowiltasSouls.Content.Projectiles.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
 using Microsoft.Xna.Framework;
@@ -13,82 +7,113 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class FlameburstMinion : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class FlameburstMinion : ModProjectile
     {
-    }
-
-    public virtual void SetDefaults()
-    {
-      this.Projectile.netImportant = true;
-      ((Entity) this.Projectile).width = 44;
-      ((Entity) this.Projectile).height = 30;
-      this.Projectile.timeLeft = 900;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.minion = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-    }
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      if (((Entity) player).whoAmI == Main.myPlayer && (player.dead || !player.FargoSouls().DarkArtistEnchantActive || !player.HasEffect<DarkArtistMinion>()))
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        this.Projectile.netUpdate = true;
-        ((Entity) this.Projectile).position.X = (float) (int) ((Entity) this.Projectile).position.X;
-        ((Entity) this.Projectile).position.Y = (float) (int) ((Entity) this.Projectile).position.Y;
-        this.Projectile.scale = (float) ((double) Main.mouseTextColor / 200.0 - 0.34999999403953552) * 0.2f + 0.95f;
-        if ((double) this.Projectile.ai[0] != 0.0)
-          return;
-        ((Entity) this.Projectile).position.X = ((Entity) player).Center.X - (float) (((Entity) this.Projectile).width / 2);
-        ((Entity) this.Projectile).position.Y = (float) ((double) ((Entity) player).Center.Y - (double) (((Entity) this.Projectile).height / 2) + (double) player.gfxOffY - 50.0);
-        if (((Entity) player).whoAmI == Main.myPlayer)
+        public override void SetStaticDefaults()
         {
-          if ((double) Main.MouseWorld.X > (double) ((Entity) this.Projectile).Center.X)
-          {
-            this.Projectile.spriteDirection = 1;
-            this.Projectile.rotation = Utils.AngleLerp(this.Projectile.rotation, Utils.ToRotation(Vector2.op_Subtraction(new Vector2(Main.MouseWorld.X, Main.MouseWorld.Y), ((Entity) this.Projectile).Center)), 0.08f);
-          }
-          else
-          {
-            this.Projectile.spriteDirection = -1;
-            this.Projectile.rotation = Utils.AngleLerp(this.Projectile.rotation, Utils.ToRotation(Vector2.op_Subtraction(new Vector2(Main.MouseWorld.X - (float) (((double) Main.MouseWorld.X - (double) ((Entity) this.Projectile).Center.X) * 2.0), Main.MouseWorld.Y - (float) (((double) Main.MouseWorld.Y - (double) ((Entity) this.Projectile).Center.Y) * 2.0)), ((Entity) this.Projectile).Center)), 0.08f);
-          }
+            // DisplayName.SetDefault("Flameburst Minion");
         }
-        int num = 60;
-        ++this.Projectile.ai[1];
-        if (!player.controlUseItem || (double) this.Projectile.ai[1] < (double) num)
-          return;
-        Vector2 vector2 = Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(Main.MouseWorld, ((Entity) this.Projectile).Center)), 10f);
-        Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, vector2, ModContent.ProjectileType<MegaFlameburst>(), FargoSoulsUtil.HighestDamageTypeScaling(player, 85), 4f, this.Projectile.owner, (float) ((Entity) this.Projectile).whoAmI, 0.0f, 0.0f);
-        SoundEngine.PlaySound(ref SoundID.DD2_FlameburstTowerShot, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        this.Projectile.ai[1] = 0.0f;
-      }
-    }
 
-    public virtual bool? CanDamage() => new bool?(false);
+        public override void SetDefaults()
+        {
+            Projectile.netImportant = true;
+            Projectile.width = 44;
+            Projectile.height = 30;
+            Projectile.timeLeft = 900;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.minion = true;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index1 = 0; index1 < 12; ++index1)
-      {
-        Vector2 vector2_1 = Vector2.op_Addition(Utils.RotatedBy(Vector2.op_Multiply(Utils.RotatedBy(Vector2.UnitX, (double) this.Projectile.rotation, new Vector2()), 6f), (double) (index1 - 5) * 6.2831854820251465 / 12.0, new Vector2()), ((Entity) this.Projectile).Center);
-        Vector2 vector2_2 = Vector2.op_Subtraction(vector2_1, ((Entity) this.Projectile).Center);
-        int index2 = Dust.NewDust(Vector2.op_Addition(vector2_1, vector2_2), 0, 0, 270, 0.0f, 0.0f, 0, new Color(), 1.5f);
-        Main.dust[index2].noGravity = true;
-        Main.dust[index2].velocity = vector2_2;
-      }
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+
+            if (player.whoAmI == Main.myPlayer && (player.dead || !player.FargoSouls().DarkArtistEnchantActive || !player.HasEffect<DarkArtistMinion>()))
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            Projectile.netUpdate = true; // Please sync ech
+
+            //pulsation mumbo jumbo
+            Projectile.position.X = (int)Projectile.position.X;
+            Projectile.position.Y = (int)Projectile.position.Y;
+            float num395 = Main.mouseTextColor / 200f - 0.35f;
+            num395 *= 0.2f;
+            Projectile.scale = num395 + 0.95f;
+
+            //charging above the player
+            if (Projectile.ai[0] == 0)
+            {
+                //float above player
+                Projectile.position.X = player.Center.X - Projectile.width / 2;
+                Projectile.position.Y = player.Center.Y - Projectile.height / 2 + player.gfxOffY - 50f;
+
+                //rotate towards and face mouse
+                const float rotationModifier = 0.08f;
+
+                if (player.whoAmI == Main.myPlayer)
+                {
+                    if (Main.MouseWorld.X > Projectile.Center.X)
+                    {
+                        Projectile.spriteDirection = 1;
+
+                        Projectile.rotation = Projectile.rotation.AngleLerp(
+                            (new Vector2(Main.MouseWorld.X, Main.MouseWorld.Y) - Projectile.Center).ToRotation(), rotationModifier);
+                    }
+                    else
+                    {
+                        Projectile.spriteDirection = -1;
+
+                        //absolute fuckery so it faces the right direction
+                        Vector2 target = new Vector2(Main.MouseWorld.X - (Main.MouseWorld.X - Projectile.Center.X) * 2, Main.MouseWorld.Y - (Main.MouseWorld.Y - Projectile.Center.Y) * 2) - Projectile.Center;
+
+                        Projectile.rotation = Projectile.rotation.AngleLerp(target.ToRotation(), rotationModifier);
+                    }
+                }
+
+
+
+                //attack as sentry 
+                int attackRate = 60;
+                Projectile.ai[1] += 1f;
+
+                if (player.controlUseItem && Projectile.ai[1] >= attackRate)
+                {
+                    Vector2 velocity = Vector2.Normalize(Main.MouseWorld - Projectile.Center) * 10;
+
+                    int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, velocity, ModContent.ProjectileType<MegaFlameburst>(), FargoSoulsUtil.HighestDamageTypeScaling(player, 85), 4, Projectile.owner, Projectile.whoAmI);
+                    SoundEngine.PlaySound(SoundID.DD2_FlameburstTowerShot, Projectile.Center);
+
+                    Projectile.ai[1] = 0f;
+                }
+            }
+        }
+
+        public override bool? CanDamage()
+        {
+            return false;
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            const int num226 = 12;
+            for (int i = 0; i < num226; i++)
+            {
+                Vector2 vector6 = Vector2.UnitX.RotatedBy(Projectile.rotation) * 6f;
+                vector6 = vector6.RotatedBy((i - (num226 / 2 - 1)) * 6.28318548f / num226, default) + Projectile.Center;
+                Vector2 vector7 = vector6 - Projectile.Center;
+                int num228 = Dust.NewDust(vector6 + vector7, 0, 0, DustID.FlameBurst, 0f, 0f, 0, default, 1.5f);
+                Main.dust[num228].noGravity = true;
+                Main.dust[num228].velocity = vector7;
+            }
+        }
     }
-  }
 }

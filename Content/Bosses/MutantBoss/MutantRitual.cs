@@ -1,181 +1,225 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.MutantBoss.MutantRitual
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Assets.ExtraTextures;
 using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Buffs.Souls;
 using FargowiltasSouls.Content.Projectiles;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.Systems;
+using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.MutantBoss
 {
-  public class MutantRitual : BaseArena
-  {
-    private const float realRotation = 0.0224399474f;
-    private bool MutantDead;
-
-    public virtual string Texture
+    public class MutantRitual : BaseArena
     {
-      get
-      {
-        return !FargoSoulsUtil.AprilFools ? "Terraria/Images/Projectile_454" : "FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphere_April";
-      }
-    }
+        public override string Texture => FargoSoulsUtil.AprilFools ?
+            "FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphere_April" :
+            "Terraria/Images/Projectile_454";
 
-    public MutantRitual()
-      : base((float) Math.PI / 140f, 1200f, ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>(), visualCount: 48)
-    {
-    }
+        private const float realRotation = MathHelper.Pi / 140f;
+        private bool MutantDead;
 
-    public override void SetStaticDefaults()
-    {
-      base.SetStaticDefaults();
-      Main.projFrames[this.Projectile.type] = 2;
-    }
+        public MutantRitual() : base(realRotation, 1200f, ModContent.NPCType<MutantBoss>(), visualCount: 48) { }
 
-    public override bool? CanDamage() => this.MutantDead ? new bool?(false) : base.CanDamage();
-
-    protected override void Movement(NPC npc)
-    {
-      float num;
-      if ((double) npc.ai[0] == 19.0)
-      {
-        ((Entity) this.Projectile).velocity = Vector2.Zero;
-        num = -1f * (float) Math.PI / 280f;
-      }
-      else if ((double) npc.ai[0] == 49.0)
-      {
-        if (npc.HasValidTarget && (double) npc.ai[1] < 30.0)
+        public override void SetStaticDefaults()
         {
-          ((Entity) this.Projectile).velocity = Vector2.op_Division(Vector2.op_Subtraction(((Entity) Main.player[npc.target]).Center, ((Entity) this.Projectile).Center), 10f);
-          num = (float) Math.PI / 140f;
+            base.SetStaticDefaults();
+            // DisplayName.SetDefault("Mutant Seal");
+            Main.projFrames[Projectile.type] = 2;
         }
-        else
-        {
-          ((Entity) this.Projectile).velocity = Vector2.Zero;
-          num = -1f * (float) Math.PI / 280f;
-        }
-      }
-      else
-      {
-        ((Entity) this.Projectile).velocity = Vector2.op_Subtraction(((Entity) npc).Center, ((Entity) this.Projectile).Center);
-        if ((double) npc.ai[0] == 36.0)
-        {
-          Projectile projectile = this.Projectile;
-          ((Entity) projectile).velocity = Vector2.op_Division(((Entity) projectile).velocity, 20f);
-        }
-        else if ((double) npc.ai[0] == 22.0 || (double) npc.ai[0] == 23.0 || (double) npc.ai[0] == 25.0)
-        {
-          Projectile projectile = this.Projectile;
-          ((Entity) projectile).velocity = Vector2.op_Division(((Entity) projectile).velocity, 40f);
-        }
-        else
-        {
-          Projectile projectile = this.Projectile;
-          ((Entity) projectile).velocity = Vector2.op_Division(((Entity) projectile).velocity, 60f);
-        }
-        num = (float) Math.PI / 140f;
-      }
-      if ((double) this.rotationPerTick < (double) num)
-      {
-        this.rotationPerTick += 0.0005609987f;
-        if ((double) this.rotationPerTick > (double) num)
-          this.rotationPerTick = num;
-      }
-      else if ((double) this.rotationPerTick > (double) num)
-      {
-        this.rotationPerTick -= 0.0005609987f;
-        if ((double) this.rotationPerTick < (double) num)
-          this.rotationPerTick = num;
-      }
-      this.MutantDead = (double) npc.ai[0] <= -6.0;
-    }
 
-    public override void AI()
-    {
-      base.AI();
-      ++this.Projectile.frameCounter;
-      if (this.Projectile.frameCounter < 6)
-        return;
-      this.Projectile.frameCounter = 0;
-      ++this.Projectile.frame;
-      if (this.Projectile.frame <= 1)
-        return;
-      this.Projectile.frame = 0;
-    }
-
-    public override void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      base.OnHitPlayer(target, info);
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.FargoSouls().MaxLifeReduction += 100;
-        target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400, true, false);
-        target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180, true, false);
-        if (WorldSavingSystem.MasochistModeReal && (double) Main.npc[EModeGlobalNPC.mutantBoss].ai[0] == -5.0)
+        public override bool? CanDamage()
         {
-          if (!target.HasBuff(ModContent.BuffType<TimeFrozenBuff>()))
-          {
-            SoundStyle soundStyle = new SoundStyle("FargowiltasSouls/Assets/Sounds/ZaWarudo", (SoundType) 0);
-            SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) target).Center), (SoundUpdateCallback) null);
-          }
-          target.AddBuff(ModContent.BuffType<TimeFrozenBuff>(), 300, true, false);
+            if (MutantDead)
+                return false;
+            return base.CanDamage();
         }
-      }
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600, true, false);
-    }
 
-    public override Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.op_Multiply(Color.White, this.Projectile.Opacity), (double) this.targetPlayer != (double) Main.myPlayer || this.MutantDead ? 0.15f : 1f));
-    }
-
-    public override bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D1 = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle1;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle1).\u002Ector(0, num2, texture2D1.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle1), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      Texture2D texture2D2 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphereGlow", (AssetRequestMode) 1).Value;
-      int height = texture2D2.Height;
-      int num3 = 0;
-      Rectangle rectangle2;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle2).\u002Ector(0, num3, texture2D2.Width, height);
-      Vector2 vector2_2 = Vector2.op_Division(Utils.Size(rectangle2), 2f);
-      Color color1 = Color.Lerp(FargoSoulsUtil.AprilFools ? Color.Red : new Color(196, 247, (int) byte.MaxValue, 0), Color.Transparent, 0.8f);
-      for (int index1 = 0; index1 < 32; ++index1)
-      {
-        Vector2 vector2_3 = Utils.RotatedBy(Utils.RotatedBy(new Vector2((float) ((double) this.threshold * (double) this.Projectile.scale / 2.0), 0.0f), (double) this.Projectile.ai[0], new Vector2()), 0.19634954631328583 * (double) index1, new Vector2());
-        for (int index2 = 0; index2 < 4; ++index2)
+        protected override void Movement(NPC npc)
         {
-          Color color2 = Color.op_Multiply(alpha, (float) (4 - index2) / 4f);
-          Vector2 vector2_4 = Vector2.op_Addition(Vector2.op_Addition(this.Projectile.oldPos[index2], Vector2.op_Division(Utils.Size(((Entity) this.Projectile).Hitbox), 2f)), Utils.RotatedBy(vector2_3, (double) this.rotationPerTick * (double) -index2, new Vector2()));
-          float rotation = this.Projectile.rotation;
-          Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(vector2_4, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle1), color2, rotation, vector2_1, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-          Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(Vector2.op_Subtraction(vector2_4, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle2), Color.op_Multiply(color1, (float) (4 - index2) / 4f), this.Projectile.rotation, vector2_2, this.Projectile.scale * 1.4f, (SpriteEffects) 0, 0.0f);
+            //int[] unmovingArenaStates =
+            //{
+            //    19, //pillars
+            //    13, 14, 15, //predictive dash
+            //    21, 22, 23 //direct dash
+            //};
+
+            float targetRotation;
+            //if (unmovingArenaStates.Contains((int)npc.ai[0])) //be stationary
+            if (npc.ai[0] == 19) //pillars
+            {
+                Projectile.velocity = Vector2.Zero;
+
+                targetRotation = -realRotation / 2; //denote arena isn't moving
+            }
+            else if (npc.ai[0] == 49) //golem
+            {
+                if (npc.HasValidTarget && npc.ai[1] < 30) //snap it to player at start
+                {
+                    Projectile.velocity = (Main.player[npc.target].Center - Projectile.Center) / 10f;
+
+                    targetRotation = realRotation;
+                }
+                else
+                {
+                    Projectile.velocity = Vector2.Zero;
+
+                    targetRotation = -realRotation / 2; //denote arena isn't moving
+                }
+            }
+            else
+            {
+                Projectile.velocity = npc.Center - Projectile.Center;
+                if (npc.ai[0] == 36)
+                    Projectile.velocity /= 20f; //much faster for slime rain
+                else if (npc.ai[0] == 22 || npc.ai[0] == 23 || npc.ai[0] == 25)
+                    Projectile.velocity /= 40f; //move faster for direct dash, predictive throw
+                else
+                    Projectile.velocity /= 60f;
+
+                targetRotation = realRotation;
+            }
+
+            const float increment = realRotation / 40;
+            if (rotationPerTick < targetRotation)
+            {
+                rotationPerTick += increment;
+                if (rotationPerTick > targetRotation)
+                    rotationPerTick = targetRotation;
+            }
+            else if (rotationPerTick > targetRotation)
+            {
+                rotationPerTick -= increment;
+                if (rotationPerTick < targetRotation)
+                    rotationPerTick = targetRotation;
+            }
+
+            MutantDead = npc.ai[0] <= -6;
         }
-        Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_3), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle1), alpha, this.Projectile.rotation, vector2_1, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-        Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_3), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle2), color1, this.Projectile.rotation, vector2_2, this.Projectile.scale * 1.3f, (SpriteEffects) 0, 0.0f);
-      }
-      return false;
+
+        public override void AI()
+        {
+            base.AI();
+            Projectile.frameCounter++;
+            if (Projectile.frameCounter >= 6)
+            {
+                Projectile.frameCounter = 0;
+                Projectile.frame++;
+                if (Projectile.frame > 1)
+                    Projectile.frame = 0;
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            base.OnHitPlayer(target, info);
+
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.FargoSouls().MaxLifeReduction += 100;
+                target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400);
+                target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180);
+
+                if (WorldSavingSystem.MasochistModeReal && Main.npc[EModeGlobalNPC.mutantBoss].ai[0] == -5)
+                {
+                    if (!target.HasBuff(ModContent.BuffType<TimeFrozenBuff>()))
+                        SoundEngine.PlaySound(new SoundStyle("FargowiltasSouls/Assets/Sounds/Accessories/ZaWarudo"), target.Center);
+                    target.AddBuff(ModContent.BuffType<TimeFrozenBuff>(), 300);
+                }
+            }
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity * (targetPlayer == Main.myPlayer && !MutantDead ? 1f : 0.15f);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Color outerColor = FargoSoulsUtil.AprilFools ? Color.Red : Color.CadetBlue;
+            outerColor.A = 0;
+
+            Color darkColor = outerColor;
+            Color mediumColor = Color.Lerp(outerColor, Color.White, 0.75f);
+            Color lightColor2 = Color.Lerp(outerColor, Color.White, 0.5f);
+
+            Vector2 auraPos = Projectile.Center;
+
+            float leeway = Projectile.width / 2 * Projectile.scale;
+            leeway *= 0.75f;
+            float radius = threshold - leeway;
+
+            var target = Main.LocalPlayer;
+
+            var blackTile = TextureAssets.MagicPixel;
+            var diagonalNoise = FargosTextureRegistry.WavyNoise;
+
+            var maxOpacity = Projectile.Opacity;
+            float scale = Projectile.scale * 0.5f;
+
+            ManagedShader borderShader = ShaderManager.GetShader("FargowiltasSouls.MutantP2Aura");
+            borderShader.TrySetParameter("colorMult", 7.35f);
+            borderShader.TrySetParameter("time", Main.GlobalTimeWrappedHourly);
+            borderShader.TrySetParameter("radius", radius * scale);
+            borderShader.TrySetParameter("anchorPoint", auraPos);
+            borderShader.TrySetParameter("screenPosition", Main.screenPosition);
+            borderShader.TrySetParameter("screenSize", Main.ScreenSize.ToVector2());
+            borderShader.TrySetParameter("playerPosition", target.Center);
+            borderShader.TrySetParameter("maxOpacity", maxOpacity);
+            borderShader.TrySetParameter("darkColor", darkColor.ToVector4());
+            borderShader.TrySetParameter("midColor", mediumColor.ToVector4());
+            borderShader.TrySetParameter("lightColor", lightColor2.ToVector4());
+
+            Main.spriteBatch.GraphicsDevice.Textures[1] = diagonalNoise.Value;
+
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, borderShader.WrappedEffect, Main.GameViewMatrix.TransformationMatrix);
+            Rectangle rekt = new(Main.screenWidth / 2, Main.screenHeight / 2, Main.screenWidth, Main.screenHeight);
+            Main.spriteBatch.Draw(blackTile.Value, rekt, null, default, 0f, blackTile.Value.Size() * 0.5f, 0, 0f);
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+            return false;
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = Projectile.GetAlpha(lightColor);
+            Texture2D glow = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/MutantBoss/MutantSphereGlow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            int rect1 = glow.Height;
+            int rect2 = 0;
+            Rectangle glowrectangle = new(0, rect2, glow.Width, rect1);
+            Vector2 gloworigin2 = glowrectangle.Size() / 2f;
+            Color glowcolor = Color.Lerp(FargoSoulsUtil.AprilFools ? Color.Red : new Color(196, 247, 255, 0), Color.Transparent, 0.8f);
+
+            for (int x = 0; x < 32; x++)
+            {
+                Vector2 drawOffset = new Vector2(threshold * Projectile.scale / 2f, 0f).RotatedBy(Projectile.ai[0]);
+                drawOffset = drawOffset.RotatedBy(2f * MathHelper.Pi / 32f * x);
+                const int max = 4;
+                for (int i = 0; i < max; i++)
+                {
+                    Color color27 = color26;
+                    color27 *= (float)(max - i) / max;
+                    Vector2 value4 = Projectile.oldPos[i] + Projectile.Hitbox.Size() / 2 + drawOffset.RotatedBy(rotationPerTick * -i);
+                    float num165 = Projectile.rotation;
+                    Main.EntitySpriteDraw(texture2D13, value4 - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, SpriteEffects.None, 0);
+                    Main.EntitySpriteDraw(glow, value4 - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle), glowcolor * ((float)(max - i) / max),
+                        Projectile.rotation, gloworigin2, Projectile.scale * 1.4f, SpriteEffects.None, 0);
+                }
+                Main.EntitySpriteDraw(texture2D13, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+                Main.EntitySpriteDraw(glow, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle), glowcolor,
+                    Projectile.rotation, gloworigin2, Projectile.scale * 1.3f, SpriteEffects.None, 0);
+            }
+            return false;
+        }
     }
-  }
 }

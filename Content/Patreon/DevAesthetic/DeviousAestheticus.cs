@@ -1,78 +1,74 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.DevAesthetic.DeviousAestheticus
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.DevAesthetic
 {
-  public class DeviousAestheticus : PatreonModItem
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public virtual void SetDefaults()
+    public class DeviousAestheticus : PatreonModItem
     {
-      this.Item.damage = 366;
-      this.Item.DamageType = DamageClass.Summon;
-      this.Item.mana = 10;
-      ((Entity) this.Item).width = 40;
-      ((Entity) this.Item).height = 40;
-      this.Item.useTime = 10;
-      this.Item.useAnimation = 10;
-      this.Item.useStyle = 1;
-      this.Item.knockBack = 1f;
-      this.Item.value = Item.sellPrice(0, 20, 0, 0);
-      this.Item.rare = 2;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item1);
-      this.Item.autoReuse = true;
-      this.Item.shoot = ModContent.ProjectileType<DevRocket>();
-      this.Item.shootSpeed = 12f;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+            // DisplayName.SetDefault("Devious Aestheticus");
+            /* Tooltip.SetDefault(
+@"Shot spread scales with up to 6 empty minion slots
+'If you're seeing this, You've been in a coma for 20 years, I don't know where this message will be, but please wake up'"); */
+        }
 
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      damage = (int) ((double) damage / 4.0 * 1.3);
-      float num1 = 0.0f;
-      for (int index = 0; index < Main.maxProjectiles; ++index)
-      {
-        if (((Entity) Main.projectile[index]).active && !Main.projectile[index].hostile && Main.projectile[index].owner == ((Entity) player).whoAmI && (double) Main.projectile[index].minionSlots > 0.0)
-          num1 += Main.projectile[index].minionSlots;
-      }
-      float num2 = (float) player.maxMinions - num1;
-      if ((double) num2 < 1.0)
-        num2 = 1f;
-      if ((double) num2 > 7.0)
-        num2 = 7f;
-      float radians = MathHelper.ToRadians(17.1428566f);
-      if ((double) num2 % 2.0 == 0.0)
-      {
-        Vector2 vector2 = Utils.RotatedBy(velocity, (double) radians * (-(double) num2 / 2.0 + 0.5), new Vector2());
-        for (int index = 0; (double) index < (double) num2; ++index)
-          Projectile.NewProjectile((IEntitySource) source, position, Utils.RotatedBy(vector2, (double) radians * ((double) index + (double) Utils.NextFloat(Main.rand, -0.5f, 0.5f)), new Vector2()), type, damage, knockback, ((Entity) player).whoAmI, 0.0f, 0.0f, 0.0f);
-      }
-      else
-      {
-        Vector2 vector2 = velocity;
-        int num3 = (int) num2 / 2;
-        for (int index = -num3; index <= num3; ++index)
-          Projectile.NewProjectile((IEntitySource) source, position, Utils.RotatedBy(vector2, (double) radians * ((double) index + (double) Utils.NextFloat(Main.rand, -0.5f, 0.5f)), new Vector2()), type, damage, knockback, ((Entity) player).whoAmI, 0.0f, 0.0f, 0.0f);
-      }
-      return false;
+        public override void SetDefaults()
+        {
+            Item.damage = 399;
+            Item.DamageType = DamageClass.Summon;
+            Item.mana = 10;
+            Item.width = 40;
+            Item.height = 40;
+            Item.useTime = 10;
+            Item.useAnimation = 10;
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.knockBack = 1;
+            Item.value = Item.sellPrice(gold: 20);
+            Item.rare = ItemRarityID.Green;
+            Item.UseSound = SoundID.Item1;
+            Item.autoReuse = true;
+            Item.shoot = ModContent.ProjectileType<DevRocket>();
+            Item.shootSpeed = 12f;
+        }
+
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            damage = (int)(damage / 4.0 * 1.3);
+
+            float minionSlotsUsed = 0;
+            for (int i = 0; i < Main.maxProjectiles; i++)
+            {
+                if (Main.projectile[i].active && !Main.projectile[i].hostile && Main.projectile[i].owner == player.whoAmI && Main.projectile[i].minionSlots > 0)
+                    minionSlotsUsed += Main.projectile[i].minionSlots;
+            }
+
+            float modifier = player.maxMinions - minionSlotsUsed;
+            if (modifier < 1)
+                modifier = 1;
+            if (modifier > 7)
+                modifier = 7;
+
+            float spread = MathHelper.ToRadians(60f / 3.5f);
+            if (modifier % 2 == 0)
+            {
+                Vector2 baseSpeed = velocity.RotatedBy(spread * (-modifier / 2 + 0.5f)); //half offset for v spread
+                for (int i = 0; i < modifier; i++)
+                    Projectile.NewProjectile(source, position, baseSpeed.RotatedBy(spread * (i + Main.rand.NextFloat(-0.5f, 0.5f))), type, damage, knockback, player.whoAmI);
+            }
+            else
+            {
+                Vector2 baseSpeed = velocity;
+                int max = (int)modifier / 2;
+                for (int i = -max; i <= max; i++)
+                    Projectile.NewProjectile(source, position, baseSpeed.RotatedBy(spread * (i + Main.rand.NextFloat(-0.5f, 0.5f))), type, damage, knockback, player.whoAmI);
+            }
+
+            return false;
+        }
     }
-  }
 }

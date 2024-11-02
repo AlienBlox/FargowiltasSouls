@@ -1,151 +1,169 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.Spazmaglaive
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class Spazmaglaive : ModProjectile
-  {
-    private bool empowered;
-    private bool hitSomething;
-
-    public virtual void SetStaticDefaults()
+    public class Spazmaglaive : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 10;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.empowered);
-      writer.Write(this.hitSomething);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.empowered = reader.ReadBoolean();
-      this.hitSomething = reader.ReadBoolean();
-    }
-
-    public virtual void SetDefaults()
-    {
-      this.Projectile.DamageType = DamageClass.Melee;
-      this.Projectile.friendly = true;
-      this.Projectile.light = 0.4f;
-      this.Projectile.tileCollide = false;
-      ((Entity) this.Projectile).width = 50;
-      ((Entity) this.Projectile).height = 50;
-      this.Projectile.penetrate = -1;
-      this.Projectile.aiStyle = -1;
-    }
-
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.ai[0] == (double) ModContent.ProjectileType<Retiglaive>())
-      {
-        this.empowered = true;
-        this.Projectile.ai[0] = 0.0f;
-      }
-      else if ((double) this.Projectile.ai[0] == (double) ModContent.ProjectileType<Spazmaglaive>())
-        this.Projectile.ai[0] = 0.0f;
-      if ((double) this.Projectile.ai[1] == 0.0)
-        this.Projectile.ai[1] = Utils.NextFloat(Main.rand, -0.5235988f, 0.5235988f);
-      this.Projectile.rotation += (float) ((Entity) this.Projectile).direction * -0.4f;
-      ++this.Projectile.ai[0];
-      Vector2 vector2_1 = Utils.RotatedBy(Utils.RotatedBy(new Vector2(950f * (float) Math.Sin((double) this.Projectile.ai[0] * Math.PI / 45.0), 0.0f), (double) Utils.ToRotation(((Entity) this.Projectile).velocity), new Vector2()), (double) this.Projectile.ai[1] - (double) this.Projectile.ai[1] * (double) this.Projectile.ai[0] / 22.0, new Vector2());
-      ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) Main.player[this.Projectile.owner]).Center, vector2_1);
-      if ((double) this.Projectile.ai[0] > 45.0)
-        this.Projectile.Kill();
-      if (!this.empowered || (double) this.Projectile.ai[0] != 22.0 || this.Projectile.owner != Main.myPlayer)
-        return;
-      Vector2 vector2_2 = Utils.NextVector2CircularEdge(Main.rand, 1f, 1f);
-      for (int index1 = 0; index1 < 24; ++index1)
-      {
-        SoundStyle soundStyle = SoundID.Item105;
-        ((SoundStyle) ref soundStyle).Pitch = -0.3f;
-        SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        Vector2 vector2_3 = Utils.RotatedBy(vector2_2, (double) index1 * 6.2831854820251465 / 24.0, new Vector2());
-        int index2 = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Vector2.op_Division(vector2_3, 2f), ModContent.ProjectileType<MechElectricOrbFriendly>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-        if (index2 < Main.maxProjectiles)
+        bool empowered = false;
+        bool hitSomething = false;
+        public override void SetStaticDefaults()
         {
-          Main.projectile[index2].DamageType = DamageClass.Melee;
-          Main.projectile[index2].timeLeft = 30;
-          Main.projectile[index2].netUpdate = true;
+            // DisplayName.SetDefault("Spazmaglaive");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 10;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-      }
-    }
 
-    public virtual bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      return new bool?((double) ((Entity) this.Projectile).Distance(new Vector2((float) ((Rectangle) ref targetHitbox).Center.X, (float) ((Rectangle) ref targetHitbox).Center.Y)) < 150.0);
-    }
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(empowered);
+            writer.Write(hitSomething);
+        }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.AddBuff(39, 120, false);
-      if (this.hitSomething)
-        return;
-      this.hitSomething = true;
-      if (this.Projectile.owner == Main.myPlayer)
-      {
-        SoundEngine.PlaySound(ref SoundID.Item74, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        Vector2 vector2_1 = Utils.NextVector2CircularEdge(Main.rand, 1f, 1f);
-        float num = 78f;
-        for (int index = 0; index < 5; ++index)
+        public override void ReceiveExtraAI(BinaryReader reader)
         {
-          Vector2 vector2_2 = Utils.RotatedBy(vector2_1, (double) index * 6.2831854820251465 / 5.0, new Vector2());
-          Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) target).Center, vector2_2, ModContent.ProjectileType<SpazmaglaiveExplosion>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, num, (float) ((Entity) target).whoAmI, 0.0f);
+            empowered = reader.ReadBoolean();
+            hitSomething = reader.ReadBoolean();
         }
-      }
-      this.Projectile.netUpdate = true;
-    }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D1 = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D1.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      for (float index1 = 0.0f; (double) index1 < (double) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index1 += 0.33f)
-      {
-        int index2 = Math.Max((int) index1 - 1, 0);
-        Vector2 vector2_2 = Vector2.Lerp(this.Projectile.oldPos[(int) index1], this.Projectile.oldPos[index2], (float) (1.0 - (double) index1 % 1.0));
-        if ((double) index1 < 4.0)
+        public override void SetDefaults()
         {
-          Color color = Color.op_Multiply(alpha, ((float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index1) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-          Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(vector2_2, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, this.Projectile.oldRot[(int) index1], vector2_1, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
+            Projectile.DamageType = DamageClass.Melee;
+            Projectile.friendly = true;
+            Projectile.light = 0.4f;
+            Projectile.tileCollide = false;
+            Projectile.width = 50;
+            Projectile.height = 50;
+            Projectile.penetrate = -1;
+            Projectile.aiStyle = -1;
         }
-        if (this.empowered)
+
+        public override void AI()
         {
-          Texture2D texture2D2 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/BossWeapons/HentaiSpearSpinGlow", (AssetRequestMode) 1).Value;
-          Color color;
-          // ISSUE: explicit constructor call
-          ((Color) ref color).\u002Ector(142, 250, 176);
-          color = Color.Lerp(color, Color.Transparent, 0.6f);
-          float num3 = this.Projectile.scale * ((float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index1) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type];
-          Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(vector2_2, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(), color, 0.0f, Vector2.op_Division(Utils.Size(texture2D2), 2f), num3, (SpriteEffects) 0, 0.0f);
+            if (Projectile.ai[0] == ModContent.ProjectileType<Retiglaive>())
+            {
+                empowered = true;
+                Projectile.ai[0] = 0;
+            }
+            else if (Projectile.ai[0] == ModContent.ProjectileType<Spazmaglaive>())
+            {
+                Projectile.ai[0] = 0;
+            }
+            if (Projectile.ai[1] == 0)
+            {
+                Projectile.ai[1] = Main.rand.NextFloat(-MathHelper.Pi / 6, MathHelper.Pi / 6);
+            }
+            Projectile.rotation += Projectile.direction * -0.4f;
+            Projectile.ai[0]++;
+
+            const int maxTime = 45;
+            Vector2 DistanceOffset = new Vector2(950 * (float)Math.Sin(Projectile.ai[0] * Math.PI / maxTime), 0).RotatedBy(Projectile.velocity.ToRotation());
+            DistanceOffset = DistanceOffset.RotatedBy(Projectile.ai[1] - Projectile.ai[1] * Projectile.ai[0] / (maxTime / 2));
+            Projectile.Center = Main.player[Projectile.owner].Center + DistanceOffset;
+            if (Projectile.ai[0] > maxTime)
+                Projectile.Kill();
+
+            if (empowered && Projectile.ai[0] == maxTime / 2 && Projectile.owner == Main.myPlayer) //star spray on the rebound
+            {
+                Vector2 baseVel = Main.rand.NextVector2CircularEdge(1, 1);
+                const int max = 24;
+                for (int i = 0; i < max; i++)
+                {
+                    SoundEngine.PlaySound(SoundID.Item105 with { Pitch = -0.3f }, Projectile.Center);
+                    Vector2 newvel = baseVel.RotatedBy(i * MathHelper.TwoPi / max);
+                    int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, newvel / 2, ModContent.ProjectileType<MechElectricOrbFriendly>(), Projectile.damage, Projectile.knockBack, Projectile.owner);
+                    if (p < Main.maxProjectiles)
+                    {
+                        Main.projectile[p].DamageType = DamageClass.Melee;
+                        Main.projectile[p].timeLeft = 30;
+                        Main.projectile[p].netUpdate = true;
+                    }
+                }
+            }
         }
-      }
-      Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2_1, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
+        {
+            return Projectile.Distance(new Vector2(targetHitbox.Center.X, targetHitbox.Center.Y)) < 150; //big circular hitbox because otherwise it misses too often
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.AddBuff(BuffID.CursedInferno, 120);
+
+            if (!hitSomething)
+            {
+                hitSomething = true;
+                if (Projectile.owner == Main.myPlayer)
+                {
+                    SoundEngine.PlaySound(SoundID.Item74, Projectile.Center);
+                    Vector2 baseVel = Main.rand.NextVector2CircularEdge(1, 1);
+                    float ai0 = 78;//empowered ? 120 : 78;
+                    for (int i = 0; i < 5; i++)
+                    {
+                        Vector2 newvel = baseVel.RotatedBy(i * MathHelper.TwoPi / 5);
+                        Projectile.NewProjectile(Projectile.GetSource_FromThis(), target.Center, newvel, ModContent.ProjectileType<SpazmaglaiveExplosion>(), Projectile.damage, Projectile.knockBack, Projectile.owner, ai0, target.whoAmI);
+                    }
+                    /*if (empowered)
+                    {
+                        for (int i = 0; i < 12; i++)
+                        {
+                            SoundEngine.PlaySound(SoundID.Item105 with { Pitch = -0.3f }, Projectile.Center);
+                            Vector2 newvel = baseVel.RotatedBy(i * MathHelper.TwoPi / 12);
+                            int p = Projectile.NewProjectile(target.Center, newvel/2, ModContent.ProjectileType<MechElectricOrbFriendly>(), Projectile.damage, Projectile.knockBack, Projectile.owner, 0, target.whoAmI);
+                            if(p < 1000)
+                            {
+                                Main.Projectile[p].magic = false;
+                                Main.Projectile[p].melee = true;
+                                Main.Projectile[p].timeLeft = 30;
+                                Main.Projectile[p].netUpdate = true;
+                            }
+                        }
+                    }*/
+                }
+                Projectile.netUpdate = true;
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            for (float i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 0.33f)
+            {
+                int max0 = Math.Max((int)i - 1, 0);
+                Vector2 center = Vector2.Lerp(Projectile.oldPos[(int)i], Projectile.oldPos[max0], 1 - i % 1);
+                if (i < 4)
+                {
+                    Color color27 = color26;
+                    color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                    Main.EntitySpriteDraw(texture2D13, center + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, Projectile.oldRot[(int)i], origin2, Projectile.scale, SpriteEffects.None, 0);
+                }
+                if (empowered)
+                {
+                    Texture2D glow = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/BossWeapons/HentaiSpearSpinGlow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+                    Color glowcolor = new(142, 250, 176);
+                    glowcolor = Color.Lerp(glowcolor, Color.Transparent, 0.6f);
+                    float glowscale = Projectile.scale * (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                    Main.EntitySpriteDraw(glow, center + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), null, glowcolor, 0, glow.Size() / 2, glowscale, SpriteEffects.None, 0);
+                }
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

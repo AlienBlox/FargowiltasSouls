@@ -1,51 +1,49 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.SqueakyToy
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
-using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
+﻿using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class SqueakyToy : SoulsItem
-  {
-    private bool lastLMouse;
-
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class SqueakyToy : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 1;
-      this.Item.value = Item.sellPrice(0, 3, 0, 0);
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[ModContent.BuffType<SqueakyToyBuff>()] = true;
-      player.buffImmune[ModContent.BuffType<GuiltyBuff>()] = true;
-      player.AddEffect<SqueakEffect>(this.Item);
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Blue;
+            Item.value = Item.sellPrice(0, 3);
+        }
 
-    public virtual void HoldItem(Player player)
-    {
-      if (!this.lastLMouse && Main.mouseLeft)
-        FargoSoulsPlayer.Squeak(((Entity) player).Center);
-      this.lastLMouse = Main.mouseLeft;
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[ModContent.BuffType<Buffs.Masomode.SqueakyToyBuff>()] = true;
+            player.buffImmune[ModContent.BuffType<Buffs.Masomode.GuiltyBuff>()] = true;
+            player.AddEffect<SqueakEffect>(Item);
+        }
+        private bool lastLMouse = false;
+        public override void HoldItem(Player player) //doing this instead of making an item use animation lo
+        {
+            if (!lastLMouse && Main.mouseLeft)
+            {
+                FargoSoulsPlayer.Squeak(player.Center, 0.25f);
+            }
+            lastLMouse = Main.mouseLeft;
+        }
     }
-  }
+    public class SqueakEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<BionomicHeader>();
+        public override int ToggleItemType => ModContent.ItemType<SqueakyToy>();
+        public override bool MutantsPresenceAffects => true;
+    }
 }

@@ -1,88 +1,90 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Will.WillShell
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Will
 {
-  public class WillShell : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class WillShell : ModProjectile
     {
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 100;
-      ((Entity) this.Projectile).height = 100;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.timeLeft = 600;
-      this.Projectile.scale = 1.5f;
-      this.CooldownSlot = 1;
-    }
-
-    public virtual void AI()
-    {
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[1], ModContent.NPCType<WillChampion>());
-      if (npc != null && (double) npc.ai[0] == -1.0)
-      {
-        ((Entity) this.Projectile).Center = ((Entity) npc).Center;
-        ((Entity) this.Projectile).direction = this.Projectile.spriteDirection = ((Entity) npc).direction;
-        this.Projectile.rotation = npc.rotation;
-        if ((double) this.Projectile.localAI[0] == 0.0)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.alpha += 17;
-          if (this.Projectile.alpha <= (int) byte.MaxValue)
-            return;
-          this.Projectile.alpha = (int) byte.MaxValue;
-          this.Projectile.localAI[0] = 1f;
+            // DisplayName.SetDefault("Will Shell");
         }
-        else
+
+        public override void SetDefaults()
         {
-          this.Projectile.alpha -= 17;
-          if (this.Projectile.alpha >= 0)
-            return;
-          this.Projectile.alpha = 0;
-          this.Projectile.localAI[0] = 0.0f;
+            Projectile.width = 100;
+            Projectile.height = 100;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.timeLeft = 600;
+
+            Projectile.scale = 1.5f;
+            CooldownSlot = 1;
         }
-      }
-      else
-        this.Projectile.Kill();
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index1 = 0; index1 < 80; ++index1)
-      {
-        Vector2 vector2_1 = Vector2.op_Addition(Utils.RotatedBy(Vector2.op_Multiply(Vector2.UnitX, 40f), (double) (index1 - 39) * 6.2831854820251465 / 80.0, new Vector2()), ((Entity) this.Projectile).Center);
-        Vector2 vector2_2 = Vector2.op_Subtraction(vector2_1, ((Entity) this.Projectile).Center);
-        int index2 = Dust.NewDust(Vector2.op_Addition(vector2_1, vector2_2), 0, 0, 174, 0.0f, 0.0f, 0, new Color(), 3f);
-        Main.dust[index2].noGravity = true;
-        Main.dust[index2].velocity = vector2_2;
-      }
-    }
+        public override void AI()
+        {
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[1], ModContent.NPCType<WillChampion>());
+            if (npc != null && npc.ai[0] == -1f) //disappear when champ is vulnerable again
+            {
+                Projectile.Center = npc.Center;
+                Projectile.direction = Projectile.spriteDirection = npc.direction;
+                Projectile.rotation = npc.rotation;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+                if (Projectile.localAI[0] == 0)
+                {
+                    Projectile.alpha += 17;
+                    if (Projectile.alpha > 255)
+                    {
+                        Projectile.alpha = 255;
+                        Projectile.localAI[0] = 1;
+                    }
+                }
+                else
+                {
+                    Projectile.alpha -= 17;
+                    if (Projectile.alpha < 0)
+                    {
+                        Projectile.alpha = 0;
+                        Projectile.localAI[0] = 0;
+                    }
+                }
+            }
+            else
+            {
+                Projectile.Kill();
+            }
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            const int num226 = 80;
+            for (int num227 = 0; num227 < num226; num227++)
+            {
+                Vector2 vector6 = Vector2.UnitX * 40f;
+                vector6 = vector6.RotatedBy((num227 - (num226 / 2 - 1)) * 6.28318548f / num226, default) + Projectile.Center;
+                Vector2 vector7 = vector6 - Projectile.Center;
+                int num228 = Dust.NewDust(vector6 + vector7, 0, 0, DustID.InfernoFork, 0f, 0f, 0, default, 3f);
+                Main.dust[num228].noGravity = true;
+                Main.dust[num228].velocity = vector7;
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

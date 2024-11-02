@@ -1,124 +1,185 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Souls.WorldShaperSoul
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+﻿using FargowiltasSouls.Content.Items.Accessories.Enchantments;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Souls
 {
-  public class WorldShaperSoul : BaseSoul
-  {
-    public static readonly Color ItemColor = new Color((int) byte.MaxValue, 239, 2);
-
-    public override void SetDefaults()
+    //[AutoloadEquip(EquipType.Back)]
+    public class WorldShaperSoul : BaseSoul
     {
-      base.SetDefaults();
-      this.Item.value = 750000;
-      this.Item.useStyle = 4;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item6);
-      this.Item.useTime = this.Item.useAnimation = 90;
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.value = 750000;
+
+            Item.useStyle = ItemUseStyleID.HoldUp;
+            Item.UseSound = SoundID.Item6;
+            Item.useTime = Item.useAnimation = 90;
+        }
+        public static readonly Color ItemColor = new(255, 239, 2);
+        protected override Color? nameColor => ItemColor;
+
+        public override bool? UseItem(Player player) => true;
+
+        public override void UseItemFrame(Player player)
+        {
+            if (player.itemTime == player.itemTimeMax / 2)
+            {
+                player.Spawn(PlayerSpawnContext.RecallFromItem);
+
+                for (int d = 0; d < 70; d++)
+                    Dust.NewDust(player.position, player.width, player.height, DustID.MagicMirror, 0f, 0f, 150, default, 1.5f);
+            }
+        }
+
+        public override void UpdateInventory(Player player)
+        {
+            //cell phone
+            player.accWatch = 3;
+            player.accDepthMeter = 1;
+            player.accCompass = 1;
+            player.accFishFinder = true;
+            player.accDreamCatcher = true;
+            player.accOreFinder = true;
+            player.accStopwatch = true;
+            player.accCritterGuide = true;
+            player.accJarOfSouls = true;
+            player.accThirdEye = true;
+            player.accCalendar = true;
+            player.accWeatherRadio = true;
+            player.chiselSpeed = true;
+            player.treasureMagnet = true;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            AddEffects(player, Item, hideVisual);
+        }
+        public static void AddEffects(Player player, Item item, bool hideVisual)
+        {
+            Player Player = player;
+            player.FargoSouls().WorldShaperSoul = true;
+            //mining speed, spelunker, dangersense, light, hunter, pet
+            MinerEnchant.AddEffects(Player, .66f, item);
+            //placing speed up
+            Player.tileSpeed += 0.5f;
+            Player.wallSpeed += 0.5f;
+            //toolbox
+            if (Player.whoAmI == Main.myPlayer)
+            {
+                Player.tileRangeX += 10;
+                Player.tileRangeY += 10;
+            }
+            //gizmo pack
+            Player.autoPaint = true;
+            //presserator
+            Player.autoActuator = true;
+            //royal gel
+            Player.npcTypeNoAggro[1] = true;
+            Player.npcTypeNoAggro[16] = true;
+            Player.npcTypeNoAggro[59] = true;
+            Player.npcTypeNoAggro[71] = true;
+            Player.npcTypeNoAggro[81] = true;
+            Player.npcTypeNoAggro[138] = true;
+            Player.npcTypeNoAggro[121] = true;
+            Player.npcTypeNoAggro[122] = true;
+            Player.npcTypeNoAggro[141] = true;
+            Player.npcTypeNoAggro[147] = true;
+            Player.npcTypeNoAggro[183] = true;
+            Player.npcTypeNoAggro[184] = true;
+            Player.npcTypeNoAggro[204] = true;
+            Player.npcTypeNoAggro[225] = true;
+            Player.npcTypeNoAggro[244] = true;
+            Player.npcTypeNoAggro[302] = true;
+            Player.npcTypeNoAggro[333] = true;
+            Player.npcTypeNoAggro[335] = true;
+            Player.npcTypeNoAggro[334] = true;
+            Player.npcTypeNoAggro[336] = true;
+            Player.npcTypeNoAggro[537] = true;
+
+            player.AddEffect<BuilderEffect>(item);
+
+            //cell phone
+            Player.accWatch = 3;
+            Player.accDepthMeter = 1;
+            Player.accCompass = 1;
+            Player.accFishFinder = true;
+            Player.accDreamCatcher = true;
+            Player.accOreFinder = true;
+            Player.accStopwatch = true;
+            Player.accCritterGuide = true;
+            Player.accJarOfSouls = true;
+            Player.accThirdEye = true;
+            Player.accCalendar = true;
+            Player.accWeatherRadio = true;
+            Player.chiselSpeed = true;
+            Player.treasureMagnet = true;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            //step stool
+            //greedy ring
+
+            .AddIngredient(null, "MinerEnchant")
+            .AddIngredient(ItemID.Toolbelt)
+            .AddIngredient(ItemID.Toolbox)
+            .AddIngredient(ItemID.HandOfCreation)
+            .AddIngredient(ItemID.ActuationAccessory)
+            .AddIngredient(ItemID.LaserRuler)
+            .AddIngredient(ItemID.RoyalGel)
+            .AddRecipeGroup("FargowiltasSouls:AnyShellphone")
+            //.AddIngredient(ItemID.Shellphone)
+            //.AddIngredient(ItemID.BloodHamaxe) //haemoraxe
+            .AddRecipeGroup("FargowiltasSouls:AnyDrax")
+            .AddIngredient(ItemID.ShroomiteDiggingClaw)
+            .AddIngredient(ItemID.DrillContainmentUnit)
+            //.AddIngredient(ItemID.BallOfFuseWire) //dynamite kitten pet
+
+            .AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"))
+
+
+            .Register();
+        }
     }
-
-    protected override Color? nameColor => new Color?(WorldShaperSoul.ItemColor);
-
-    public virtual bool? UseItem(Player player) => new bool?(true);
-
-    public virtual void UseItemFrame(Player player)
+    public class BuilderEffect : AccessoryEffect
     {
-      if (player.itemTime != player.itemTimeMax / 2)
-        return;
-      player.Spawn((PlayerSpawnContext) 2);
-      for (int index = 0; index < 70; ++index)
-        Dust.NewDust(((Entity) player).position, ((Entity) player).width, ((Entity) player).height, 15, 0.0f, 0.0f, 150, new Color(), 1.5f);
-    }
+        public override Header ToggleHeader => Header.GetHeader<WorldShaperHeader>();
+        public override int ToggleItemType => ModContent.ItemType<WorldShaperSoul>();
+        public override void PostUpdateEquips(Player player)
+        {
+            if (player.whoAmI != Main.myPlayer)
+                return;
+            player.FargoSouls().BuilderMode = true;
+            //if (Main.netMode == NetmodeID.MultiplayerClient) NetMessage.SendData(MessageID.SyncPlayer, number: Player.whoAmI);
 
-    public virtual void UpdateInventory(Player player)
-    {
-      player.accWatch = 3;
-      player.accDepthMeter = 1;
-      player.accCompass = 1;
-      player.accFishFinder = true;
-      player.accDreamCatcher = true;
-      player.accOreFinder = true;
-      player.accStopwatch = true;
-      player.accCritterGuide = true;
-      player.accJarOfSouls = true;
-      player.accThirdEye = true;
-      player.accCalendar = true;
-      player.accWeatherRadio = true;
-      player.chiselSpeed = true;
-      player.treasureMagnet = true;
-    }
+            for (int i = 0; i < TileLoader.TileCount; i++)
+            {
+                player.adjTile[i] = true;
+            }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      WorldShaperSoul.AddEffects(player, this.Item, hideVisual);
-    }
+            //placing speed up
+            player.tileSpeed += 0.5f;
+            player.wallSpeed += 0.5f;
 
-    public static void AddEffects(Player player, Item item, bool hideVisual)
-    {
-      Player player1 = player;
-      player.FargoSouls().WorldShaperSoul = true;
-      MinerEnchant.AddEffects(player1, 0.66f, item);
-      player1.tileSpeed += 0.5f;
-      player1.wallSpeed += 0.5f;
-      if (((Entity) player1).whoAmI == Main.myPlayer)
-      {
-        Player.tileRangeX += 10;
-        Player.tileRangeY += 10;
-      }
-      player1.autoPaint = true;
-      player1.autoActuator = true;
-      player1.npcTypeNoAggro[1] = true;
-      player1.npcTypeNoAggro[16] = true;
-      player1.npcTypeNoAggro[59] = true;
-      player1.npcTypeNoAggro[71] = true;
-      player1.npcTypeNoAggro[81] = true;
-      player1.npcTypeNoAggro[138] = true;
-      player1.npcTypeNoAggro[121] = true;
-      player1.npcTypeNoAggro[122] = true;
-      player1.npcTypeNoAggro[141] = true;
-      player1.npcTypeNoAggro[147] = true;
-      player1.npcTypeNoAggro[183] = true;
-      player1.npcTypeNoAggro[184] = true;
-      player1.npcTypeNoAggro[204] = true;
-      player1.npcTypeNoAggro[225] = true;
-      player1.npcTypeNoAggro[244] = true;
-      player1.npcTypeNoAggro[302] = true;
-      player1.npcTypeNoAggro[333] = true;
-      player1.npcTypeNoAggro[335] = true;
-      player1.npcTypeNoAggro[334] = true;
-      player1.npcTypeNoAggro[336] = true;
-      player1.npcTypeNoAggro[537] = true;
-      player.AddEffect<BuilderEffect>(item);
-      player1.accWatch = 3;
-      player1.accDepthMeter = 1;
-      player1.accCompass = 1;
-      player1.accFishFinder = true;
-      player1.accDreamCatcher = true;
-      player1.accOreFinder = true;
-      player1.accStopwatch = true;
-      player1.accCritterGuide = true;
-      player1.accJarOfSouls = true;
-      player1.accThirdEye = true;
-      player1.accCalendar = true;
-      player1.accWeatherRadio = true;
-      player1.chiselSpeed = true;
-      player1.treasureMagnet = true;
+            //toolbox
+            if (player.HeldItem.createWall == 0) //tiles
+            {
+                Player.tileRangeX += 60;
+                Player.tileRangeY += 60;
+            }
+            else //walls
+            {
+                Player.tileRangeX += 20;
+                Player.tileRangeY += 20;
+            }
+        }
     }
-
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient((Mod) null, "MinerEnchant", 1).AddIngredient(407, 1).AddIngredient(1923, 1).AddIngredient(5126, 1).AddIngredient(3624, 1).AddIngredient(2799, 1).AddIngredient(3090, 1).AddRecipeGroup("FargowiltasSouls:AnyShellphone", 1).AddRecipeGroup("FargowiltasSouls:AnyDrax", 1).AddIngredient(2176, 1).AddIngredient(2768, 1).AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet")).Register();
-    }
-  }
 }

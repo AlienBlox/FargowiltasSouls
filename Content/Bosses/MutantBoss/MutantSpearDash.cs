@@ -1,207 +1,252 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.MutantBoss.MutantSpearDash
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.MutantBoss
 {
-  public class MutantSpearDash : MutantSpearAttack
-  {
-    private float scaletimer;
-
-    public virtual string Texture
+    public abstract class MutantSpearAttack : ModProjectile
     {
-      get
-      {
-        return !FargoSoulsUtil.AprilFools ? "FargowiltasSouls/Content/Projectiles/BossWeapons/HentaiSpear" : "FargowiltasSouls/Content/Bosses/MutantBoss/MutantSpear_April";
-      }
-    }
+        protected NPC npc;
 
-    public virtual void SetStaticDefaults()
-    {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 16;
-      ((Entity) this.Projectile).height = 16;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.alpha = 0;
-      this.CooldownSlot = 1;
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
-
-    public virtual bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      if (((Rectangle) ref projHitbox).Intersects(targetHitbox))
-        return new bool?(true);
-      float num = 0.0f;
-      Vector2 vector2_1 = Vector2.op_Multiply((float) (200.0 / 2.0) * this.Projectile.scale, Utils.ToRotationVector2(this.Projectile.rotation - MathHelper.ToRadians(135f)));
-      Vector2 vector2_2 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, vector2_1);
-      Vector2 vector2_3 = Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_1);
-      return Collision.CheckAABBvLineCollision(Utils.TopLeft(targetHitbox), Utils.Size(targetHitbox), vector2_2, vector2_3, 8f * this.Projectile.scale, ref num) ? new bool?(true) : new bool?(false);
-    }
-
-    public virtual void OnSpawn(IEntitySource source)
-    {
-      if (!(source is EntitySource_Parent entitySourceParent) || !(entitySourceParent.Entity is NPC entity))
-        return;
-      this.npc = entity;
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write7BitEncodedInt(this.npc != null ? ((Entity) this.npc).whoAmI : -1);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.npc = FargoSoulsUtil.NPCExists(reader.Read7BitEncodedInt(), Array.Empty<int>());
-    }
-
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[1] == 0.0)
-      {
-        this.Projectile.localAI[1] = 1f;
-        SoundEngine.PlaySound(ref SoundID.Item1, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      }
-      NPC npc = Main.npc[(int) this.Projectile.ai[0]];
-      if (((Entity) npc).active && npc.type == ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>() && ((double) npc.ai[0] == 6.0 || (double) npc.ai[0] == 15.0 || (double) npc.ai[0] == 23.0))
-      {
-        ((Entity) this.Projectile).velocity = Vector2.Normalize(((Entity) npc).velocity);
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).position = Vector2.op_Subtraction(((Entity) projectile).position, ((Entity) this.Projectile).velocity);
-        this.Projectile.rotation = Utils.ToRotation(((Entity) npc).velocity) + MathHelper.ToRadians(135f);
-        ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) npc).Center, ((Entity) npc).velocity);
-        if (((double) this.Projectile.ai[1] <= 0.0 || WorldSavingSystem.MasochistModeReal) && (double) --this.Projectile.localAI[0] < 0.0)
+        public override bool? CanDamage()
         {
-          if ((double) this.Projectile.ai[1] == -2.0)
-          {
-            this.Projectile.localAI[0] = 1f;
-            for (int index1 = -1; index1 <= 1; index1 += 2)
-            {
-              if (FargoSoulsUtil.HostCheck)
-              {
-                int index2 = Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.op_Multiply(16f, Utils.RotatedBy(Vector2.Normalize(((Entity) npc).velocity), 1.5707963705062866 * (double) index1, new Vector2())), ModContent.ProjectileType<MutantSphereSmall>(), this.Projectile.damage, 0.0f, this.Projectile.owner, -1f, 0.0f, 0.0f);
-                if (index2 != Main.maxProjectiles)
-                  Main.projectile[index2].timeLeft = 15;
-              }
-            }
-          }
-          else if (WorldSavingSystem.MasochistModeReal)
-          {
-            this.Projectile.localAI[0] = 2f;
-            for (int index3 = -1; index3 <= 1; index3 += 2)
-            {
-              if (FargoSoulsUtil.HostCheck)
-              {
-                int index4 = Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.op_Multiply(8f, Utils.RotatedBy(Vector2.Normalize(((Entity) npc).velocity), 1.5707963705062866 * (double) index3, new Vector2())), ModContent.ProjectileType<MutantSphereSmall>(), this.Projectile.damage, 0.0f, this.Projectile.owner, -1f, 0.0f, 0.0f);
-                if (index4 != Main.maxProjectiles)
-                  Main.projectile[index4].timeLeft = 15;
-              }
-            }
-          }
-          else
-          {
-            this.Projectile.localAI[0] = 2f;
-            if (FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.Zero, ModContent.ProjectileType<MutantSphereSmall>(), this.Projectile.damage, 0.0f, this.Projectile.owner, (float) npc.target, 0.0f, 0.0f);
-          }
+            Projectile.maxPenetrate = 1;
+            return null;
         }
-      }
-      else
-        this.Projectile.Kill();
-      ++this.scaletimer;
+
+        protected void TryLifeSteal(Vector2 pos, int playerWhoAmI)
+        {
+            if (WorldSavingSystem.MasochistModeReal && npc is NPC)
+            {
+                int totalHealPerHit = npc.lifeMax / 100 * 5;
+
+                const int max = 20;
+                for (int i = 0; i < max; i++)
+                {
+                    Vector2 vel = Main.rand.NextFloat(2f, 9f) * -Vector2.UnitY.RotatedByRandom(MathHelper.TwoPi);
+                    float ai0 = npc.whoAmI;
+                    float ai1 = vel.Length() / Main.rand.Next(30, 90); //window in which they begin homing in
+
+                    int healPerOrb = (int)(totalHealPerHit / max * Main.rand.NextFloat(0.95f, 1.05f));
+
+                    if (playerWhoAmI == Main.myPlayer && Main.player[playerWhoAmI].ownedProjectileCounts[ModContent.ProjectileType<MutantHeal>()] < 10)
+                    {
+                        Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), pos, vel, ModContent.ProjectileType<MutantHeal>(), healPerOrb, 0f, Main.myPlayer, ai0, ai1);
+
+                        SoundEngine.PlaySound(SoundID.Item27, pos);
+                    }
+                }
+            }
+        }
     }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
+    public class MutantSpearDash : MutantSpearAttack
     {
-      Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), Vector2.op_Addition(((Entity) target).Center, Utils.NextVector2Circular(Main.rand, 100f, 100f)), Vector2.Zero, ModContent.ProjectileType<MutantBombSmall>(), 0, 0.0f, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.FargoSouls().MaxLifeReduction += 100;
-        target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400, true, false);
-        target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180, true, false);
-      }
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600, true, false);
-      this.TryLifeSteal(((Entity) target).Center, ((Entity) target).whoAmI);
-    }
+        public override string Texture => FargoSoulsUtil.AprilFools ?
+            "FargowiltasSouls/Content/Bosses/MutantBoss/MutantSpear_April" :
+            "FargowiltasSouls/Content/Projectiles/BossWeapons/HentaiSpear";
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      if (!Main.zenithWorld)
-        return;
-      this.TryLifeSteal(((Entity) target).Center, Main.myPlayer);
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("The Penetrator");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+        }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 16;
+            Projectile.height = 16;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.alpha = 0;
+            CooldownSlot = 1;
+            Projectile.FargoSouls().TimeFreezeImmune = true;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/MutantBoss/MutantEye_Glow", (AssetRequestMode) 1).Value;
-      int num1 = texture2D.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color color1 = Color.Lerp(Color.Lerp(FargoSoulsUtil.AprilFools ? new Color((int) byte.MaxValue, 191, 51, 0) : new Color(51, (int) byte.MaxValue, 191, 0), Color.Transparent, 0.82f), Color.Lerp(FargoSoulsUtil.AprilFools ? new Color((int) byte.MaxValue, 242, 194, 0) : new Color(194, (int) byte.MaxValue, 242, 0), Color.Transparent, 0.6f), (float) (0.5 + Math.Sin((double) this.scaletimer / 7.0) / 2.0));
-      Vector2 vector2_2 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Utils.SafeNormalize(((Entity) this.Projectile).velocity, Vector2.UnitX), 28f));
-      float num3 = (float) (-(double) MathHelper.ToRadians(135f) + 1.5707963705062866);
-      for (int index = 0; index < 3; ++index)
-      {
-        Vector2 vector2_3 = Vector2.op_Subtraction(Vector2.op_Addition(vector2_2, Utils.RotatedBy(Vector2.op_Multiply(Utils.SafeNormalize(((Entity) this.Projectile).velocity, Vector2.UnitX), 20f), 0.62831854820251465 - (double) index * 3.1415927410125732 / 5.0, new Vector2())), Vector2.op_Multiply(Utils.SafeNormalize(((Entity) this.Projectile).velocity, Vector2.UnitX), 20f));
-        float num4 = this.Projectile.scale + (float) Math.Sin((double) this.scaletimer / 7.0) / 7f;
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(vector2_3, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color1, this.Projectile.rotation + num3, vector2_1, num4 * 1.25f, (SpriteEffects) 0, 0.0f);
-      }
-      for (int index = ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - 1; index > 0; --index)
-      {
-        Color color2 = Color.op_Multiply(color1, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        float num5 = this.Projectile.scale * (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type] + (float) Math.Sin((double) this.scaletimer / 7.0) / 7f;
-        Vector2 vector2_4 = Vector2.op_Subtraction(this.Projectile.oldPos[index], Vector2.op_Multiply(Utils.SafeNormalize(((Entity) this.Projectile).velocity, Vector2.UnitX), 14f));
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(vector2_4, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color2, this.Projectile.oldRot[index] + num3, vector2_1, num5 * 1.25f, (SpriteEffects) 0, 0.0f);
-      }
-      return false;
-    }
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
+        {
+            if (projHitbox.Intersects(targetHitbox))
+                return true;
 
-    public virtual void PostDraw(Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
+            float length = 200;
+            float dummy = 0f;
+            Vector2 offset = length / 2 * Projectile.scale * (Projectile.rotation - MathHelper.ToRadians(135f)).ToRotationVector2();
+            Vector2 end = Projectile.Center - offset;
+            Vector2 tip = Projectile.Center + offset;
+
+            if (Collision.CheckAABBvLineCollision(targetHitbox.TopLeft(), targetHitbox.Size(), end, tip, 8f * Projectile.scale, ref dummy))
+                return true;
+
+            return false;
+        }
+
+        public override void OnSpawn(IEntitySource source)
+        {
+            if (source is EntitySource_Parent parent && parent.Entity is NPC sourceNPC)
+                npc = sourceNPC;
+        }
+
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write7BitEncodedInt(npc is NPC ? npc.whoAmI : -1);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            npc = FargoSoulsUtil.NPCExists(reader.Read7BitEncodedInt());
+        }
+
+        float scaletimer;
+        public override void AI()
+        {
+            if (Projectile.localAI[1] == 0f)
+            {
+                Projectile.localAI[1] = 1f;
+                SoundEngine.PlaySound(WorldSavingSystem.masochistModeReal ? FargosSoundRegistry.PenetratorExplosion : FargosSoundRegistry.PenetratorThrow, Projectile.Center);
+            }
+
+            NPC mutant = Main.npc[(int)Projectile.ai[0]];
+            if (mutant.active && mutant.type == ModContent.NPCType<MutantBoss>() && (mutant.ai[0] == 6 || mutant.ai[0] == 15 || mutant.ai[0] == 23))
+            {
+                Projectile.velocity = Vector2.Normalize(mutant.velocity);
+                Projectile.position -= Projectile.velocity;
+                Projectile.rotation = mutant.velocity.ToRotation() + MathHelper.ToRadians(135f);
+                Projectile.Center = mutant.Center + mutant.velocity;
+                if ((Projectile.ai[1] <= 0f || WorldSavingSystem.MasochistModeReal) && --Projectile.localAI[0] < 0)
+                {
+                    if (Projectile.ai[1] == -2)
+                    {
+                        Projectile.localAI[0] = 1;
+
+                        for (int i = -1; i <= 1; i += 2)
+                        {
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                int p = Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, 16f * Vector2.Normalize(mutant.velocity).RotatedBy(MathHelper.PiOver2 * i),
+                                ModContent.ProjectileType<MutantSphereSmall>(), Projectile.damage, 0f, Projectile.owner, -1);
+                                if (p != Main.maxProjectiles)
+                                    Main.projectile[p].timeLeft = 15;
+                            }
+                        }
+                    }
+                    else if (WorldSavingSystem.MasochistModeReal)
+                    {
+                        Projectile.localAI[0] = 2;
+
+                        for (int i = -1; i <= 1; i += 2)
+                        {
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                int p = Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, 16f / 2f * Vector2.Normalize(mutant.velocity).RotatedBy(MathHelper.PiOver2 * i),
+                                ModContent.ProjectileType<MutantSphereSmall>(), Projectile.damage, 0f, Projectile.owner, -1);
+                                if (p != Main.maxProjectiles)
+                                    Main.projectile[p].timeLeft = 15;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Projectile.localAI[0] = 2;
+
+                        if (FargoSoulsUtil.HostCheck)
+                            Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.Zero, ModContent.ProjectileType<MutantSphereSmall>(), Projectile.damage, 0f, Projectile.owner, mutant.target);
+                    }
+                }
+            }
+            else
+            {
+                Projectile.Kill();
+            }
+
+            scaletimer++;
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), target.Center + Main.rand.NextVector2Circular(100, 100), Vector2.Zero, ModContent.ProjectileType<MutantBombSmall>(), 0, 0f, Projectile.owner);
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.FargoSouls().MaxLifeReduction += 100;
+                target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400);
+                target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180);
+            }
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600);
+
+            TryLifeSteal(target.Center, target.whoAmI);
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            if (Main.zenithWorld)
+                TryLifeSteal(target.Center, Main.myPlayer);
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D glow = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/MutantBoss/MutantEye_Glow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            int rect1 = glow.Height / Main.projFrames[Projectile.type];
+            int rect2 = rect1 * Projectile.frame;
+            Rectangle glowrectangle = new(0, rect2, glow.Width, rect1);
+            Vector2 gloworigin2 = glowrectangle.Size() / 2f;
+            Color glowcolor = Color.Lerp(FargoSoulsUtil.AprilFools ? new Color(255, 191, 51, 0) : new Color(51, 255, 191, 0), Color.Transparent, 0.82f);
+            Color glowcolor2 = Color.Lerp(FargoSoulsUtil.AprilFools ? new Color(255, 242, 194, 0) : new Color(194, 255, 242, 0), Color.Transparent, 0.6f);
+            glowcolor = Color.Lerp(glowcolor, glowcolor2, 0.5f + (float)Math.Sin(scaletimer / 7) / 2); //make it shift between the 2 colors
+            Vector2 drawCenter = Projectile.Center + Projectile.velocity.SafeNormalize(Vector2.UnitX) * 28;
+
+            float rotationModifier = -MathHelper.ToRadians(135f) + MathHelper.PiOver2;
+
+            for (int i = 0; i < 3; i++) //create multiple transparent trail textures ahead of the projectile
+            {
+                Vector2 drawCenter2 = drawCenter + (Projectile.velocity.SafeNormalize(Vector2.UnitX) * 20).RotatedBy(MathHelper.Pi / 5 - i * MathHelper.Pi / 5); //use a normalized version of the projectile's velocity to offset it at different angles
+                drawCenter2 -= Projectile.velocity.SafeNormalize(Vector2.UnitX) * 20; //then move it backwards
+                float scale = Projectile.scale;
+                scale += (float)Math.Sin(scaletimer / 7) / 7; //pulsate slightly so it looks less static
+                Main.EntitySpriteDraw(glow, drawCenter2 - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle),
+                    glowcolor, Projectile.rotation + rotationModifier, gloworigin2, scale * 1.25f, SpriteEffects.None, 0);
+            }
+
+            for (int i = ProjectileID.Sets.TrailCacheLength[Projectile.type] - 1; i > 0; i--) //scaling trail
+            {
+                Color color27 = glowcolor;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                float scale = Projectile.scale * (ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                scale += (float)Math.Sin(scaletimer / 7) / 7; //pulsate slightly so it looks less static
+                Vector2 value4 = Projectile.oldPos[i] - Projectile.velocity.SafeNormalize(Vector2.UnitX) * 14;
+                Main.EntitySpriteDraw(glow, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(glowrectangle), color27,
+                    Projectile.oldRot[i] + rotationModifier, gloworigin2, scale * 1.25f, SpriteEffects.None, 0);
+            }
+
+            return false;
+        }
+
+        public override void PostDraw(Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+        }
     }
-  }
 }

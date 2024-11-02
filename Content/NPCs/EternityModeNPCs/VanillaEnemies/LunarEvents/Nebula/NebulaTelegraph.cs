@@ -1,63 +1,61 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Nebula.NebulaTelegraph
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.LunarEvents.Nebula
 {
-  public class NebulaTelegraph : ModProjectile
-  {
-    public virtual string Texture
+    public class NebulaTelegraph : ModProjectile
     {
-      get => "FargowiltasSouls/Content/Projectiles/Masomode/CelestialPillar";
+        public override string Texture => "FargowiltasSouls/Content/Projectiles/Masomode/CelestialPillar";
+
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Celestial Pillar");
+            Main.projFrames[Projectile.type] = 4;
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.width = 120;
+            Projectile.height = 120;
+            Projectile.aiStyle = -1;
+            Projectile.alpha = 150;
+            Projectile.hostile = true;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.timeLeft = 600;
+            CooldownSlot = 1;
+            Projectile.FargoSouls().TimeFreezeImmune = true;
+            Projectile.FargoSouls().DeletionImmuneRank = 1;
+        }
+
+        public override bool? CanDamage()
+        {
+            return false;
+        }
+        //private int Timer = 0;
+        public override void AI()
+        {
+            ref float MaxTime = ref Projectile.ai[0];
+            ref float Timer = ref Projectile.ai[1];
+            if (++Timer >= MaxTime)
+            {
+                Projectile.Kill();
+            }
+            Projectile.frame = 0;
+            Projectile.rotation = Vector2.UnitY.ToRotation();
+        }
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
+
     }
-
-    public virtual void SetStaticDefaults() => Main.projFrames[this.Projectile.type] = 4;
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 120;
-      ((Entity) this.Projectile).height = 120;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.alpha = 150;
-      this.Projectile.hostile = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.timeLeft = 600;
-      this.CooldownSlot = 1;
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 1;
-    }
-
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public virtual void AI()
-    {
-      if ((double) ++this.Projectile.ai[1] >= (double) this.Projectile.ai[0])
-        this.Projectile.Kill();
-      this.Projectile.frame = 0;
-      this.Projectile.rotation = Utils.ToRotation(Vector2.UnitY);
-    }
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
-    }
-  }
 }

@@ -1,52 +1,73 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.ZephyrBoots
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Items.Materials;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class ZephyrBoots : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    //[AutoloadEquip(EquipType.Shoes)] //TODO: enable this when sheeted
+    public class ZephyrBoots : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 4;
-      this.Item.value = Item.sellPrice(0, 10, 0, 0);
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.LightRed;
+            Item.value = Item.sellPrice(0, 10);
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.accRunSpeed = 6.75f;
-      player.rocketBoots = player.vanityRocketBoots = 4;
-      player.moveSpeed += 0.08f;
-      player.iceSkate = true;
-      player.waterWalk = true;
-      player.fireWalk = true;
-      player.lavaMax += 420;
-      player.lavaRose = true;
-      player.AddEffect<ZephyrJump>(this.Item);
-      player.jumpBoost = true;
-      player.noFallDmg = true;
-    }
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            //terraspark
+            player.accRunSpeed = 6.75f;
+            player.rocketBoots = player.vanityRocketBoots = ArmorIDs.RocketBoots.TerrasparkBoots;
+            player.moveSpeed += 0.08f;
+            player.iceSkate = true;
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(5000, 1).AddIngredient(3250, 1).AddIngredient(ModContent.ItemType<EurusSock>(), 1).AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 10).AddTile(114).Register();
+            //lava wader
+            player.waterWalk = true;
+            player.fireWalk = true;
+            player.lavaMax += 420;
+            player.lavaRose = true;
+
+            //fart balloon
+            player.AddEffect<ZephyrJump>(Item);
+            player.jumpBoost = true;
+            player.noFallDmg = true;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddIngredient(ItemID.TerrasparkBoots)
+                .AddIngredient(ItemID.BalloonHorseshoeFart)
+                .AddIngredient(ModContent.ItemType<EurusSock>())
+                .AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 10)
+                .AddTile(TileID.TinkerersWorkbench)
+                .Register();
+        }
     }
-  }
+    public class ZephyrJump : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<DeviEnergyHeader>();
+        public override int ToggleItemType => ModContent.ItemType<ZephyrBoots>();
+        
+        public override void PostUpdateEquips(Player player)
+        {
+            if (player.whoAmI == Main.myPlayer)
+            {
+                player.GetJumpState(ExtraJump.FartInAJar).Enable();
+                if (Main.netMode == NetmodeID.MultiplayerClient)
+                    NetMessage.SendData(MessageID.SyncPlayer, number: player.whoAmI);
+            }
+        }
+    }
 }

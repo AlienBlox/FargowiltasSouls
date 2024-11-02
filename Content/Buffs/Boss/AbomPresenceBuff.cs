@@ -1,35 +1,32 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Boss.AbomPresenceBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
-using Terraria.ID;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Boss
 {
-  public class AbomPresenceBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class AbomPresenceBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.buffNoSave[this.Type] = true;
-      Main.buffNoTimeDisplay[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Abominable Presence");
+            // Description.SetDefault("Defense, damage reduction, and life regen reduced; Moon Leech effect");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "憎恶驾到");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "减少防御、伤害减免和生命恢复速度;附带月噬减益");
+            Main.debuff[Type] = true;
+            Main.buffNoSave[Type] = true;
+            Main.buffNoTimeDisplay[Type] = true;
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().noDodge = true;
-      player.FargoSouls().noSupersonic = true;
-      player.moonLeech = true;
-      player.bleed = true;
-      Player player1 = player;
-      player1.statDefense = Player.DefenseStat.op_Subtraction(player1.statDefense, 30);
-      player.endurance -= 0.25f;
+            Terraria.ID.BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
+        }
+
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.FargoSouls().noDodge = true;
+            player.FargoSouls().noSupersonic = true;
+            player.moonLeech = true;
+            player.bleed = true;
+
+            player.statDefense -= 30;
+            player.endurance -= 0.25f;
+        }
     }
-  }
 }

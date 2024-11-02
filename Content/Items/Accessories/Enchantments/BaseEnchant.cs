@@ -1,130 +1,135 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.BaseEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
+using FargowiltasSouls.Content.Items.Accessories.Forces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using Terraria;
-using Terraria.GameContent;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public abstract class BaseEnchant : SoulsItem
-  {
-    public static int[] CraftsInto;
-    public static int[] Force;
-    private int drawTimer;
-
-    public abstract Color nameColor { get; }
-
-    public string wizardEffect()
+    public abstract class BaseEnchant : SoulsItem
     {
-      string textValue = Language.GetTextValue("Mods." + ((ModType) this).Mod.Name + ".WizardEffect." + ((ModType) this).Name.Replace("Enchantment", "").Replace("Enchant", ""));
-      return textValue.Contains("Mods." + ((ModType) this).Mod.Name + ".WizardEffect") || textValue.Length <= 1 ? Language.GetTextValue("Mods.FargowiltasSouls.WizardEffect.NoUpgrade") : textValue;
-    }
-
-    public virtual void SetStaticDefaults()
-    {
-      ((ModType) this).SetStaticDefaults();
-      ItemID.Sets.ItemNoGravity[this.Type] = true;
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
-
-    public override void SafeModifyTooltips(List<TooltipLine> tooltips)
-    {
-      base.SafeModifyTooltips(tooltips);
-      TooltipLine tooltipLine1;
-      if (tooltips.TryFindTooltipLine("ItemName", out tooltipLine1))
-        tooltipLine1.OverrideColor = new Color?(this.nameColor);
-      FargoSoulsPlayer fargoSoulsPlayer = Main.LocalPlayer.FargoSouls();
-      if (!fargoSoulsPlayer.WizardTooltips || this.Type == ModContent.ItemType<WizardEnchant>())
-        return;
-      if (fargoSoulsPlayer.ForceEffect(new int?(this.Type)))
-      {
-        if (this.wizardEffect().Length == 0)
-          return;
-        List<TooltipLine> tooltipLineList = tooltips;
-        Mod mod = ((ModType) this).Mod;
-        DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(7, 2);
-        interpolatedStringHandler.AppendFormatted(Language.GetTextValue("Mods.FargowiltasSouls.WizardEffect.Active"));
-        interpolatedStringHandler.AppendLiteral(" [i:");
-        interpolatedStringHandler.AppendFormatted<int>(ModContent.ItemType<WizardEnchant>());
-        interpolatedStringHandler.AppendLiteral("]: ");
-        string str = interpolatedStringHandler.ToStringAndClear() + this.wizardEffect();
-        TooltipLine tooltipLine2 = new TooltipLine(mod, "wizard", str);
-        tooltipLineList.Add(tooltipLine2);
-      }
-      else
-      {
-        if (this.wizardEffect().Length == 0)
-          return;
-        List<TooltipLine> tooltipLineList = tooltips;
-        Mod mod = ((ModType) this).Mod;
-        DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(7, 2);
-        interpolatedStringHandler.AppendFormatted(Language.GetTextValue("Mods.FargowiltasSouls.WizardEffect.Inactive"));
-        interpolatedStringHandler.AppendLiteral(" [i:");
-        interpolatedStringHandler.AppendFormatted<int>(ModContent.ItemType<WizardEnchant>());
-        interpolatedStringHandler.AppendLiteral("]: ");
-        string str = interpolatedStringHandler.ToStringAndClear() + this.wizardEffect();
-        TooltipLine tooltipLine3 = new TooltipLine(mod, "wizard", str);
-        tooltipLineList.Add(tooltipLine3);
-        tooltips[tooltips.Count - 1].OverrideColor = new Color?(Color.Gray);
-      }
-    }
-
-    public virtual void SetDefaults()
-    {
-      base.SetDefaults();
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-    }
-
-    public virtual bool PreDrawInInventory(
-      SpriteBatch spriteBatch,
-      Vector2 position,
-      Rectangle frame,
-      Color drawColor,
-      Color itemColor,
-      Vector2 origin,
-      float scale)
-    {
-      if (Main.LocalPlayer.FargoSouls().WizardedItem == this.Item)
-      {
-        for (int index = 0; index < 12; ++index)
+        public abstract Color nameColor { get; }
+        public bool IsAccessory = false;
+        public string wizardEffect()
         {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.ToRotationVector2((float) (6.2831854820251465 * (double) index / 12.0)), 1f);
-          float num1 = (float) (0.5 + Math.Sin((double) this.drawTimer / 30.0) / 6.0);
-          Color color1 = Color.Blue;
-          ((Color) ref color1).A = (byte) 0;
-          Color color2 = color1;
-          color1 = Color.Silver;
-          ((Color) ref color1).A = (byte) 0;
-          Color color3 = color1;
-          double num2 = (double) num1;
-          Color color4 = Color.op_Multiply(Color.Lerp(color2, color3, (float) num2), 0.5f);
-          Texture2D texture2D = TextureAssets.Item[this.Item.type].Value;
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(position, vector2), new Rectangle?(), color4, 0.0f, Vector2.op_Multiply(Utils.Size(texture2D), 0.5f), this.Item.scale, (SpriteEffects) 0, 0.0f);
+            string key = $"Mods.{Mod.Name}.WizardEffect.{Name.Replace("Enchantment", "").Replace("Enchant", "")}";
+            if (!Language.Exists(key)) // if there's no localization entry
+                return Language.GetTextValue($"Mods.FargowiltasSouls.WizardEffect.NoUpgrade");
+            string text = Language.GetTextValue(key);
+            if (text.Length <= 1) //if it's empty
+                return Language.GetTextValue($"Mods.FargowiltasSouls.WizardEffect.NoUpgrade");
+            return text;
         }
-      }
-      ++this.drawTimer;
-      return base.PreDrawInInventory(spriteBatch, position, frame, drawColor, itemColor, origin, scale);
+
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+
+            ItemID.Sets.ItemNoGravity[Type] = true;
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
+
+        public override void SafeModifyTooltips(List<TooltipLine> tooltips)
+        {
+            base.SafeModifyTooltips(tooltips);
+
+            if (tooltips.TryFindTooltipLine("ItemName", out TooltipLine itemNameLine))
+                itemNameLine.OverrideColor = nameColor;
+
+            FargoSoulsPlayer localSoulsPlayer = Main.LocalPlayer.FargoSouls();
+            if (localSoulsPlayer.WizardTooltips)
+            {
+                if (Type == ModContent.ItemType<WizardEnchant>())
+                {
+                    return;
+                }
+
+                if (localSoulsPlayer.ForceEffect(Type))
+                {
+                    if (wizardEffect().Length != 0)
+                        tooltips.Add(new TooltipLine(Mod, "wizard", $"{Language.GetTextValue($"Mods.FargowiltasSouls.WizardEffect.Active")} [i:{ModContent.ItemType<WizardEnchant>()}]: " + wizardEffect()));
+                }
+                else
+                {
+                    if (wizardEffect().Length != 0)
+                    {
+                        tooltips.Add(new TooltipLine(Mod, "wizard", $"{Language.GetTextValue($"Mods.FargowiltasSouls.WizardEffect.Inactive")} [i:{ModContent.ItemType<WizardEnchant>()}]: " + wizardEffect()));
+                        tooltips[tooltips.Count - 1].OverrideColor = Color.Gray;
+                    }
+                }
+            }
+
+        }
+        /// <summary>
+        /// IDs for enchants that craft into other enchants. Index is material, value is result. Default value is -1.
+        /// </summary>
+        public static int[] CraftsInto;
+        /// <summary>
+        /// IDs for the corresponding Force of each enchant.
+        /// </summary>
+        public static int[] Force;
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+        }
+        int drawTimer = 0;
+        public override bool PreDrawInInventory(SpriteBatch spriteBatch, Vector2 position, Rectangle frame, Color drawColor, Color itemColor, Vector2 origin, float scale)
+        {
+            //draw glow if wizard effect
+            Player player = Main.LocalPlayer;
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (modPlayer.ForceEffect(this, true) && player.FargoSouls().EquippedEnchants.Contains(this))
+            {
+                for (int j = 0; j < 12; j++)
+                {
+                    Vector2 afterimageOffset = (MathHelper.TwoPi * j / 12f).ToRotationVector2() * 1f;
+                    float modifier = 0.5f + ((float)Math.Sin(drawTimer / 30f) / 6);
+                    Color glowColor = Color.Lerp(Color.Blue with { A = 0 }, Color.Silver with { A = 0 }, modifier) * 0.5f;
+
+                    Texture2D texture = Terraria.GameContent.TextureAssets.Item[Item.type].Value;
+                    Main.EntitySpriteDraw(texture, position + afterimageOffset, null, glowColor, 0, texture.Size() * 0.5f, Item.scale, SpriteEffects.None, 0f);
+                }
+            }
+            drawTimer++;
+            return base.PreDrawInInventory(spriteBatch, position, frame, drawColor, itemColor, origin, scale);
+        }
+        public sealed override void UpdateEquip(Player player)
+        {
+            //todo, change this to sealed UpdateAccessory and refactor every single enchantment file to accommodate
+            player.FargoSouls().EquippedEnchants.Add(this);
+        }
     }
 
-    public virtual void UpdateEquip(Player player)
+    public class EnchantSystem : ModSystem
     {
-      player.FargoSouls().EquippedEnchants.Add(this);
+        public override void PostSetupRecipes()
+        {
+            SetFactory factory = ItemID.Sets.Factory;
+            BaseEnchant.CraftsInto = factory.CreateIntSet();
+            foreach (BaseEnchant modItem in ModContent.GetContent<BaseEnchant>())
+            {
+                Recipe recipe = Main.recipe.FirstOrDefault(r => r.ContainsIngredient(modItem.Type) && r.createItem.ModItem != null && r.createItem.ModItem is BaseEnchant, null);
+                if (recipe != null)
+                    BaseEnchant.CraftsInto[modItem.Type] = recipe.createItem.type;
+            }
+
+            BaseEnchant.Force = factory.CreateIntSet();
+            foreach (var enchantsPerForceDict in BaseForce.Enchants)
+            {
+                foreach (int enchant in enchantsPerForceDict.Value)
+                    BaseEnchant.Force[enchant] = enchantsPerForceDict.Key;
+            }
+        }
     }
-  }
 }

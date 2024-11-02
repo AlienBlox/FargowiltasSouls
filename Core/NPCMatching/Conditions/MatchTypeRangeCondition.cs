@@ -1,23 +1,23 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Core.NPCMatching.Conditions.MatchTypeRangeCondition
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-#nullable disable
 namespace FargowiltasSouls.Core.NPCMatching.Conditions
 {
-  public class MatchTypeRangeCondition : INPCMatchCondition
-  {
-    public int[] Types;
+    public class MatchTypeRangeCondition : INPCMatchCondition
+    {
+        public int[] Types;
 
-    public MatchTypeRangeCondition(IEnumerable<int> types) => this.Types = types.ToArray<int>();
+        // IEnumerable<int> is a workaround, you can't have two constructors with the same type signature
+        public MatchTypeRangeCondition(IEnumerable<int> types)
+        {
+            Types = types.ToArray();
+        }
 
-    public MatchTypeRangeCondition(params int[] types) => this.Types = types;
+        public MatchTypeRangeCondition(params int[] types)
+        {
+            Types = types;
+        }
 
-    public bool Satisfies(int type) => ((IEnumerable<int>) this.Types).Contains<int>(type);
-  }
+        public bool Satisfies(int type) => Types.Contains(type);
+    }
 }

@@ -1,253 +1,275 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Cosmos.CosmosVortex
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Cosmos
 {
-  public class CosmosVortex : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_578";
-
-    public virtual void SetStaticDefaults()
+    public class CosmosVortex : ModProjectile
     {
-    }
+        public override string Texture => "Terraria/Images/Projectile_578";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 32;
-      ((Entity) this.Projectile).height = 32;
-      this.Projectile.hostile = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.penetrate = -1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Vortex");
+        }
 
-    public virtual bool? CanDamage() => new bool?((double) this.Projectile.scale >= 2.0);
+        public override void SetDefaults()
+        {
+            Projectile.width = 32;
+            Projectile.height = 32;
+            Projectile.hostile = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.alpha = 255;
+            Projectile.penetrate = -1;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+        }
 
-    public virtual void AI()
-    {
-      int num1 = 360;
-      int num2 = 3;
-      if ((double) this.Projectile.ai[1] == 0.0)
-        num1 = 30;
-      ++this.Projectile.ai[0];
-      if ((double) this.Projectile.ai[0] <= 50.0)
-      {
-        if (Utils.NextBool(Main.rand, 4))
+        public override bool? CanDamage()
         {
-          Vector2 vector2 = Utils.RotatedByRandom(Vector2.UnitY, 6.28318548202515);
-          Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f)), 0, 0, 229, 0.0f, 0.0f, 0, new Color(), 1f)];
-          dust.noGravity = true;
-          dust.position = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, (float) Main.rand.Next(10, 21)));
-          dust.velocity = Vector2.op_Multiply(Utils.RotatedBy(vector2, 1.5707963705062866, new Vector2()), 4f);
-          dust.scale = 0.5f + Utils.NextFloat(Main.rand);
-          dust.fadeIn = 0.5f;
+            return Projectile.scale >= 2;
         }
-        if (Utils.NextBool(Main.rand, 4))
+
+        public override void AI()
         {
-          Vector2 vector2 = Utils.RotatedByRandom(Vector2.UnitY, 6.28318548202515);
-          Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f)), 0, 0, 240, 0.0f, 0.0f, 0, new Color(), 1f)];
-          dust.noGravity = true;
-          dust.position = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f));
-          dust.velocity = Vector2.op_Multiply(Utils.RotatedBy(vector2, -1.5707963705062866, new Vector2()), 2f);
-          dust.scale = 0.5f + Utils.NextFloat(Main.rand);
-          dust.fadeIn = 0.5f;
-        }
-      }
-      else if ((double) this.Projectile.ai[0] <= 90.0)
-      {
-        this.Projectile.scale = (float) (((double) this.Projectile.ai[0] - 50.0) / 40.0) * (float) num2;
-        this.Projectile.alpha = (int) byte.MaxValue - (int) ((double) byte.MaxValue * (double) this.Projectile.scale / (double) num2);
-        this.Projectile.rotation -= 0.1570796f;
-        if (Utils.NextBool(Main.rand))
-        {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 6.28318548202515), this.Projectile.scale);
-          Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f)), 0, 0, 229, 0.0f, 0.0f, 0, new Color(), 1f)];
-          dust.noGravity = true;
-          dust.position = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, (float) Main.rand.Next(10, 21)));
-          dust.velocity = Vector2.op_Multiply(Utils.RotatedBy(vector2, 1.5707963705062866, new Vector2()), 6f);
-          dust.scale = 0.5f + Utils.NextFloat(Main.rand);
-          dust.fadeIn = 0.5f;
-          dust.customData = (object) ((Entity) this.Projectile).Center;
-        }
-        if (Utils.NextBool(Main.rand))
-        {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 6.28318548202515), this.Projectile.scale);
-          Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f)), 0, 0, 240, 0.0f, 0.0f, 0, new Color(), 1f)];
-          dust.noGravity = true;
-          dust.position = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f));
-          dust.velocity = Vector2.op_Multiply(Utils.RotatedBy(vector2, -1.5707963705062866, new Vector2()), 3f);
-          dust.scale = 0.5f + Utils.NextFloat(Main.rand);
-          dust.fadeIn = 0.5f;
-          dust.customData = (object) ((Entity) this.Projectile).Center;
-        }
-        if ((double) this.Projectile.ai[1] != 0.0)
-          Suck();
-        int closest = (int) Player.FindClosest(((Entity) this.Projectile).Center, 0, 0);
-        if (closest != -1)
-        {
-          this.Projectile.localAI[1] = Vector2.op_Equality(((Entity) this.Projectile).Center, ((Entity) Main.player[closest]).Center) ? 0.0f : Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) Main.player[closest]).Center));
-          this.Projectile.localAI[1] += 1.04719758f;
-        }
-      }
-      else if ((double) this.Projectile.ai[0] <= (double) (90 + num1))
-      {
-        this.Projectile.scale = (float) num2;
-        this.Projectile.alpha = 0;
-        this.Projectile.rotation -= (float) Math.PI / 60f;
-        if (Utils.NextBool(Main.rand))
-        {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 6.28318548202515), this.Projectile.scale);
-          Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f)), 0, 0, 229, 0.0f, 0.0f, 0, new Color(), 1f)];
-          dust.noGravity = true;
-          dust.position = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, (float) Main.rand.Next(10, 21)));
-          dust.velocity = Vector2.op_Multiply(Utils.RotatedBy(vector2, 1.5707963705062866, new Vector2()), 6f);
-          dust.scale = 0.5f + Utils.NextFloat(Main.rand);
-          dust.fadeIn = 0.5f;
-          dust.customData = (object) ((Entity) this.Projectile).Center;
-        }
-        if ((double) this.Projectile.ai[1] != 0.0)
-        {
-          Suck();
-          int num3 = !WorldSavingSystem.EternityMode || (double) this.Projectile.ai[1] == 1.0 ? 15 : 6;
-          if ((double) this.Projectile.localAI[0] % (double) num3 == 0.0)
-          {
-            SoundEngine.PlaySound(ref SoundID.Item82, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-            if (FargoSoulsUtil.HostCheck)
+            int time = 360;
+            int maxScale = 3;
+            float rotationMult = WorldSavingSystem.MasochistModeReal ? 1.4f : 1f;
+
+            if (Projectile.ai[1] == 0)
+                time = 30;
+
+            void Suck()
             {
-              for (int index = 0; index < 3; ++index)
-              {
-                Vector2 vector2_1 = Utils.RotatedBy(Vector2.UnitX, (double) this.Projectile.localAI[1] + 2.0943951606750488 * (double) index, new Vector2());
-                float num4 = Utils.NextBool(Main.rand) ? 1f : -1f;
-                Vector2 vector2_2 = Vector2.op_Multiply(Vector2.Normalize(vector2_1), 6f);
-                Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2_2, 6f), ModContent.ProjectileType<CosmosLightning>(), this.Projectile.damage, 0.0f, Main.myPlayer, Utils.ToRotation(vector2_1), num4, 0.0f);
-              }
-            }
-            this.Projectile.localAI[1] += MathHelper.ToRadians(0.8f * (float) num3) * this.Projectile.ai[1];
-          }
-          if (WorldSavingSystem.EternityMode && (double) this.Projectile.ai[1] != 1.0 && (double) this.Projectile.localAI[0] % 75.0 == 0.0 && FargoSoulsUtil.HostCheck)
-          {
-            for (int index1 = 0; index1 < 7; ++index1)
+                Player player = Main.LocalPlayer;
+                if (player.active && !player.dead && !player.ghost && Projectile.Center != player.Center && Projectile.Distance(player.Center) < 3000)
+                {
+                    float dragSpeed = Projectile.Distance(player.Center) / 60;
+                    player.position += Projectile.DirectionFrom(player.Center) * dragSpeed;
+                    player.AddBuff(ModContent.BuffType<LowGroundEridanusBuff>(), 2);
+                    player.wingTime = 60;
+                }
+            };
+
+            Projectile.ai[0]++;
+            if (Projectile.ai[0] <= 50)
             {
-              Vector2 vector2 = Utils.RotatedBy(Vector2.UnitX, -(double) this.Projectile.localAI[1] + 0.89759790897369385 * (double) index1, new Vector2());
-              int index2 = Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 4f), ModContent.ProjectileType<CosmosLightningOrb>(), this.Projectile.damage, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-              if (index2 != Main.maxProjectiles)
-                Main.projectile[index2].timeLeft = 90 + num1 - (int) this.Projectile.ai[0] + 60;
+                if (Main.rand.NextBool(4))
+                {
+                    Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515);
+                    Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Vortex, 0.0f, 0.0f, 0, new Color(), 1f)];
+                    dust.noGravity = true;
+                    dust.position = Projectile.Center - spinningpoint * Main.rand.Next(10, 21);
+                    dust.velocity = spinningpoint.RotatedBy((float)Math.PI / 2, new Vector2()) * 4f;
+                    dust.scale = 0.5f + Main.rand.NextFloat();
+                    dust.fadeIn = 0.5f;
+                }
+                if (Main.rand.NextBool(4))
+                {
+                    Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515);
+                    Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Granite, 0.0f, 0.0f, 0, new Color(), 1f)];
+                    dust.noGravity = true;
+                    dust.position = Projectile.Center - spinningpoint * 30f;
+                    dust.velocity = spinningpoint.RotatedBy(-(float)Math.PI / 2, new Vector2()) * 2f;
+                    dust.scale = 0.5f + Main.rand.NextFloat();
+                    dust.fadeIn = 0.5f;
+                }
             }
-          }
-          ++this.Projectile.localAI[0];
+            else if (Projectile.ai[0] <= 90)
+            {
+                Projectile.scale = (Projectile.ai[0] - 50) / 40 * maxScale;
+                Projectile.alpha = 255 - (int)(255 * Projectile.scale / maxScale);
+                Projectile.rotation = Projectile.rotation - 0.1570796f;
+                if (Main.rand.NextBool())
+                {
+                    Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                    Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Vortex, 0.0f, 0.0f, 0, new Color(), 1f)];
+                    dust.noGravity = true;
+                    dust.position = Projectile.Center - spinningpoint * Main.rand.Next(10, 21);
+                    dust.velocity = spinningpoint.RotatedBy((float)Math.PI / 2, new Vector2()) * 6f;
+                    dust.scale = 0.5f + Main.rand.NextFloat();
+                    dust.fadeIn = 0.5f;
+                    dust.customData = Projectile.Center;
+                }
+                if (Main.rand.NextBool())
+                {
+                    Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                    Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Granite, 0.0f, 0.0f, 0, new Color(), 1f)];
+                    dust.noGravity = true;
+                    dust.position = Projectile.Center - spinningpoint * 30f;
+                    dust.velocity = spinningpoint.RotatedBy(-(float)Math.PI / 2, new Vector2()) * 3f;
+                    dust.scale = 0.5f + Main.rand.NextFloat();
+                    dust.fadeIn = 0.5f;
+                    dust.customData = Projectile.Center;
+                }
+
+                if (Projectile.ai[1] != 0)
+                    Suck();
+
+                int p = Player.FindClosest(Projectile.Center, 0, 0);
+                if (p != -1)
+                {
+                    Projectile.localAI[1] =
+                        Projectile.Center == Main.player[p].Center ? 0 : Projectile.SafeDirectionTo(Main.player[p].Center).ToRotation();
+                    Projectile.localAI[1] += (float)Math.PI * 2 / 3 / 2;
+                }
+            }
+            else if (Projectile.ai[0] <= 90 + time)
+            {
+                Projectile.scale = maxScale;
+                Projectile.alpha = 0;
+                Projectile.rotation = Projectile.rotation - rotationMult * (float)Math.PI / 60f;
+                if (Main.rand.NextBool())
+                {
+                    Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                    Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Vortex, 0.0f, 0.0f, 0, new Color(), 1f)];
+                    dust.noGravity = true;
+                    dust.position = Projectile.Center - spinningpoint * Main.rand.Next(10, 21);
+                    dust.velocity = spinningpoint.RotatedBy((float)Math.PI / 2, new Vector2()) * 6f;
+                    dust.scale = 0.5f + Main.rand.NextFloat();
+                    dust.fadeIn = 0.5f;
+                    dust.customData = Projectile.Center;
+                }
+
+                if (Projectile.ai[1] != 0)
+                {
+                    Suck();
+
+                    int lightningTime = WorldSavingSystem.EternityMode && Projectile.ai[1] != 1f ? 6 : 15;
+                    if (WorldSavingSystem.MasochistModeReal)
+                        lightningTime = WorldSavingSystem.EternityMode && Projectile.ai[1] != 1f ? 5 : 8;
+
+                    if (Projectile.localAI[0] % lightningTime == 0) //shoot lightning out, rotate 48 degrees per second by default
+                    {
+                        //Projectile.localAI[0] = 0;
+
+                        SoundEngine.PlaySound(SoundID.Item82, Projectile.Center);
+
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            const int max = 3;
+                            for (int i = 0; i < max; i++)
+                            {
+                                Vector2 dir = Vector2.UnitX.RotatedBy(Projectile.localAI[1] + 2 * (float)Math.PI / max * i);
+                                float ai1New = Main.rand.NextBool() ? 1 : -1; //randomize starting direction
+                                Vector2 vel = Vector2.Normalize(dir) * 6f;
+                                Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, vel * 6, ModContent.ProjectileType<CosmosLightning>(),
+                                    Projectile.damage, 0, Main.myPlayer, dir.ToRotation(), ai1New);
+                            }
+                        }
+
+                        Projectile.localAI[1] += rotationMult * MathHelper.ToRadians(48f / 60f * lightningTime) * Projectile.ai[1];
+                    }
+
+                    //emode, ai1 check is a phase 2 check
+                    if (WorldSavingSystem.EternityMode && Projectile.ai[1] != 1f && Projectile.localAI[0] % 75 == 0)
+                    {
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            const int max = 7;
+                            for (int i = 0; i < max; i++)
+                            {
+                                Vector2 dir = Vector2.UnitX.RotatedBy(-Projectile.localAI[1] + 2 * (float)Math.PI / max * i);
+                                int p = Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, dir * 4, ModContent.ProjectileType<CosmosLightningOrb>(), Projectile.damage, 0, Main.myPlayer);
+                                if (p != Main.maxProjectiles)
+                                    Main.projectile[p].timeLeft = 90 + time - (int)Projectile.ai[0] + 60;
+                            }
+                        }
+                    }
+
+                    Projectile.localAI[0]++;
+                }
+            }
+            else
+            {
+                Projectile.scale = (float)(1.0 - (Projectile.ai[0] - time) / 60.0) * maxScale;
+                Projectile.alpha = 255 - (int)(255 * Projectile.scale / maxScale);
+                Projectile.rotation = Projectile.rotation - rotationMult * (float)Math.PI / 30f;
+                if (Projectile.alpha >= 255)
+                    Projectile.Kill();
+
+                Vector2 spinningpoint1 = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                Dust dust1 = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint1 * 30f, 0, 0, DustID.Vortex, 0.0f, 0.0f, 0, new Color(), 1f)];
+                dust1.noGravity = true;
+                dust1.position = Projectile.Center - spinningpoint1 * Main.rand.Next(10, 21);
+                dust1.velocity = spinningpoint1.RotatedBy((float)Math.PI / 2, new Vector2()) * 6f;
+                dust1.scale = 0.5f + Main.rand.NextFloat();
+                dust1.fadeIn = 0.5f;
+                dust1.customData = Projectile.Center;
+            }
+
+            if (Main.rand.NextBool())
+            {
+                Dust dust3 = Main.dust[Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Vortex, 0f, 0f, 0, new Color(), 1f)];
+                dust3.velocity *= 5f;
+                dust3.fadeIn = 1f;
+                dust3.scale = 1f + Main.rand.NextFloat() + Main.rand.Next(4) * 0.3f;
+                dust3.noGravity = true;
+            }
+
+            float num1 = 0.5f;
+            for (int i = 0; i < 5; ++i)
+            {
+                if (Main.rand.NextFloat() >= num1)
+                {
+                    float f = Main.rand.NextFloat() * 6.283185f;
+                    float num2 = Main.rand.NextFloat();
+                    Dust dust = Dust.NewDustPerfect(Projectile.Center + f.ToRotationVector2() * (110 + 600 * num2), 229, (f - 3.141593f).ToRotationVector2() * (14 + 8 * num2), 0, default, 1f);
+                    dust.scale = 0.9f;
+                    dust.fadeIn = 1.15f + num2 * 0.3f;
+                    //dust.color = new Color(1f, 1f, 1f, num1) * (1f - num1);
+                    dust.noGravity = true;
+                    //dust.noLight = true;
+                }
+            }
         }
-      }
-      else
-      {
-        this.Projectile.scale = (float) (1.0 - ((double) this.Projectile.ai[0] - (double) num1) / 60.0) * (float) num2;
-        this.Projectile.alpha = (int) byte.MaxValue - (int) ((double) byte.MaxValue * (double) this.Projectile.scale / (double) num2);
-        this.Projectile.rotation -= (float) Math.PI / 30f;
-        if (this.Projectile.alpha >= (int) byte.MaxValue)
-          this.Projectile.Kill();
-        Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitY, 6.28318548202515), this.Projectile.scale);
-        Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, 30f)), 0, 0, 229, 0.0f, 0.0f, 0, new Color(), 1f)];
-        dust.noGravity = true;
-        dust.position = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(vector2, (float) Main.rand.Next(10, 21)));
-        dust.velocity = Vector2.op_Multiply(Utils.RotatedBy(vector2, 1.5707963705062866, new Vector2()), 6f);
-        dust.scale = 0.5f + Utils.NextFloat(Main.rand);
-        dust.fadeIn = 0.5f;
-        dust.customData = (object) ((Entity) this.Projectile).Center;
-      }
-      if (Utils.NextBool(Main.rand))
-      {
-        Dust dust = Main.dust[Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 229, 0.0f, 0.0f, 0, new Color(), 1f)];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 5f);
-        dust.fadeIn = 1f;
-        dust.scale = (float) (1.0 + (double) Utils.NextFloat(Main.rand) + (double) Main.rand.Next(4) * 0.30000001192092896);
-        dust.noGravity = true;
-      }
-      float num5 = 0.5f;
-      for (int index = 0; index < 5; ++index)
-      {
-        if ((double) Utils.NextFloat(Main.rand) >= (double) num5)
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
         {
-          float num6 = Utils.NextFloat(Main.rand) * 6.283185f;
-          float num7 = Utils.NextFloat(Main.rand);
-          Dust dust = Dust.NewDustPerfect(Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Utils.ToRotationVector2(num6), (float) (110.0 + 600.0 * (double) num7))), 229, new Vector2?(Vector2.op_Multiply(Utils.ToRotationVector2(num6 - 3.141593f), (float) (14.0 + 8.0 * (double) num7))), 0, new Color(), 1f);
-          dust.scale = 0.9f;
-          dust.fadeIn = (float) (1.1499999761581421 + (double) num7 * 0.30000001192092896);
-          dust.noGravity = true;
+            target.AddBuff(BuffID.Electrified, 360);
+            //if (WorldSavingSystem.MasochistMode) target.AddBuff(ModContent.BuffType<Buffs.Masomode.LightningRod>(), 360);
         }
-      }
 
-      void Suck()
-      {
-        Player localPlayer = Main.LocalPlayer;
-        if (!((Entity) localPlayer).active || localPlayer.dead || localPlayer.ghost || !Vector2.op_Inequality(((Entity) this.Projectile).Center, ((Entity) localPlayer).Center) || (double) ((Entity) this.Projectile).Distance(((Entity) localPlayer).Center) >= 3000.0)
-          return;
-        float num = ((Entity) this.Projectile).Distance(((Entity) localPlayer).Center) / 60f;
-        Player player = localPlayer;
-        ((Entity) player).position = Vector2.op_Addition(((Entity) player).position, Vector2.op_Multiply(((Entity) this.Projectile).DirectionFrom(((Entity) localPlayer).Center), num));
-        localPlayer.AddBuff(ModContent.BuffType<LowGroundBuff>(), 2, true, false);
-        localPlayer.wingTime = 60f;
-      }
-    }
-
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(144, 360, true, false);
-    }
-
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      int num = 229;
-      for (int index = 0; index < 80; ++index)
-      {
-        Dust dust1 = Main.dust[Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, num, 0.0f, 0.0f, 0, new Color(), 1f)];
-        Dust dust2 = dust1;
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 10f);
-        dust1.fadeIn = 1f;
-        dust1.scale = (float) (1.0 + (double) Utils.NextFloat(Main.rand) + (double) Main.rand.Next(4) * 0.30000001192092896);
-        if (!Utils.NextBool(Main.rand, 3))
+        public override void OnKill(int timeLeft)
         {
-          dust1.noGravity = true;
-          Dust dust3 = dust1;
-          dust3.velocity = Vector2.op_Multiply(dust3.velocity, 3f);
-          dust1.scale *= 2f;
+            SoundEngine.PlaySound(SoundID.Item92, Projectile.Center);
+            int type = 229;
+            for (int index = 0; index < 80; ++index)
+            {
+                Dust dust = Main.dust[Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, type, 0.0f, 0.0f, 0, new Color(), 1f)];
+                dust.velocity *= 10f;
+                dust.fadeIn = 1f;
+                dust.scale = 1 + Main.rand.NextFloat() + Main.rand.Next(4) * 0.3f;
+                if (!Main.rand.NextBool(3))
+                {
+                    dust.noGravity = true;
+                    dust.velocity *= 3f;
+                    dust.scale *= 2f;
+                }
+            }
         }
-      }
-    }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.op_Multiply(Color.Black, this.Projectile.Opacity), -this.Projectile.rotation, vector2, this.Projectile.scale * 1.25f, (SpriteEffects) 1, 0.0f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Color.Black * Projectile.Opacity, -Projectile.rotation, origin2, Projectile.scale * 1.25f, SpriteEffects.FlipHorizontally, 0);
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

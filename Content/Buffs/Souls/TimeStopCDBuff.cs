@@ -1,46 +1,45 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Souls.TimeStopCDBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Souls
 {
-  public class TimeStopCDBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class TimeStopCDBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-    }
-
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      if (player.buffTime[buffIndex] != 2)
-        return;
-      for (int index1 = 0; index1 < Main.maxProjectiles; ++index1)
-      {
-        Projectile projectile = Main.projectile[index1];
-        if (((Entity) projectile).active && projectile.type == 623 && projectile.owner == ((Entity) player).whoAmI)
+        public override void SetStaticDefaults()
         {
-          for (int index2 = 0; index2 < 20; ++index2)
-          {
-            Vector2 vector2_1 = Vector2.op_Addition(Utils.RotatedBy(Vector2.op_Multiply(Vector2.UnitY, 5f), (double) (index2 - 9) * 6.2831854820251465 / 20.0, new Vector2()), ((Entity) projectile).Center);
-            Vector2 vector2_2 = Vector2.op_Subtraction(vector2_1, ((Entity) projectile).Center);
-            int index3 = Dust.NewDust(Vector2.op_Addition(vector2_1, vector2_2), 0, 0, 20, 0.0f, 0.0f, 0, new Color(), 1f);
-            Main.dust[index3].noGravity = true;
-            Main.dust[index3].velocity = vector2_2;
-            Main.dust[index3].scale = 1.5f;
-          }
-          break;
+            // DisplayName.SetDefault("Time Stop Cooldown");
+            // Description.SetDefault("You cannot stop time yet");
+            Main.debuff[Type] = true;
+            BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
         }
-      }
+
+        public override void Update(Player player, ref int buffIndex)
+        {
+            if (player.buffTime[buffIndex] == 2)
+            {
+                for (int i = 0; i < Main.maxProjectiles; i++)
+                {
+                    Projectile proj = Main.projectile[i];
+
+                    if (proj.active && proj.type == ProjectileID.StardustGuardian && proj.owner == player.whoAmI)
+                    {
+                        for (int j = 0; j < 20; j++)
+                        {
+                            Vector2 vector6 = Vector2.UnitY * 5f;
+                            vector6 = vector6.RotatedBy((j - (20 / 2 - 1)) * 6.28318548f / 20) + proj.Center;
+                            Vector2 vector7 = vector6 - proj.Center;
+                            int d = Dust.NewDust(vector6 + vector7, 0, 0, DustID.PurificationPowder);
+                            Main.dust[d].noGravity = true;
+                            Main.dust[d].velocity = vector7;
+                            Main.dust[d].scale = 1.5f;
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
     }
-  }
 }

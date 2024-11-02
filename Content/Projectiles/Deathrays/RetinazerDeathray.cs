@@ -1,126 +1,186 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Deathrays.RetinazerDeathray
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Assets.ExtraTextures;
+using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Content.Bosses.VanillaEternity;
 using FargowiltasSouls.Core.Systems;
+using Luminance.Assets;
+using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Deathrays
 {
-  public class RetinazerDeathray : BaseDeathray
-  {
-    public RetinazerDeathray()
-      : base(240f, sheeting: BaseDeathray.TextureSheeting.Vertical)
+    public class RetinazerDeathray : BaseDeathray, IPixelatedPrimitiveRenderer
     {
-    }
+        public RetinazerDeathray() : base(240/*, sheeting: TextureSheeting.Vertical*/) { }
 
-    public override void SetStaticDefaults()
-    {
-      base.SetStaticDefaults();
-      Main.projFrames[this.Projectile.type] = 4;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
 
-    public virtual void AI()
-    {
-      Vector2? nullable = new Vector2?();
-      if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[1], 125);
-      if (npc != null)
-      {
-        Vector2 vector2_1 = Utils.RotatedBy(new Vector2((float) (((Entity) npc).width - 24), 0.0f), (double) npc.rotation + 1.57079633, new Vector2());
-        ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) npc).Center, vector2_1);
-        if (npc.GetGlobalNPC<Retinazer>().DeathrayState >= 3 && (double) this.Projectile.localAI[0] < (double) this.maxTime - 30.0)
-          this.Projectile.localAI[0] = this.maxTime - 30f;
-        if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-          ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-        if ((double) this.Projectile.localAI[0] == 0.0 && !Main.dedServ)
-        {
-          SoundStyle soundStyle;
-          // ISSUE: explicit constructor call
-          ((SoundStyle) ref soundStyle).\u002Ector("FargowiltasSouls/Assets/Sounds/RetinazerDeathray", (SoundType) 0);
-          ((SoundStyle) ref soundStyle).Volume = 1.5f;
-          SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
+            // DisplayName.SetDefault("Blazing Deathray");
+            //Main.projFrames[Projectile.type] = 4;
         }
-        float num1 = 1f;
-        if (WorldSavingSystem.MasochistModeReal)
-        {
-          num1 = Utils.NextFloat(Main.rand, 2.5f, 5f);
-          FargoSoulsUtil.ScreenshakeRumble(6f);
-        }
-        ++this.Projectile.localAI[0];
-        if ((double) this.Projectile.localAI[0] >= (double) this.maxTime)
-        {
-          this.Projectile.Kill();
-        }
-        else
-        {
-          this.Projectile.scale = (float) Math.Sin((double) this.Projectile.localAI[0] * 3.1415927410125732 / (double) this.maxTime) * 10f * num1;
-          if ((double) this.Projectile.scale > (double) num1)
-            this.Projectile.scale = num1;
-          float rotation = npc.rotation;
-          this.Projectile.rotation = rotation;
-          ((Entity) this.Projectile).velocity = Utils.ToRotationVector2(rotation + 1.57079637f);
-          float length = 3f;
-          float width = (float) ((Entity) this.Projectile).width;
-          Vector2 center = ((Entity) this.Projectile).Center;
-          if (nullable.HasValue)
-            center = nullable.Value;
-          float[] numArray = new float[(int) length];
-          Collision.LaserScan(center, ((Entity) this.Projectile).velocity, width * this.Projectile.scale, 2400f, numArray);
-          float num2 = 0.0f;
-          for (int index = 0; index < numArray.Length; ++index)
-            num2 += numArray[index];
-          this.Projectile.localAI[1] = MathHelper.Lerp(this.Projectile.localAI[1], num2 / length, 0.5f);
-          Vector2 vector2_2 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, this.Projectile.localAI[1] - 14f));
-          for (int index1 = 0; index1 < 2; ++index1)
-          {
-            float num3 = Utils.ToRotation(((Entity) this.Projectile).velocity) + (float) ((Utils.NextBool(Main.rand, 2) ? -1.0 : 1.0) * 1.5707963705062866);
-            float num4 = (float) (Main.rand.NextDouble() * 2.0 + 2.0);
-            Vector2 vector2_3;
-            // ISSUE: explicit constructor call
-            ((Vector2) ref vector2_3).\u002Ector((float) Math.Cos((double) num3) * num4, (float) Math.Sin((double) num3) * num4);
-            int index2 = Dust.NewDust(vector2_2, 0, 0, 244, vector2_3.X, vector2_3.Y, 0, new Color(), 1f);
-            Main.dust[index2].noGravity = true;
-            Main.dust[index2].scale = 1.7f;
-          }
-          if (Utils.NextBool(Main.rand, 5))
-          {
-            Vector2 vector2_4 = Vector2.op_Multiply(Vector2.op_Multiply(Utils.RotatedBy(((Entity) this.Projectile).velocity, 1.5707963705062866, new Vector2()), (float) Main.rand.NextDouble() - 0.5f), (float) ((Entity) this.Projectile).width);
-            int index = Dust.NewDust(Vector2.op_Subtraction(Vector2.op_Addition(vector2_2, vector2_4), Vector2.op_Multiply(Vector2.One, 4f)), 8, 8, 244, 0.0f, 0.0f, 100, new Color(), 1.5f);
-            Dust dust = Main.dust[index];
-            dust.velocity = Vector2.op_Multiply(dust.velocity, 0.5f);
-            Main.dust[index].velocity.Y = -Math.Abs(Main.dust[index].velocity.Y);
-          }
-          if (++this.Projectile.frameCounter <= 2)
-            return;
-          this.Projectile.frameCounter = 0;
-          if (++this.Projectile.frame < Main.projFrames[this.Projectile.type])
-            return;
-          this.Projectile.frame = 0;
-        }
-      }
-      else
-        this.Projectile.Kill();
-    }
 
-    public override Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(new Color((int) byte.MaxValue, 100, 100, 100), 0.95f));
-    }
+        public override void SetDefaults()
+        {
+            Projectile.hide = true;
+            Projectile.tileCollide = false;
+            base.SetDefaults();
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(67, 300, true, false);
-      target.AddBuff(24, 300, true, false);
-      target.AddBuff(69, 300, true, false);
+        public override void AI()
+        {
+            Vector2? vector78 = null;
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[1], NPCID.Retinazer);
+            if (npc != null)
+            {
+                Vector2 offset = new Vector2(npc.width - 24, 0.5f).RotatedBy(npc.rotation + 1.57079637);
+                Projectile.Center = npc.Center + offset;
+
+                if (npc.GetGlobalNPC<Retinazer>().DeathrayState >= 3 && Projectile.localAI[0] < maxTime - 30)
+                    Projectile.localAI[0] = maxTime - 30;
+            }
+            else
+            {
+                Projectile.Kill();
+                return;
+            }
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+            float maxScale = 1f;
+            if (WorldSavingSystem.MasochistModeReal)
+            {
+                maxScale = 5f;
+                FargoSoulsUtil.ScreenshakeRumble(6);
+            }
+            Projectile.localAI[0] += 1f;
+            if (Projectile.localAI[0] >= maxTime)
+            {
+                Projectile.Kill();
+                return;
+            }
+            Projectile.scale = (float)Math.Sin(Projectile.localAI[0] * 3.14159274f / maxTime) * 10f * maxScale;
+            if (Projectile.scale > maxScale)
+            {
+                Projectile.scale = maxScale;
+            }
+            //float num804 = Projectile.velocity.ToRotation();
+            //num804 += Projectile.ai[0];
+            //Projectile.rotation = num804 - 1.57079637f;
+            float num804 = npc.rotation;
+            Projectile.rotation = num804;
+            num804 += 1.57079637f;
+            Projectile.velocity = num804.ToRotationVector2();
+            float num805 = 3f;
+            float num806 = Projectile.width;
+            Vector2 samplingPoint = Projectile.Center;
+            if (vector78.HasValue)
+            {
+                samplingPoint = vector78.Value;
+            }
+            float[] array3 = new float[(int)num805];
+            Collision.LaserScan(samplingPoint, Projectile.velocity, num806 * Projectile.scale, 2400f, array3);
+            float num807 = 0f;
+            int num3;
+            for (int num808 = 0; num808 < array3.Length; num808 = num3 + 1)
+            {
+                num807 += array3[num808];
+                num3 = num808;
+            }
+            num807 /= num805;
+            float amount = 0.5f;
+            Projectile.localAI[1] = MathHelper.Lerp(Projectile.localAI[1], num807, amount);
+            Vector2 vector79 = Projectile.Center + Projectile.velocity * (Projectile.localAI[1] - 14f);
+            for (int num809 = 0; num809 < 2; num809 = num3 + 1)
+            {
+                float num810 = Projectile.velocity.ToRotation() + (Main.rand.NextBool(2) ? -1f : 1f) * 1.57079637f;
+                float num811 = (float)Main.rand.NextDouble() * 2f + 2f;
+                Vector2 vector80 = new((float)Math.Cos((double)num810) * num811, (float)Math.Sin((double)num810) * num811);
+                int num812 = Dust.NewDust(vector79, 0, 0, DustID.CopperCoin, vector80.X, vector80.Y, 0, default, 1f);
+                Main.dust[num812].noGravity = true;
+                Main.dust[num812].scale = 1.7f;
+                num3 = num809;
+            }
+            if (Main.rand.NextBool(5))
+            {
+                Vector2 value29 = Projectile.velocity.RotatedBy(1.5707963705062866, default) * ((float)Main.rand.NextDouble() - 0.5f) * Projectile.width;
+                int num813 = Dust.NewDust(vector79 + value29 - Vector2.One * 4f, 8, 8, DustID.CopperCoin, 0f, 0f, 100, default, 1.5f);
+                Dust dust = Main.dust[num813];
+                dust.velocity *= 0.5f;
+                Main.dust[num813].velocity.Y = -Math.Abs(Main.dust[num813].velocity.Y);
+            }
+            //DelegateMethods.v3_1 = new Vector3(0.3f, 0.65f, 0.7f);
+            //Utils.PlotTileLine(Projectile.Center, Projectile.Center + Projectile.velocity * Projectile.localAI[1], (float)Projectile.width * Projectile.scale, new Utils.PerLinePoint(DelegateMethods.CastLight));
+
+            /*if (++Projectile.frameCounter > 2)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame >= Main.projFrames[Projectile.type])
+                    Projectile.frame = 0;
+            }*/
+        }
+
+        //public override Color? GetAlpha(Color lightColor) => new Color(255, 100, 100, 100) * 0.95f;
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(BuffID.Burning, 300);
+            target.AddBuff(BuffID.OnFire, 300);
+            target.AddBuff(BuffID.Ichor, 300);
+        }
+        public override void DrawBehind(int index, List<int> behindNPCsAndTiles, List<int> behindNPCs, List<int> behindProjectiles, List<int> overPlayers, List<int> overWiresUI)
+        {
+            if (Projectile.hide)
+                behindNPCs.Add(index);
+        }
+
+        public override bool PreDraw(ref Color lightColor) => false;
+
+        public float WidthFunction(float _) => Projectile.width * Projectile.scale * (WorldSavingSystem.masochistModeReal ? 0.5f : 1.5f);
+
+        public static Color ColorFunction(float _)
+        {
+            Color color = Color.Red;
+            color.A = 0;
+            return color;
+        }
+        public void RenderPixelatedPrimitives(SpriteBatch spriteBatch)
+        {
+            if (Projectile.hide)
+                return;
+
+            ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.RetinazerDeathray");
+
+            // Get the laser end position.
+            Vector2 laserEnd = Projectile.Center + Projectile.velocity.SafeNormalize(Vector2.UnitY) * Projectile.localAI[1] * 1.5f;
+
+            // Create 8 points that span across the draw distance from the projectile center.
+            Vector2 initialDrawPoint = Projectile.Center - Projectile.velocity * 15f;
+            Vector2[] baseDrawPoints = new Vector2[8];
+            for (int i = 0; i < baseDrawPoints.Length; i++)
+                baseDrawPoints[i] = Vector2.Lerp(initialDrawPoint, laserEnd, i / (float)(baseDrawPoints.Length - 1f));
+
+            // Set shader parameters.
+            shader.TrySetParameter("mainColor", new Color(240, 220, 240, 0));
+            FargoSoulsUtil.SetTexture1(FargosTextureRegistry.DeviInnerStreak.Value);
+            shader.TrySetParameter("stretchAmount", 0.5);
+            shader.TrySetParameter("scrollSpeed", 4f);
+            shader.TrySetParameter("uColorFadeScaler", 0.8f);
+            shader.TrySetParameter("useFadeIn", true);
+            //shader.SetTexture(FargosTextureRegistry.Techno1Noise.Value, 1, SamplerState.LinearWrap);
+
+            PrimitiveRenderer.RenderTrail(baseDrawPoints, new(WidthFunction, ColorFunction, Pixelate: true, Shader: shader), WorldSavingSystem.masochistModeReal ? 40 : 20);
+        }
     }
-  }
 }

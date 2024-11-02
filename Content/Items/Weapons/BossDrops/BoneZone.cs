@@ -1,95 +1,86 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.BossDrops.BoneZone
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.BossWeapons;
+﻿using FargowiltasSouls.Content.Projectiles.BossWeapons;
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.BossDrops
 {
-  public class BoneZone : SoulsItem
-  {
-    private int counter = 1;
-    private static readonly int[] RiffVariants = new int[4]
+    public class BoneZone : SoulsItem
     {
-      1,
-      2,
-      3,
-      4
-    };
-    private static readonly SoundStyle badtothebone;
+        private int counter = 1;
 
-    public virtual void SetStaticDefaults()
-    {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("The Bone Zone");
+            /* Tooltip.SetDefault("Uses bones for ammo" +
+                "\n33% chance to not consume ammo" +
+                "\n'The shattered remains of a defeated foe..'"); */
+
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "骸骨领域");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "'被击败的敌人的残骸..'");
+
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
+        private static readonly int[] RiffVariants = [1, 2, 3, 4];
+        private static readonly SoundStyle badtothebone = new SoundStyle("FargowiltasSouls/Assets/Sounds/Boneriff/boneriff") with { Variants = RiffVariants, Volume = 0.15f };
+        public override void SetDefaults()
+        {
+            Item.damage = 12;
+            Item.DamageType = DamageClass.Ranged;
+            Item.width = 54;
+            Item.height = 14;
+            Item.useTime = Item.useAnimation = 24;
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.noMelee = true;
+            Item.knockBack = 1.5f;
+            Item.UseSound = badtothebone;
+            Item.value = 50000;
+            Item.rare = ItemRarityID.Orange;
+            Item.autoReuse = true;
+            Item.shoot = ModContent.ProjectileType<Bonez>();
+            Item.shootSpeed = 5.5f;
+            Item.useAmmo = ItemID.Bone;
+            Item.scale = 0.9f;
+        }
+
+        // Manually reposition the Item when held out
+        public override Vector2? HoldoutOffset() => new Vector2(-20, -2);
+
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            int shoot;
+
+            if (counter > 2)
+            {
+                shoot = ProjectileID.ClothiersCurse;
+                counter = 0;
+            }
+            else
+                shoot = ModContent.ProjectileType<Bonez>();
+
+            Main.projectile[Projectile.NewProjectile(player.GetSource_ItemUse(Item), position, velocity, shoot, damage, knockback, player.whoAmI)].DamageType = DamageClass.Ranged;
+
+            counter++;
+
+            return false;
+        }
+        public override void ModifyWeaponDamage(Player player, ref StatModifier damage)
+        {
+            //damage *= (15f / 24f); //current usetime / old usetime
+        }
+        public override bool CanConsumeAmmo(Item ammo, Player player) => !Main.rand.NextBool(3);
+
+        public override void ModifyShootStats(Player player, ref Vector2 position, ref Vector2 velocity, ref int type, ref int damage, ref float knockback)
+        {
+            Vector2 muzzleOffset = Vector2.Normalize(velocity) * 35f;
+
+            if (Collision.CanHit(position, 0, 0, position + muzzleOffset, 0, 0))
+            {
+                position += muzzleOffset;
+            }
+        }
     }
-
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 12;
-      this.Item.DamageType = DamageClass.Ranged;
-      ((Entity) this.Item).width = 54;
-      ((Entity) this.Item).height = 14;
-      this.Item.useTime = this.Item.useAnimation = 24;
-      this.Item.useStyle = 5;
-      this.Item.noMelee = true;
-      this.Item.knockBack = 1.5f;
-      this.Item.UseSound = new SoundStyle?(BoneZone.badtothebone);
-      this.Item.value = 50000;
-      this.Item.rare = 3;
-      this.Item.autoReuse = true;
-      this.Item.shoot = ModContent.ProjectileType<Bonez>();
-      this.Item.shootSpeed = 5.5f;
-      this.Item.useAmmo = 154;
-    }
-
-    public virtual Vector2? HoldoutOffset() => new Vector2?(new Vector2(-30f, 4f));
-
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      int num;
-      if (this.counter > 2)
-      {
-        num = 585;
-        this.counter = 0;
-      }
-      else
-        num = ModContent.ProjectileType<Bonez>();
-      Main.projectile[Projectile.NewProjectile(player.GetSource_ItemUse(this.Item, (string) null), position, velocity, num, damage, knockback, ((Entity) player).whoAmI, 0.0f, 0.0f, 0.0f)].DamageType = DamageClass.Ranged;
-      ++this.counter;
-      return false;
-    }
-
-    public virtual void ModifyWeaponDamage(Player player, ref StatModifier damage)
-    {
-    }
-
-    public virtual bool CanConsumeAmmo(Item ammo, Player player) => !Utils.NextBool(Main.rand, 3);
-
-    static BoneZone()
-    {
-      SoundStyle soundStyle;
-      // ISSUE: explicit constructor call
-      ((SoundStyle) ref soundStyle).\u002Ector("FargowiltasSouls/Assets/Sounds/Boneriff/boneriff", (SoundType) 0);
-      ((SoundStyle) ref soundStyle).Variants = ReadOnlySpan<int>.op_Implicit(BoneZone.RiffVariants);
-      ((SoundStyle) ref soundStyle).Volume = 0.15f;
-      BoneZone.badtothebone = soundStyle;
-    }
-  }
 }

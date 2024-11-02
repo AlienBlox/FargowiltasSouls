@@ -1,37 +1,136 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.CopperEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Items.Accessories.Forces;
+using FargowiltasSouls.Content.Projectiles.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class CopperEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(213, 102, 23);
-
-    public override void SetDefaults()
+    public class CopperEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 1;
-      this.Item.value = 100000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<CopperEffect>(this.Item);
-    }
+        public override Color nameColor => new(213, 102, 23);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(89, 1).AddIngredient(80, 1).AddIngredient(76, 1).AddIngredient(3507, 1).AddIngredient(3069, 1).AddIngredient(4062, 1).AddTile(26).Register();
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Blue;
+            Item.value = 100000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<CopperEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddIngredient(ItemID.CopperHelmet)
+                .AddIngredient(ItemID.CopperChainmail)
+                .AddIngredient(ItemID.CopperGreaves)
+                .AddIngredient(ItemID.CopperShortsword)
+                .AddIngredient(ItemID.WandofSparking)
+                .AddIngredient(ItemID.ThunderStaff)
+
+            .AddTile(TileID.DemonAltar)
+            .Register();
+        }
     }
-  }
+    public class CopperEffect : AccessoryEffect
+    {
+
+        public override Header ToggleHeader => Header.GetHeader<TerraHeader>();
+        public override int ToggleItemType => ModContent.ItemType<CopperEnchant>();
+        public override bool ExtraAttackEffect => true;
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (modPlayer.CopperProcCD > 0)
+                modPlayer.CopperProcCD--;
+        }
+        public override void OnHitNPCEither(Player player, NPC target, NPC.HitInfo hitInfo, DamageClass damageClass, int baseDamage, Projectile projectile, Item item)
+        {
+            bool wetCheck = target.HasBuff(BuffID.Wet) && Main.rand.NextBool(4);
+            if ((hitInfo.Crit || wetCheck))
+            {
+                CopperProc(player, target);
+            }
+        }
+
+        public static void CopperProc(Player player, NPC target)
+        {
+            if (player.HasEffect<TerraLightningEffect>())
+                return;
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (modPlayer.CopperProcCD == 0)
+            {
+                bool forceEffect = modPlayer.ForceEffect<CopperEnchant>();
+                target.AddBuff(BuffID.Electrified, 180);
+
+                int dmg = 50;
+                int maxTargets = 1;
+                int cdLength = 300;
+
+                if (forceEffect)
+                {
+                    dmg = 200;
+                    maxTargets = 5;
+                    cdLength = 150;
+                }
+
+                List<int> npcIndexes = [];
+                float closestDist = 500f;
+                NPC closestNPC;
+
+                for (int i = 0; i < maxTargets; i++)
+                {
+                    closestNPC = null;
+
+                    //find closest npc to target that has not been chained to yet
+                    for (int j = 0; j < Main.maxNPCs; j++)
+                    {
+                        NPC npc = Main.npc[j];
+
+                        if (npc.active && npc.whoAmI != target.whoAmI && npc.CanBeChasedBy() && npc.Distance(target.Center) < closestDist && !npcIndexes.Contains(npc.whoAmI)
+                            && Collision.CanHitLine(npc.Center, 0, 0, target.Center, 0, 0))
+                        {
+                            closestNPC = npc;
+                            closestDist = npc.Distance(target.Center);
+                            //break;
+                        }
+                    }
+
+                    if (closestNPC != null)
+                    {
+                        npcIndexes.Add(closestNPC.whoAmI);
+
+                        Vector2 ai = closestNPC.Center - target.Center;
+                        Vector2 velocity = Vector2.Normalize(ai) * 20;
+
+                        int damage = FargoSoulsUtil.HighestDamageTypeScaling(modPlayer.Player, dmg);
+                        FargoSoulsUtil.NewProjectileDirectSafe(modPlayer.Player.GetSource_ItemUse(modPlayer.Player.HeldItem), target.Center, velocity, ModContent.ProjectileType<CopperLightning>(), damage, 0f, modPlayer.Player.whoAmI, ai.ToRotation(), damage);
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    target = closestNPC;
+                }
+
+                modPlayer.CopperProcCD = cdLength;
+            }
+        }
+    }
 }

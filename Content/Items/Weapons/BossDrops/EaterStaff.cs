@@ -1,112 +1,113 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.BossDrops.EaterStaff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Minions;
+﻿using FargowiltasSouls.Content.Buffs.Minions;
 using FargowiltasSouls.Content.Projectiles.Minions;
 using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.BossDrops
 {
-  public class EaterStaff : SoulsItem
-  {
-    public virtual bool IsLoadingEnabled(Mod mod) => false;
-
-    public virtual void SetStaticDefaults()
+    public class EaterStaff : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
+        public override bool IsLoadingEnabled(Mod mod) => false;
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+            // DisplayName.SetDefault("Eater of Worlds Staff");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "世界吞噬者法杖");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese,
+            //@"一个被迫屈服的老对手..
+            //每个召唤栏召唤4段身体");
+        }
+
+        public override void SetDefaults()
+        {
+            Item.mana = 10;
+            Item.damage = 12;
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.shootSpeed = 10f;
+            Item.shoot = ModContent.ProjectileType<EaterHead>();
+            Item.width = 26;
+            Item.height = 28;
+            Item.UseSound = SoundID.Item44;
+            Item.useAnimation = 36;
+            Item.useTime = 36;
+            Item.rare = ItemRarityID.Green;
+            Item.noMelee = true;
+            Item.knockBack = 2f;
+            Item.buffType = ModContent.BuffType<EaterMinionBuff>();
+            Item.buffTime = 3600;
+            Item.DamageType = DamageClass.Summon;
+            Item.value = 40000;
+        }
+
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            //to fix tail disapearing meme
+            float slotsUsed = 0;
+
+            Main.projectile.Where(x => x.active && x.owner == player.whoAmI && x.minionSlots > 0).ToList().ForEach(x => { slotsUsed += x.minionSlots; });
+
+            if (player.maxMinions - slotsUsed < 1) return false;
+
+            int headCheck = -1;
+            int tailCheck = -1;
+
+            for (int i = 0; i < Main.maxProjectiles; i++)
+            {
+                Projectile proj = Main.projectile[i];
+                if (proj.active && proj.owner == player.whoAmI)
+                {
+                    if (headCheck == -1 && proj.type == ModContent.ProjectileType<EaterHead>()) headCheck = i;
+                    if (tailCheck == -1 && proj.type == ModContent.ProjectileType<EaterTail>()) tailCheck = i;
+                    if (headCheck != -1 && tailCheck != -1) break;
+                }
+            }
+
+            //initial spawn
+            if (headCheck == -1 && tailCheck == -1)
+            {
+                int current = FargoSoulsUtil.NewSummonProjectile(source, position, Vector2.Zero, ModContent.ProjectileType<EaterHead>(), Item.damage, knockback, player.whoAmI, 0f, 0);
+
+                int previous = 0;
+
+                for (int i = 0; i < 4; i++)
+                {
+                    current = FargoSoulsUtil.NewSummonProjectile(source, position, Vector2.Zero, ModContent.ProjectileType<EaterBody>(), Item.damage, knockback, player.whoAmI, Main.projectile[current].identity, 0);
+                    previous = current;
+                }
+
+                current = FargoSoulsUtil.NewSummonProjectile(source, position, Vector2.Zero, ModContent.ProjectileType<EaterTail>(), Item.damage, knockback, player.whoAmI, Main.projectile[current].identity, 0);
+
+                Main.projectile[previous].localAI[1] = Main.projectile[current].identity;
+                Main.projectile[previous].netUpdate = true;
+            }
+            //spawn more body segments
+            else
+            {
+                int previous = (int)Main.projectile[tailCheck].ai[0];
+                int current = 0;
+
+                for (int i = 0; i < 4; i++)
+                {
+                    int prevUUID = FargoSoulsUtil.GetProjectileByIdentity(player.whoAmI, Main.projectile[previous].identity);
+                    current = FargoSoulsUtil.NewSummonProjectile(source, position, velocity, ModContent.ProjectileType<EaterBody>(),
+                        Item.damage, knockback, player.whoAmI, prevUUID, 0);
+
+                    previous = current;
+                }
+
+                Main.projectile[current].localAI[1] = Main.projectile[tailCheck].identity;
+
+                Main.projectile[tailCheck].ai[0] = FargoSoulsUtil.GetProjectileByIdentity(player.whoAmI, Main.projectile[current].identity);
+                Main.projectile[tailCheck].netUpdate = true;
+                Main.projectile[tailCheck].ai[1] = 1f;
+            }
+
+            return false;
+        }
     }
 
-    public virtual void SetDefaults()
-    {
-      this.Item.mana = 10;
-      this.Item.damage = 12;
-      this.Item.useStyle = 1;
-      this.Item.shootSpeed = 10f;
-      this.Item.shoot = ModContent.ProjectileType<EaterHead>();
-      ((Entity) this.Item).width = 26;
-      ((Entity) this.Item).height = 28;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item44);
-      this.Item.useAnimation = 36;
-      this.Item.useTime = 36;
-      this.Item.rare = 2;
-      this.Item.noMelee = true;
-      this.Item.knockBack = 2f;
-      this.Item.buffType = ModContent.BuffType<EaterMinionBuff>();
-      this.Item.buffTime = 3600;
-      this.Item.DamageType = DamageClass.Summon;
-      this.Item.value = 40000;
-    }
-
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      float slotsUsed = 0.0f;
-      ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (x => ((Entity) x).active && x.owner == ((Entity) player).whoAmI && (double) x.minionSlots > 0.0)).ToList<Projectile>().ForEach((Action<Projectile>) (x => slotsUsed += x.minionSlots));
-      if ((double) player.maxMinions - (double) slotsUsed < 1.0)
-        return false;
-      int num = -1;
-      int index1 = -1;
-      for (int index2 = 0; index2 < Main.maxProjectiles; ++index2)
-      {
-        Projectile projectile = Main.projectile[index2];
-        if (((Entity) projectile).active && projectile.owner == ((Entity) player).whoAmI)
-        {
-          if (num == -1 && projectile.type == ModContent.ProjectileType<EaterHead>())
-            num = index2;
-          if (index1 == -1 && projectile.type == ModContent.ProjectileType<EaterTail>())
-            index1 = index2;
-          if (num != -1 && index1 != -1)
-            break;
-        }
-      }
-      if (num == -1 && index1 == -1)
-      {
-        int index3 = FargoSoulsUtil.NewSummonProjectile((IEntitySource) source, position, Vector2.Zero, ModContent.ProjectileType<EaterHead>(), this.Item.damage, knockback, ((Entity) player).whoAmI);
-        int index4 = 0;
-        for (int index5 = 0; index5 < 4; ++index5)
-        {
-          index3 = FargoSoulsUtil.NewSummonProjectile((IEntitySource) source, position, Vector2.Zero, ModContent.ProjectileType<EaterBody>(), this.Item.damage, knockback, ((Entity) player).whoAmI, (float) Main.projectile[index3].identity);
-          index4 = index3;
-        }
-        int index6 = FargoSoulsUtil.NewSummonProjectile((IEntitySource) source, position, Vector2.Zero, ModContent.ProjectileType<EaterTail>(), this.Item.damage, knockback, ((Entity) player).whoAmI, (float) Main.projectile[index3].identity);
-        Main.projectile[index4].localAI[1] = (float) Main.projectile[index6].identity;
-        Main.projectile[index4].netUpdate = true;
-      }
-      else
-      {
-        int index7 = (int) Main.projectile[index1].ai[0];
-        int index8 = 0;
-        for (int index9 = 0; index9 < 4; ++index9)
-        {
-          int projectileByIdentity = FargoSoulsUtil.GetProjectileByIdentity(((Entity) player).whoAmI, Main.projectile[index7].identity, Array.Empty<int>());
-          index8 = FargoSoulsUtil.NewSummonProjectile((IEntitySource) source, position, velocity, ModContent.ProjectileType<EaterBody>(), this.Item.damage, knockback, ((Entity) player).whoAmI, (float) projectileByIdentity);
-          index7 = index8;
-        }
-        Main.projectile[index8].localAI[1] = (float) Main.projectile[index1].identity;
-        Main.projectile[index1].ai[0] = (float) FargoSoulsUtil.GetProjectileByIdentity(((Entity) player).whoAmI, Main.projectile[index8].identity, Array.Empty<int>());
-        Main.projectile[index1].netUpdate = true;
-        Main.projectile[index1].ai[1] = 1f;
-      }
-      return false;
-    }
-  }
 }

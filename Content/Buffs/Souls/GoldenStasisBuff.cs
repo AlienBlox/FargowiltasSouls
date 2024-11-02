@@ -1,33 +1,34 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Souls.GoldenStasisBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Souls
 {
-  public class GoldenStasisBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults() => Main.buffNoSave[this.Type] = true;
-
-    public virtual void Update(Player player, ref int buffIndex)
+    public class GoldenStasisBuff : ModBuff
     {
-      player.FargoSouls().GoldShell = true;
-      player.controlJump = false;
-      player.controlDown = false;
-      player.controlLeft = false;
-      player.controlRight = false;
-      player.controlUp = false;
-      player.controlUseItem = false;
-      player.controlUseTile = false;
-      player.controlThrow = false;
-      player.controlMount = false;
-      ((Entity) player).velocity = ((Entity) player).oldVelocity;
-      ((Entity) player).position = ((Entity) player).oldPosition;
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Golden Stasis");
+            // Description.SetDefault("You are immune to all damage, but cannot move");
+            Main.buffNoSave[Type] = true;
+
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "不动金身");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "免疫所有伤害,但无法移动");
+        }
+
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.FargoSouls().GoldShell = true;
+            player.controlJump = false;
+            player.controlDown = false;
+            player.controlLeft = false;
+            player.controlRight = false;
+            player.controlUp = false;
+            player.controlUseItem = false;
+            player.controlUseTile = false;
+            player.controlThrow = false;
+            player.controlMount = false;
+            player.velocity = player.oldVelocity;
+            player.position = player.oldPosition;
+        }
     }
-  }
 }

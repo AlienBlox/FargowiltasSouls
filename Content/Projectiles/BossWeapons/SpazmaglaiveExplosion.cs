@@ -1,113 +1,159 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.SpazmaglaiveExplosion
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class SpazmaglaiveExplosion : ModProjectile
-  {
-    public int timer;
-    public float lerp = 0.12f;
-
-    public virtual void SetDefaults()
+    public class SpazmaglaiveExplosion : ModProjectile
     {
-      ((Entity) this.Projectile).width = 30;
-      ((Entity) this.Projectile).height = 30;
-      this.Projectile.alpha = 0;
-      this.Projectile.penetrate = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Melee;
-      this.Projectile.tileCollide = false;
-      this.Projectile.FargoSouls().CanSplit = false;
-    }
-
-    public virtual void SetStaticDefaults()
-    {
-    }
-
-    public virtual void AI()
-    {
-      NPC npc = Main.npc[(int) this.Projectile.ai[1]];
-      if (!((Entity) npc).active)
-        this.Projectile.Kill();
-      ((Entity) this.Projectile).Center = ((Entity) npc).Center;
-      this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-      DelegateMethods.v3_1 = new Vector3(1.2f, 1f, 0.3f);
-      double num1 = (double) this.Projectile.localAI[0] / 40.0;
-      double num2 = ((double) this.Projectile.localAI[0] - 38.0) / 40.0;
-      ++this.Projectile.localAI[0];
-      if ((double) this.Projectile.localAI[0] < (double) this.Projectile.ai[0])
-        return;
-      this.Projectile.Kill();
-    }
-
-    public virtual bool? Colliding(Rectangle myRect, Rectangle targetRect)
-    {
-      float num1 = 0.0f;
-      float num2 = this.Projectile.localAI[0] / 25f;
-      if ((double) num2 > 1.0)
-        num2 = 1f;
-      float num3 = (float) (((double) this.Projectile.localAI[0] - 38.0) / 40.0);
-      if ((double) num3 < 0.0)
-        num3 = 0.0f;
-      Vector2 vector2_1 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), 100f), num3));
-      Vector2 vector2_2 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), 200f), num2));
-      return Collision.CheckAABBvLineCollision(Utils.TopLeft(targetRect), Utils.Size(targetRect), vector2_1, vector2_2, 40f * this.Projectile.scale, ref num1) ? new bool?(true) : new bool?(false);
-    }
-
-    public virtual Color? GetAlpha(Color lightColor) => new Color?(new Color(13, 219, 83));
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition);
-      float num1 = 40f;
-      float num2 = num1 * 2f;
-      float num3 = this.Projectile.localAI[0] / num1;
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      Color white = Color.White;
-      Color color1;
-      // ISSUE: explicit constructor call
-      ((Color) ref color1).\u002Ector((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, 0);
-      Color color2;
-      // ISSUE: explicit constructor call
-      ((Color) ref color2).\u002Ector(30, 180, 30, 0);
-      Color color3;
-      // ISSUE: explicit constructor call
-      ((Color) ref color3).\u002Ector(0, 30, 0, 0);
-      ulong num4 = 1;
-      for (float num5 = 0.0f; (double) num5 < 15.0; num5 += 0.66f)
-      {
-        Vector2 rotationVector2 = Utils.ToRotationVector2(this.Projectile.rotation + (float) ((double) Utils.RandomFloat(ref num4) * 0.25 - 0.125));
-        Vector2 vector2_2 = Vector2.op_Addition(vector2_1, Vector2.op_Multiply(rotationVector2, 200f));
-        float num6 = num3 + num5 * 0.06666667f;
-        int num7 = (int) ((double) num6 / 0.066666670143604279);
-        float num8 = num6 % 1f;
-        if (((double) num8 <= (double) num3 % 1.0 || (double) this.Projectile.localAI[0] >= (double) num1) && ((double) num8 >= (double) num3 % 1.0 || (double) this.Projectile.localAI[0] < (double) num2 - (double) num1))
+        public override void SetDefaults()
         {
-          Color color4 = (double) num8 >= 0.10000000149011612 ? ((double) num8 >= 0.34999999403953552 ? ((double) num8 >= 0.699999988079071 ? ((double) num8 >= 0.89999997615814209 ? ((double) num8 >= 1.0 ? Color.Transparent : Color.Lerp(color3, Color.Transparent, Utils.GetLerpValue(0.9f, 1f, num8, true))) : Color.Lerp(color2, color3, Utils.GetLerpValue(0.7f, 0.9f, num8, true))) : Color.Lerp(color1, color2, Utils.GetLerpValue(0.35f, 0.7f, num8, true))) : color1) : Color.Lerp(Color.Transparent, color1, Utils.GetLerpValue(0.0f, 0.1f, num8, true));
-          ((Color) ref color4).A = (byte) ((double) byte.MaxValue - (double) num8 * (double) byte.MaxValue);
-          float num9 = (float) (0.89999997615814209 + (double) num8 * 0.800000011920929);
-          float num10 = num9 * num9 * 0.8f;
-          Vector2 vector2_3 = Vector2.SmoothStep(vector2_1, vector2_2, num8);
-          Rectangle rectangle = Utils.Frame(texture2D, 1, 7, 0, (int) ((double) num8 * 7.0), 0, 0);
-          Main.EntitySpriteDraw(texture2D, vector2_3, new Rectangle?(rectangle), color4, (float) ((double) this.Projectile.rotation + 6.2831854820251465 * ((double) num8 + (double) Main.GlobalTimeWrappedHourly * 1.2000000476837158) * 0.20000000298023224 + (double) num7 * 1.2566370964050293), Vector2.op_Division(Utils.Size(rectangle), 2f), num10 / 2f, (SpriteEffects) 0, 0.0f);
+            Projectile.width = 30;
+            Projectile.height = 30;
+            //Projectile.aiStyle = 136;
+            Projectile.alpha = 0;
+            Projectile.penetrate = -1;
+            Projectile.friendly = true;
+            //Projectile.usesLocalNPCImmunity = true;
+            //Projectile.localNPCHitCooldown = 8;
+            Projectile.DamageType = DamageClass.Melee;
+            Projectile.tileCollide = false;
+            Projectile.FargoSouls().CanSplit = false;
         }
-      }
-      return false;
-    }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.AddBuff(39, 180, false);
+        public int timer;
+        public float lerp = 0.12f;
+
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Cursed Inferno");
+        }
+
+        public override void AI()
+        {
+            NPC target = Main.npc[(int)Projectile.ai[1]];
+            if (!target.active)
+                Projectile.Kill();
+
+            Vector2 center = target.Center;
+            Projectile.Center = center;
+            Projectile.rotation = Projectile.velocity.ToRotation();
+
+            DelegateMethods.v3_1 = new Vector3(1.2f, 1f, 0.3f);
+            float num2 = Projectile.localAI[0] / 40f;
+            if (num2 > 1f)
+            {
+                num2 = 1f;
+            }
+            float num3 = (Projectile.localAI[0] - 38f) / 40f;
+            if (num3 < 0f)
+            {
+                num3 = 0f;
+            }
+            //Utils.PlotTileLine(Projectile.Center + Projectile.rotation.ToRotationVector2() * 100f * num3, Projectile.Center + Projectile.rotation.ToRotationVector2() * 100f * num2, 16f, new Utils.PerLinePoint(DelegateMethods.CastLight));
+            //Utils.PlotTileLine(Projectile.Center + Projectile.rotation.ToRotationVector2().RotatedBy(0.19634954631328583, default(Vector2)) * 100f * num3, Projectile.Center + Projectile.rotation.ToRotationVector2().RotatedBy(0.19634954631328583, default(Vector2)) * 100f * num2, 16f, new Utils.PerLinePoint(DelegateMethods.CastLight));
+            //Utils.PlotTileLine(Projectile.Center + Projectile.rotation.ToRotationVector2().RotatedBy(-0.19634954631328583, default(Vector2)) * 100f * num3, Projectile.Center + Projectile.rotation.ToRotationVector2().RotatedBy(-0.19634954631328583, default(Vector2)) * 100f * num2, 16f, new Utils.PerLinePoint(DelegateMethods.CastLight));
+
+
+            Projectile.localAI[0] += 1f;
+
+            if (Projectile.localAI[0] >= Projectile.ai[0])
+            {
+                Projectile.Kill();
+            }
+        }
+
+        public override bool? Colliding(Rectangle myRect, Rectangle targetRect)
+        {
+            float num11 = 0f;
+            float num12 = Projectile.localAI[0] / 25f;
+            if (num12 > 1f)
+            {
+                num12 = 1f;
+            }
+            float num13 = (Projectile.localAI[0] - 38f) / 40f;
+            if (num13 < 0f)
+            {
+                num13 = 0f;
+            }
+            Vector2 lineStart = Projectile.Center + Projectile.rotation.ToRotationVector2() * 100f * num13;
+            Vector2 lineEnd = Projectile.Center + Projectile.rotation.ToRotationVector2() * 200f * num12;
+            if (Collision.CheckAABBvLineCollision(targetRect.TopLeft(), targetRect.Size(), lineStart, lineEnd, 40f * Projectile.scale, ref num11))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(13, 219, 83);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Vector2 value10 = Projectile.Center;
+            value10 -= Main.screenPosition;
+            float num178 = 40f;
+            float num179 = num178 * 2f;
+            float num180 = Projectile.localAI[0] / num178;
+            Texture2D texture2D5 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            Color color33 = Color.White;
+            Color color34 = new(255, 255, 255, 0);
+            Color color35 = new(30, 180, 30, 0);
+            Color color36 = new(0, 30, 0, 0);
+            ulong num181 = 1uL;
+            for (float num182 = 0f; num182 < 15f; num182 += 0.66f)
+            {
+                float num183 = Utils.RandomFloat(ref num181) * 0.25f - 0.125f;
+                Vector2 value11 = (Projectile.rotation + num183).ToRotationVector2();
+                Vector2 value12 = value10 + value11 * 200f;
+                float num184 = num180 + num182 * 0.06666667f;
+                int num185 = (int)(num184 / 0.06666667f);
+                num184 %= 1f;
+                if ((num184 <= num180 % 1f || Projectile.localAI[0] >= num178) && (num184 >= num180 % 1f || Projectile.localAI[0] < num179 - num178))
+                {
+                    if (num184 < 0.1f)
+                    {
+                        color33 = Color.Lerp(Color.Transparent, color34, Utils.GetLerpValue(0f, 0.1f, num184, true));
+                    }
+                    else if (num184 < 0.35f)
+                    {
+                        color33 = color34;
+                    }
+                    else if (num184 < 0.7f)
+                    {
+                        color33 = Color.Lerp(color34, color35, Utils.GetLerpValue(0.35f, 0.7f, num184, true));
+                    }
+                    else if (num184 < 0.9f)
+                    {
+                        color33 = Color.Lerp(color35, color36, Utils.GetLerpValue(0.7f, 0.9f, num184, true));
+                    }
+                    else if (num184 < 1f)
+                    {
+                        color33 = Color.Lerp(color36, Color.Transparent, Utils.GetLerpValue(0.9f, 1f, num184, true));
+                    }
+                    else
+                    {
+                        color33 = Color.Transparent;
+                    }
+                    color33.A = (byte)(255 - num184 * 255);
+                    float num186 = 0.9f + num184 * 0.8f;
+                    num186 *= num186;
+                    num186 *= 0.8f;
+                    Vector2 position = Vector2.SmoothStep(value10, value12, num184);
+                    Rectangle rectangle2 = texture2D5.Frame(1, 7, 0, (int)(num184 * 7f));
+                    Main.EntitySpriteDraw(texture2D5, position, new Microsoft.Xna.Framework.Rectangle?(rectangle2), color33, Projectile.rotation + 6.28318548f * (num184 + Main.GlobalTimeWrappedHourly * 1.2f) * 0.2f + num185 * 1.2566371f, rectangle2.Size() / 2f, num186 / 2, SpriteEffects.None, 0);
+                }
+            }
+            return false;
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.AddBuff(BuffID.CursedInferno, 180, false);
+        }
     }
-  }
 }

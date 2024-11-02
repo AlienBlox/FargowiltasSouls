@@ -1,59 +1,48 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.BossDrops.DestroyerGun
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Projectiles.Minions;
+﻿using FargowiltasSouls.Content.Projectiles.Minions;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.BossDrops
 {
-  public class DestroyerGun : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class DestroyerGun : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Destroyer Gun");
+            // Tooltip.SetDefault("Becomes longer and faster with up to 3 empty minion slots\n'An old foe beaten into submission..'");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "毁灭者之枪");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese, "'一个被迫屈服的老对手..'");
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 45;
-      this.Item.mana = 10;
-      this.Item.DamageType = DamageClass.Summon;
-      ((Entity) this.Item).width = 24;
-      ((Entity) this.Item).height = 24;
-      this.Item.useTime = 70;
-      this.Item.useAnimation = 70;
-      this.Item.useStyle = 5;
-      this.Item.noMelee = true;
-      this.Item.knockBack = 1.5f;
-      this.Item.UseSound = new SoundStyle?(SoundID.NPCDeath13);
-      this.Item.value = 50000;
-      this.Item.rare = 5;
-      this.Item.autoReuse = true;
-      this.Item.shoot = ModContent.ProjectileType<DestroyerHead>();
-      this.Item.shootSpeed = 10f;
-    }
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      FargoSoulsUtil.NewSummonProjectile((IEntitySource) source, position, velocity, type, this.Item.damage, knockback, ((Entity) player).whoAmI);
-      return false;
+        public override void SetDefaults()
+        {
+            Item.damage = 45;
+            Item.mana = 10;
+            Item.DamageType = DamageClass.Summon;
+            Item.width = 24;
+            Item.height = 24;
+            Item.useTime = 70;
+            Item.useAnimation = 70;
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.noMelee = true;
+            Item.knockBack = 1.5f;
+            Item.UseSound = SoundID.NPCDeath13;
+            Item.value = 50000;
+            Item.rare = ItemRarityID.Pink;
+            Item.autoReuse = true;
+            Item.shoot = ModContent.ProjectileType<DestroyerHead>();
+            Item.shootSpeed = 10f;
+        }
+
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            FargoSoulsUtil.NewSummonProjectile(source, position, velocity, type, Item.damage, knockback, player.whoAmI);
+            return false;
+        }
     }
-  }
 }

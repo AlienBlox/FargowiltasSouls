@@ -1,98 +1,108 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.CreeperMinion
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class CreeperMinion : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class CreeperMinion : ModProjectile
     {
-      ProjectileID.Sets.MinionSacrificable[this.Projectile.type] = true;
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-      ProjectileID.Sets.MinionTargettingFeature[this.Projectile.type] = true;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 20;
-      ((Entity) this.Projectile).height = 20;
-      this.Projectile.netImportant = true;
-      this.Projectile.friendly = true;
-      this.Projectile.minionSlots = 1f;
-      this.Projectile.timeLeft = 18000;
-      this.Projectile.penetrate = -1;
-      this.Projectile.minion = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.tileCollide = false;
-    }
-
-    public virtual bool? CanCutTiles() => new bool?(false);
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (player.dead)
-        fargoSoulsPlayer.BrainMinion = false;
-      if (fargoSoulsPlayer.BrainMinion)
-        this.Projectile.timeLeft = 2;
-      int index1 = -1;
-      for (int index2 = 0; index2 < Main.projectile.Length; ++index2)
-      {
-        if (Main.projectile[index2].type == ModContent.ProjectileType<BrainMinion>() && ((Entity) Main.projectile[index2]).active && Main.projectile[index2].owner == this.Projectile.owner)
-          index1 = index2;
-      }
-      if (index1 == -1)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        for (int index3 = 0; index3 < Main.maxProjectiles; ++index3)
+        public override void SetStaticDefaults()
         {
-          if (index3 != ((Entity) this.Projectile).whoAmI && ((Entity) Main.projectile[index3]).active && Main.projectile[index3].owner == this.Projectile.owner && Main.projectile[index3].type == this.Projectile.type && (double) Math.Abs(((Entity) this.Projectile).position.X - ((Entity) Main.projectile[index3]).position.X) + (double) Math.Abs(((Entity) this.Projectile).position.Y - ((Entity) Main.projectile[index3]).position.Y) < (double) ((Entity) this.Projectile).width)
-          {
-            if ((double) ((Entity) this.Projectile).position.X < (double) ((Entity) Main.projectile[index3]).position.X)
-              ((Entity) this.Projectile).velocity.X -= 0.2f;
-            else
-              ((Entity) this.Projectile).velocity.X += 0.2f;
-            if ((double) ((Entity) this.Projectile).position.Y < (double) ((Entity) Main.projectile[index3]).position.Y)
-              ((Entity) this.Projectile).velocity.Y -= 0.2f;
-            else
-              ((Entity) this.Projectile).velocity.Y += 0.2f;
-          }
+            // DisplayName.SetDefault("Brain Proj");
+            ProjectileID.Sets.MinionSacrificable[Projectile.type] = true;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+            ProjectileID.Sets.MinionTargettingFeature[Projectile.type] = true;
         }
-        NPC npc = FargoSoulsUtil.NPCExists(FargoSoulsUtil.FindClosestHostileNPCPrioritizingMinionFocus(this.Projectile, 1000f, true, new Vector2()), Array.Empty<int>());
-        int num1 = npc != null ? 1 : 0;
-        if (num1 == 0 || (double) this.Projectile.ai[0] > 0.0)
-        {
-          float num2 = Math.Max(((Entity) this.Projectile).Distance(((Entity) Main.projectile[index1]).Center) / 40f, 10f);
-          ((Entity) this.Projectile).velocity = Vector2.Lerp(((Entity) this.Projectile).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) Main.projectile[index1]).Center), num2), 0.04f);
-          Rectangle hitbox = ((Entity) this.Projectile).Hitbox;
-          if (((Rectangle) ref hitbox).Intersects(((Entity) Main.projectile[index1]).Hitbox))
-            this.Projectile.ai[0] = 0.0f;
-        }
-        if (num1 == 0 || (double) this.Projectile.ai[0] != 0.0)
-          return;
-        float num3 = Math.Max(((Entity) this.Projectile).Distance(((Entity) npc).Center) / 40f, 14f);
-        ((Entity) this.Projectile).velocity = Vector2.Lerp(((Entity) this.Projectile).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center), num3), 0.05f);
-      }
-    }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      ++this.Projectile.ai[0];
+        public override void SetDefaults()
+        {
+            Projectile.width = 20;
+            Projectile.height = 20;
+            Projectile.netImportant = true;
+            Projectile.friendly = true;
+            Projectile.minionSlots = 1f;
+            Projectile.timeLeft = 18000;
+            Projectile.penetrate = -1;
+            Projectile.minion = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.tileCollide = false;
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 10;
+        }
+
+        public override bool? CanCutTiles()
+        {
+            return false;
+        }
+
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (player.dead) modPlayer.BrainMinion = false;
+            if (modPlayer.BrainMinion) Projectile.timeLeft = 2;
+
+            int Brain = -1;
+            for (int i = 0; i < Main.projectile.Length; i++)
+            {
+                if (Main.projectile[i].type == ModContent.ProjectileType<BrainMinion>() && Main.projectile[i].active && Main.projectile[i].owner == Projectile.owner)
+                {
+                    Brain = i;
+                }
+            }
+            if (Brain == -1)
+                Projectile.Kill();
+            else
+            {
+                for (int index = 0; index < Main.maxProjectiles; ++index)
+                {
+                    if (index != Projectile.whoAmI && Main.projectile[index].active && Main.projectile[index].owner == Projectile.owner && Main.projectile[index].type == Projectile.type && (double)Math.Abs((float)(Projectile.position.X - Main.projectile[index].position.X)) + (double)Math.Abs((float)(Projectile.position.Y - Main.projectile[index].position.Y)) < Projectile.width)
+                    {
+                        if (Projectile.position.X < Main.projectile[index].position.X)
+                        {
+                            Projectile.velocity.X -= 0.2f;
+                        }
+                        else
+                        {
+                            Projectile.velocity.X += 0.2f;
+                        }
+                        if (Projectile.position.Y < Main.projectile[index].position.Y)
+                        {
+                            Projectile.velocity.Y -= 0.2f;
+                        }
+                        else
+                        {
+                            Projectile.velocity.Y += 0.2f;
+                        }
+                    }
+                }
+
+                NPC targetnpc = FargoSoulsUtil.NPCExists(FargoSoulsUtil.FindClosestHostileNPCPrioritizingMinionFocus(Projectile, 1000, true));
+                bool targetting = targetnpc != null;
+                if (!targetting || Projectile.ai[0] > 0)
+                {
+                    float movespeed = Math.Max(Projectile.Distance(Main.projectile[Brain].Center) / 40f, 10f);
+
+                    Projectile.velocity = Vector2.Lerp(Projectile.velocity, Projectile.SafeDirectionTo(Main.projectile[Brain].Center) * movespeed, 0.04f);
+                    if (Projectile.Hitbox.Intersects(Main.projectile[Brain].Hitbox))
+                    {
+                        Projectile.ai[0] = 0;
+                    }
+                }
+                if (targetting && Projectile.ai[0] == 0)
+                {
+                    float movespeed = Math.Max(Projectile.Distance(targetnpc.Center) / 40f, 14f);
+
+                    Projectile.velocity = Vector2.Lerp(Projectile.velocity, Projectile.SafeDirectionTo(targetnpc.Center) * movespeed, 0.05f);
+                }
+            }
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            Projectile.ai[0]++;
+        }
     }
-  }
 }

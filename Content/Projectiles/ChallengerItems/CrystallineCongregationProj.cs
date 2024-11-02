@@ -1,173 +1,171 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.ChallengerItems.CrystallineCongregationProj
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.ChallengerItems
 {
-  public class CrystallineCongregationProj : ModProjectile
-  {
-    private int RotDirect = 1;
-    private bool home = true;
-    private bool homingonMouse;
-    private bool chosenDirection;
-    private Player player;
-    private int RealDamage;
 
-    public virtual void SetStaticDefaults()
+    public class CrystallineCongregationProj : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        private int RotDirect = 1;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 18;
-      ((Entity) this.Projectile).height = 18;
-      this.Projectile.aiStyle = 0;
-      this.Projectile.hostile = false;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Magic;
-      this.AIType = 14;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.timeLeft = 1200;
-      this.Projectile.scale = 1f;
-    }
+        public bool home = true;
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.ai[0] == 0.0)
-      {
-        this.Projectile.alpha = (int) byte.MaxValue;
-        this.Projectile.rotation = (float) Main.rand.Next(100);
-        this.RotDirect = Utils.NextBool(Main.rand, 2) ? -1 : 1;
-        this.player = Main.player[this.Projectile.owner];
-        this.Projectile.ai[1] = 0.0f;
-        this.RealDamage = this.Projectile.damage;
-      }
-      Lighting.AddLight(((Entity) this.Projectile).Center, 4);
-      this.Projectile.alpha -= 17;
-      this.Projectile.rotation += 0.2f * (float) this.RotDirect;
-      if (Utils.NextBool(Main.rand, 10))
-      {
-        int index = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 70, ((Entity) this.Projectile).velocity.X * 0.2f, ((Entity) this.Projectile).velocity.Y * 0.2f, 100, new Color(), 1f);
-        Main.dust[index].noGravity = true;
-        Main.dust[index].velocity.X *= 0.5f;
-        Main.dust[index].velocity.Y *= 0.5f;
-      }
-      this.Projectile.tileCollide = this.Projectile.alpha <= 0;
-      ((Entity) this.Projectile).velocity = Vector2.op_Multiply(((Entity) this.Projectile).velocity, 1.008f);
-      float num1 = 5f;
-      Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) this.player).Center, ((Entity) this.Projectile).Center);
-      if ((double) ((Vector2) ref vector2_1).Length() < 50.0)
-      {
-        this.Projectile.friendly = false;
-        this.Projectile.tileCollide = false;
-      }
-      Vector2 vector2_2;
-      float num2;
-      if (!this.player.channel || this.player.noItems || this.player.CCed)
-      {
-        vector2_1 = Vector2.op_Subtraction(((Entity) this.player).Center, ((Entity) this.Projectile).Center);
-        if ((double) ((Vector2) ref vector2_1).Length() < 50.0)
+        private bool homingonMouse;
+
+        private bool chosenDirection;
+
+        private Player player;
+
+        private int RealDamage;
+
+        public override void SetStaticDefaults()
         {
-          this.Projectile.friendly = true;
-          this.Projectile.tileCollide = true;
-          this.Projectile.penetrate = 1;
-          this.Projectile.maxPenetrate = 1;
-          vector2_2 = Vector2.op_Subtraction(Main.MouseWorld, ((Entity) this.Projectile).Center);
-          num2 = 18f;
-          SoundEngine.PlaySound(ref SoundID.DD2_WitherBeastCrystalImpact, new Vector2?(((Entity) this.player).Center), (SoundUpdateCallback) null);
-          this.Projectile.timeLeft = 60;
-          this.homingonMouse = true;
-          this.home = false;
-          goto label_10;
+            // DisplayName.SetDefault("Crystal Ball");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-      }
-      vector2_2 = Vector2.op_Subtraction(((Entity) this.player).Center, ((Entity) this.Projectile).Center);
-      num2 = 24f;
-label_10:
-      double num3 = (double) ((Vector2) ref vector2_2).Length();
-      if (num3 < 200.0 && this.homingonMouse)
-        this.home = false;
-      if (num3 > 20.0 && this.home)
-      {
-        ((Vector2) ref vector2_2).Normalize();
-        vector2_2 = Vector2.op_Multiply(vector2_2, num2);
-        ((Entity) this.Projectile).velocity = Vector2.op_Division(Vector2.op_Addition(Vector2.op_Multiply(((Entity) this.Projectile).velocity, num1 - 1f), vector2_2), num1);
-      }
-      else if (Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-      {
-        ((Entity) this.Projectile).velocity.X = -0.15f;
-        ((Entity) this.Projectile).velocity.Y = -0.05f;
-      }
-      if (!this.home && this.homingonMouse && !this.chosenDirection)
-      {
-        double radians = (double) MathHelper.ToRadians((float) Main.rand.Next(-10, 10));
-        ((Vector2) ref vector2_2).Normalize();
-        Vector2 vector2_3 = vector2_2;
-        double num4 = radians;
-        vector2_1 = new Vector2();
-        Vector2 vector2_4 = vector2_1;
-        vector2_2 = Vector2.op_Multiply(Utils.RotatedBy(vector2_3, num4, vector2_4), num2);
-        ((Entity) this.Projectile).velocity = vector2_2;
-        this.chosenDirection = true;
-      }
-      ++this.Projectile.ai[0];
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 18;
+            Projectile.height = 18;
+            Projectile.aiStyle = 0;
+            Projectile.hostile = false;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Magic;
+            AIType = 14;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = true;
+            Projectile.ignoreWater = true;
+            Projectile.timeLeft = 1200;
+            Projectile.scale = 1f;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Item27, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      for (int index1 = 0; index1 < 20; ++index1)
-      {
-        int index2 = Dust.NewDust(Vector2.op_Subtraction(((Entity) this.Projectile).position, new Vector2((float) ((Entity) this.Projectile).width, (float) ((Entity) this.Projectile).height)), ((Entity) this.Projectile).width * 2, ((Entity) this.Projectile).height * 2, 70, ((Entity) this.Projectile).velocity.X * 0.2f, ((Entity) this.Projectile).velocity.Y * 0.2f, 100, new Color(), 1f);
-        Main.dust[index2].noGravity = true;
-        Main.dust[index2].velocity.X *= 0.5f;
-        Main.dust[index2].velocity.Y *= 0.5f;
-        base.OnKill(timeLeft);
-      }
-    }
+        public override void AI()
+        {
+            if (Projectile.ai[0] == 0)
+            {
+                Projectile.alpha = 255;
+                Projectile.rotation = Main.rand.Next(100);
+                RotDirect = Main.rand.NextBool(2) ? -1 : 1;
+                player = Main.player[Projectile.owner];
+                Projectile.ai[1] = 0;
+                RealDamage = Projectile.damage;
+            }
+            Lighting.AddLight(Projectile.Center, torchID: TorchID.Purple);
+            Projectile.alpha -= 17;
+            Projectile.rotation += 0.2f * RotDirect;
+            if (Main.rand.NextBool(10))
+            {
+                int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.PurpleCrystalShard,
+                    Projectile.velocity.X * 0.2f, Projectile.velocity.Y * 0.2f, 100, new Color(), 1f);
+                Main.dust[index2].noGravity = true;
+                Main.dust[index2].velocity.X *= 0.5f;
+                Main.dust[index2].velocity.Y *= 0.5f;
+            }
+            Projectile.tileCollide = Projectile.alpha <= 0; //dont collide while fading in
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, 610 - (int) Main.mouseTextColor * 2), this.Projectile.Opacity));
-    }
+            Projectile.velocity = Projectile.velocity * 1.008f;
+            //homing ai
+            if (true) //placeholder
+            {
+                Vector2 vectorToIdlePosition;
+                float speed;
+                float inertia = 5f;
+                if ((player.Center - Projectile.Center).Length() < 50)
+                {
+                    Projectile.friendly = false;
+                    Projectile.tileCollide = false;
+                }
+                if ((Main.mouseLeft || player.whoAmI != Main.myPlayer) || !((player.Center - Projectile.Center).Length() < 50)) //homing on player while mouse held
+                {
+                    vectorToIdlePosition = player.Center - Projectile.Center;
+                    speed = 24f;
+                }
+                else //shoot towards mouse
+                {
+                    Projectile.friendly = true;
+                    Projectile.tileCollide = true;
+                    Projectile.penetrate = 1;
+                    Projectile.maxPenetrate = 1;
+                    vectorToIdlePosition = Main.MouseWorld - Projectile.Center;
+                    speed = 18f;
+                    SoundEngine.PlaySound(SoundID.DD2_WitherBeastCrystalImpact, player.Center);
+                    Projectile.timeLeft = 60;
+                    homingonMouse = true;
+                    home = false;
+                }
+                float num = vectorToIdlePosition.Length();
+                if (num < 200f && homingonMouse)
+                {
+                    home = false;
+                }
+                if (num > 20f && home)
+                {
+                    vectorToIdlePosition.Normalize();
+                    vectorToIdlePosition *= speed;
+                    Projectile.velocity = (Projectile.velocity * (inertia - 1f) + vectorToIdlePosition) / inertia;
+                }
+                else if (Projectile.velocity == Vector2.Zero)
+                {
+                    Projectile.velocity.X = -0.15f;
+                    Projectile.velocity.Y = -0.05f;
+                }
+                if (!home && homingonMouse && !chosenDirection)
+                {
+                    double rotationrad = MathHelper.ToRadians(Main.rand.Next(-10, 10));
+                    vectorToIdlePosition.Normalize();
+                    vectorToIdlePosition = vectorToIdlePosition.RotatedBy(rotationrad) * speed;
+                    Projectile.velocity = vectorToIdlePosition;
+                    chosenDirection = true;
+                }
+            }
+            Projectile.ai[0] += 1f;
+        }
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.Item27, Projectile.Center);
+            for (int i = 0; i < 20; i++)
+            {
+                int index2 = Dust.NewDust(Projectile.position - new Vector2(Projectile.width, Projectile.height), Projectile.width * 2, Projectile.height * 2, DustID.PurpleCrystalShard,
+                        Projectile.velocity.X * 0.2f, Projectile.velocity.Y * 0.2f, 100, new Color(), 1f);
+                Main.dust[index2].noGravity = true;
+                Main.dust[index2].velocity.X *= 0.5f;
+                Main.dust[index2].velocity.Y *= 0.5f;
+                base.OnKill(timeLeft);
+            }
+        }
+        public override Color? GetAlpha(Color lightColor) => new Color(255, 255, 255, 610 - Main.mouseTextColor * 2) * Projectile.Opacity;
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection < 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color1 = Color.op_Multiply(Color.op_Multiply(Color.DeepPink, this.Projectile.Opacity), 0.5f);
-        ((Color) ref color1).A = ((Color) ref alpha).A;
-        Color color2 = Color.op_Multiply(color1, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color2, num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection < 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Main.spriteBatch.UseBlendState(BlendState.Additive);
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = Color.DeepPink * Projectile.Opacity * 0.5f;
+                color27.A = color26.A;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+            Main.spriteBatch.ResetToDefault();
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

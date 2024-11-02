@@ -1,250 +1,305 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.CursedCoffin.CoffinHand
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Boss;
-using FargowiltasSouls.Content.Buffs.Masomode;
-using FargowiltasSouls.Core.Systems;
+﻿using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System.IO;
-using Terraria;
-using Terraria.GameContent;
+using System;
+using System.Linq;
 using Terraria.ID;
-using Terraria.Localization;
+using Terraria;
 using Terraria.ModLoader;
+using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Content.Buffs.Boss;
+using System.IO;
+using FargowiltasSouls.Core.Systems;
+using FargowiltasSouls.Content.WorldGeneration;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.CursedCoffin
 {
-  public class CoffinHand : ModProjectile
-  {
-    private int CaughtPlayer = -1;
-    private static readonly Color GlowColor = new Color(224, 196, 252, 0);
-
-    public virtual void SetStaticDefaults()
+    public class CoffinHand : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Type] = 10;
-      ProjectileID.Sets.TrailingMode[this.Type] = 2;
-      Main.projFrames[this.Type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 76;
-      ((Entity) this.Projectile).height = 76;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.scale = 1f;
-      this.Projectile.light = 1f;
-      this.Projectile.timeLeft = 360;
-      this.Projectile.Opacity = 0.2f;
-    }
-
-    public ref float Timer => ref this.Projectile.localAI[0];
-
-    public ref float State => ref this.Projectile.ai[1];
-
-    public ref float RotDir => ref this.Projectile.ai[2];
-
-    public virtual void SendExtraAI(BinaryWriter writer) => writer.Write(this.Timer);
-
-    public virtual void ReceiveExtraAI(BinaryReader reader) => this.Timer = reader.ReadSingle();
-
-    public virtual void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
-    {
-      if (target.HasBuff<GrabbedBuff>())
-        return;
-      target.buffImmune[ModContent.BuffType<CoffinTossBuff>()] = true;
-      this.Projectile.frame = 1;
-      this.Timer = 0.0f;
-      this.State = 100f;
-      ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Vector2.op_UnaryNegation(Vector2.UnitY), 5f);
-      this.Projectile.damage = 0;
-      this.CaughtPlayer = ((Entity) target).whoAmI;
-      modifiers.Null();
-    }
-
-    public virtual bool CanHitPlayer(Player target)
-    {
-      return (double) this.State != 100.0 && (double) this.State != 101.0 && (double) this.State != 1.0 && base.CanHitPlayer(target);
-    }
-
-    public virtual void OnKill(int timeLeft)
-    {
-      if (!this.CaughtPlayer.IsWithinBounds((int) byte.MaxValue))
-        return;
-      Player player = Main.player[this.CaughtPlayer];
-      if (!player.Alive())
-        return;
-      player.fullRotation = 0.0f;
-    }
-
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.scale = 0.2f;
-        this.Projectile.localAI[0] = 1f;
-      }
-      if ((double) this.State != 1.0 && (double) this.State != 2.0)
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + 1.57079637f;
-      this.Projectile.Opacity = (float) Utils.Lerp((double) this.Projectile.Opacity, 1.0, 0.10000000149011612);
-      this.Projectile.scale = (float) Utils.Lerp((double) this.Projectile.scale, 1.0, 0.10000000149011612);
-      NPC npc = Main.npc[(int) this.Projectile.ai[0]];
-      if (!npc.TypeAlive<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>())
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin cursedCoffin = Luminance.Common.Utilities.Utilities.As<FargowiltasSouls.Content.Bosses.CursedCoffin.CursedCoffin>(npc);
-        Player player1 = Main.player[npc.target];
-        if (!player1.Alive())
-          return;
-        float num1 = this.State;
-        if ((double) num1 != 1.0)
+        public override void SetStaticDefaults()
         {
-          if ((double) num1 != 2.0)
-          {
-            if ((double) num1 != 22.0)
+            // DisplayName.SetDefault("Banished Baron Scrap");
+            ProjectileID.Sets.TrailCacheLength[Type] = 10;
+            ProjectileID.Sets.TrailingMode[Type] = 2;
+            Main.projFrames[Type] = 2;
+        }
+        public override void SetDefaults()
+        {
+            Projectile.width = 76;
+            Projectile.height = 76;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.scale = 1f;
+            Projectile.light = 1;
+            Projectile.timeLeft = 60 * 6;
+
+            Projectile.Opacity = 0.2f;
+        }
+        public ref float Timer => ref Projectile.localAI[0];
+        public ref float RotDir => ref Projectile.localAI[1];
+        public ref float State => ref Projectile.ai[1];
+
+        public int TargetPlayer = -1;
+
+        private int CaughtPlayer = -1;
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(RotDir);
+            writer.Write(Timer);
+            writer.Write(TargetPlayer);
+        }
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            RotDir = reader.ReadSingle();
+            Timer = reader.ReadSingle();
+            TargetPlayer = reader.ReadInt32();
+        }
+        
+        public override void ModifyHitPlayer(Player target, ref Player.HurtModifiers modifiers)
+        {
+            if (target.HasBuff<GrabbedBuff>())
+                return;
+            target.buffImmune[ModContent.BuffType<CoffinTossBuff>()] = true;
+            Projectile.frame = 1;
+            Timer = 0;
+            if (State == 44)
+                State = 66;
+            else
+                State = 100;
+            Projectile.velocity = -Vector2.UnitY * 5;
+            Projectile.damage = 0;
+            CaughtPlayer = target.whoAmI;
+            Projectile.netUpdate = true;
+            modifiers.Null();
+        }
+        public override bool CanHitPlayer(Player target)
+        {
+            if (State == 100 || State == 101 || State == 1)
+                return false;
+            return base.CanHitPlayer(target);
+        }
+        public override void OnKill(int timeLeft)
+        {
+            if (CaughtPlayer.IsWithinBounds(Main.maxPlayers))
             {
-              if ((double) num1 != 100.0)
-              {
-                if ((double) num1 != 101.0)
-                  return;
-                ((Entity) this.Projectile).velocity = Vector2.Zero;
-                this.Projectile.scale -= 0.05f;
-                this.Projectile.Opacity -= 0.1f;
-                if ((double) this.Projectile.Opacity >= 0.10000000149011612)
-                  return;
-                this.Projectile.Kill();
-              }
-              else if (!this.CaughtPlayer.IsWithinBounds((int) byte.MaxValue))
-              {
-                this.State = 101f;
-              }
-              else
-              {
-                Player player2 = Main.player[this.CaughtPlayer];
-                if (!player2.Alive())
+                Player victim = Main.player[CaughtPlayer];
+                if (victim.Alive())
                 {
-                  this.State = 101f;
+                    victim.fullRotation = 0;
                 }
-                else
-                {
-                  player2.buffImmune[ModContent.BuffType<StunnedBuff>()] = true;
-                  if ((double) this.Timer >= 60.0)
-                  {
-                    player2.AddBuff(ModContent.BuffType<CoffinTossBuff>(), 100, true, false);
-                    ((Entity) player2).velocity = Vector2.op_Multiply(((Entity) this.Projectile).DirectionFrom(((Entity) npc).Center), 30f);
-                    cursedCoffin.MashTimer = 15;
-                    npc.netUpdate = true;
-                    this.State = 101f;
-                  }
-                  else
-                  {
-                    int mashTimer = cursedCoffin.MashTimer;
-                    if (WorldSavingSystem.MasochistModeReal)
-                      mashTimer += 666;
-                    if (player2.Alive() && ((double) ((Entity) this.Projectile).Distance(((Entity) player2).Center) < 160.0 || ((Entity) player2).whoAmI != Main.myPlayer) && player2.FargoSouls().MashCounter < mashTimer)
+            }
+        }
+
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.scale = 0.2f;
+                Projectile.localAI[0] = 1;
+            }
+            if (State < 9 && State != 1)
+            {
+                RotDir = State;
+                State = 1;
+                Projectile.netUpdate = true;
+            }
+                
+            if (State != 1 && State != 10)
+                Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.PiOver2;
+
+            Projectile.Opacity = (float)Utils.Lerp(Projectile.Opacity, 1, 0.1f);
+            Projectile.scale = (float)Utils.Lerp(Projectile.scale, 1f, 0.1f);
+
+            NPC owner = Main.npc[(int)Projectile.ai[0]];
+            if (!owner.TypeAlive<CursedCoffin>())
+            {
+                Projectile.Kill();
+                return;
+            }
+            CursedCoffin coffin = owner.As<CursedCoffin>();
+            Entity target = Main.player[owner.target];
+            if (State == 22 || State == 44)
+            {
+                TargetPlayer = (int)Projectile.ai[2];
+            }
+            if (TargetPlayer.IsWithinBounds(Main.maxPlayers))
+            {
+                target = Main.player[TargetPlayer];
+            }
+            if (target == null || !target.active)
+                return;
+
+            switch (State) // current state
+            {
+                case 1: // normal grabby hand, circling player
                     {
-                      player2.AddBuff(ModContent.BuffType<GrabbedBuff>(), 2, true, false);
-                      Projectile projectile = this.Projectile;
-                      ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 0.96f);
-                      ((Entity) player2).Center = ((Entity) this.Projectile).Center;
-                      player2.fullRotation = Utils.ToRotation(((Entity) this.Projectile).DirectionFrom(((Entity) npc).Center)) + 1.57079637f;
-                      player2.fullRotationOrigin = Vector2.op_Subtraction(((Entity) player2).Center, ((Entity) player2).position);
+                        const float RotationSpeed = MathF.Tau * 0.005f;
+                        Vector2 offset = target.SafeDirectionTo(Projectile.Center);
+
+                        offset = offset.RotatedBy(RotDir * RotationSpeed) * 350;
+
+                        Vector2 desiredPos = target.Center + offset;
+                        Movement(desiredPos, 0.2f, 30, 5, 0.2f, 15);
+
+                        Projectile.rotation = Projectile.SafeDirectionTo(target.Center).ToRotation() + MathHelper.PiOver2;
+
+                        if (!coffin.StateMachine.StateStack.Any() || coffin.StateMachine.CurrentState.Identifier != CursedCoffin.BehaviorStates.GrabbyHands)
+                            Projectile.Kill();
                     }
-                    else
+                    break;  
+                case 10:
                     {
-                      this.CaughtPlayer = -1;
-                      this.State = 101f;
-                      player2.fullRotation = 0.0f;
-                      this.Projectile.netUpdate = true;
-                      cursedCoffin.MashTimer += 7;
-                      npc.netUpdate = true;
-                      if (Main.netMode == 2)
-                        NetMessage.SendData(27, -1, -1, (NetworkText) null, ((Entity) this.Projectile).whoAmI, 0.0f, 0.0f, 0.0f, 0, 0, 0);
+                        float divisor = WorldSavingSystem.MasochistModeReal ? 2f : 3f;
+                        float speed = (Timer - 25) / divisor;
+                        const int cap = 24;
+                        if (speed > cap)
+                            speed = cap;
+                        Projectile.velocity = (Projectile.rotation - MathHelper.PiOver2).ToRotationVector2() * speed;
+                        if (Timer > 120)
+                            Projectile.Kill();
+                        Timer++;
                     }
-                    ++this.Timer;
-                  }
-                }
-              }
+                    break;
+                case 22: //stun punish grab
+                    {
+                        if (Projectile.velocity.Length() < 30f)
+                            Projectile.velocity *= 1.08f;
+                        if (WorldSavingSystem.EternityMode && ++Timer < 60)
+                            Projectile.velocity = Projectile.velocity.RotateTowards(Projectile.DirectionTo(target.Center).ToRotation(), 0.01f);
+                    }
+                    break;
+                case 44: // YOU CAN'T ESCAPE
+                    {
+                        Vector2 vectorToIdlePosition = target.Center - Projectile.Center;
+                        float speed = 28f;
+                        float inertia = 10f;
+                        vectorToIdlePosition.Normalize();
+                        vectorToIdlePosition *= speed;
+                        Projectile.velocity = (Projectile.velocity * (inertia - 1f) + vectorToIdlePosition) / inertia;
+                        if (Projectile.velocity == Vector2.Zero)
+                        {
+                            Projectile.velocity.X = -0.15f;
+                            Projectile.velocity.Y = -0.05f;
+                        }
+                        
+                    }
+                    break;
+                
+                case 66: // pull back into arena
+                case 100: //grabbed player, toss
+                    {
+                        if (!CaughtPlayer.IsWithinBounds(Main.maxPlayers))
+                        {
+                            State = 101;
+                            break;
+                        }
+                        Player victim = Main.player[CaughtPlayer];
+                        if (!victim.Alive())
+                        {
+                            State = 101;
+                            break;
+                        }
+                        victim.buffImmune[ModContent.BuffType<StunnedBuff>()] = true; // cannot be stunned while grabbed, and removes stun
+
+                        if (Timer >= 25 && State != 66)
+                        {
+                            State = 101;
+                            owner.netUpdate = true;
+                            victim.AddBuff(ModContent.BuffType<CoffinTossBuff>(), 100);
+                            Vector2 arenaCenter = CoffinArena.Center.ToWorldCoordinates();
+                            int sign = Math.Sign(arenaCenter.DirectionTo(target.Center).X);
+                            if (sign != 1 && sign != -1)
+                                sign = Main.rand.NextBool() ? 1 : -1;
+                            victim.velocity = Vector2.UnitX * sign * 30;
+                            coffin.MashTimer = 15; // reset mash cap
+                            break;
+                        }
+                        else
+                        {
+                            int mashCap = coffin.MashTimer;
+                            if (WorldSavingSystem.MasochistModeReal) // practically inescapable on maso
+                                mashCap += 666;
+
+                            Vector2 arenaCenter = CoffinArena.Center.ToWorldCoordinates();
+                            bool releaseAtCenter = State == 66 && Projectile.Distance(arenaCenter) < 100;
+
+                            if (victim.Alive() && (Projectile.Distance(victim.Center) < 160 || victim.whoAmI != Main.myPlayer) && victim.FargoSouls().MashCounter < mashCap && !releaseAtCenter)
+                            {
+                                victim.AddBuff(ModContent.BuffType<StunnedBuff>(), 2);
+                                victim.Center = Projectile.Center;
+                                victim.fullRotation = Projectile.DirectionFrom(owner.Center).ToRotation() + MathHelper.PiOver2;
+                                victim.fullRotationOrigin = victim.Center - victim.position;
+                                if (State == 66)
+                                    Projectile.velocity = Vector2.Lerp(Projectile.velocity, Projectile.SafeDirectionTo(arenaCenter) * 15, 0.3f);
+                                else
+                                    Projectile.velocity *= 0.96f;
+                            }
+                            else // escaped
+                            {
+                                CaughtPlayer = -1;
+                                State = 101; //cooldown
+                                victim.fullRotation = 0;
+                                Projectile.netUpdate = true;
+
+                                coffin.MashTimer += 7; // increment mash cap, each successful mash makes the next one harder
+                                owner.netUpdate = true;
+
+                                if (Main.netMode == NetmodeID.Server)
+                                    NetMessage.SendData(MessageID.SyncProjectile, -1, -1, null, Projectile.whoAmI);
+                            }
+                        }
+                        
+                        Timer++;
+                    }
+                    break;
+                case 101:
+                    {
+                        Projectile.velocity = Vector2.Zero;
+                        Projectile.scale -= 0.05f;
+                        Projectile.Opacity -= 0.1f;
+                        if (Projectile.Opacity < 0.1f)
+                            Projectile.Kill();
+                    }
+                    break;
+            }
+        }
+        private static readonly Color GlowColor = Color.Purple with { A = 0 }; //new(224, 196, 252, 0);
+        public override bool PreDraw(ref Color lightColor)
+        {
+            //draw projectile
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Vector2 drawOffset = Projectile.rotation.ToRotationVector2() * (texture2D13.Width - Projectile.width) / 2;
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = Projectile.GetAlpha(GlowColor);
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + drawOffset + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
+
+        void Movement(Vector2 pos, float accel = 0.03f, float maxSpeed = 20, float lowspeed = 5, float decel = 0.03f, float slowdown = 30)
+        {
+            if (Projectile.Distance(pos) > slowdown)
+            {
+                Projectile.velocity = Vector2.Lerp(Projectile.velocity, (pos - Projectile.Center).SafeNormalize(Vector2.Zero) * maxSpeed, accel);
             }
             else
             {
-              Vector2 vector2 = Vector2.op_Subtraction(((Entity) player1).Center, ((Entity) this.Projectile).Center);
-              float num2 = 28f;
-              float num3 = 10f;
-              ((Vector2) ref vector2).Normalize();
-              vector2 = Vector2.op_Multiply(vector2, num2);
-              ((Entity) this.Projectile).velocity = Vector2.op_Division(Vector2.op_Addition(Vector2.op_Multiply(((Entity) this.Projectile).velocity, num3 - 1f), vector2), num3);
-              if (!Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-                return;
-              ((Entity) this.Projectile).velocity.X = -0.15f;
-              ((Entity) this.Projectile).velocity.Y = -0.05f;
+                Projectile.velocity = Vector2.Lerp(Projectile.velocity, (pos - Projectile.Center).SafeNormalize(Vector2.Zero) * lowspeed, decel);
             }
-          }
-          else
-          {
-            float num4 = (this.Timer - 25f) / (WorldSavingSystem.MasochistModeReal ? 2f : 3f);
-            if ((double) num4 > 24.0)
-              num4 = 24f;
-            ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation - 1.57079637f), num4);
-            if ((double) this.Timer > 120.0)
-              this.Projectile.Kill();
-            ++this.Timer;
-          }
         }
-        else
-        {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedBy(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) player1, ((Entity) this.Projectile).Center), (double) this.RotDir * 0.031415928155183792, new Vector2()), 350f);
-          this.Movement(Vector2.op_Addition(((Entity) player1).Center, vector2), 0.2f, 30f, decel: 0.2f, slowdown: 15f);
-          this.Projectile.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) player1).Center)) + 1.57079637f;
-        }
-      }
     }
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Vector2 vector2_2 = Vector2.op_Division(Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), (float) (texture2D.Width - ((Entity) this.Projectile).width)), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(this.Projectile.GetAlpha(CoffinHand.GlowColor), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(Vector2.op_Addition(oldPo, vector2_2), Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_2), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
-    }
-
-    private void Movement(
-      Vector2 pos,
-      float accel = 0.03f,
-      float maxSpeed = 20f,
-      float lowspeed = 5f,
-      float decel = 0.03f,
-      float slowdown = 30f)
-    {
-      if ((double) ((Entity) this.Projectile).Distance(pos) > (double) slowdown)
-        ((Entity) this.Projectile).velocity = Vector2.Lerp(((Entity) this.Projectile).velocity, Vector2.op_Multiply(Utils.SafeNormalize(Vector2.op_Subtraction(pos, ((Entity) this.Projectile).Center), Vector2.Zero), maxSpeed), accel);
-      else
-        ((Entity) this.Projectile).velocity = Vector2.Lerp(((Entity) this.Projectile).velocity, Vector2.op_Multiply(Utils.SafeNormalize(Vector2.op_Subtraction(pos, ((Entity) this.Projectile).Center), Vector2.Zero), lowspeed), decel);
-    }
-  }
 }

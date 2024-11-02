@@ -1,32 +1,32 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.Shucks.CrimetroidEgg
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.Shucks
 {
-  public class CrimetroidEgg : PatreonModItem
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public virtual void SetDefaults()
+    public class CrimetroidEgg : PatreonModItem
     {
-      this.Item.CloneDefaults(2420);
-      this.Item.shoot = ModContent.ProjectileType<Crimetroid>();
-      this.Item.buffType = ModContent.BuffType<CrimetroidBuff>();
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+            // DisplayName.SetDefault("Crimetroid Egg");
+            // Tooltip.SetDefault("Summons the Baby\nNot to be confused with criminal androids");
+        }
 
-    public virtual void UseStyle(Player player, Rectangle heldItemFrame)
-    {
-      if (((Entity) player).whoAmI != Main.myPlayer || player.itemTime != 0)
-        return;
-      player.AddBuff(this.Item.buffType, 3600, true, false);
+        public override void SetDefaults()
+        {
+            Item.CloneDefaults(ItemID.ZephyrFish);
+            Item.shoot = ModContent.ProjectileType<Crimetroid>();
+            Item.buffType = ModContent.BuffType<CrimetroidBuff>();
+        }
+
+        public override void UseStyle(Player player, Rectangle heldItemFrame)
+        {
+            if (player.whoAmI == Main.myPlayer && player.itemTime == 0)
+            {
+                player.AddBuff(Item.buffType, 3600, true);
+            }
+        }
     }
-  }
 }

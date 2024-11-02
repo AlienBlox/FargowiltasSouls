@@ -1,87 +1,92 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Souls.DimensionSoul
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Souls
 {
-  [AutoloadEquip]
-  public class DimensionSoul : FlightMasteryWings
-  {
-    public override bool HasSupersonicSpeed => true;
-
-    public override void SetStaticDefaults()
+    [AutoloadEquip(EquipType.Wings)]
+    public class DimensionSoul : FlightMasteryWings
     {
-      base.SetStaticDefaults();
-      Main.RegisterItemAnimation(this.Item.type, (DrawAnimation) new DrawAnimationVertical(6, 30, false));
-      ItemID.Sets.AnimatesAsSoul[this.Item.type] = true;
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+
+
+            Main.RegisterItemAnimation(Item.type, new DrawAnimationVertical(6, 30));
+            ItemID.Sets.AnimatesAsSoul[Item.type] = true;
+        }
+        public override int NumFrames => 30;
+
+        public override void SetDefaults()
+        {
+            Item.width = 32;
+            Item.height = 32;
+            Item.accessory = true;
+            Item.defense = 15;
+            Item.value = 5000000;
+            Item.rare = -12;
+            Item.expert = true;
+
+            Item.useStyle = ItemUseStyleID.HoldUp;
+            Item.UseSound = SoundID.Item6;
+            Item.useTime = Item.useAnimation = 90;
+        }
+
+        public override bool? UseItem(Player player) => true;
+
+        public override void UseItemFrame(Player player)
+        {
+            if (player.itemTime == player.itemTimeMax / 2)
+            {
+                player.Spawn(PlayerSpawnContext.RecallFromItem);
+
+                for (int d = 0; d < 70; d++)
+                    Dust.NewDust(player.position, player.width, player.height, DustID.MagicMirror, 0f, 0f, 150, default, 1.5f);
+            }
+        }
+
+        public override void UpdateInventory(Player player)
+        {
+            //cell phone
+            player.accWatch = 3;
+            player.accDepthMeter = 1;
+            player.accCompass = 1;
+            player.accFishFinder = true;
+            player.accDreamCatcher = true;
+            player.accOreFinder = true;
+            player.accStopwatch = true;
+            player.accCritterGuide = true;
+            player.accJarOfSouls = true;
+            player.accThirdEye = true;
+            player.accCalendar = true;
+            player.accWeatherRadio = true;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            ColossusSoul.AddEffects(player, Item, 300, 0.2f, 8);
+            SupersonicSoul.AddEffects(player, Item, hideVisual);
+            FlightMasterySoul.AddEffects(player, Item);
+            TrawlerSoul.AddEffects(player, Item, hideVisual);
+            WorldShaperSoul.AddEffects(player, Item, hideVisual);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(null, "ColossusSoul")
+            .AddIngredient(null, "SupersonicSoul")
+            .AddIngredient(null, "FlightMasterySoul")
+            .AddIngredient(null, "TrawlerSoul")
+            .AddIngredient(null, "WorldShaperSoul")
+            .AddIngredient(null, "AbomEnergy", 10)
+
+            .AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"))
+
+            .Register();
+        }
     }
-
-    public override int NumFrames => 30;
-
-    public override void SetDefaults()
-    {
-      ((Entity) this.Item).width = 32;
-      ((Entity) this.Item).height = 32;
-      this.Item.accessory = true;
-      this.Item.defense = 15;
-      this.Item.value = 5000000;
-      this.Item.rare = -12;
-      this.Item.expert = true;
-      this.Item.useStyle = 4;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item6);
-      this.Item.useTime = this.Item.useAnimation = 90;
-    }
-
-    public virtual bool? UseItem(Player player) => new bool?(true);
-
-    public virtual void UseItemFrame(Player player)
-    {
-      if (player.itemTime != player.itemTimeMax / 2)
-        return;
-      player.Spawn((PlayerSpawnContext) 2);
-      for (int index = 0; index < 70; ++index)
-        Dust.NewDust(((Entity) player).position, ((Entity) player).width, ((Entity) player).height, 15, 0.0f, 0.0f, 150, new Color(), 1.5f);
-    }
-
-    public virtual void UpdateInventory(Player player)
-    {
-      player.accWatch = 3;
-      player.accDepthMeter = 1;
-      player.accCompass = 1;
-      player.accFishFinder = true;
-      player.accDreamCatcher = true;
-      player.accOreFinder = true;
-      player.accStopwatch = true;
-      player.accCritterGuide = true;
-      player.accJarOfSouls = true;
-      player.accThirdEye = true;
-      player.accCalendar = true;
-      player.accWeatherRadio = true;
-    }
-
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.FargoSouls();
-      ColossusSoul.AddEffects(player, this.Item, 300, 0.2f, 8);
-      SupersonicSoul.AddEffects(player, this.Item, hideVisual);
-      FlightMasterySoul.AddEffects(player, this.Item);
-      TrawlerSoul.AddEffects(player, this.Item, hideVisual);
-      WorldShaperSoul.AddEffects(player, this.Item, hideVisual);
-    }
-
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient((Mod) null, "ColossusSoul", 1).AddIngredient((Mod) null, "SupersonicSoul", 1).AddIngredient((Mod) null, "FlightMasterySoul", 1).AddIngredient((Mod) null, "TrawlerSoul", 1).AddIngredient((Mod) null, "WorldShaperSoul", 1).AddIngredient((Mod) null, "AbomEnergy", 10).AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet")).Register();
-    }
-  }
 }

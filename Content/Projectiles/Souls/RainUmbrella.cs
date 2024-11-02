@@ -1,166 +1,215 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Souls.RainUmbrella
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Souls;
+﻿using FargowiltasSouls.Content.Buffs.Souls;
 using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+using FargowiltasSouls.Content.UI.Elements;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Souls
 {
-  public class RainUmbrella : ModProjectile
-  {
-    private bool firstTick = true;
-    private int reflectHP = 200;
-
-    public virtual void SetStaticDefaults()
+    public class RainUmbrella : ModProjectile
     {
-    }
-
-    public virtual void SetDefaults()
-    {
-      this.Projectile.netImportant = true;
-      ((Entity) this.Projectile).width = 72;
-      ((Entity) this.Projectile).height = 58;
-      this.Projectile.timeLeft = 900;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.minion = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-    }
-
-    private int getReflectHP(Player player)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      int reflectHp = 200;
-      if (fargoSoulsPlayer.ForceEffect<RainEnchant>())
-        reflectHp = 400;
-      return reflectHp;
-    }
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      FargoSoulsPlayer modPlayer = player.FargoSouls();
-      if (((Entity) player).whoAmI == Main.myPlayer && (player.dead || !player.HasEffect<RainUmbrellaEffect>()))
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        this.Projectile.timeLeft = 2;
-        if (this.firstTick)
+        public override void SetStaticDefaults()
         {
-          for (int index1 = 0; index1 < 12; ++index1)
-          {
-            Vector2 vector2_1 = Vector2.op_Addition(Utils.RotatedBy(Vector2.op_Multiply(Utils.RotatedBy(Vector2.UnitX, (double) this.Projectile.rotation, new Vector2()), 6f), (double) (index1 - 5) * 6.2831854820251465 / 12.0, new Vector2()), ((Entity) this.Projectile).Center);
-            Vector2 vector2_2 = Vector2.op_Subtraction(vector2_1, ((Entity) this.Projectile).Center);
-            int index2 = Dust.NewDust(Vector2.op_Addition(vector2_1, vector2_2), 0, 0, 33, 0.0f, 0.0f, 0, new Color(), 1.5f);
-            Main.dust[index2].noGravity = true;
-            Main.dust[index2].velocity = vector2_2;
-          }
-          this.reflectHP = this.getReflectHP(player);
-          this.firstTick = false;
+
         }
-        ((Entity) this.Projectile).position.X = (float) (int) ((Entity) this.Projectile).position.X;
-        ((Entity) this.Projectile).position.Y = (float) (int) ((Entity) this.Projectile).position.Y;
-        this.Projectile.scale = (float) ((double) Main.mouseTextColor / 200.0 - 0.34999999403953552) * 0.2f + 0.95f;
-        ((Entity) this.Projectile).position.X = ((Entity) player).Center.X - (float) (((Entity) this.Projectile).width / 2);
-        ((Entity) this.Projectile).position.Y = (float) ((double) ((Entity) player).Center.Y - (double) (((Entity) this.Projectile).height / 2) + (double) player.gfxOffY - 50.0);
-        if (Main.raining)
+
+        public override void SetDefaults()
         {
-          Tile tileSafely = Framing.GetTileSafely(((Entity) player).Center);
-          if (((Tile) ref tileSafely).WallType == (ushort) 0)
-          {
-            for (int index = 0; index < 20; ++index)
-            {
-              Vector2 vector2 = new Vector2();
-              double num = Main.rand.NextDouble() * Math.PI + Math.PI / 2.0;
-              vector2.X += (float) (Math.Sin(num) * 40.0);
-              vector2.Y += (float) (Math.Cos(num) * 40.0 + (double) (((Entity) this.Projectile).height / 2) - 4.0);
-              Dust dust = Main.dust[Dust.NewDust(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2), new Vector2(4f, 4f)), 0, 0, 33, 0.0f, 0.0f, 100, new Color(), 0.75f)];
-            }
-          }
+            Projectile.netImportant = true;
+            Projectile.width = 72;
+            Projectile.height = 58;
+            Projectile.timeLeft = 900;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.minion = true;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
         }
-        ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (x =>
+
+        private bool firstTick = true;
+        private int reflectHP = 200;
+        private int getReflectHP(Player player)
         {
-          if (((Entity) x).active && x.hostile && x.damage > 0 && (double) Vector2.Distance(((Entity) x).Center, ((Entity) this.Projectile).Center) <= (double) (40 + Math.Min(((Entity) x).width, ((Entity) x).height) / 2))
-          {
-            bool? nullable = ProjectileLoader.CanDamage(x);
-            bool flag = false;
-            if (!(nullable.GetValueOrDefault() == flag & nullable.HasValue) && ProjectileLoader.CanHitPlayer(x, player))
-              return FargoSoulsUtil.CanDeleteProjectile(x);
-          }
-          return false;
-        })).ToList<Projectile>().ForEach((Action<Projectile>) (x =>
-        {
-          if ((double) ((Entity) this.Projectile).Center.Y > (double) ((Entity) x).Center.Y && x.FargoSouls().canUmbrellaReflect)
-          {
-            for (int index3 = 0; index3 < 5; ++index3)
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            int hp = 200;
+
+            if (modPlayer.ForceEffect<RainEnchant>())
             {
-              int index4 = Dust.NewDust(new Vector2(((Entity) x).position.X, ((Entity) x).position.Y + 2f), ((Entity) x).width, ((Entity) x).height + 5, 33, ((Entity) x).velocity.X * 0.2f, ((Entity) x).velocity.Y * 0.2f, 100, new Color(), 1f);
-              Main.dust[index4].noGravity = true;
+                hp = 400;
             }
-            x.hostile = false;
-            x.friendly = true;
-            x.owner = ((Entity) player).whoAmI;
-            Projectile projectile = x;
-            ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, -1f);
-            if ((double) ((Entity) x).Center.X > (double) ((Entity) player).Center.X)
+
+            return hp;
+        }
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (player.whoAmI == Main.myPlayer && (player.dead || !player.HasEffect<RainUmbrellaEffect>()))
             {
-              ((Entity) x).direction = 1;
-              x.spriteDirection = 1;
+                Projectile.Kill();
+                return;
             }
             else
             {
-              ((Entity) x).direction = -1;
-              x.spriteDirection = -1;
+                Projectile.timeLeft = 2;
             }
-            x.netUpdate = true;
-            this.reflectHP -= x.damage;
-            x.damage *= 2;
-            if (modPlayer.ForceEffect<RainEnchant>())
-              x.damage *= 3;
-            if (this.reflectHP > 0)
-              return;
-            this.Projectile.Kill();
-          }
-          else
-            x.FargoSouls().canUmbrellaReflect = false;
-        }));
-      }
-    }
 
-    public virtual bool? CanDamage() => new bool?(false);
+            if (firstTick)
+            {
+                const int num226 = 12;
+                for (int i = 0; i < num226; i++)
+                {
+                    Vector2 vector6 = Vector2.UnitX.RotatedBy(Projectile.rotation) * 6f;
+                    vector6 = vector6.RotatedBy((i - (num226 / 2 - 1)) * 6.28318548f / num226, default) + Projectile.Center;
+                    Vector2 vector7 = vector6 - Projectile.Center;
+                    int num228 = Dust.NewDust(vector6 + vector7, 0, 0, DustID.Water, 0f, 0f, 0, default, 1.5f);
+                    Main.dust[num228].noGravity = true;
+                    Main.dust[num228].velocity = vector7;
+                }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return this.reflectHP < this.getReflectHP(Main.player[this.Projectile.owner]) / 4 ? new Color?(new Color(150, 0, 0, 150)) : base.GetAlpha(lightColor);
-    }
+                reflectHP = getReflectHP(player);
+                firstTick = false;
+            }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index1 = 0; index1 < 12; ++index1)
-      {
-        Vector2 vector2_1 = Vector2.op_Addition(Utils.RotatedBy(Vector2.op_Multiply(Utils.RotatedBy(Vector2.UnitX, (double) this.Projectile.rotation, new Vector2()), 6f), (double) (index1 - 5) * 6.2831854820251465 / 12.0, new Vector2()), ((Entity) this.Projectile).Center);
-        Vector2 vector2_2 = Vector2.op_Subtraction(vector2_1, ((Entity) this.Projectile).Center);
-        int index2 = Dust.NewDust(Vector2.op_Addition(vector2_1, vector2_2), 0, 0, 33, 0.0f, 0.0f, 0, new Color(), 1.5f);
-        Main.dust[index2].noGravity = true;
-        Main.dust[index2].velocity = vector2_2;
-      }
-      Main.player[this.Projectile.owner].AddBuff(ModContent.BuffType<RainCDBuff>(), 900, true, false);
+            //pulsation mumbo jumbo
+            Projectile.position.X = (int)Projectile.position.X;
+            Projectile.position.Y = (int)Projectile.position.Y;
+            float num395 = Main.mouseTextColor / 200f - 0.35f;
+            num395 *= 0.2f;
+            Projectile.scale = num395 + 0.95f;
+
+            //float above player
+            Projectile.position.X = player.Center.X - Projectile.width / 2;
+            Projectile.position.Y = player.Center.Y - Projectile.height / 2 + player.gfxOffY - 50f;
+
+
+            //reflect all projectiles coming from above ONLY
+            const int focusRadius = 40;
+
+            //rain dripping off umbrella!!
+            //Main.NewText(Main.raining);
+
+            if (Main.raining)
+            {
+                Tile currentTile = Framing.GetTileSafely(player.Center);
+                if (currentTile.WallType == WallID.None)
+                {
+                    for (int i = 0; i < 20; i++)
+                    {
+                        Vector2 offset = new();
+                        double angle = Main.rand.NextDouble() * Math.PI + (Math.PI / 2);
+                        offset.X += (float)(Math.Sin(angle) * focusRadius);
+                        offset.Y += (float)(Math.Cos(angle) * focusRadius) + Projectile.height / 2 - 4;
+                        Dust dust = Main.dust[Dust.NewDust(
+                            Projectile.Center + offset - new Vector2(4, 4), 0, 0,
+                            DustID.Water, 0, 0, 100, Scale: 0.75f)];
+                        //dust.velocity = player.velocity;
+                        //dust.noGravity = true;
+                    }
+                }
+            }
+
+            if (player.whoAmI == Main.myPlayer)
+                CooldownBarManager.Activate("RainUmbrellaHealth", ModContent.Request<Texture2D>("FargowiltasSouls/Content/Items/Accessories/Enchantments/RainEnchant").Value, Color.Yellow, () => (float)reflectHP / getReflectHP(Main.LocalPlayer), true, 0, () => Projectile.Alive());
+
+            Main.projectile.Where(x => x.active && x.hostile && x.damage > 0 && Vector2.Distance(x.Center, Projectile.Center) <= focusRadius + Math.Min(x.width, x.height) / 2 && ProjectileLoader.CanDamage(x) != false && ProjectileLoader.CanHitPlayer(x, player) && FargoSoulsUtil.CanDeleteProjectile(x)).ToList().ForEach(x =>
+            {
+                //float angleTo = Math.Abs(Projectile.Center.AngleTo(x.Center));
+                //float angleFrom = Math.Abs(Projectile.Center.AngleFrom(x.Center));
+                bool above = Projectile.Center.Y > x.Center.Y;
+
+                //Main.NewText(angleTo + " " + angleFrom + " " + above);
+
+                if (above && x.FargoSouls().canUmbrellaReflect)
+                {
+                    for (int i = 0; i < 5; i++)
+                    {
+                        int dustId = Dust.NewDust(new Vector2(x.position.X, x.position.Y + 2f), x.width, x.height + 5, DustID.Water, x.velocity.X * 0.2f, x.velocity.Y * 0.2f, 100);
+                        Main.dust[dustId].noGravity = true;
+                    }
+
+                    // Set ownership
+                    x.FargoSouls().Reflected = true;
+                    x.hostile = false;
+                    x.friendly = true;
+                    x.owner = player.whoAmI;
+
+                    // Turn around
+                    x.velocity *= -1f;
+
+                    // Flip sprite
+                    if (x.Center.X > player.Center.X)
+                    {
+                        x.direction = 1;
+                        x.spriteDirection = 1;
+                    }
+                    else
+                    {
+                        x.direction = -1;
+                        x.spriteDirection = -1;
+                    }
+
+                    // Don't know if this will help but here it is
+                    x.netUpdate = true;
+
+                    reflectHP -= x.damage;
+
+                    x.damage *= 2;
+
+                    if (modPlayer.ForceEffect<RainEnchant>())
+                    {
+                        x.damage *= 3;
+                    }
+
+                    if (reflectHP <= 0)
+                    {
+                        Projectile.Kill();
+                    }
+                }
+                else
+                {
+                    x.FargoSouls().canUmbrellaReflect = false;
+                }
+            });
+        }
+
+        public override bool? CanDamage()
+        {
+            return false;
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            if (reflectHP < (getReflectHP(Main.player[Projectile.owner]) / 4))
+            {
+                return new Color(150, 0, 0, 150); // Color.Red;
+            }
+
+            return base.GetAlpha(lightColor);
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            const int num226 = 12;
+            for (int i = 0; i < num226; i++)
+            {
+                Vector2 vector6 = Vector2.UnitX.RotatedBy(Projectile.rotation) * 6f;
+                vector6 = vector6.RotatedBy((i - (num226 / 2 - 1)) * 6.28318548f / num226, default) + Projectile.Center;
+                Vector2 vector7 = vector6 - Projectile.Center;
+                int num228 = Dust.NewDust(vector6 + vector7, 0, 0, DustID.Water, 0f, 0f, 0, default, 1.5f);
+                Main.dust[num228].noGravity = true;
+                Main.dust[num228].velocity = vector7;
+            }
+
+            Main.player[Projectile.owner].AddBuff(ModContent.BuffType<RainCDBuff>(), 900);
+        }
     }
-  }
 }

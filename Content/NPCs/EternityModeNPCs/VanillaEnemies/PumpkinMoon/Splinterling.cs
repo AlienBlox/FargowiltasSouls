@@ -1,47 +1,46 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.PumpkinMoon.Splinterling
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
-using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.PumpkinMoon
 {
-  public class Splinterling : EModeNPCBehaviour
-  {
-    public int Counter;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(329);
-
-    public virtual void AI(NPC npc)
+    public class Splinterling : EModeNPCBehaviour
     {
-      base.AI(npc);
-      if (++this.Counter < 300)
-        return;
-      this.Counter = 0;
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      for (int index = 0; index < 5; ++index)
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center.X, ((Entity) npc).Center.Y, (float) Main.rand.Next(-3, 4), (float) Main.rand.Next(-5, 0), Main.rand.Next(326, 329), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Splinterling);
 
-    public virtual bool CheckDead(NPC npc)
-    {
-      if (NPC.downedPlantBoss)
-        return base.CheckDead(npc);
-      ((Entity) npc).active = false;
-      if (npc.DeathSound.HasValue)
-      {
-        SoundStyle soundStyle = npc.DeathSound.Value;
-        SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-      }
-      return false;
+        public int Counter;
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            if (++Counter >= 300)
+            {
+                Counter = 0;
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    for (int i = 0; i < 5; i++)
+                    {
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center.X, npc.Center.Y, Main.rand.Next(-3, 4), Main.rand.Next(-5, 0),
+                            Main.rand.Next(326, 329), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer);
+                    }
+                }
+            }
+        }
+
+        public override bool CheckDead(NPC npc)
+        {
+            if (!NPC.downedPlantBoss)
+            {
+                npc.active = false;
+                if (npc.DeathSound != null)
+                    SoundEngine.PlaySound(npc.DeathSound.Value, npc.Center);
+                return false;
+            }
+
+            return base.CheckDead(npc);
+        }
     }
-  }
 }

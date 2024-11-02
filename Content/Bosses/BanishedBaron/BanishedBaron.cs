@@ -1,9 +1,5 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿
+using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Common.Graphics.Particles;
 using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Buffs.Masomode;
@@ -21,1950 +17,2279 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent;
 using Terraria.GameContent.Bestiary;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.BanishedBaron
 {
-  [AutoloadBossHead]
-  public class BanishedBaron : ModNPC
-  {
-    public static readonly SoundStyle BaronRoar = new SoundStyle("FargowiltasSouls/Assets/Sounds/BaronRoar", (SoundType) 0);
-    public static readonly SoundStyle BaronYell = new SoundStyle("FargowiltasSouls/Assets/Sounds/BaronYell", (SoundType) 0);
-    public static List<int> P1Attacks;
-    public static List<int> P2Attacks;
-    public bool Attacking = true;
-    public bool HitPlayer = true;
-    public int Trail;
-    private bool DidWhirlpool;
-    public int Frame;
-    public int Phase = 1;
-    public int Anim;
-    public int ArenaProjID = -1;
-    public const int MaxWhirlpools = 40;
-    public List<int> availablestates = new List<int>();
-    public Vector2 LockVector1 = Vector2.Zero;
-    public int LastState;
-    public Vector2 LockVector2 = Vector2.Zero;
-    private float AnimationSpeed = 1f;
-
-    private Player player => Main.player[this.NPC.target];
-
-    public ref float Timer => ref this.NPC.ai[0];
-
-    public ref float State => ref this.NPC.ai[1];
-
-    public ref float AI2 => ref this.NPC.ai[2];
-
-    public ref float AI3 => ref this.NPC.ai[3];
-
-    public ref float AI4 => ref this.NPC.localAI[0];
-
-    public virtual void SetStaticDefaults()
+    [AutoloadBossHead]
+    public class BanishedBaron : ModNPC
     {
-      Main.npcFrameCount[this.NPC.type] = 19;
-      NPCID.Sets.TrailCacheLength[this.NPC.type] = 10;
-      NPCID.Sets.TrailingMode[this.NPC.type] = 3;
-      NPCID.Sets.MPAllowedEnemies[this.Type] = true;
-      NPCID.Sets.BossBestiaryPriority.Add(this.NPC.type);
-      NPC npc = this.NPC;
-      List<int> debuffs = new List<int>();
-      CollectionsMarshal.SetCount<int>(debuffs, 5);
-      Span<int> span = CollectionsMarshal.AsSpan<int>(debuffs);
-      int num1 = 0;
-      span[num1] = 31;
-      int num2 = num1 + 1;
-      span[num2] = 46;
-      int num3 = num2 + 1;
-      span[num3] = 68;
-      int num4 = num3 + 1;
-      span[num4] = ModContent.BuffType<LethargicBuff>();
-      int num5 = num4 + 1;
-      span[num5] = ModContent.BuffType<ClippedWingsBuff>();
-      int num6 = num5 + 1;
-      npc.AddDebuffImmunities(debuffs);
-      Dictionary<int, NPCID.Sets.NPCBestiaryDrawModifiers> bestiaryDrawOffset = NPCID.Sets.NPCBestiaryDrawOffset;
-      int type = this.NPC.type;
-      NPCID.Sets.NPCBestiaryDrawModifiers bestiaryDrawModifiers1;
-      // ISSUE: explicit constructor call
-      ((NPCID.Sets.NPCBestiaryDrawModifiers) ref bestiaryDrawModifiers1).\u002Ector();
-      bestiaryDrawModifiers1.Rotation = 3.14159274f;
-      bestiaryDrawModifiers1.Position = Vector2.op_Multiply(Vector2.UnitX, 60f);
-      NPCID.Sets.NPCBestiaryDrawModifiers bestiaryDrawModifiers2 = bestiaryDrawModifiers1;
-      bestiaryDrawOffset.Add(type, bestiaryDrawModifiers2);
-    }
+        Player player => Main.player[NPC.target];
 
-    public virtual void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
-    {
-      bestiaryEntry.Info.AddRange((IEnumerable<IBestiaryInfoElement>) new \u003C\u003Ez__ReadOnlyArray<IBestiaryInfoElement>(new IBestiaryInfoElement[2]
-      {
-        (IBestiaryInfoElement) BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.Ocean,
-        (IBestiaryInfoElement) new FlavorTextBestiaryInfoElement("Mods.FargowiltasSouls.Bestiary." + ((ModType) this).Name)
-      }));
-    }
-
-    public virtual void SetDefaults()
-    {
-      this.NPC.aiStyle = -1;
-      this.NPC.lifeMax = 32000;
-      this.NPC.defense = 15;
-      this.NPC.damage = 69;
-      this.NPC.knockBackResist = 0.0f;
-      ((Entity) this.NPC).width = 132;
-      ((Entity) this.NPC).height = 132;
-      this.NPC.boss = true;
-      this.NPC.lavaImmune = true;
-      this.NPC.noGravity = true;
-      this.NPC.noTileCollide = true;
-      NPC npc = this.NPC;
-      SoundStyle soundStyle;
-      // ISSUE: explicit constructor call
-      ((SoundStyle) ref soundStyle).\u002Ector("FargowiltasSouls/Assets/Sounds/BaronHit", (SoundType) 0);
-      // ISSUE: field reference
-      ((SoundStyle) ref soundStyle).Variants = RuntimeHelpers.CreateSpan<int>(__fieldref (\u003CPrivateImplementationDetails\u003E.\u0034636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4));
-      ((SoundStyle) ref soundStyle).PitchRange = (-0.7f, -0.5f);
-      ((SoundStyle) ref soundStyle).Volume = 0.5f;
-      SoundStyle? nullable = new SoundStyle?(soundStyle);
-      npc.HitSound = nullable;
-      this.NPC.DeathSound = new SoundStyle?(new SoundStyle("FargowiltasSouls/Assets/Sounds/BaronDeath", (SoundType) 0));
-      this.NPC.alpha = (int) byte.MaxValue;
-      Mod mod;
-      this.Music = Terraria.ModLoader.ModLoader.TryGetMod("FargowiltasMusic", ref mod) ? MusicLoader.GetMusicSlot(mod, "Assets/Music/Baron") : 58;
-      this.SceneEffectPriority = (SceneEffectPriority) 6;
-      this.NPC.value = (float) Item.buyPrice(0, 2, 0, 0);
-    }
-
-    public virtual Color? GetAlpha(Color drawColor)
-    {
-      return this.NPC.IsABestiaryIconDummy ? new Color?(this.NPC.GetBestiaryEntryColor()) : base.GetAlpha(drawColor);
-    }
-
-    public virtual void ApplyDifficultyAndPlayerScaling(
-      int numPlayers,
-      float balance,
-      float bossAdjustment)
-    {
-      this.NPC.lifeMax = (int) ((double) this.NPC.lifeMax * (double) balance);
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.NPC.localAI[0]);
-      writer.Write7BitEncodedInt(this.ArenaProjID);
-      writer.Write7BitEncodedInt(this.Phase);
-      Utils.WriteVector2(writer, this.LockVector1);
-      Utils.WriteVector2(writer, this.LockVector2);
-      writer.Write7BitEncodedInt(this.LastState);
-      writer.Write(this.DidWhirlpool);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.NPC.localAI[0] = reader.ReadSingle();
-      this.ArenaProjID = reader.Read7BitEncodedInt();
-      this.Phase = reader.Read7BitEncodedInt();
-      this.LockVector1 = Utils.ReadVector2(reader);
-      this.LockVector2 = Utils.ReadVector2(reader);
-      this.LastState = reader.Read7BitEncodedInt();
-      this.DidWhirlpool = reader.ReadBoolean();
-    }
-
-    public virtual bool CanHitPlayer(Player target, ref int CooldownSlot)
-    {
-      return this.HitPlayer && this.Collides(((Entity) target).position, ((Entity) target).Size);
-    }
-
-    public virtual bool CanHitNPC(NPC target)
-    {
-      return this.HitPlayer && this.Collides(((Entity) target).position, ((Entity) target).Size);
-    }
-
-    public bool Collides(Vector2 boxPos, Vector2 boxDim)
-    {
-      Vector2 size = ((Entity) this.NPC).Size;
-      Vector2 vector2 = Vector2.op_Addition(((Entity) this.NPC).position, Vector2.op_Multiply(0.5f, new Vector2((float) ((Entity) this.NPC).width, (float) ((Entity) this.NPC).height)));
-      float num1 = 0.0f;
-      float num2 = 0.0f;
-      if ((double) boxPos.X > (double) vector2.X)
-        num1 = boxPos.X - vector2.X;
-      else if ((double) boxPos.X + (double) boxDim.X < (double) vector2.X)
-        num1 = boxPos.X + boxDim.X - vector2.X;
-      if ((double) boxPos.Y > (double) vector2.Y)
-        num2 = boxPos.Y - vector2.Y;
-      else if ((double) boxPos.Y + (double) boxDim.Y < (double) vector2.Y)
-        num2 = boxPos.Y + boxDim.Y - vector2.Y;
-      float num3 = size.X / 2f;
-      float num4 = size.Y / 2f;
-      return (double) num1 * (double) num1 / ((double) num3 * (double) num3) + (double) num2 * (double) num2 / ((double) num4 * (double) num4) < 1.0;
-    }
-
-    public virtual bool? DrawHealthBar(byte hbPosition, ref float scale, ref Vector2 position)
-    {
-      return new bool?((double) this.Timer >= 140.0 || (double) this.State != 5.0);
-    }
-
-    public virtual void BossHeadSlot(ref int index)
-    {
-      if ((double) this.Timer < 140.0 && (double) this.State == 5.0)
-        index = -1;
-      else
-        index = NPCID.Sets.BossHeadTextures[this.Type];
-    }
-
-    public virtual bool? CanFallThroughPlatforms() => new bool?(true);
-
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
-    {
-      target.AddBuff(30, 600, true, false);
-      if (!WorldSavingSystem.EternityMode)
-      {
-        target.AddBuff(148, 300, true, false);
-      }
-      else
-      {
-        target.AddBuff(148, 600, true, false);
-        target.FargoSouls().MaxLifeReduction += 50;
-        target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 1800, true, false);
-      }
-    }
-
-    public virtual void ModifyIncomingHit(ref NPC.HitModifiers modifiers)
-    {
-      if ((double) this.State != 1.0)
-        return;
-      ref StatModifier local = ref modifiers.FinalDamage;
-      local = StatModifier.op_Division(local, 4f);
-    }
-
-    public virtual bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
-    {
-      Texture2D texture2D1 = TextureAssets.Npc[this.NPC.type].Value;
-      Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) this.NPC).Center, screenPos);
-      float num1 = this.NPC.rotation + (((Entity) this.NPC).direction == 1 ? 0.0f : 3.14159274f);
-      if (this.NPC.aiStyle != -1 && (double) this.NPC.ai[0] != 7.0)
-      {
-        Vector2 vector2_2 = ((Entity) this.NPC).DirectionTo(((Entity) this.player).Center);
-        ((Entity) this.NPC).direction = Math.Sign(vector2_2.X);
-        num1 = Utils.ToRotation(vector2_2) + (((Entity) this.NPC).direction == 1 ? 0.0f : 3.14159274f);
-      }
-      int num2 = this.NPC.frame.Y / (texture2D1.Height / Main.npcFrameCount[this.NPC.type]);
-      SpriteEffects spriteEffects1 = ((Entity) this.NPC).direction == -1 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < Math.Min(this.Trail, NPCID.Sets.TrailCacheLength[this.NPC.type]); ++index)
-      {
-        float num3 = this.NPC.oldRot[index] + (((Entity) this.NPC).direction == 1 ? 0.0f : 3.14159274f);
-        Vector2 oldPo = this.NPC.oldPos[index];
-        int frame = this.Frame;
-        Rectangle rectangle;
-        // ISSUE: explicit constructor call
-        ((Rectangle) ref rectangle).\u002Ector(0, frame * texture2D1.Height / Main.npcFrameCount[this.NPC.type], texture2D1.Width, texture2D1.Height / Main.npcFrameCount[this.NPC.type]);
-        DrawData drawData;
-        // ISSUE: explicit constructor call
-        ((DrawData) ref drawData).\u002Ector(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.NPC).Size, 2f)), screenPos), new Vector2(0.0f, this.NPC.gfxOffY)), new Rectangle?(rectangle), Color.op_Multiply(this.NPC.GetAlpha(drawColor), 0.5f / (float) index), num3, new Vector2((float) (texture2D1.Width / 2), (float) (texture2D1.Height / 2 / Main.npcFrameCount[this.NPC.type])), this.NPC.scale, spriteEffects1, 0.0f);
-        GameShaders.Misc["LCWingShader"].UseColor(Color.Blue).UseSecondaryColor(Color.Black);
-        GameShaders.Misc["LCWingShader"].Apply(new DrawData?(drawData));
-        ((DrawData) ref drawData).Draw(spriteBatch);
-      }
-      SpriteBatch spriteBatch1 = spriteBatch;
-      Vector2 vector2_3;
-      // ISSUE: explicit constructor call
-      ((Vector2) ref vector2_3).\u002Ector((float) (texture2D1.Width / 2), (float) (texture2D1.Height / 2 / Main.npcFrameCount[this.NPC.type]));
-      Texture2D texture2D2 = texture2D1;
-      Vector2 vector2_4 = vector2_1;
-      Rectangle? nullable = new Rectangle?(this.NPC.frame);
-      Color alpha = this.NPC.GetAlpha(drawColor);
-      double num4 = (double) num1;
-      Vector2 vector2_5 = vector2_3;
-      double scale = (double) this.NPC.scale;
-      SpriteEffects spriteEffects2 = spriteEffects1;
-      spriteBatch1.Draw(texture2D2, vector2_4, nullable, alpha, (float) num4, vector2_5, (float) scale, spriteEffects2, 0.0f);
-      return false;
-    }
-
-    public virtual void FindFrame(int frameHeight)
-    {
-      double num1 = 60.0 / (10.0 * (double) this.AnimationSpeed);
-      int num2 = 0;
-      int num3 = 5;
-      switch (this.Phase)
-      {
-        case 1:
-          switch (this.Anim)
-          {
-            case 1:
-              num2 = 6;
-              num3 = 7;
-              break;
-          }
-          break;
-        case 2:
-          switch (this.Anim)
-          {
-            case 0:
-              num2 = 11;
-              num3 = 16;
-              break;
-            case 1:
-              num2 = 17;
-              num3 = 18;
-              break;
-          }
-          break;
-      }
-      this.NPC.spriteDirection = ((Entity) this.NPC).direction;
-      if (++this.NPC.frameCounter >= num1)
-      {
-        if (++this.Frame > num3 || this.Frame < num2)
-          this.Frame = num2;
-        this.NPC.frameCounter = 0.0;
-      }
-      this.NPC.frame.Y = frameHeight * this.Frame;
-      if (this.Anim != 3)
-        return;
-      this.NPC.frame.Y = frameHeight * 9;
-    }
-
-    public virtual void OnKill()
-    {
-      NPC.SetEventFlagCleared(ref WorldSavingSystem.downedBoss[12], -1);
-    }
-
-    public virtual void BossLoot(ref string name, ref int potionType) => potionType = 499;
-
-    public virtual void HitEffect(NPC.HitInfo hit)
-    {
-      if (this.NPC.life - ((NPC.HitInfo) ref hit).Damage < 0 && !this.NPC.dontTakeDamage)
-      {
-        hit.Null();
-        this.NPC.life = 10;
-        this.NPC.dontTakeDamage = true;
-        this.State = 16f;
-        this.Timer = 0.0f;
-        ((Entity) this.NPC).velocity = Vector2.Zero;
-        SoundStyle soundStyle = SoundID.Item62;
-        ((SoundStyle) ref soundStyle).Pitch = 0.0f;
-        ((SoundStyle) ref soundStyle).Volume = 2f;
-        SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        Vector2 vector2 = Vector2.op_Subtraction(((Entity) this.NPC).position, Vector2.op_Division(((Entity) this.NPC).Size, 2f));
-        int num1 = ((Entity) this.NPC).width * 2;
-        int num2 = ((Entity) this.NPC).height * 2;
-        for (int index1 = 0; index1 < 30; ++index1)
+        #region Variables
+        public enum StateEnum //ALL states
         {
-          int index2 = Dust.NewDust(vector2, num1, num2, 31, 0.0f, 0.0f, 100, new Color(), 3f);
-          Dust dust = Main.dust[index2];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
+            Opening,
+            Phase2Transition,
+            P1BigNuke,
+            P1RocketStorm,
+            P1SurfaceMines,
+            P1FadeDash,
+            P1SineSwim,
+            P1Whirlpool,
+            P2PredictiveDash,
+            P2CarpetBomb,
+            P2RocketStorm,
+            P2SpinDash,
+            P2MineFlurry,
+            P2Whirlpool,
+            P2LaserSweep,
+            Swim,
+            DeathAnimation
         }
-        for (int index3 = 0; index3 < 20; ++index3)
-        {
-          int index4 = Dust.NewDust(vector2, num1, num2, 6, 0.0f, 0.0f, 100, new Color(), 3.5f);
-          Main.dust[index4].noGravity = true;
-          Dust dust1 = Main.dust[index4];
-          dust1.velocity = Vector2.op_Multiply(dust1.velocity, 7f);
-          int index5 = Dust.NewDust(vector2, num1, num2, 6, 0.0f, 0.0f, 100, new Color(), 1.5f);
-          Dust dust2 = Main.dust[index5];
-          dust2.velocity = Vector2.op_Multiply(dust2.velocity, 3f);
-        }
-        float num3 = 0.5f;
-        if (!Main.dedServ)
-        {
-          for (int index6 = 0; index6 < 4; ++index6)
-          {
-            int index7 = Gore.NewGore(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-            Gore gore1 = Main.gore[index7];
-            gore1.velocity = Vector2.op_Multiply(gore1.velocity, num3);
-            Gore gore2 = Main.gore[index7];
-            gore2.velocity = Vector2.op_Addition(gore2.velocity, Utils.RotatedBy(new Vector2(1f, 1f), 1.5707963705062866 * (double) index6, new Vector2()));
-          }
-        }
-      }
-      if (this.NPC.life > 0)
-        return;
-      ScreenShakeSystem.StartShake(15f, 6.28318548f, new Vector2?(), 0.25f);
-      DefaultInterpolatedStringHandler interpolatedStringHandler;
-      for (int index = 1; index <= 4; ++index)
-      {
-        Vector2 vector2_1 = Vector2.op_Addition(((Entity) this.NPC).position, new Vector2(Utils.NextFloat(Main.rand, (float) ((Entity) this.NPC).width), Utils.NextFloat(Main.rand, (float) ((Entity) this.NPC).height)));
-        float num4 = ((Vector2) ref ((Entity) this.NPC).velocity).Length();
-        float num5 = Utils.NextFloat(Main.rand, num4 * 1.25f, num4 * 1.6f);
-        if (!Main.dedServ)
-        {
-          IEntitySource sourceFromThis = ((Entity) this.NPC).GetSource_FromThis((string) null);
-          Vector2 vector2_2 = vector2_1;
-          Vector2 vector2_3 = Vector2.op_Multiply(Vector2.op_UnaryNegation(Utils.RotatedByRandom(Vector2.UnitY, 1.5707963705062866)), num5);
-          string name = ((ModType) this).Mod.Name;
-          interpolatedStringHandler = new DefaultInterpolatedStringHandler(9, 1);
-          interpolatedStringHandler.AppendLiteral("BaronGore");
-          interpolatedStringHandler.AppendFormatted<int>(index);
-          string stringAndClear = interpolatedStringHandler.ToStringAndClear();
-          int type = ModContent.Find<ModGore>(name, stringAndClear).Type;
-          double scale = (double) this.NPC.scale;
-          Gore.NewGore(sourceFromThis, vector2_2, vector2_3, type, (float) scale);
-        }
-      }
-      for (int index = 0; index < 20; ++index)
-      {
-        Vector2 vector2_4 = Utils.NextVector2FromRectangle(Main.rand, ((Entity) this.NPC).Hitbox);
-        Vector2 vector2_5 = Vector2.op_Multiply(Utils.NextVector2CircularEdge(Main.rand, 1f, 1f), Utils.NextFloat(Main.rand, 16f, 24f));
-        int num = Main.rand.Next(6) + 1;
-        if (!Main.dedServ)
-        {
-          IEntitySource sourceFromThis = ((Entity) this.NPC).GetSource_FromThis((string) null);
-          Vector2 vector2_6 = vector2_4;
-          Vector2 vector2_7 = vector2_5;
-          string name = ((ModType) this).Mod.Name;
-          interpolatedStringHandler = new DefaultInterpolatedStringHandler(14, 1);
-          interpolatedStringHandler.AppendLiteral("BaronScrapGore");
-          interpolatedStringHandler.AppendFormatted<int>(num);
-          string stringAndClear = interpolatedStringHandler.ToStringAndClear();
-          int type = ModContent.Find<ModGore>(name, stringAndClear).Type;
-          double scale = (double) this.NPC.scale;
-          Gore.NewGore(sourceFromThis, vector2_6, vector2_7, type, (float) scale);
-        }
-      }
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      NPC.NewNPC(((Entity) this.NPC).GetSource_FromAI((string) null), (int) ((Entity) this.NPC).Center.X, (int) ((Entity) this.NPC).Center.Y, 55, 0, 0.0f, 0.0f, 0.0f, 0.0f, (int) byte.MaxValue);
-    }
 
-    public virtual void ModifyNPCLoot(NPCLoot npcLoot)
-    {
-      ((NPCLoot) ref npcLoot).Add(ItemDropRule.BossBag(ModContent.ItemType<BanishedBaronBag>()));
-      ((NPCLoot) ref npcLoot).Add(ItemDropRule.Common(ModContent.ItemType<BaronTrophy>(), 10, 1, 1));
-      ((NPCLoot) ref npcLoot).Add(ItemDropRule.MasterModeCommonDrop(ModContent.ItemType<BaronRelic>()));
-      LeadingConditionRule leadingConditionRule = new LeadingConditionRule((IItemDropRuleCondition) new Conditions.NotExpert());
-      Chains.OnSuccess((IItemDropRule) leadingConditionRule, ItemDropRule.OneFromOptions(1, new int[4]
-      {
-        ModContent.ItemType<TheBaronsTusk>(),
-        ModContent.ItemType<RoseTintedVisor>(),
-        ModContent.ItemType<NavalRustrifle>(),
-        ModContent.ItemType<DecrepitAirstrikeRemote>()
-      }), false);
-      Chains.OnSuccess((IItemDropRule) leadingConditionRule, ItemDropRule.Common(5003, 1, 1, 5), false);
-      Chains.OnSuccess((IItemDropRule) leadingConditionRule, ItemDropRule.OneFromOptions(3, new int[3]
-      {
-        3096,
-        3037,
-        3120
-      }), false);
-      Chains.OnSuccess((IItemDropRule) leadingConditionRule, ItemDropRule.Common(5139, 4, 1, 1), false);
-      Chains.OnSuccess((IItemDropRule) leadingConditionRule, ItemDropRule.Common(2354, 3, 2, 5), false);
-      Chains.OnSuccess((IItemDropRule) leadingConditionRule, ItemDropRule.Common(2355, 2, 2, 5), false);
-      Chains.OnSuccess((IItemDropRule) leadingConditionRule, ItemDropRule.Common(2356, 5, 2, 5), false);
-      Chains.OnSuccess((IItemDropRule) leadingConditionRule, ItemDropRule.Common(3183, 50, 1, 1), false);
-      Chains.OnSuccess((IItemDropRule) leadingConditionRule, ItemDropRule.Common(2360, 50, 1, 1), false);
-      Chains.OnSuccess((IItemDropRule) leadingConditionRule, ItemDropRule.Common(2294, 150, 1, 1), false);
-      ((NPCLoot) ref npcLoot).Add((IItemDropRule) leadingConditionRule);
-    }
+        public static List<int> P1Attacks =
+        //these are randomly chosen attacks in p1
+        [
+            (int)StateEnum.P1BigNuke,
+            (int)StateEnum.P1RocketStorm,
+            (int)StateEnum.P1SurfaceMines,
+            (int)StateEnum.P1FadeDash,
+            (int)StateEnum.P1SineSwim,
+            (int)StateEnum.P1Whirlpool
+        ];
+        public static List<int> P2Attacks =
+        //these are randomly chosen attacks in p2
+        [
+            (int)StateEnum.P2PredictiveDash,
+            (int)StateEnum.P2CarpetBomb,
+            (int)StateEnum.P2RocketStorm,
+            (int)StateEnum.P2SpinDash,
+            (int)StateEnum.P2MineFlurry,
+            (int)StateEnum.P2Whirlpool,
+            (int)StateEnum.P2LaserSweep
+        ];
 
-    public virtual bool PreAI() => base.PreAI();
+        public bool Attacking = true;
+        public bool HitPlayer = true;
+        public int Trail = 0;
 
-    public virtual void AI()
-    {
-      if ((double) this.State == 16.0)
-        this.NPC.aiStyle = -1;
-      else if (Main.getGoodWorld)
-      {
-        if (this.NPC.aiStyle != -1)
-          return;
-        if ((double) this.NPC.life < (double) this.NPC.lifeMax * 0.15)
+        bool DidWhirlpool = false;
+
+        public int Frame = 0;
+        public int Phase = 1;
+        public int Anim = 0;
+
+        public int ArenaProjID = -1;
+
+        public const int MaxWhirlpools = 40;
+
+        public List<int> availablestates = [];
+
+        public Vector2 LockVector1 = Vector2.Zero;
+
+        public int LastState;
+        public Vector2 LockVector2 = Vector2.Zero;
+
+        //NPC.ai[] overrides
+        public ref float Timer => ref NPC.ai[0];
+        public ref float State => ref NPC.ai[1];
+        public ref float AI2 => ref NPC.ai[2];
+        public ref float AI3 => ref NPC.ai[3];
+        public ref float AI4 => ref NPC.localAI[0];
+        #endregion
+        #region Standard
+        public override void SetStaticDefaults()
         {
-          int num = this.NPC.lifeMax / 2 - this.NPC.life;
-          this.NPC.HealEffect(num, true);
-          this.NPC.life += num;
-          this.NPC.aiStyle = 69;
-          ((Entity) this.NPC).velocity = Vector2.Zero;
-          this.NPC.ai[0] = 0.0f;
-          this.NPC.ai[1] = 0.0f;
-          this.NPC.ai[2] = 0.0f;
-          this.NPC.ai[3] = 0.0f;
-          this.NPC.localAI[0] = 0.0f;
-          this.NPC.localAI[1] = 0.0f;
-          this.NPC.localAI[2] = 0.0f;
-          this.NPC.localAI[3] = 0.0f;
-          this.NPC.netUpdate = true;
-          Projectile projectile = Main.projectile[this.ArenaProjID];
-          if ((projectile == null || !((Entity) projectile).active ? 0 : (projectile.type == ModContent.ProjectileType<BaronArenaWhirlpool>() ? 1 : 0)) != 0)
-          {
-            projectile.ai[2] = 0.0f;
-            projectile.netUpdate = true;
-          }
-        }
-      }
-      this.NPC.noTileCollide = this.Phase == 2 || WorldSavingSystem.MasochistModeReal || Collision.SolidCollision(Vector2.op_Addition(((Entity) this.NPC).position, Vector2.op_Division(((Entity) this.NPC).Size, 10f)), (int) ((double) ((Entity) this.NPC).width * 0.89999997615814209), (int) ((double) ((Entity) this.NPC).height * 0.89999997615814209)) || !Collision.CanHitLine(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height, ((Entity) this.player).position, ((Entity) this.player).width, ((Entity) this.player).height);
-      if (this.Phase == 1 && (double) ((Entity) this.NPC).Center.Y < (double) ((Entity) this.player).Center.Y && !Collision.WetCollision(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height) && !Collision.SolidCollision(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height))
-        ((Entity) this.NPC).position.Y += 4f;
-      this.NPC.defense = this.NPC.defDefense;
-      ((Entity) this.NPC).direction = this.NPC.spriteDirection = (double) Utils.ToRotationVector2(this.NPC.rotation).X > 0.0 ? 1 : -1;
-      if ((this.HitPlayer || (double) this.State == 1.0) && ((double) this.Timer >= 90.0 || (double) this.State != 5.0))
-        Lighting.AddLight(((Entity) this.NPC).Center, 15);
-      if (!this.AliveCheck(this.player))
-        return;
-      if ((double) this.State == 0.0 && (double) this.Timer == 0.0)
-      {
-        ((Entity) this.NPC).position = Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.player).Center, new Vector2((float) (Math.Sign(((Entity) this.player).Center.X - (float) Main.spawnTileX) * 1400), -100f)), Vector2.op_Division(((Entity) this.NPC).Size, 2f));
-        this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) this.player).Center));
-        ((Entity) this.NPC).velocity = Vector2.Zero;
-      }
-      switch (this.Phase)
-      {
-        case 1:
-          if (((double) this.State != 0.0 || (double) this.Timer >= 60.0) && (double) ((Entity) this.NPC).Distance(((Entity) Main.LocalPlayer).Center) < 2000.0)
-            Main.LocalPlayer.AddBuff(ModContent.BuffType<BaronsBurdenBuff>(), 1, true, false);
-          if (this.Wet() && (double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() > 3.0 && Utils.NextBool(Main.rand, 2) && Main.netMode != 2)
-          {
-            Vector2 worldPosition = Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.NPC).Center, Vector2.op_Division(Vector2.op_Multiply(Vector2.Normalize(((Entity) this.NPC).velocity), 120f), 2f)), Utils.NextVector2Circular(Main.rand, 10f, 10f));
-            new Bubble(worldPosition, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_UnaryNegation(Utils.RotatedByRandom(((Entity) this.NPC).velocity, 0.37699112296104431)), Utils.NextFloat(Main.rand, 0.6f, 1f)), 2f), 1f, 30, rotation: Utils.NextFloat(Main.rand, 6.28318548f)).Spawn();
-            Dust.NewDust(worldPosition, 2, 2, 33, -((Entity) this.NPC).velocity.X, -((Entity) this.NPC).velocity.Y, 0, new Color(), 1f);
-            break;
-          }
-          break;
-        case 2:
-          int num1 = ModContent.ProjectileType<BaronArenaWhirlpool>();
-          if (this.ArenaProjID == -1 && FargoSoulsUtil.HostCheck)
-            this.ArenaProjID = Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.player).Center, Vector2.Zero, num1, FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 3f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, 0.0f, 0.0f);
-          this.NPC.netUpdate = true;
-          break;
-      }
-      if (this.Attacking)
-      {
-        float num2 = this.State;
-        if ((double) num2 != 0.0)
-        {
-          if ((double) num2 != 1.0)
-          {
-            if ((double) num2 != 15.0)
+            Main.npcFrameCount[NPC.type] = 19;
+            NPCID.Sets.TrailCacheLength[NPC.type] = 10;
+            NPCID.Sets.TrailingMode[NPC.type] = 3;
+            NPCID.Sets.MPAllowedEnemies[Type] = true;
+
+            NPCID.Sets.BossBestiaryPriority.Add(NPC.type);
+
+            NPC.AddDebuffImmunities(
+            [
+                BuffID.Confused,
+                BuffID.Chilled,
+                BuffID.Suffocation,
+                ModContent.BuffType<LethargicBuff>(),
+                ModContent.BuffType<ClippedWingsBuff>()
+            ]);
+            NPCID.Sets.NPCBestiaryDrawOffset.Add(NPC.type, new NPCID.Sets.NPCBestiaryDrawModifiers()
             {
-              if ((double) num2 != 2.0)
-              {
-                if ((double) num2 != 3.0)
-                {
-                  if ((double) num2 != 4.0)
-                  {
-                    if ((double) num2 != 5.0)
+                Rotation = MathHelper.Pi,
+                Position = Vector2.UnitX * 60
+            });
+        }
+        public override void SetBestiary(BestiaryDatabase database, BestiaryEntry bestiaryEntry)
+        {
+            bestiaryEntry.Info.AddRange([
+                BestiaryDatabaseNPCsPopulator.CommonTags.SpawnConditions.Biomes.Ocean,
+                new FlavorTextBestiaryInfoElement($"Mods.FargowiltasSouls.Bestiary.{Name}")
+            ]);
+        }
+        public override void SetDefaults()
+        {
+            NPC.aiStyle = -1;
+            NPC.lifeMax = 32000;
+            NPC.defense = 15;
+            NPC.damage = 69;
+            NPC.knockBackResist = 0f;
+            NPC.width = 132; //194
+            NPC.height = 132;
+            NPC.boss = true;
+            NPC.lavaImmune = true;
+            NPC.noGravity = true;
+            NPC.noTileCollide = true;
+            NPC.HitSound = new SoundStyle("FargowiltasSouls/Assets/Sounds/Challengers/Baron/BaronHit") with { Variants = [1, 2, 3], PitchRange = (-0.7f, -0.5f), Volume = 0.5f };
+            NPC.DeathSound = new SoundStyle("FargowiltasSouls/Assets/Sounds/Challengers/Baron/BaronDeath");
+            NPC.alpha = 255;
+
+            Music = ModLoader.TryGetMod("FargowiltasMusic", out Mod musicMod) ? MusicLoader.GetMusicSlot(musicMod, "Assets/Music/Baron") : MusicID.DukeFishron;
+            SceneEffectPriority = SceneEffectPriority.BossLow;
+
+            NPC.value = Item.buyPrice(0, 2);
+
+        }
+        public override Color? GetAlpha(Color drawColor)
+        {
+            if (NPC.IsABestiaryIconDummy)
+            {
+                // This is required because we have NPC.alpha = 255, in the bestiary it would look transparent
+                return NPC.GetBestiaryEntryColor();
+            }
+            return base.GetAlpha(drawColor);
+        }
+        public override void ApplyDifficultyAndPlayerScaling(int numPlayers, float balance, float bossAdjustment)
+        {
+            NPC.lifeMax = (int)(NPC.lifeMax * balance);
+        }
+
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(NPC.localAI[0]);
+            writer.Write7BitEncodedInt(ArenaProjID);
+            writer.Write7BitEncodedInt(Phase);
+            writer.WriteVector2(LockVector1);
+            writer.WriteVector2(LockVector2);
+            writer.Write7BitEncodedInt(LastState);
+            writer.Write(DidWhirlpool);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            NPC.localAI[0] = reader.ReadSingle();
+            ArenaProjID = reader.Read7BitEncodedInt();
+            Phase = reader.Read7BitEncodedInt();
+            LockVector1 = reader.ReadVector2();
+            LockVector2 = reader.ReadVector2();
+            LastState = reader.Read7BitEncodedInt();
+            DidWhirlpool = reader.ReadBoolean();
+        }
+        #endregion
+        #region Overrides
+        #region Hitbox
+        public override bool CanHitPlayer(Player target, ref int CooldownSlot)
+        {
+            if (HitPlayer)
+            {
+                Vector2 boxPos = target.position;
+                Vector2 boxDim = target.Size;
+                return Collides(boxPos, boxDim);
+            }
+            return false;
+        }
+        public override bool CanHitNPC(NPC target)
+        {
+            if (HitPlayer)
+            {
+                Vector2 boxPos = target.position;
+                Vector2 boxDim = target.Size;
+                return Collides(boxPos, boxDim);
+            }
+            return false;
+        }
+        public bool Collides(Vector2 boxPos, Vector2 boxDim)
+        {
+            //circular hitbox-inator
+            Vector2 ellipseDim = NPC.Size;
+            Vector2 ellipseCenter = NPC.position + 0.5f * new Vector2(NPC.width, NPC.height);
+
+            float x = 0f; //ellipse center
+            float y = 0f; //ellipse center
+            if (boxPos.X > ellipseCenter.X)
+            {
+                x = boxPos.X - ellipseCenter.X; //left corner
+            }
+            else if (boxPos.X + boxDim.X < ellipseCenter.X)
+            {
+                x = boxPos.X + boxDim.X - ellipseCenter.X; //right corner
+            }
+            if (boxPos.Y > ellipseCenter.Y)
+            {
+                y = boxPos.Y - ellipseCenter.Y; //top corner
+            }
+            else if (boxPos.Y + boxDim.Y < ellipseCenter.Y)
+            {
+                y = boxPos.Y + boxDim.Y - ellipseCenter.Y; //bottom corner
+            }
+            float a = ellipseDim.X / 2f;
+            float b = ellipseDim.Y / 2f;
+
+            return x * x / (a * a) + y * y / (b * b) < 1; //point collision detection
+        }
+        #endregion
+        public override bool? DrawHealthBar(byte hbPosition, ref float scale, ref Vector2 position) => !(Timer < 90 + 50 && State == (int)StateEnum.P1FadeDash);
+
+        public override void BossHeadSlot(ref int index)
+        {
+            if ((Timer < 90 + 50 && State == (int)StateEnum.P1FadeDash))
+            {
+                index = -1;
+            }
+            else
+            {
+                index = NPCID.Sets.BossHeadTextures[Type];
+            }
+        }
+        public override bool? CanFallThroughPlatforms() => true;
+        public override void OnHitPlayer(Player target, Player.HurtInfo hurtInfo)
+        {
+            target.AddBuff(BuffID.Bleeding, 60 * 10);
+            if (!WorldSavingSystem.EternityMode)
+            {
+                target.AddBuff(BuffID.Rabies, 60 * 5);
+                return;
+            }
+            target.AddBuff(BuffID.Rabies, 60 * 10);
+            target.FargoSouls().MaxLifeReduction += 50;
+            target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 60 * 20);
+        }
+        public override void ModifyIncomingHit(ref NPC.HitModifiers modifiers)
+        {
+            if (State == (int)StateEnum.Phase2Transition)
+            {
+                modifiers.FinalDamage /= 4;
+            }
+        }
+        public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
+        {
+
+            Texture2D bodytexture = Terraria.GameContent.TextureAssets.Npc[NPC.type].Value;
+            Vector2 drawPos = NPC.Center - screenPos;
+            float rot = NPC.rotation + (NPC.direction == 1 ? 0 : MathHelper.Pi);
+            if (NPC.aiStyle != -1 && NPC.ai[0] != 7)
+            {
+                Vector2 dir = NPC.DirectionTo(player.Center);
+                NPC.direction = Math.Sign(dir.X);
+                rot = dir.ToRotation() + (NPC.direction == 1 ? 0 : MathHelper.Pi);
+            }
+
+            int currentFrame = NPC.frame.Y / (bodytexture.Height / Main.npcFrameCount[NPC.type]);
+            SpriteEffects flip = NPC.direction == -1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+
+            for (int i = 0; i < Math.Min(Trail, NPCID.Sets.TrailCacheLength[NPC.type]); i++) //math.min to safeguard against uncached trail
+            {
+                float oldrot = NPC.oldRot[i] + (NPC.direction == 1 ? 0 : MathHelper.Pi);
+                Vector2 value4 = NPC.oldPos[i];
+                int oldFrame = Frame;
+                Rectangle oldRectangle = new(0, oldFrame * bodytexture.Height / Main.npcFrameCount[NPC.type], bodytexture.Width, bodytexture.Height / Main.npcFrameCount[NPC.type]);
+                DrawData oldGlow = new(bodytexture, value4 + NPC.Size / 2f - screenPos + new Vector2(0, NPC.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(oldRectangle), NPC.GetAlpha(drawColor) * (0.5f / i), oldrot, new Vector2(bodytexture.Width / 2, bodytexture.Height / 2 / Main.npcFrameCount[NPC.type]), NPC.scale, flip, 0);
+                GameShaders.Misc["LCWingShader"].UseColor(Color.Blue).UseSecondaryColor(Color.Black);
+                GameShaders.Misc["LCWingShader"].Apply(oldGlow);
+                oldGlow.Draw(spriteBatch);
+            }
+
+            spriteBatch.Draw(origin: new Vector2(bodytexture.Width / 2, bodytexture.Height / 2 / Main.npcFrameCount[NPC.type]), texture: bodytexture, position: drawPos, sourceRectangle: NPC.frame, color: NPC.GetAlpha(drawColor), rotation: rot, scale: NPC.scale, effects: flip, layerDepth: 0f);
+            return false;
+        }
+
+        float AnimationSpeed = 1f;
+        public override void FindFrame(int frameHeight)
+        {
+            //FRAMES OF ANIMATIONS:
+            //P1 Normal fly loop: 0-5 (Anim 0)
+            //P1 Open mouth: 6-7 (Anim 1)
+            //Unused: 8-10
+            //P2 Normal fly loop: 11-16 (Anim 0)
+            //P2 Open mouth: 17-18 (Anim 1)
+
+            double fpf = 60 / (10 * AnimationSpeed); //  60/fps
+            int StartFrame = 0;
+            int EndFrame = 5;
+            switch (Phase)
+            {
+                case 1:
+                    switch (Anim)
                     {
-                      if ((double) num2 != 6.0)
-                      {
-                        if ((double) num2 != 7.0)
+                        case 0:
+                            //no change required, default values
+                            break;
+                        case 1:
+                            StartFrame = 6;
+                            EndFrame = 7;
+                            break;
+                    }
+                    break;
+                case 2:
+                    switch (Anim)
+                    {
+                        case 0:
+                            StartFrame = 11;
+                            EndFrame = 16;
+                            break;
+                        case 1:
+                            StartFrame = 17;
+                            EndFrame = 18;
+                            break;
+                    }
+                    break;
+            }
+            NPC.spriteDirection = NPC.direction;
+            if (++NPC.frameCounter >= fpf)
+            {
+                if (++Frame > EndFrame || Frame < StartFrame)
+                {
+                    Frame = StartFrame;
+                }
+                NPC.frameCounter = 0;
+            }
+            NPC.frame.Y = frameHeight * Frame;
+
+            if (Anim == 3) //phase transition
+            {
+                NPC.frame.Y = frameHeight * 9;
+            }
+        }
+        public override void OnKill()
+        {
+            NPC.SetEventFlagCleared(ref WorldSavingSystem.DownedBoss[(int)WorldSavingSystem.Downed.BanishedBaron], -1);
+        }
+        public override void BossLoot(ref string name, ref int potionType)
+        {
+            potionType = ItemID.GreaterHealingPotion;
+        }
+        public override void HitEffect(NPC.HitInfo hit)
+        {
+            if (NPC.life - hit.Damage < 0 && !NPC.dontTakeDamage)
+            {
+                hit.Null();
+                NPC.life = 10;
+                NPC.dontTakeDamage = true;
+                State = (int)StateEnum.DeathAnimation;
+                Timer = 0;
+                NPC.velocity = Vector2.Zero;
+
+                SoundEngine.PlaySound(SoundID.Item62 with { Pitch = 0.0f, Volume = 2f }, NPC.Center);
+
+                Vector2 expos = NPC.position - NPC.Size / 2;
+                int exwidth = NPC.width * 2;
+                int exheight = NPC.height * 2;
+                for (int i = 0; i < 30; i++)
+                {
+                    int dust = Dust.NewDust(expos, exwidth,
+                        exheight, DustID.Smoke, 0f, 0f, 100, default, 3f);
+                    Main.dust[dust].velocity *= 1.4f;
+                }
+
+                for (int i = 0; i < 20; i++)
+                {
+                    int dust = Dust.NewDust(expos, exwidth,
+                        exheight, DustID.Torch, 0f, 0f, 100, default, 3.5f);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].velocity *= 7f;
+                    dust = Dust.NewDust(expos, exwidth,
+                        exheight, DustID.Torch, 0f, 0f, 100, default, 1.5f);
+                    Main.dust[dust].velocity *= 3f;
+                }
+
+                float scaleFactor9 = 0.5f;
+                if (!Main.dedServ)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        int gore = Gore.NewGore(NPC.GetSource_FromThis(), NPC.Center,
+                            default,
+                            Main.rand.Next(61, 64));
+
+                        Main.gore[gore].velocity *= scaleFactor9;
+                        Main.gore[gore].velocity += new Vector2(1f, 1f).RotatedBy(MathHelper.TwoPi / 4 * j);
+                    }
+                }
+
+            }
+            if (NPC.life <= 0)
+            {
+                ScreenShakeSystem.StartShake(15, shakeStrengthDissipationIncrement: 15f / 60);
+                for (int i = 1; i <= 4; i++)
+                {
+                    Vector2 pos = NPC.position + new Vector2(Main.rand.NextFloat(NPC.width), Main.rand.NextFloat(NPC.height));
+                    float vel = NPC.velocity.Length();
+                    float spd = Main.rand.NextFloat(vel * 1.25f, vel * 1.6f);
+                    if (!Main.dedServ)
+                        Gore.NewGore(NPC.GetSource_FromThis(), pos, -Vector2.UnitY.RotatedByRandom(MathHelper.PiOver2) * spd, ModContent.Find<ModGore>(Mod.Name, $"BaronGore{i}").Type, NPC.scale);
+                }
+
+                for (int j = 0; j < 20; j++)
+                {
+                    Vector2 pos = Main.rand.NextVector2FromRectangle(NPC.Hitbox);
+                    Vector2 vel = Main.rand.NextVector2CircularEdge(1, 1) * Main.rand.NextFloat(16, 24);
+                    int type = Main.rand.Next(6) + 1;
+                    if (!Main.dedServ)
+                        Gore.NewGore(NPC.GetSource_FromThis(), pos, vel, ModContent.Find<ModGore>(Mod.Name, $"BaronScrapGore{type}").Type, NPC.scale);
+                }
+
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    NPC.NewNPC(NPC.GetSource_FromAI(), (int)NPC.Center.X, (int)NPC.Center.Y, NPCID.Goldfish);
+                }
+            }
+        }
+        public override void ModifyNPCLoot(NPCLoot npcLoot)
+        {
+            npcLoot.Add(ItemDropRule.BossBag(ModContent.ItemType<BanishedBaronBag>()));
+            npcLoot.Add(ItemDropRule.Common(ModContent.ItemType<BaronTrophy>(), 10));
+
+            npcLoot.Add(ItemDropRule.MasterModeCommonDrop(ModContent.ItemType<BaronRelic>()));
+
+            LeadingConditionRule rule = new(new Conditions.NotExpert());
+            rule.OnSuccess(ItemDropRule.OneFromOptions(1, ModContent.ItemType<TheBaronsTusk>(), ModContent.ItemType<RoseTintedVisor>(), ModContent.ItemType<NavalRustrifle>(), ModContent.ItemType<DecrepitAirstrikeRemote>()));
+            rule.OnSuccess(ItemDropRule.Common(5003, 1, 1, 5)); //seaside crate
+            rule.OnSuccess(ItemDropRule.OneFromOptions(3, ItemID.Sextant, ItemID.WeatherRadio, ItemID.FishermansGuide));
+            rule.OnSuccess(ItemDropRule.Common(ItemID.FishingBobber, 4, 1, 1));
+            rule.OnSuccess(ItemDropRule.Common(ItemID.FishingPotion, 3, 2, 5));
+            rule.OnSuccess(ItemDropRule.Common(ItemID.SonarPotion, 2, 2, 5));
+            rule.OnSuccess(ItemDropRule.Common(ItemID.CratePotion, 5, 2, 5));
+            rule.OnSuccess(ItemDropRule.Common(ItemID.GoldenBugNet, 50, 1, 1));
+            rule.OnSuccess(ItemDropRule.Common(ItemID.FishHook, 50, 1, 1));
+            rule.OnSuccess(ItemDropRule.Common(ItemID.GoldenFishingRod, 150, 1, 1));
+            npcLoot.Add(rule);
+        }
+
+        #endregion
+        #region AI
+        public override bool PreAI()
+        {
+            /* baron ex (fake)
+            for (int i = 0; i < 3; i++)
+            {
+                AI();
+                NPC.position += NPC.velocity;
+            }
+            */
+            return base.PreAI();
+        }
+        public override void AI()
+        {
+            if (State == (int)StateEnum.DeathAnimation)
+            {
+                //un-duke your fishron
+                NPC.aiStyle = -1;
+            }
+            else if (Main.getGoodWorld)
+            {
+                HitPlayer = true;
+                if (NPC.aiStyle == -1)
+                {
+                    //ftw desperation: literally become fishron
+                    if (NPC.life < NPC.lifeMax * .15)
+                    {
+                        int heal = NPC.lifeMax / 2 - NPC.life;
+                        NPC.HealEffect(heal);
+                        NPC.life += heal;
+                        NPC.aiStyle = NPCAIStyleID.DukeFishron;
+                        NPC.velocity = Vector2.Zero;
+                        NPC.ai[0] = 0;
+                        NPC.ai[1] = 0;
+                        NPC.ai[2] = 0;
+                        NPC.ai[3] = 0;
+                        NPC.localAI[0] = 0;
+                        NPC.localAI[1] = 0;
+                        NPC.localAI[2] = 0;
+                        NPC.localAI[3] = 0;
+                        NPC.netUpdate = true;
+
+                        Projectile arena = Main.projectile[ArenaProjID];
+                        bool arenaReal = arena != null && arena.active && arena.type == ModContent.ProjectileType<BaronArenaWhirlpool>();
+                        if (arenaReal)
                         {
-                          if ((double) num2 != 8.0)
-                          {
-                            if ((double) num2 != 9.0)
-                            {
-                              if ((double) num2 != 10.0)
-                              {
-                                if ((double) num2 != 11.0)
-                                {
-                                  if ((double) num2 != 12.0)
-                                  {
-                                    if ((double) num2 != 13.0)
-                                    {
-                                      if ((double) num2 != 14.0)
-                                      {
-                                        if ((double) num2 == 16.0)
-                                        {
-                                          this.DeathAnimation();
-                                          goto label_65;
-                                        }
-                                      }
-                                      else
-                                      {
-                                        this.P2LaserSweep();
-                                        goto label_65;
-                                      }
-                                    }
-                                    else if (WorldSavingSystem.EternityMode)
-                                    {
-                                      this.P2Whirlpool();
-                                      goto label_65;
-                                    }
-                                  }
-                                  else
-                                  {
-                                    this.P2MineFlurry();
-                                    goto label_65;
-                                  }
-                                }
-                                else if (Main.expertMode)
-                                {
-                                  this.P2SpinDash();
-                                  goto label_65;
-                                }
-                              }
-                              else if (Main.expertMode)
-                              {
-                                this.P2RocketStorm();
-                                goto label_65;
-                              }
-                            }
-                            else
-                            {
-                              this.P2CarpetBomb();
-                              goto label_65;
-                            }
-                          }
-                          else
-                          {
-                            this.P2PredictiveDash();
-                            goto label_65;
-                          }
+                            arena.ai[2] = 0; //deactivate projectile shooting AI of arena
+                            arena.netUpdate = true;
                         }
-                        else if (WorldSavingSystem.EternityMode)
+                    }
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            //Defaults
+            NPC.noTileCollide =
+                Phase == 2 ||
+                WorldSavingSystem.MasochistModeReal ||
+                Collision.SolidCollision(NPC.position + NPC.Size / 10, (int)(NPC.width * 0.9f), (int)(NPC.height * 0.9f)) ||
+                !Collision.CanHitLine(NPC.position, NPC.width, NPC.height, player.position, player.width, player.height);
+            //no tile collide in p2, tile collide in p1 except if in tiles, or if obstructed
+
+            if (Phase == 1 && NPC.Center.Y < player.Center.Y && !(Collision.WetCollision(NPC.position, NPC.width, NPC.height) || Collision.SolidCollision(NPC.position, NPC.width, NPC.height)))
+            {
+                NPC.position.Y += 4f;
+            }
+            NPC.defense = NPC.defDefense;
+            NPC.direction = NPC.spriteDirection = NPC.rotation.ToRotationVector2().X > 0 ? 1 : -1;
+
+            if ((HitPlayer || State == (float)StateEnum.Phase2Transition) && !(Timer < 90 && State == (int)StateEnum.P1FadeDash))
+            {
+                Lighting.AddLight(NPC.Center, TorchID.Pink);
+            }
+
+            if (!AliveCheck(player))
+                return;
+
+            if (State == 0 && Timer == 0) //opening
+            {
+                NPC.position = player.Center + new Vector2(Math.Sign(player.Center.X - Main.spawnTileX) * 1400, -100) - NPC.Size / 2;
+                NPC.rotation = NPC.SafeDirectionTo(player.Center).ToRotation();
+                NPC.velocity = Vector2.Zero;
+            }
+            //Phase 1/2 specific passive attributes
+            switch (Phase)
+            {
+                case 1:
+                    if (State != (float)StateEnum.Opening || Timer >= 60) //also do it during opening but only after 1 sec
+                    {
+                        //inflict all nearby permanently with Please Go Underwater debuff that PRESSES them down
+                        if (NPC.Distance(Main.LocalPlayer.Center) < 2000)
                         {
-                          this.P1Whirlpool();
-                          goto label_65;
+                            Main.LocalPlayer.AddBuff(ModContent.BuffType<BaronsBurdenBuff>(), 1);
                         }
-                      }
-                      else
-                      {
-                        this.P1SineSwim();
-                        goto label_65;
-                      }
+                    }
+                    if (Wet() && NPC.velocity.Length() > 3)
+                    {
+                        //stream of water dust and bubbles behind
+                        if (Main.rand.NextBool(2) && Main.netMode != NetmodeID.Server)
+                        {
+                            Vector2 backPos = NPC.Center - Vector2.Normalize(NPC.velocity) * 120 / 2f + Main.rand.NextVector2Circular(10, 10);
+                            Particle p = new Bubble(backPos, -NPC.velocity.RotatedByRandom(MathF.PI * 0.12f) * Main.rand.NextFloat(0.6f, 1f) / 2f, 1, 30, rotation: Main.rand.NextFloat(MathF.Tau));
+                            p.Spawn();
+                            Dust.NewDust(backPos, 2, 2, DustID.Water, -NPC.velocity.X, -NPC.velocity.Y, 0, default, 1f);
+                        }
+                    }
+                    break;
+                case 2:
+                    int type = ModContent.ProjectileType<BaronArenaWhirlpool>();
+                    if (ArenaProjID == -1 && FargoSoulsUtil.HostCheck)
+                    {
+                        ArenaProjID = Projectile.NewProjectile(NPC.GetSource_FromThis(), player.Center, Vector2.Zero, type, FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 3f, Main.myPlayer, NPC.whoAmI, 0);
+
+                    }
+                    NPC.netUpdate = true;
+                    break;
+            }
+            //Normal looping attack AI
+
+            if (Attacking) //Phases and random attack choosing
+            {
+                switch (State) //Attack Choices
+                {
+                    case (float)StateEnum.Opening:
+                        Opening();
+                        break;
+                    case (float)StateEnum.Phase2Transition:
+                        Phase2Transition();
+                        break;
+                    case (float)StateEnum.Swim:
+                        Swim();
+                        break;
+                    case (float)StateEnum.P1BigNuke:
+                        P1BigNuke();
+                        break;
+                    case (float)StateEnum.P1RocketStorm:
+                        if (!Main.expertMode)
+                        {
+                            goto default;
+                        }
+                        else
+                        {
+                            P1RocketStorm();
+                        }
+                        break;
+                    case (float)StateEnum.P1SurfaceMines:
+                        P1SurfaceMines();
+                        break;
+                    case (float)StateEnum.P1FadeDash:
+                        P1FadeDash();
+                        break;
+                    case (float)StateEnum.P1SineSwim:
+                        P1SineSwim();
+                        break;
+                    case (float)StateEnum.P1Whirlpool:
+                        if (!WorldSavingSystem.EternityMode)
+                        {
+                            goto default;
+                        }
+                        else
+                        {
+                            P1Whirlpool();
+                        }
+                        break;
+                    case (float)StateEnum.P2PredictiveDash:
+                        P2PredictiveDash();
+                        break;
+                    case (float)StateEnum.P2CarpetBomb:
+                        P2CarpetBomb();
+                        break;
+                    case (float)StateEnum.P2RocketStorm:
+                        if (!Main.expertMode)
+                        {
+                            goto default;
+                        }
+                        else
+                        {
+                            P2RocketStorm();
+                        }
+                        break;
+                    case (float)StateEnum.P2SpinDash:
+                        if (!Main.expertMode)
+                        {
+                            goto default;
+                        }
+                        else
+                        {
+                            P2SpinDash();
+                        }
+                        break;
+                    case (float)StateEnum.P2MineFlurry:
+                        P2MineFlurry();
+                        break;
+                    case (float)StateEnum.P2Whirlpool:
+                        if (!WorldSavingSystem.EternityMode)
+                        {
+                            goto default;
+                        }
+                        else
+                        {
+                            P2Whirlpool();
+                        }
+                        break;
+                    case (float)StateEnum.P2LaserSweep:
+                        P2LaserSweep();
+                        break;
+                    case (float)StateEnum.DeathAnimation:
+                        DeathAnimation();
+                        break;
+                    default:
+                        StateReset();
+                        break;
+                }
+            }
+            Timer++;
+        }
+        bool Wet(Vector2? pos = null) //small helper
+        {
+            if (pos == null)
+            {
+                pos = NPC.position;
+            }
+            return Collision.WetCollision((Vector2)pos, NPC.width, NPC.height);
+        }
+        #endregion
+        #region States
+        void Opening()
+        {
+            HitPlayer = false;
+            Anim = 1;
+            //NPC.rotation = (float)(Math.Sin(MathHelper.ToRadians(Timer) * 16) * MathHelper.Pi/24);
+            if (LockVector1 == Vector2.Zero)
+            {
+                for (int i = 0; i < Main.maxProjectiles; i++)
+                {
+                    Projectile p = Main.projectile[i];
+                    if (p.TypeAlive<MechLureProjectile>())
+                    {
+                        LockVector1 = p.Center;
+                        break;
+                    }
+                }
+                if (LockVector1 == Vector2.Zero) //no lure found
+                {
+                    LockVector1 = player.Center;
+                }
+            }
+            if (NPC.alpha > 0)
+            {
+                NPC.alpha -= 2;
+            }
+            else
+            {
+                NPC.alpha = 0;
+            }
+            if (LockVector1 != Vector2.Zero)
+            {
+                RotateTowards(LockVector1, 1.5f);
+                //Movement(LockVector1, 50f, 10f);
+                NPC.velocity = Vector2.Lerp(NPC.velocity, (LockVector1 - NPC.Center) * (Timer / 90f) * 0.4f, 0.3f);
+            }
+
+            if (Timer == 60)
+            {
+                SoundEngine.PlaySound(SoundID.Item21, NPC.Center);
+                SoundEngine.PlaySound(SoundID.Item92, NPC.Center);
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, NPC.whoAmI, -24);
+                }
+                if (WorldSavingSystem.EternityMode && !WorldSavingSystem.DownedBoss[(int)WorldSavingSystem.Downed.BanishedBaron] && FargoSoulsUtil.HostCheck)
+                    Item.NewItem(NPC.GetSource_Loot(), Main.player[NPC.target].Hitbox, ModContent.ItemType<MechLure>());
+            }
+            if (Timer > 90)
+            {
+                HitPlayer = true;
+                Anim = 0;
+                StateReset();
+            }
+        }
+        void Phase2Transition()
+        {
+
+            const int transTime = 150;
+            //comedy rotation anim to look at falling propeller
+            if (Timer < 60)
+            {
+                RotateTowards(NPC.Center + LockVector1, 15);
+            }
+            else if (Timer < 135)
+            {
+                Vector2 dir = Vector2.Normalize(-LockVector1) * 2 + Vector2.UnitY * 1;
+                RotateTowards(NPC.Center + dir, 15);
+            }
+            else if (Timer < 150)
+            {
+                Vector2 up = NPC.Center + new Vector2(3 * Math.Sign(NPC.SafeDirectionTo(player.Center).X), -10);
+                RotateTowards(up, 15);
+            }
+
+
+            if (Timer == 1)
+            {
+                SoundEngine.PlaySound(FargosSoundRegistry.BaronHit, NPC.Center);
+
+                HitPlayer = false;
+                LockVector1 = Vector2.UnitX * Math.Sign(player.Center.X - NPC.Center.X); //register for rotation animation
+                Music = ModLoader.TryGetMod("FargowiltasMusic", out Mod musicMod) ? MusicLoader.GetMusicSlot(musicMod, "Assets/Music/Baron2") : MusicID.Boss2;
+            }
+            if (Timer == 45)
+            {
+                SoundEngine.PlaySound(SoundID.DD2_KoboldExplosion, NPC.Center);
+                Vector2 propellerPos = NPC.Center - NPC.rotation.ToRotationVector2() * (NPC.width * 0.25f);
+                if (!Main.dedServ)
+                {
+                    Gore g = Gore.NewGorePerfect(NPC.GetSource_FromThis(), propellerPos, -NPC.rotation.ToRotationVector2() * 4, ModContent.Find<ModGore>(Mod.Name, $"BaronGorePropeller").Type);
+                    g.light = 1f;
+                }
+
+                for (int i = 0; i < 5; i++)
+                {
+                    Particle p = new SparkParticle(propellerPos, -NPC.rotation.ToRotationVector2().RotatedByRandom(MathHelper.Pi / 8) * Main.rand.NextFloat(8, 12), Color.Orange, 1, 40);
+                    p.Spawn();
+                }
+            }
+            if (Timer > 45 && Timer < transTime)
+            {
+                Anim = 3;
+            }
+            else
+            {
+                Anim = 0;
+            }
+            if (Timer < transTime)
+            {
+                if (!Main.dedServ)
+                    FargoSoulsUtil.ScreenshakeRumble(6);
+                if (Main.LocalPlayer.wet)
+                {
+                    Main.LocalPlayer.velocity.Y -= 0.05f;
+                }
+            }
+            if (Timer == transTime)
+            {
+                NPC.velocity = NPC.rotation.ToRotationVector2() * 20;
+                SoundEngine.PlaySound(FargosSoundRegistry.BaronYell, NPC.Center);
+                Phase = 2;
+                FargoSoulsUtil.ClearHostileProjectiles(2, NPC.whoAmI);
+
+            }
+            if (Timer > transTime)
+            {
+                if (!Wet() || Timer > transTime + 60)
+                {
+                    NPC.velocity *= 0.95f;
+                    if (NPC.velocity.Length() < 0.1f)
+                    {
+                        DidWhirlpool = false; // reset this
+                        HitPlayer = true;
+                        availablestates.Clear();
+                        StateReset();
+
+                    }
+                }
+                if (Main.LocalPlayer.wet && Main.LocalPlayer.velocity.Y > -30)
+                {
+                    Main.LocalPlayer.velocity.Y -= 1.25f;
+                    Main.LocalPlayer.position.Y -= 6f;
+                }
+            }
+
+        }
+        void DeathAnimation()
+        {
+            const int AnimTime = 200;
+
+            Main.musicFade[Main.curMusic] = (float)Utils.Lerp(1f, 0.3f, Timer / AnimTime);
+            NPC.velocity *= 0.96f;
+            Trail = 8;
+            Anim = 1;
+            NPC.noTileCollide = false;
+            NPC.waterMovementSpeed = 0.75f;
+            if (NPC.velocity.Y < 20)
+            {
+                NPC.velocity.Y += 0.6f;
+            }
+            if (Timer % 20 == 19)
+            {
+                SoundEngine.PlaySound(BaronNuke.Beep with { Pitch = Utils.Clamp(-1 + 1.25f * (Timer / AnimTime), -1, 1) }, NPC.Center);
+            }
+            int expFreq = (int)Math.Round(30 - 28 * (Timer / AnimTime));
+            if (Timer % expFreq == 0)
+            {
+                Vector2 topleft = NPC.position + NPC.Size / 3;
+                Rectangle rect = new((int)topleft.X, (int)topleft.Y, (int)(NPC.width * 1 / 3f), (int)(NPC.height * 1 / 3f));
+                Vector2 exCenter = Main.rand.NextVector2FromRectangle(rect);
+                SoundEngine.PlaySound(SoundID.Item14, exCenter);
+                Vector2 pos = exCenter; //circle with highest density in middle
+                Vector2 vel = NPC.velocity;
+                Particle p = new ExpandingBloomParticle(pos, vel, Color.Lerp(Color.Yellow, Color.Red, Main.rand.NextFloat()), startScale: Vector2.One * 3, endScale: Vector2.One * 6, lifetime: 15);
+                p.Spawn();
+
+                Vector2 dir = Main.rand.NextVector2CircularEdge(1, 1);
+                float speed = Main.rand.NextFloat(6, 15);
+                int type = Main.rand.Next(6) + 1;
+                if (!Main.dedServ)
+                    Gore.NewGore(NPC.GetSource_FromThis(), pos, dir * speed, ModContent.Find<ModGore>(Mod.Name, $"BaronScrapGore{type}").Type, NPC.scale);
+            }
+            if (Wet())
+            {
+                NPC.velocity *= 0.85f;
+                NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.rotation.ToRotationVector2() * NPC.velocity.Length(), 0.2f);
+                RotateTowards(NPC.Center + Vector2.UnitX * Math.Sign(NPC.rotation.ToRotationVector2().X), 0.25f);
+            }
+            else
+            {
+                RotateTowards(NPC.Center + Vector2.UnitY, 1.2f);
+            }
+            if (Collision.SolidCollision(NPC.position + NPC.velocity, NPC.width, NPC.height) || Timer > AnimTime)
+            {
+                SoundEngine.PlaySound(SoundID.Item62, NPC.Center);
+                NPC.StrikeInstantKill();
+            }
+        }
+        #region Phase 1 Attacks
+        void Swim()
+        {
+            void Thirsty()
+            {
+                int x = (int)NPC.Center.X / 16;
+                int y = (int)NPC.Center.Y / 16;
+                Tile tile = Main.tile[x, y];
+
+                if (tile.LiquidAmount > 0)
+                {
+                    if (tile.LiquidType == LiquidID.Water)
+                    {
+                        tile.LiquidAmount = 0;
+                        CombatText.NewText(NPC.Hitbox, Color.Blue, Language.GetTextValue("Mods.FargowiltasSouls.NPCs.BanishedBaron.Slurp"));
+                        if (Main.netMode == NetmodeID.Server)
+                        {
+                            NetMessage.sendWater(x, y);
+                            NetMessage.SendTileSquare(-1, x, y, 1);
+                        }
+                        else
+                        {
+                            WorldGen.SquareTileFrame(x, y, true);
+                        }
+                    }
+                }
+            }
+            int Distance = (int)Math.Min(NPC.Distance(player.Center) + 50, 450);
+            if (Timer == 1)
+            {
+                /*
+                int xdif = (int)Math.Abs(NPC.Center.X - player.Center.X);
+                int ydif = (int)Math.Abs(NPC.Center.Y - player.Center.Y);
+                if (availablestates.Contains((int)StateEnum.P1SurfaceMines) && Main.rand.NextBool() && xdif.IsWithinBounds(200, 600) && ydif.IsWithinBounds(200))
+                {
+                    StateReset(false);
+                    State = (float)StateEnum.P1SurfaceMines;
+                    availablestates.Remove((int)StateEnum.P1SurfaceMines);
+                    return;
+                }
+                */
+                if (Collision.SolidCollision(NPC.position, NPC.width, NPC.height)) //check if originated in collision, set AI3 to negative
+                {
+                    AI3 = -2;
+                    for (int i = 0; i < 30; i++) //max of 30 checks
+                    {
+                        LockVector1 = player.Center + Vector2.UnitX.RotatedByRandom(MathHelper.TwoPi) * Distance;
+                        if (!Collision.SolidCollision(LockVector1 - NPC.Size / 2, NPC.width, NPC.height) && Wet(LockVector1 - NPC.Size / 2)) //if found valid spot, stop searching
+                        {
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    LockVector1 = player.Center + player.SafeDirectionTo(NPC.Center) * Distance;
+                }
+
+                if (Wet() && WorldSavingSystem.MasochistModeReal) //chug the ocean in masomode
+                {
+                    Thirsty();
+                }
+            }
+
+            //bool NewCollision = (Collision.SolidCollision(NPC.position, NPC.width, NPC.height) && AI3 != -2); //if didn't originate in collision, 
+            if (Vector2.Distance(NPC.Center, LockVector1) < 25 || Timer > 100 || (AI3 != -2 && AI3 != 0)/* || NewCollision*/) //if ai3 not 0 (default) or -2 (set when original collision)
+            {
+
+                AI3 = (AI3 + 1) * 3; //stays negative if set to -2 by checking original collision, otherwise goes positive
+                NPC.velocity *= 0.85f;
+                RotateTowards(player.Center, 3);
+                if (NPC.velocity.Length() < 0.1f && Timer > 50)
+                {
+                    if (Wet() && WorldSavingSystem.MasochistModeReal) //chug the ocean in masomode
+                    {
+                        Thirsty();
+                    }
+                    NPC.velocity = Vector2.Zero;
+                    StateReset();
+                }
+            }
+            else
+            {
+                if (Collision.SolidCollision(NPC.Center + NPC.velocity, NPC.width, NPC.height) && Timer < 40 && AI3 != -2)
+                {
+                    Timer = 40; //so it doesn't get stuck on tiles too long
+                }
+                Vector2 vectorToIdlePosition = LockVector1 - NPC.Center;
+                float speed = AI3 >= 0 ? 28 : 14; //less speed if originated in collision
+                if (WorldSavingSystem.EternityMode && !WorldSavingSystem.MasochistModeReal) //maso speed is already very fast because ignore water
+                {
+                    speed *= 1.2f;
+                }
+                float inertia = AI3 >= 0 ? 20f : 10f;
+                vectorToIdlePosition.Normalize();
+                vectorToIdlePosition *= speed;
+                //NPC.velocity = Vector2.Lerp(NPC.velocity, (NPC.velocity * (inertia - 1f) + vectorToIdlePosition) / inertia, 0.3f);
+                Movement(LockVector1, 30f, 1.3f);
+                if (NPC.velocity == Vector2.Zero)
+                {
+                    NPC.velocity.X = -0.15f;
+                    NPC.velocity.Y = -0.05f;
+                }
+                NPC.rotation = NPC.velocity.ToRotation();
+            }
+        }
+        void P1BigNuke()
+        {
+            /*
+            if (Timer == 1)
+            {
+                if (FargoSoulsUtil.HostCheck)
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<BloomLine>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 3, NPC.whoAmI);
+            }
+            */
+
+            RotateTowards(player.Center, 2);
+            if (Timer < 30)
+                Anim = 1;
+            else
+                Anim = 0;
+            if (Timer == 30)
+            {
+                SoundEngine.PlaySound(SoundID.Item61, NPC.Center);
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    Vector2 vel = NPC.rotation.ToRotationVector2() * 10f;
+                    AI2 = Main.rand.NextFloat(190, 220); //nuke duration
+                    NPC.netUpdate = true;
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, vel, ModContent.ProjectileType<BaronNuke>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, AI2, player.whoAmI);
+                }
+            }
+            if (Timer > AI2 + 10 && AI2 > 0)
+            {
+                Anim = 0;
+                StateReset();
+            }
+        }
+        void P1RocketStorm()
+        {
+            RotateTowards(player.Center, 3);
+            const int StartupTime = 30;
+            if (Timer < StartupTime + 50 && Timer % 6 == 0 && Timer > StartupTime)
+            {
+                Anim = 1;
+                SoundEngine.PlaySound(SoundID.Item64, NPC.Center);
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    float progress = (Timer - 10) / 60;
+                    float rotation = progress * (MathHelper.Pi / 6);
+                    Vector2 vel = (NPC.rotation + ((MathHelper.PiOver2 + rotation) * -NPC.direction)).ToRotationVector2() * (10 * progress + 10);
+                    float trackingPower = WorldSavingSystem.MasochistModeReal ? 1.2f : 1f;
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, vel, ModContent.ProjectileType<BaronRocket>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 3, player.whoAmI, trackingPower); //ai2 is tracking power, above 1 is pseudo-predictive
+                }
+            }
+            if (Timer > StartupTime + 50)
+            {
+                Anim = 0;
+                StateReset();
+            }
+        }
+        void P1SurfaceMines()
+        {
+            NPC.noTileCollide = true;
+            //Anim = 1;
+            if (Timer == 1)
+            {
+                Vector2 dif = player.Center - NPC.Center;
+                if (Math.Abs(dif.X) < 200 || Math.Abs(dif.Y) > 350)
+                {
+                    State = (float)StateEnum.Swim;
+                    StateReset();
+                }
+                LockVector1 = new Vector2(player.Center.X, player.Center.Y + 800);
+            }
+            if (Timer >= 1)
+                RotateTowards(LockVector1, 2);
+            if (Timer < 33)
+            {
+                Vector2 desiredPos = Vector2.UnitX * (player.Center.X + Math.Sign(NPC.Center.X - player.Center.X) * 400) + Vector2.UnitY * player.Center.Y;
+                Movement(desiredPos, 35f, 2f);
+                //NPC.velocity = Vector2.Lerp(NPC.velocity, (desiredPos - NPC.Center) * (Timer / 33) / 3, 0.3f);
+            }
+            if (Timer >= 33 && Timer <= 40)
+            {
+                //Movement(desiredPos, 35f, 2f);
+                NPC.velocity = Vector2.Lerp(NPC.velocity / 3, NPC.rotation.ToRotationVector2() * 12, (Timer - 33) / 7);
+            }
+            if (Timer == 40)
+            {
+                SoundEngine.PlaySound(FargosSoundRegistry.BaronYell, NPC.Center);
+
+            }
+            if (Timer > 60)
+                NPC.velocity *= 0.97f;
+            else if (player.velocity.Y > 0)
+                NPC.velocity.Y += player.velocity.Y;
+
+            if (NPC.velocity.Length() > 12)
+                NPC.velocity = Vector2.Normalize(NPC.velocity) * 12;
+
+            if (Timer >= 60 && Timer % 5 == 0 && AI3 < 4)
+            {
+                AI3++;
+                SoundEngine.PlaySound(SoundID.Item61, NPC.Center);
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    Vector2 dir = NPC.rotation.ToRotationVector2();
+                    float extraY = Math.Max(player.velocity.Y, 0);
+                    Vector2 vel = Vector2.UnitX * Math.Sign(dir.X) * AI3 * 8 + Vector2.UnitY * dir.Y * (8 + extraY);
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, vel, ModContent.ProjectileType<BaronMine>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 1, player.whoAmI);
+                    if (WorldSavingSystem.MasochistModeReal)
+                    {
+                        Vector2 vel2 = Vector2.UnitX * Math.Sign(-dir.X) * (AI3 - 1) * 8 + Vector2.UnitY * dir.Y * (8 + extraY);
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, vel2, ModContent.ProjectileType<BaronMine>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 1, player.whoAmI);
+                    }
+
+                }
+            }
+            if (Timer > 160)
+            {
+                StateReset();
+            }
+        }
+        void P1FadeDash()
+        {
+            int ReactionTime = WorldSavingSystem.EternityMode ? 30 : 50;
+            if (Timer == 1)
+            {
+                if (Main.rand.NextBool()) //bias towards diagonals
+                {
+                    LockVector1 = (-Vector2.UnitY * 620).RotatedBy(MathHelper.PiOver2 * (Main.rand.NextBool() ? 1 : -1)).RotatedByRandom(MathHelper.Pi / 4); //approximately diagonal angle
+                }
+                else
+                {
+                    LockVector1 = (-Vector2.UnitY * Main.rand.Next(500, 600)).RotatedByRandom(MathHelper.PiOver2);
+                }
+                NPC.netUpdate = true;
+            }
+            if (Timer < 90 && Timer % 3 == 0) //keep looking for valid spot every 3 ticks, including when spot gets invalidated
+            {
+                bool findNew = false;
+                Vector2 chosenPos = player.Center + LockVector1 - NPC.Size / 2;
+                if (!Collision.SolidCollision(chosenPos, NPC.width, NPC.height) && !Collision.WetCollision(chosenPos, NPC.width, NPC.height))
+                    findNew = true;
+                for (float i = 0; i < 0.6f; i += 0.1f) //don't check the entire way, otherwise every spot is invalid if you're standing on ground
+                {
+                    Vector2 pos = chosenPos - ((LockVector1) * i);
+
+                    if (Collision.SolidCollision(pos, NPC.width, NPC.height))
+                    {
+                        findNew = true;
+                        break;
+                    }
+
+                }
+                if (findNew)
+                {
+                    LockVector1 = (Vector2.UnitY * Main.rand.Next(500, 600)).RotatedByRandom(MathHelper.Pi);
+                    NPC.netUpdate = true;
+                }
+            }
+            if (Timer < 60)
+            {
+                if (NPC.buffType[0] != 0) //cleanse all buffs
+                    NPC.DelBuff(0);
+
+                RotateTowards(player.Center, 2);
+                if (NPC.velocity.Length() < 1)
+                {
+                    NPC.velocity += NPC.rotation.ToRotationVector2() * 0.02f;
+                    NPC.velocity *= 1.03f;
+                }
+                NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.rotation.ToRotationVector2() * NPC.velocity.Length(), 0.3f);
+                NPC.Opacity -= 1f / 50;
+                if (NPC.Opacity < 0)
+                    NPC.Opacity = 0;
+                HitPlayer = false;
+            }
+            if (Timer == 60)
+            {
+                if (FargoSoulsUtil.HostCheck)
+                {
+
+                    NPC.netUpdate = true;
+                    NPC.rotation = NPC.SafeDirectionTo(player.Center + LockVector1).ToRotation();
+                }
+            }
+            if (Timer > 60 && Timer < 90) //gone
+            {
+                if (NPC.buffType[0] != 0) //cleanse all buffs
+                    NPC.DelBuff(0);
+
+                NPC.rotation = NPC.SafeDirectionTo(player.Center + LockVector1).ToRotation();
+                NPC.noTileCollide = true;
+                NPC.Center = player.Center + LockVector1;
+                NPC.netUpdate = true;
+                NPC.dontTakeDamage = true;
+            }
+            if (Timer == 90)
+            {
+                if (!Collision.SolidCollision(NPC.position, NPC.width, NPC.height))
+                {
+                    NPC.noTileCollide = false;
+                }
+                NPC.velocity = Vector2.Zero;
+                NPC.rotation = NPC.SafeDirectionTo(player.Center).ToRotation();
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + NPC.rotation.ToRotationVector2() * NPC.width * 0.35f, Vector2.Zero, ModContent.ProjectileType<BaronEyeFlash>(), 0, 0, Main.myPlayer, NPC.whoAmI);
+                }
+            }
+            if (Timer > 90 && Timer < 90 + ReactionTime)
+            {
+                RotateTowards(player.Center, 2);
+                if (NPC.velocity.Length() < 3)
+                {
+                    NPC.velocity += NPC.rotation.ToRotationVector2() * 0.03f;
+                    NPC.velocity *= 1.03f;
+                }
+                NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.rotation.ToRotationVector2() * NPC.velocity.Length(), 0.3f);
+                NPC.Opacity += 1f / ReactionTime;
+                if (NPC.Opacity > 1)
+                    NPC.Opacity = 1;
+                HitPlayer = true;
+            }
+            int attackTime = 90 + ReactionTime;
+            int accelTime = 7;
+            float baseSpeed = 45;
+            float extraSpeed = (float)Math.Sqrt((player.Center - NPC.Center).Length()) / 1.5f;
+            if (Timer > attackTime - accelTime && Timer < attackTime)
+            {
+                float speed = Math.Max(((Timer - (attackTime - accelTime)) / accelTime), 0);
+                NPC.velocity = NPC.rotation.ToRotationVector2() * (baseSpeed + extraSpeed) * speed;
+            }
+            if (Timer == attackTime)
+            {
+                NPC.Opacity = 1;
+                NPC.dontTakeDamage = false;
+                SoundEngine.PlaySound(FargosSoundRegistry.BaronRoar, NPC.Center);
+
+                NPC.velocity = NPC.rotation.ToRotationVector2() * (baseSpeed + extraSpeed);
+
+            }
+            if (Timer > 90 + ReactionTime)
+            {
+                if (NPC.noTileCollide) //dash same speed if collision is off
+                {
+                    NPC.position -= NPC.velocity / 2;
+                }
+                else
+                {
+                    if (Collision.SolidCollision(NPC.position + NPC.velocity, NPC.width, NPC.height))
+                    {
+                        SoundEngine.PlaySound(SoundID.Dig, NPC.Center);
+                        NPC.velocity = -NPC.velocity / 4;
+                        NPC.velocity = NPC.velocity.RotatedByRandom(MathHelper.Pi * 0.15f);
+                        NPC.SimpleStrikeNPC(500, 1);
+                        AI3 = 1;
+
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            for (int i = 0; i < 6; i++)
+                            {
+                                Vector2 v = Vector2.Normalize(NPC.velocity.RotatedByRandom(MathHelper.Pi * 0.2f)) * Main.rand.NextFloat(7, 10);
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + v, v, ModContent.ProjectileType<BaronScrap>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                            }
+                        }
+                    }
+                }
+                NPC.dontTakeDamage = false; //here too for safety
+                NPC.velocity *= 0.975f;
+
+                if (NPC.velocity.Length() > 8 && WorldSavingSystem.EternityMode && AI3 != 1)
+                {
+                    int rocketTime = 11;
+                    if (Timer % rocketTime == 0)
+                    {
+                        SoundEngine.PlaySound(SoundID.Item64, NPC.Center);
+                        for (int i = -1; i < 2; i += 2)
+                        {
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                Vector2 v = NPC.rotation.ToRotationVector2().RotatedBy(MathHelper.PiOver2 * i) * 1f;
+                                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + (v * 20), v * 0.3f, ModContent.ProjectileType<BaronRocket>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 4, player.whoAmI);
+                            }
+                        }
+                    }
+                }
+            }
+            if ((Timer == 90 + ReactionTime + 15 || Timer == 90 + ReactionTime + 30) && WorldSavingSystem.EternityMode && AI3 != 1)
+            {
+                SoundEngine.PlaySound(SoundID.Item64, NPC.Center);
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    Vector2 vel = NPC.velocity * 1.2f;
+                    float trackingPower = WorldSavingSystem.MasochistModeReal ? 1.5f : 1f;
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, vel, ModContent.ProjectileType<BaronRocket>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 3, player.whoAmI, trackingPower); //ai2 is tracking power, above 1 is pseudo-predictive
+                }
+            }
+            if (Timer > 90 + ReactionTime + 30 && NPC.velocity.Length() < 1.5f)
+            {
+                NPC.noTileCollide = false;
+                StateReset();
+            }
+        }
+        void P1SineSwim()
+        {
+            int Duration = WorldSavingSystem.MasochistModeReal ? 100 : WorldSavingSystem.EternityMode ? 150 : 180;
+            const int Waves = 2;
+            const int Ymax = 600;
+            const int Xstart = 1000;
+
+            float prog = (float)Math.Pow(Timer / Duration, 2);
+
+            NPC.noTileCollide = true;
+            if (Timer == 1)
+            {
+                AI2 = Math.Sign(NPC.Center.X - player.Center.X);
+                LockVector1 = player.Center + new Vector2(Xstart * AI2, 0);
+                SoundEngine.PlaySound(FargosSoundRegistry.BaronYell, NPC.Center);
+                NPC.netUpdate = true;
+            }
+            if (AI3 == 0)
+            {
+                Vector2 target = LockVector1 + new Vector2(-AI2 * prog * (1.75f * Xstart), Ymax * (float)Math.Sin(MathHelper.TwoPi * prog * Waves));
+                NPC.rotation = NPC.SafeDirectionTo(target).ToRotation();
+                //float modifier = Math.Min(Timer / 50, 1);
+                float modifier = 1;
+                //NPC.velocity = Vector2.Lerp(NPC.velocity, modifier * NPC.SafeDirectionTo(target) * NPC.Distance(target) / 1.2f, 0.3f);
+                Movement(target, 45f, 4f);
+                if (NPC.velocity.Length() > 25)
+                {
+                    NPC.velocity *= 25 / NPC.velocity.Length();
+                }
+                if (Timer == Math.Round(Duration * 0.33f) || Timer == Math.Round(Duration * 0.66f) || Timer == Math.Round(Duration * 0.99f))
+                {
+                    SoundEngine.PlaySound(SoundID.Item63, NPC.Center);
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 vel = (-NPC.rotation).ToRotationVector2() * 5;
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, vel, ModContent.ProjectileType<BaronMine>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 2, player.whoAmI);
+                    }
+                }
+                if (prog > 1)
+                {
+                    AI3 = 1;
+                }
+            }
+            if (AI3 == 1)
+            {
+                NPC.velocity *= 0.96f;
+            }
+            if (NPC.velocity.Length() < 1f)
+            {
+                NPC.noTileCollide = false; //this is probably automatically set in AI anyway but just to make sure
+                NPC.velocity = Vector2.Zero;
+                StateReset();
+            }
+        }
+        void P1Whirlpool()
+        {
+            NPC.noTileCollide = true;
+            const int Height = 2000;
+            if (Timer == 1)
+            {
+                if (DidWhirlpool)
+                {
+                    DidWhirlpool = false;
+                    LastState = (int)State;
+                    State = (float)StateEnum.Swim;
+                    StateReset();
+                    return;
+                }
+                DidWhirlpool = true;
+                const int checks = 20;
+                for (int i = 0; i < checks; i++) //find approx surface level above player
+                {
+                    LockVector1 = player.Center - Vector2.UnitY * Height * (checks - i);
+
+                    if (Wet(LockVector1 + Vector2.UnitY * 1.25f * Height / (float)checks)) //check 2 checks down
+                    {
+                        NPC.netUpdate = true;
+                        break;
+                    }
+                }
+
+            }
+            if (Timer < 60)
+            {
+                HitPlayer = false;
+                //NPC.velocity = Vector2.Lerp(NPC.velocity, (LockVector1 - NPC.Center) * (Timer / 60) * 0.04f, 0.3f);
+                Movement(LockVector1, 25f, 2f);
+                RotateTowards(LockVector1, 2);
+                if (!Wet(NPC.position + Vector2.UnitY * NPC.height / 4) && NPC.Center.Y < player.Center.Y)
+                {
+                    if (Collision.WetCollision(player.position, player.width, player.height))
+                    {
+                        NPC.velocity.Y *= 0.2f;
+                    }
+                    else if (NPC.Center.Y < player.Center.Y - 500)
+                    {
+                        NPC.velocity.Y *= 0.2f;
+                    }
+
+                }
+                else
+                {
+                    NPC.velocity.Y += 0.25f;
+                }
+                if (NPC.velocity.LengthSquared() >= 30 * 30)
+                {
+                    NPC.velocity = Vector2.Normalize(NPC.velocity) * 30;
+                }
+            }
+            else
+            {
+                HitPlayer = true;
+                NPC.velocity = Vector2.Zero;
+            }
+            if (Timer > 50)
+            {
+                RotateTowards(NPC.Center - Vector2.UnitY.RotatedBy(MathHelper.ToRadians(1)), 16);
+            }
+            if (Timer == 60 && FargoSoulsUtil.HostCheck)
+            {
+                AnimationSpeed = 2f;
+                int variant = Main.rand.Next(2);
+                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + Vector2.UnitY * ((NPC.height / 2) + 24), Vector2.Zero, ModContent.ProjectileType<BaronWhirlpool>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, NPC.whoAmI, MaxWhirlpools, variant);
+            }
+            if (Timer >= 60 * 8)
+            {
+                AnimationSpeed = 1f;
+                NPC.noTileCollide = false; //this is probably automatically set in AI anyway but just to make sure
+                NPC.velocity = Vector2.Zero;
+                StateReset();
+            }
+        }
+        #endregion
+        #region Phase 2 Attacks
+        void P2PredictiveDash()
+        {
+            float PredictStr = 35;
+            const int ReactTime = 72;
+            if (Timer == 1)
+            {
+                if (FargoSoulsUtil.HostCheck)
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<BloomLine>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 2, NPC.whoAmI);
+            }
+            if (Timer == ReactTime - 5) //slight telegraph sound to be cute
+            {
+                SoundEngine.PlaySound(SoundID.MaxMana, NPC.Center);
+            }
+            if (Timer < ReactTime - 5) //stop aligning 5 frames before dashing
+            {
+                Vector2 target = player.Center + (Vector2.Normalize(NPC.Center - player.Center) * 500);
+                if ((NPC.Distance(target) < 25 && AI3 == 0) || (Timer % 60 == 0 && AI3 != 0))
+                {
+                    AI3 = -1;
+                    NPC.netUpdate = true;
+                }
+
+                if (AI3 == 0)
+                {
+                    /*
+                    if (NPC.velocity.Length() < 20 + (player.velocity.Length() / 2))
+                    {
+                        NPC.velocity += NPC.SafeDirectionTo(target) * 0.02f;
+                        Movement(target, 45f, 2.5f);
+                        //NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(target) * NPC.velocity.Length() * 1.05f, 0.5f);
                     }
                     else
                     {
-                      this.P1FadeDash();
-                      goto label_65;
+                        //NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(target) * (20 + (player.velocity.Length() / 2)), 0.5f);
+                        Movement(target, 30f, 1.5f);
                     }
-                  }
-                  else
-                  {
-                    this.P1SurfaceMines();
-                    goto label_65;
-                  }
+                    */
+                    Movement(target, 30f, 2f);
                 }
-                else if (Main.expertMode)
+                else
                 {
-                  this.P1RocketStorm();
-                  goto label_65;
+                    //NPC.velocity = Vector2.Lerp(NPC.velocity, (target - NPC.Center) / 10, 0.3f);
+                    Movement(target, 30f, 1f);
                 }
-                this.StateReset();
-              }
-              else
-                this.P1BigNuke();
+                if (NPC.Distance(player.Center) < 200)
+                    NPC.velocity -= NPC.SafeDirectionTo(player.Center);
+
+                LockVector1 = FargoSoulsUtil.PredictiveAim(NPC.Center, player.Center, player.velocity, PredictStr);
+                Vector2 dir = Vector2.Lerp(NPC.rotation.ToRotationVector2(), Vector2.Normalize(LockVector1), 0.2f);
+                NPC.rotation = dir.ToRotation();
+
+                //LockVector1 = NPC.SafeDirectionTo(player.Center + (player.velocity * PredictStr)) * PredictStr;
+                //RotateTowards(NPC.Center + LockVector1, 4);
+            }
+            int accelTime = 7;
+            if (Timer > ReactTime - accelTime && Timer < ReactTime)
+            {
+                float speed = Math.Max(((Timer - (ReactTime - accelTime)) / accelTime), 0);
+                NPC.velocity = NPC.rotation.ToRotationVector2() * PredictStr * speed;
+            }
+            if (Timer == ReactTime)
+            {
+                SoundEngine.PlaySound(FargosSoundRegistry.BaronRoar, NPC.Center);
+                Trail = 8;
+                NPC.velocity = NPC.rotation.ToRotationVector2() * PredictStr;
+                Vector2 uv = Vector2.Normalize(NPC.velocity);
+                Vector2 lp = player.Center - NPC.Center;
+                float lambda = Vector2.Dot(uv, lp);
+                LockVector2 = NPC.Center + (uv * lambda);
+
+                //below: instantly decelerate if dash is at large angle from player
+                Vector2 PV = NPC.SafeDirectionTo(player.Center);
+                Vector2 LV = LockVector1;
+                float anglediff = FargoSoulsUtil.RotationDifference(LV, PV);
+                if (Math.Abs(anglediff) > MathHelper.PiOver2)
+                {
+                    AI3 = 1;
+                }
+            }
+            if (Timer >= ReactTime && Timer < ReactTime + 65 && NPC.velocity.Length() > 5)
+            {
+                int rocketTime = (int)(8 * 20 / NPC.velocity.Length());
+                if (Timer % rocketTime == 0)
+                {
+                    SoundEngine.PlaySound(SoundID.Item64, NPC.Center);
+                    for (int i = -1; i < 2; i += 2)
+                    {
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            Vector2 v = NPC.rotation.ToRotationVector2().RotatedBy(MathHelper.PiOver2 * i) * 1f;
+                            Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + (v * 20), v * 0.3f, ModContent.ProjectileType<BaronRocket>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 2, player.whoAmI);
+                        }
+                    }
+                }
+            }
+
+            if (NPC.Distance(LockVector2) <= NPC.velocity.Length() || (Timer > ReactTime + 45 && Timer < ReactTime + 90) || (Timer > ReactTime + 90 + 45) && WorldSavingSystem.EternityMode)
+            {
+                AI3 = 1;
+            }
+            if (AI3 == 1)
+            {
+                NPC.velocity *= 0.97f;
+                if (Timer >= ReactTime + 65)
+                    RotateTowards(player.Center, 8);
+            }
+            if (Timer == ReactTime + 90 && WorldSavingSystem.EternityMode)
+            {
+                SoundEngine.PlaySound(FargosSoundRegistry.BaronRoar, NPC.Center);
+                NPC.velocity = NPC.rotation.ToRotationVector2() * PredictStr * 1.2f;
+
+            }
+            if (NPC.velocity.Length() < 5f && AI3 == 1 && (!WorldSavingSystem.EternityMode || Timer > ReactTime + 90))
+            {
+                Trail = 0;
+                NPC.velocity *= 0.9f;
+                if (NPC.velocity.Length() < 0.7f)
+                    StateReset();
+            }
+        }
+        void P2CarpetBomb()
+        {
+            const int Xstart = 800;
+            const int YMax = 500;
+            const int YMin = 300;
+            if (Timer == 1)
+            {
+                AI2 = Math.Sign(NPC.Center.X - player.Center.X);
+
+            }
+            if (AI3 == 0) //startup, reach starting point
+            {
+                float x = Xstart * AI2;
+                LockVector1 = player.Center + new Vector2(x, -YMin);
+                NPC.rotation = NPC.SafeDirectionTo(LockVector1).ToRotation();
+                if (NPC.velocity.Length() < 30 + player.velocity.Length())
+                {
+                    NPC.velocity += 0.5f * NPC.rotation.ToRotationVector2();
+                    NPC.velocity *= 1.03f;
+                }
+                //NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.velocity.Length() * NPC.rotation.ToRotationVector2(), 0.3f);
+                Movement(LockVector1, 45f, 2f);
+                if (NPC.Distance(LockVector1) < 25)
+                {
+                    AI3 = 1; //reached point, start attack
+                }
+            }
+            if (AI3 > 0) //arc attack
+            {
+                const int ArcTime = 90;
+
+                //funky real math i did on paper and translated to code
+
+                Vector2 Curve(float p) //makes a smooth wide curve
+                {
+                    float x = AI2 * Xstart * (1 - (2 * p));
+                    return new Vector2(x, (float)(-YMin - ((YMax - YMin) * Math.Sin(MathHelper.Pi * p))));
+                }
+                float prog = AI3 / ArcTime;
+
+                Vector2 curve = Curve(prog);
+                Vector2 dydx = Curve(prog + 0.00001f) - curve;
+                NPC.rotation = dydx.ToRotation();
+                LockVector1 = player.Center + curve;
+                NPC.velocity = LockVector1 - NPC.Center;
+                AI3++;
+
+                float mineCount = WorldSavingSystem.MasochistModeReal ? 8f : WorldSavingSystem.EternityMode ? 7f : 6f;
+                if ((AI3 % Math.Round(ArcTime / mineCount)) == 0)
+                {
+                    SoundEngine.PlaySound(SoundID.Item63, NPC.Center);
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 vel = new(0, Main.rand.Next(15, 20));
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, vel, ModContent.ProjectileType<BaronMine>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 2, player.whoAmI);
+                    }
+                }
+
+                if (prog >= 1)
+                {
+                    AI3 = -1; //end attack, start next part
+                    SoundEngine.PlaySound(FargosSoundRegistry.BaronYell, NPC.Center);
+                }
+            }
+            if (AI3 < 0) //home into player after arc
+            {
+
+                if (NPC.Distance(player.Center) < 300 && AI3 < -30)
+                {
+                    AI2 = -2;
+                }
+                if (AI2 == -2)
+                {
+                    NPC.velocity *= 0.975f;
+                }
+                else
+                {
+                    float maxSpeed = 15 + (player.velocity.Length() / 2);
+                    if (NPC.velocity.Length() < maxSpeed)
+                    {
+                        NPC.velocity += NPC.rotation.ToRotationVector2() * 0.02f;
+                        NPC.velocity = NPC.rotation.ToRotationVector2() * NPC.velocity.Length() * 1.03f;
+                    }
+                    else
+                    {
+                        NPC.velocity = NPC.rotation.ToRotationVector2() * maxSpeed;
+                    }
+                    float rotSpeed = 2.5f;
+                    RotateTowards(player.Center, rotSpeed);
+                }
+                AI3--;
+
+            }
+            if ((AI3 < -30 && NPC.velocity.Length() < 1.25) || AI3 < -220) //second condition is failsafe for circle cheese
+            {
+                NPC.velocity = Vector2.Zero;
+                StateReset();
+            }
+        }
+        void P2RocketStorm()
+        {
+            const int distance = 500;
+            float rotModifier = 1;
+            float minRot = 0.5f;
+            if (Timer == 1)
+            {
+                AI2 = Math.Sign(NPC.Center.X - player.Center.X);
+                LockVector1 = new Vector2(distance * AI2, 0);
+
+            }
+
+            RotateTowards(player.Center, 4);
+
+            float rotation = MathHelper.ToRadians(AI3 + (minRot * Math.Sign(AI3)));
+            LockVector1 = LockVector1.RotatedBy(rotation * rotModifier);
+
+            Vector2 target = player.Center + LockVector1;
+
+            if ((NPC.Distance(target) < 200 && AI3 == 0) || (Timer % 60 == 0 && AI3 != 0))
+            {
+                AI3 = Main.rand.NextFloat(-1, 1);
+                NPC.netUpdate = true;
+            }
+
+            if (AI3 == 0)
+            {
+                /*
+                if (NPC.velocity.Length() <= 20 + (player.velocity.Length() / 2))
+                {
+                    NPC.velocity += NPC.SafeDirectionTo(target) * 0.02f;
+                    NPC.velocity = NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(target) * NPC.velocity.Length() * 1.05f, 0.5f);
+                }
+                else
+                {
+                    NPC.velocity = NPC.SafeDirectionTo(target) * (20 + (player.velocity.Length() / 2));
+
+                }
+                */
+                Movement(target, 30f, 2f);
+                if (Timer > 2)
+                {
+                    Timer = 2;
+                }
             }
             else
-              this.Swim();
-          }
-          else
-            this.Phase2Transition();
-        }
-        else
-          this.Opening();
-      }
-label_65:
-      ++this.Timer;
-    }
-
-    private bool Wet(Vector2? pos = null)
-    {
-      if (!pos.HasValue)
-        pos = new Vector2?(((Entity) this.NPC).position);
-      return Collision.WetCollision(pos.Value, ((Entity) this.NPC).width, ((Entity) this.NPC).height);
-    }
-
-    private void Opening()
-    {
-      this.HitPlayer = false;
-      this.Anim = 1;
-      if (Vector2.op_Equality(this.LockVector1, Vector2.Zero))
-      {
-        for (int index = 0; index < Main.maxProjectiles; ++index)
-        {
-          Projectile projectile = Main.projectile[index];
-          if (projectile.TypeAlive<MechLureProjectile>())
-          {
-            this.LockVector1 = ((Entity) projectile).Center;
-            break;
-          }
-        }
-        if (Vector2.op_Equality(this.LockVector1, Vector2.Zero))
-          this.LockVector1 = ((Entity) this.player).Center;
-      }
-      if (this.NPC.alpha > 0)
-        this.NPC.alpha -= 2;
-      else
-        this.NPC.alpha = 0;
-      if (Vector2.op_Inequality(this.LockVector1, Vector2.Zero))
-      {
-        this.RotateTowards(this.LockVector1, 1.5f);
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.op_Subtraction(this.LockVector1, ((Entity) this.NPC).Center), this.Timer / 90f), 0.4f), 0.3f);
-      }
-      if ((double) this.Timer == 60.0)
-      {
-        SoundEngine.PlaySound(ref SoundID.Item21, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        if (FargoSoulsUtil.HostCheck)
-          Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, -24f, 0.0f);
-        if (WorldSavingSystem.EternityMode && !WorldSavingSystem.DownedBoss[12] && FargoSoulsUtil.HostCheck)
-          Item.NewItem(((Entity) this.NPC).GetSource_Loot((string) null), ((Entity) Main.player[this.NPC.target]).Hitbox, ModContent.ItemType<MechLure>(), 1, false, 0, false, false);
-      }
-      if ((double) this.Timer <= 90.0)
-        return;
-      this.HitPlayer = true;
-      this.Anim = 0;
-      this.StateReset();
-    }
-
-    private void Phase2Transition()
-    {
-      if ((double) this.Timer < 60.0)
-        this.RotateTowards(Vector2.op_Addition(((Entity) this.NPC).Center, this.LockVector1), 15f);
-      else if ((double) this.Timer < 135.0)
-        this.RotateTowards(Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Addition(Vector2.op_Multiply(Vector2.Normalize(Vector2.op_UnaryNegation(this.LockVector1)), 2f), Vector2.op_Multiply(Vector2.UnitY, 1f))), 15f);
-      else if ((double) this.Timer < 150.0)
-        this.RotateTowards(Vector2.op_Addition(((Entity) this.NPC).Center, new Vector2((float) (3 * Math.Sign(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) this.player).Center).X)), -10f)), 15f);
-      if ((double) this.Timer == 1.0)
-      {
-        SoundStyle soundStyle = new SoundStyle("FargowiltasSouls/Assets/Sounds/BaronHit", (SoundType) 0);
-        SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        this.HitPlayer = false;
-        this.LockVector1 = Vector2.op_Multiply(Vector2.UnitX, (float) Math.Sign(((Entity) this.player).Center.X - ((Entity) this.NPC).Center.X));
-      }
-      if ((double) this.Timer == 45.0)
-      {
-        SoundEngine.PlaySound(ref SoundID.DD2_KoboldExplosion, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        Vector2 worldPosition = Vector2.op_Subtraction(((Entity) this.NPC).Center, Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), (float) ((Entity) this.NPC).width * 0.25f));
-        if (!Main.dedServ)
-          Gore.NewGorePerfect(((Entity) this.NPC).GetSource_FromThis((string) null), worldPosition, Vector2.op_Multiply(Vector2.op_UnaryNegation(Utils.ToRotationVector2(this.NPC.rotation)), 4f), ModContent.Find<ModGore>(((ModType) this).Mod.Name, "BaronGorePropeller").Type, 1f).light = 1f;
-        for (int index = 0; index < 5; ++index)
-          new SparkParticle(worldPosition, Vector2.op_Multiply(Vector2.op_UnaryNegation(Utils.RotatedByRandom(Utils.ToRotationVector2(this.NPC.rotation), 0.39269909262657166)), Utils.NextFloat(Main.rand, 8f, 12f)), Color.Orange, 1f, 40).Spawn();
-      }
-      this.Anim = (double) this.Timer <= 45.0 || (double) this.Timer >= 150.0 ? 0 : 3;
-      if ((double) this.Timer < 150.0)
-      {
-        if (!Main.dedServ)
-          FargoSoulsUtil.ScreenshakeRumble(6f);
-        if (((Entity) Main.LocalPlayer).wet)
-          ((Entity) Main.LocalPlayer).velocity.Y -= 0.05f;
-      }
-      if ((double) this.Timer == 150.0)
-      {
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), 20f);
-        SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.BaronYell, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        this.Phase = 2;
-        FargoSoulsUtil.ClearHostileProjectiles(2, ((Entity) this.NPC).whoAmI);
-        Mod mod;
-        this.Music = Terraria.ModLoader.ModLoader.TryGetMod("FargowiltasMusic", ref mod) ? MusicLoader.GetMusicSlot(mod, "Assets/Music/Baron2") : 12;
-      }
-      if ((double) this.Timer <= 150.0)
-        return;
-      if (!this.Wet() || (double) this.Timer > 210.0)
-      {
-        NPC npc = this.NPC;
-        ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.95f);
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < 0.10000000149011612)
-        {
-          this.DidWhirlpool = false;
-          this.HitPlayer = true;
-          this.availablestates.Clear();
-          this.StateReset();
-        }
-      }
-      if (!((Entity) Main.LocalPlayer).wet || (double) ((Entity) Main.LocalPlayer).velocity.Y <= -30.0)
-        return;
-      ((Entity) Main.LocalPlayer).velocity.Y -= 1.25f;
-      ((Entity) Main.LocalPlayer).position.Y -= 6f;
-    }
-
-    private void DeathAnimation()
-    {
-      Main.musicFade[Main.curMusic] = (float) Utils.Lerp(1.0, 0.30000001192092896, (double) this.Timer / 200.0);
-      NPC npc1 = this.NPC;
-      ((Entity) npc1).velocity = Vector2.op_Multiply(((Entity) npc1).velocity, 0.96f);
-      this.Trail = 8;
-      this.Anim = 1;
-      this.NPC.noTileCollide = false;
-      this.NPC.waterMovementSpeed = 0.75f;
-      if ((double) ((Entity) this.NPC).velocity.Y < 20.0)
-        ((Entity) this.NPC).velocity.Y += 0.6f;
-      if ((double) this.Timer % 20.0 == 19.0)
-      {
-        SoundStyle beep = BaronNuke.Beep;
-        ((SoundStyle) ref beep).Pitch = Utils.Clamp<float>((float) (1.25 * ((double) this.Timer / 200.0) - 1.0), -1f, 1f);
-        SoundEngine.PlaySound(ref beep, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-      }
-      if ((double) this.Timer % (double) (int) Math.Round(30.0 - 28.0 * ((double) this.Timer / 200.0)) == 0.0)
-      {
-        Vector2 vector2_1 = Vector2.op_Addition(((Entity) this.NPC).position, Vector2.op_Division(((Entity) this.NPC).Size, 3f));
-        Rectangle rectangle;
-        // ISSUE: explicit constructor call
-        ((Rectangle) ref rectangle).\u002Ector((int) vector2_1.X, (int) vector2_1.Y, (int) ((double) ((Entity) this.NPC).width / 3.0), (int) ((double) ((Entity) this.NPC).height / 3.0));
-        Vector2 vector2_2 = Utils.NextVector2FromRectangle(Main.rand, rectangle);
-        SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(vector2_2), (SoundUpdateCallback) null);
-        Vector2 position = vector2_2;
-        Vector2 velocity = ((Entity) this.NPC).velocity;
-        new ExpandingBloomParticle(position, velocity, Color.Lerp(Color.Yellow, Color.Red, Utils.NextFloat(Main.rand)), Vector2.op_Multiply(Vector2.One, 3f), Vector2.op_Multiply(Vector2.One, 6f), 15).Spawn();
-        Vector2 vector2_3 = Utils.NextVector2CircularEdge(Main.rand, 1f, 1f);
-        float num1 = Utils.NextFloat(Main.rand, 6f, 15f);
-        int num2 = Main.rand.Next(6) + 1;
-        if (!Main.dedServ)
-        {
-          IEntitySource sourceFromThis = ((Entity) this.NPC).GetSource_FromThis((string) null);
-          Vector2 vector2_4 = position;
-          Vector2 vector2_5 = Vector2.op_Multiply(vector2_3, num1);
-          string name = ((ModType) this).Mod.Name;
-          DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(14, 1);
-          interpolatedStringHandler.AppendLiteral("BaronScrapGore");
-          interpolatedStringHandler.AppendFormatted<int>(num2);
-          string stringAndClear = interpolatedStringHandler.ToStringAndClear();
-          int type = ModContent.Find<ModGore>(name, stringAndClear).Type;
-          double scale = (double) this.NPC.scale;
-          Gore.NewGore(sourceFromThis, vector2_4, vector2_5, type, (float) scale);
-        }
-      }
-      if (this.Wet())
-      {
-        NPC npc2 = this.NPC;
-        ((Entity) npc2).velocity = Vector2.op_Multiply(((Entity) npc2).velocity, 0.85f);
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), ((Vector2) ref ((Entity) this.NPC).velocity).Length()), 0.2f);
-        this.RotateTowards(Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(Vector2.UnitX, (float) Math.Sign(Utils.ToRotationVector2(this.NPC.rotation).X))), 0.25f);
-      }
-      else
-        this.RotateTowards(Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.UnitY), 1.2f);
-      if (!Collision.SolidCollision(Vector2.op_Addition(((Entity) this.NPC).position, ((Entity) this.NPC).velocity), ((Entity) this.NPC).width, ((Entity) this.NPC).height) && (double) this.Timer <= 200.0)
-        return;
-      SoundEngine.PlaySound(ref SoundID.Item62, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-      this.NPC.StrikeInstantKill();
-    }
-
-    private void Swim()
-    {
-      int num1 = (int) Math.Min(((Entity) this.NPC).Distance(((Entity) this.player).Center) + 50f, 450f);
-      if ((double) this.Timer == 1.0)
-      {
-        if (Collision.SolidCollision(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height))
-        {
-          this.AI3 = -2f;
-          for (int index = 0; index < 30; ++index)
-          {
-            this.LockVector1 = Vector2.op_Addition(((Entity) this.player).Center, Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitX, 6.2831854820251465), (float) num1));
-            if (!Collision.SolidCollision(Vector2.op_Subtraction(this.LockVector1, Vector2.op_Division(((Entity) this.NPC).Size, 2f)), ((Entity) this.NPC).width, ((Entity) this.NPC).height) && this.Wet(new Vector2?(Vector2.op_Subtraction(this.LockVector1, Vector2.op_Division(((Entity) this.NPC).Size, 2f)))))
-              break;
-          }
-        }
-        else
-          this.LockVector1 = Vector2.op_Addition(((Entity) this.player).Center, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.player, ((Entity) this.NPC).Center), (float) num1));
-        if (this.Wet() && WorldSavingSystem.MasochistModeReal)
-          Thirsty();
-      }
-      if ((double) Vector2.Distance(((Entity) this.NPC).Center, this.LockVector1) < 25.0 || (double) this.Timer > 100.0 || (double) this.AI3 != -2.0 && (double) this.AI3 != 0.0)
-      {
-        this.AI3 = (float) (((double) this.AI3 + 1.0) * 3.0);
-        NPC npc = this.NPC;
-        ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.85f);
-        this.RotateTowards(((Entity) this.player).Center, 3f);
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() >= 0.10000000149011612 || (double) this.Timer <= 50.0)
-          return;
-        if (this.Wet() && WorldSavingSystem.MasochistModeReal)
-          Thirsty();
-        ((Entity) this.NPC).velocity = Vector2.Zero;
-        this.StateReset();
-      }
-      else
-      {
-        if (Collision.SolidCollision(Vector2.op_Addition(((Entity) this.NPC).Center, ((Entity) this.NPC).velocity), ((Entity) this.NPC).width, ((Entity) this.NPC).height) && (double) this.Timer < 40.0 && (double) this.AI3 != -2.0)
-          this.Timer = 40f;
-        Vector2 vector2 = Vector2.op_Subtraction(this.LockVector1, ((Entity) this.NPC).Center);
-        float num2 = (double) this.AI3 >= 0.0 ? 28f : 14f;
-        if (WorldSavingSystem.EternityMode && !WorldSavingSystem.MasochistModeReal)
-          num2 *= 1.2f;
-        float num3 = (double) this.AI3 >= 0.0 ? 20f : 10f;
-        ((Vector2) ref vector2).Normalize();
-        vector2 = Vector2.op_Multiply(vector2, num2);
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Division(Vector2.op_Addition(Vector2.op_Multiply(((Entity) this.NPC).velocity, num3 - 1f), vector2), num3), 0.3f);
-        if (Vector2.op_Equality(((Entity) this.NPC).velocity, Vector2.Zero))
-        {
-          ((Entity) this.NPC).velocity.X = -0.15f;
-          ((Entity) this.NPC).velocity.Y = -0.05f;
-        }
-        this.NPC.rotation = Utils.ToRotation(((Entity) this.NPC).velocity);
-      }
-
-      void Thirsty()
-      {
-        int num1 = (int) ((Entity) this.NPC).Center.X / 16;
-        int num2 = (int) ((Entity) this.NPC).Center.Y / 16;
-        Tile tile = ((Tilemap) ref Main.tile)[num1, num2];
-        if (((Tile) ref tile).LiquidAmount <= (byte) 0 || ((Tile) ref tile).LiquidType != 0)
-          return;
-        ((Tile) ref tile).LiquidAmount = (byte) 0;
-        CombatText.NewText(((Entity) this.NPC).Hitbox, Color.Blue, Language.GetTextValue("Mods.FargowiltasSouls.NPCs.BanishedBaron.Slurp"), false, false);
-        if (Main.netMode == 2)
-        {
-          NetMessage.sendWater(num1, num2);
-          NetMessage.SendTileSquare(-1, num1, num2, 1, (TileChangeType) 0);
-        }
-        else
-          WorldGen.SquareTileFrame(num1, num2, true);
-      }
-    }
-
-    private void P1BigNuke()
-    {
-      this.RotateTowards(((Entity) this.player).Center, 2f);
-      this.Anim = (double) this.Timer >= 30.0 ? 0 : 1;
-      if ((double) this.Timer == 30.0)
-      {
-        SoundEngine.PlaySound(ref SoundID.Item61, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        if (FargoSoulsUtil.HostCheck)
-        {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), 10f);
-          this.AI2 = Utils.NextFloat(Main.rand, 190f, 220f);
-          this.NPC.netUpdate = true;
-          Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, vector2, ModContent.ProjectileType<BaronNuke>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, this.AI2, (float) ((Entity) this.player).whoAmI, 0.0f);
-        }
-      }
-      if ((double) this.Timer <= (double) this.AI2 + 10.0 || (double) this.AI2 <= 0.0)
-        return;
-      this.Anim = 0;
-      this.StateReset();
-    }
-
-    private void P1RocketStorm()
-    {
-      this.RotateTowards(((Entity) this.player).Center, 3f);
-      if ((double) this.Timer < 80.0 && (double) this.Timer % 6.0 == 0.0 && (double) this.Timer > 30.0)
-      {
-        this.Anim = 1;
-        SoundEngine.PlaySound(ref SoundID.Item64, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        if (FargoSoulsUtil.HostCheck)
-        {
-          float num1 = (float) (((double) this.Timer - 10.0) / 60.0);
-          Vector2 vector2 = Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation + (1.57079637f + num1 * 0.5235988f) * (float) -((Entity) this.NPC).direction), (float) (10.0 * (double) num1 + 10.0));
-          float num2 = WorldSavingSystem.MasochistModeReal ? 1.2f : 1f;
-          Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, vector2, ModContent.ProjectileType<BaronRocket>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 3f, (float) ((Entity) this.player).whoAmI, num2);
-        }
-      }
-      if ((double) this.Timer <= 80.0)
-        return;
-      this.Anim = 0;
-      this.StateReset();
-    }
-
-    private void P1SurfaceMines()
-    {
-      this.NPC.noTileCollide = true;
-      if ((double) this.Timer == 1.0)
-      {
-        Vector2 vector2 = Vector2.op_Subtraction(((Entity) this.player).Center, ((Entity) this.NPC).Center);
-        if ((double) Math.Abs(vector2.X) < 200.0 || (double) Math.Abs(vector2.Y) > 350.0)
-        {
-          this.State = 15f;
-          this.StateReset();
-        }
-        this.LockVector1 = new Vector2(((Entity) this.player).Center.X, ((Entity) this.player).Center.Y + 800f);
-      }
-      if ((double) this.Timer >= 1.0)
-        this.RotateTowards(this.LockVector1, 2f);
-      if ((double) this.Timer < 33.0)
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_Subtraction(Vector2.op_Addition(Vector2.op_Multiply(Vector2.UnitX, ((Entity) this.player).Center.X + (float) (Math.Sign(((Entity) this.NPC).Center.X - ((Entity) this.player).Center.X) * 400)), Vector2.op_Multiply(Vector2.UnitY, ((Entity) this.player).Center.Y)), ((Entity) this.NPC).Center), this.Timer / 33f), 3f), 0.3f);
-      if ((double) this.Timer >= 33.0 && (double) this.Timer <= 40.0)
-        ((Entity) this.NPC).velocity = Vector2.Lerp(Vector2.op_Division(((Entity) this.NPC).velocity, 3f), Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), 12f), (float) (((double) this.Timer - 33.0) / 7.0));
-      if ((double) this.Timer == 40.0)
-        SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.BaronYell, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-      if ((double) this.Timer > 60.0)
-      {
-        NPC npc = this.NPC;
-        ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.97f);
-      }
-      else if ((double) ((Entity) this.player).velocity.Y > 0.0)
-        ((Entity) this.NPC).velocity.Y += ((Entity) this.player).velocity.Y;
-      if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() > 12.0)
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) this.NPC).velocity), 12f);
-      if ((double) this.Timer >= 60.0 && (double) this.Timer % 5.0 == 0.0 && (double) this.AI3 < 4.0)
-      {
-        ++this.AI3;
-        SoundEngine.PlaySound(ref SoundID.Item61, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        if (FargoSoulsUtil.HostCheck)
-        {
-          Vector2 rotationVector2 = Utils.ToRotationVector2(this.NPC.rotation);
-          float num = Math.Max(((Entity) this.player).velocity.Y, 0.0f);
-          Vector2 vector2_1 = Vector2.op_Addition(Vector2.op_Multiply(Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, (float) Math.Sign(rotationVector2.X)), this.AI3), 8f), Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitY, rotationVector2.Y), 8f + num));
-          Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, vector2_1, ModContent.ProjectileType<BaronMine>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 1f, (float) ((Entity) this.player).whoAmI, 0.0f);
-          if (WorldSavingSystem.MasochistModeReal)
-          {
-            Vector2 vector2_2 = Vector2.op_Addition(Vector2.op_Multiply(Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, (float) Math.Sign(-rotationVector2.X)), this.AI3 - 1f), 8f), Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitY, rotationVector2.Y), 8f + num));
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, vector2_2, ModContent.ProjectileType<BaronMine>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 1f, (float) ((Entity) this.player).whoAmI, 0.0f);
-          }
-        }
-      }
-      if ((double) this.Timer <= 160.0)
-        return;
-      this.StateReset();
-    }
-
-    private void P1FadeDash()
-    {
-      int num1 = WorldSavingSystem.EternityMode ? 30 : 50;
-      if ((double) this.Timer == 1.0)
-      {
-        this.LockVector1 = !Utils.NextBool(Main.rand) ? Utils.RotatedByRandom(Vector2.op_Multiply(Vector2.op_UnaryNegation(Vector2.UnitY), (float) Main.rand.Next(500, 600)), 1.5707963705062866) : Utils.RotatedByRandom(Utils.RotatedBy(Vector2.op_Multiply(Vector2.op_UnaryNegation(Vector2.UnitY), 620f), 1.5707963705062866 * (Utils.NextBool(Main.rand) ? 1.0 : -1.0), new Vector2()), 0.78539818525314331);
-        this.NPC.netUpdate = true;
-      }
-      if ((double) this.Timer < 90.0 && (double) this.Timer % 3.0 == 0.0)
-      {
-        bool flag = false;
-        Vector2 vector2 = Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1), Vector2.op_Division(((Entity) this.NPC).Size, 2f));
-        if (!Collision.SolidCollision(vector2, ((Entity) this.NPC).width, ((Entity) this.NPC).height) && !Collision.WetCollision(vector2, ((Entity) this.NPC).width, ((Entity) this.NPC).height))
-          flag = true;
-        for (float num2 = 0.0f; (double) num2 < 0.60000002384185791; num2 += 0.1f)
-        {
-          if (Collision.SolidCollision(Vector2.op_Subtraction(vector2, Vector2.op_Multiply(this.LockVector1, num2)), ((Entity) this.NPC).width, ((Entity) this.NPC).height))
-          {
-            flag = true;
-            break;
-          }
-        }
-        if (flag)
-        {
-          this.LockVector1 = Utils.RotatedByRandom(Vector2.op_Multiply(Vector2.UnitY, (float) Main.rand.Next(500, 600)), 3.1415927410125732);
-          this.NPC.netUpdate = true;
-        }
-      }
-      if ((double) this.Timer < 60.0)
-      {
-        if (this.NPC.buffType[0] != 0)
-          this.NPC.DelBuff(0);
-        this.RotateTowards(((Entity) this.player).Center, 2f);
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < 1.0)
-        {
-          NPC npc1 = this.NPC;
-          ((Entity) npc1).velocity = Vector2.op_Addition(((Entity) npc1).velocity, Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), 0.02f));
-          NPC npc2 = this.NPC;
-          ((Entity) npc2).velocity = Vector2.op_Multiply(((Entity) npc2).velocity, 1.03f);
-        }
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), ((Vector2) ref ((Entity) this.NPC).velocity).Length()), 0.3f);
-        this.NPC.Opacity -= 0.02f;
-        if ((double) this.NPC.Opacity < 0.0)
-          this.NPC.Opacity = 0.0f;
-        this.HitPlayer = false;
-      }
-      if ((double) this.Timer == 60.0 && FargoSoulsUtil.HostCheck)
-      {
-        this.NPC.netUpdate = true;
-        this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1)));
-      }
-      if ((double) this.Timer > 60.0 && (double) this.Timer < 90.0)
-      {
-        if (this.NPC.buffType[0] != 0)
-          this.NPC.DelBuff(0);
-        this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1)));
-        this.NPC.noTileCollide = true;
-        ((Entity) this.NPC).Center = Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1);
-        this.NPC.netUpdate = true;
-        this.NPC.dontTakeDamage = true;
-      }
-      if ((double) this.Timer == 90.0)
-      {
-        if (!Collision.SolidCollision(((Entity) this.NPC).position, ((Entity) this.NPC).width, ((Entity) this.NPC).height))
-          this.NPC.noTileCollide = false;
-        ((Entity) this.NPC).velocity = Vector2.Zero;
-        this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) this.player).Center));
-        if (FargoSoulsUtil.HostCheck)
-          Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), (float) ((Entity) this.NPC).width), 0.35f)), Vector2.Zero, ModContent.ProjectileType<BaronEyeFlash>(), 0, 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, 0.0f, 0.0f);
-      }
-      if ((double) this.Timer > 90.0 && (double) this.Timer < (double) (90 + num1))
-      {
-        this.RotateTowards(((Entity) this.player).Center, 2f);
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < 3.0)
-        {
-          NPC npc3 = this.NPC;
-          ((Entity) npc3).velocity = Vector2.op_Addition(((Entity) npc3).velocity, Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), 0.03f));
-          NPC npc4 = this.NPC;
-          ((Entity) npc4).velocity = Vector2.op_Multiply(((Entity) npc4).velocity, 1.03f);
-        }
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), ((Vector2) ref ((Entity) this.NPC).velocity).Length()), 0.3f);
-        this.NPC.Opacity += 1f / (float) num1;
-        if ((double) this.NPC.Opacity > 1.0)
-          this.NPC.Opacity = 1f;
-        this.HitPlayer = true;
-      }
-      int num3 = 90 + num1;
-      int num4 = 7;
-      float num5 = 45f;
-      Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) this.player).Center, ((Entity) this.NPC).Center);
-      float num6 = (float) Math.Sqrt((double) ((Vector2) ref vector2_1).Length()) / 1.5f;
-      if ((double) this.Timer > (double) (num3 - num4) && (double) this.Timer < (double) num3)
-      {
-        float num7 = Math.Max((this.Timer - (float) (num3 - num4)) / (float) num4, 0.0f);
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), num5 + num6), num7);
-      }
-      if ((double) this.Timer == (double) num3)
-      {
-        this.NPC.Opacity = 1f;
-        this.NPC.dontTakeDamage = false;
-        SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.BaronRoar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), num5 + num6);
-      }
-      if ((double) this.Timer > (double) (90 + num1))
-      {
-        if (this.NPC.noTileCollide)
-        {
-          NPC npc = this.NPC;
-          ((Entity) npc).position = Vector2.op_Subtraction(((Entity) npc).position, Vector2.op_Division(((Entity) this.NPC).velocity, 2f));
-        }
-        else if (Collision.SolidCollision(Vector2.op_Addition(((Entity) this.NPC).position, ((Entity) this.NPC).velocity), ((Entity) this.NPC).width, ((Entity) this.NPC).height))
-        {
-          SoundEngine.PlaySound(ref SoundID.Dig, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-          ((Entity) this.NPC).velocity = Vector2.op_Division(Vector2.op_UnaryNegation(((Entity) this.NPC).velocity), 4f);
-          ((Entity) this.NPC).velocity = Utils.RotatedByRandom(((Entity) this.NPC).velocity, 0.47123894095420837);
-          this.NPC.SimpleStrikeNPC(500, 1, false, 0.0f, (DamageClass) null, false, 0.0f, false);
-          this.AI3 = 1f;
-          if (FargoSoulsUtil.HostCheck)
-          {
-            for (int index = 0; index < 6; ++index)
             {
-              Vector2 vector2_2 = Vector2.op_Multiply(Vector2.Normalize(Utils.RotatedByRandom(((Entity) this.NPC).velocity, 0.62831854820251465)), Utils.NextFloat(Main.rand, 7f, 10f));
-              Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, vector2_2), vector2_2, ModContent.ProjectileType<BaronScrap>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
+                //.velocity = Vector2.Lerp(NPC.velocity, (target - NPC.Center) / 10, 0.3f);
+                Movement(target, 20f, 0.75f);
             }
-          }
-        }
-        this.NPC.dontTakeDamage = false;
-        NPC npc5 = this.NPC;
-        ((Entity) npc5).velocity = Vector2.op_Multiply(((Entity) npc5).velocity, 0.975f);
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() > 8.0 && WorldSavingSystem.EternityMode && (double) this.AI3 != 1.0 && (double) this.Timer % 11.0 == 0.0)
-        {
-          SoundEngine.PlaySound(ref SoundID.Item64, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-          for (int index = -1; index < 2; index += 2)
-          {
-            if (FargoSoulsUtil.HostCheck)
+
+
+            if (AI3 != 0 && Timer < 300)
             {
-              Vector2 rotationVector2 = Utils.ToRotationVector2(this.NPC.rotation);
-              double num8 = 1.5707963705062866 * (double) index;
-              vector2_1 = new Vector2();
-              Vector2 vector2_3 = vector2_1;
-              Vector2 vector2_4 = Vector2.op_Multiply(Utils.RotatedBy(rotationVector2, num8, vector2_3), 1f);
-              Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(vector2_4, 20f)), Vector2.op_Multiply(vector2_4, 0.3f), ModContent.ProjectileType<BaronRocket>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 4f, (float) ((Entity) this.player).whoAmI, 0.0f);
+
+                bool volleyTime = (Timer > 40 && Timer < 100) || (Timer > 140 && Timer < 200) || (Timer > 240 && Timer < 300);
+                if (volleyTime)
+                {
+                    Anim = 1;
+                    if (Timer % 8 == 0)
+                    {
+                        SoundEngine.PlaySound(SoundID.Item64, NPC.Center);
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            int side = (Timer > 140 && Timer < 200) ? -1 : 1;
+                            float speed = Main.rand.NextFloat(10, 25);
+                            Vector2 vel = NPC.rotation.ToRotationVector2().RotatedBy(MathHelper.PiOver2 * side).RotatedByRandom(MathHelper.Pi / 8) * speed;
+                            float trackingPower = WorldSavingSystem.MasochistModeReal ? 1 : 1;
+                            Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + (Vector2.Normalize(vel) * 20), vel, ModContent.ProjectileType<BaronRocket>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 1, player.whoAmI, trackingPower); //ai2 is tracking power
+                        }
+                    }
+                }
+                else
+                {
+                    Anim = 0;
+                }
+                //fire rockets
             }
-          }
-        }
-      }
-      if (((double) this.Timer == (double) (90 + num1 + 15) || (double) this.Timer == (double) (90 + num1 + 30)) && WorldSavingSystem.EternityMode && (double) this.AI3 != 1.0)
-      {
-        SoundEngine.PlaySound(ref SoundID.Item64, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        if (FargoSoulsUtil.HostCheck)
-        {
-          Vector2 vector2_5 = Vector2.op_Multiply(((Entity) this.NPC).velocity, 1.2f);
-          float num9 = WorldSavingSystem.MasochistModeReal ? 1.5f : 1f;
-          Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, vector2_5, ModContent.ProjectileType<BaronRocket>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 3f, (float) ((Entity) this.player).whoAmI, num9);
-        }
-      }
-      if ((double) this.Timer <= (double) (90 + num1 + 30) || (double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() >= 1.5)
-        return;
-      this.NPC.noTileCollide = false;
-      this.StateReset();
-    }
 
-    private void P1SineSwim()
-    {
-      int num1 = WorldSavingSystem.MasochistModeReal ? 100 : (WorldSavingSystem.EternityMode ? 150 : 180);
-      float num2 = (float) Math.Pow((double) this.Timer / (double) num1, 2.0);
-      this.NPC.noTileCollide = true;
-      if ((double) this.Timer == 1.0)
-      {
-        this.AI2 = (float) Math.Sign(((Entity) this.NPC).Center.X - ((Entity) this.player).Center.X);
-        this.LockVector1 = Vector2.op_Addition(((Entity) this.player).Center, new Vector2(1000f * this.AI2, 0.0f));
-        SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.BaronYell, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        this.NPC.netUpdate = true;
-      }
-      if ((double) this.AI3 == 0.0)
-      {
-        Vector2 vector2_1 = Vector2.op_Addition(this.LockVector1, new Vector2((float) (-(double) this.AI2 * (double) num2 * 1750.0), 600f * (float) Math.Sin(6.2831854820251465 * (double) num2 * 2.0)));
-        this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2_1));
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_Multiply(1f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2_1)), ((Entity) this.NPC).Distance(vector2_1)), 1.2f), 0.3f);
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() > 25.0)
-        {
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 25f / ((Vector2) ref ((Entity) this.NPC).velocity).Length());
-        }
-        if ((double) this.Timer == Math.Round((double) num1 * 0.33000001311302185) || (double) this.Timer == Math.Round((double) num1 * 0.6600000262260437) || (double) this.Timer == Math.Round((double) num1 * 0.99000000953674316))
-        {
-          SoundEngine.PlaySound(ref SoundID.Item63, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 vector2_2 = Vector2.op_Multiply(Utils.ToRotationVector2(-this.NPC.rotation), 5f);
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, vector2_2, ModContent.ProjectileType<BaronMine>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 2f, (float) ((Entity) this.player).whoAmI, 0.0f);
-          }
-        }
-        if ((double) num2 > 1.0)
-          this.AI3 = 1f;
-      }
-      if ((double) this.AI3 == 1.0)
-      {
-        NPC npc = this.NPC;
-        ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.96f);
-      }
-      if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() >= 1.0)
-        return;
-      this.NPC.noTileCollide = false;
-      ((Entity) this.NPC).velocity = Vector2.Zero;
-      this.StateReset();
-    }
-
-    private void P1Whirlpool()
-    {
-      this.NPC.noTileCollide = true;
-      if ((double) this.Timer == 1.0)
-      {
-        if (this.DidWhirlpool)
-        {
-          this.DidWhirlpool = false;
-          this.LastState = (int) this.State;
-          this.State = 15f;
-          this.StateReset();
-          return;
-        }
-        this.DidWhirlpool = true;
-        for (int index = 0; index < 20; ++index)
-        {
-          this.LockVector1 = Vector2.op_Subtraction(((Entity) this.player).Center, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitY, 2000f), (float) (20 - index)));
-          if (this.Wet(new Vector2?(Vector2.op_Addition(this.LockVector1, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitY, 2f), 2000f), 20f)))))
-          {
-            this.NPC.netUpdate = true;
-            break;
-          }
-        }
-      }
-      if ((double) this.Timer < 60.0)
-      {
-        this.HitPlayer = false;
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.op_Subtraction(this.LockVector1, ((Entity) this.NPC).Center), this.Timer / 60f), 0.04f), 0.3f);
-        this.RotateTowards(this.LockVector1, 2f);
-        if (!this.Wet(new Vector2?(Vector2.op_Addition(((Entity) this.NPC).position, Vector2.op_Division(Vector2.op_Multiply(Vector2.UnitY, (float) ((Entity) this.NPC).height), 4f)))) && (double) ((Entity) this.NPC).Center.Y < (double) ((Entity) this.player).Center.Y)
-        {
-          if (Collision.WetCollision(((Entity) this.player).position, ((Entity) this.player).width, ((Entity) this.player).height))
-            ((Entity) this.NPC).velocity.Y *= 0.2f;
-          else if ((double) ((Entity) this.NPC).Center.Y < (double) ((Entity) this.player).Center.Y - 500.0)
-            ((Entity) this.NPC).velocity.Y *= 0.2f;
-        }
-        else
-          ((Entity) this.NPC).velocity.Y += 0.25f;
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).LengthSquared() >= 900.0)
-          ((Entity) this.NPC).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) this.NPC).velocity), 30f);
-      }
-      else
-      {
-        this.HitPlayer = true;
-        ((Entity) this.NPC).velocity = Vector2.Zero;
-      }
-      if ((double) this.Timer > 50.0)
-        this.RotateTowards(Vector2.op_Subtraction(((Entity) this.NPC).Center, Utils.RotatedBy(Vector2.UnitY, (double) MathHelper.ToRadians(1f), new Vector2())), 16f);
-      if ((double) this.Timer == 60.0 && FargoSoulsUtil.HostCheck)
-      {
-        this.AnimationSpeed = 2f;
-        int num = Main.rand.Next(2);
-        Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(Vector2.UnitY, (float) (((Entity) this.NPC).height / 2 + 24))), Vector2.Zero, ModContent.ProjectileType<BaronWhirlpool>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, 40f, (float) num);
-      }
-      if ((double) this.Timer < 480.0)
-        return;
-      this.AnimationSpeed = 1f;
-      this.NPC.noTileCollide = false;
-      ((Entity) this.NPC).velocity = Vector2.Zero;
-      this.StateReset();
-    }
-
-    private void P2PredictiveDash()
-    {
-      float shootSpeed = 35f;
-      if ((double) this.Timer == 1.0 && FargoSoulsUtil.HostCheck)
-        Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<BloomLine>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 2f, (float) ((Entity) this.NPC).whoAmI, 0.0f);
-      if ((double) this.Timer == 67.0)
-        SoundEngine.PlaySound(ref SoundID.MaxMana, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-      if ((double) this.Timer < 67.0)
-      {
-        Vector2 vector2 = Vector2.op_Addition(((Entity) this.player).Center, Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(((Entity) this.NPC).Center, ((Entity) this.player).Center)), 500f));
-        if ((double) ((Entity) this.NPC).Distance(vector2) < 25.0 && (double) this.AI3 == 0.0 || (double) this.Timer % 60.0 == 0.0 && (double) this.AI3 != 0.0)
-        {
-          this.AI3 = -1f;
-          this.NPC.netUpdate = true;
-        }
-        if ((double) this.AI3 == 0.0)
-        {
-          if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < 20.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0)
-          {
-            NPC npc = this.NPC;
-            ((Entity) npc).velocity = Vector2.op_Addition(((Entity) npc).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), 0.02f));
-            ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), ((Vector2) ref ((Entity) this.NPC).velocity).Length()), 1.05f), 0.5f);
-          }
-          else
-            ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), (float) (20.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0)), 0.5f);
-        }
-        else
-          ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Division(Vector2.op_Subtraction(vector2, ((Entity) this.NPC).Center), 10f), 0.3f);
-        if ((double) ((Entity) this.NPC).Distance(((Entity) this.player).Center) < 200.0)
-        {
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Subtraction(((Entity) npc).velocity, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) this.player).Center));
-        }
-        this.LockVector1 = FargoSoulsUtil.PredictiveAim(((Entity) this.NPC).Center, ((Entity) this.player).Center, ((Entity) this.player).velocity, shootSpeed);
-        this.NPC.rotation = Utils.ToRotation(Vector2.Lerp(Utils.ToRotationVector2(this.NPC.rotation), Vector2.Normalize(this.LockVector1), 0.2f));
-      }
-      int num1 = 7;
-      if ((double) this.Timer > (double) (72 - num1) && (double) this.Timer < 72.0)
-      {
-        float num2 = Math.Max((this.Timer - (float) (72 - num1)) / (float) num1, 0.0f);
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), shootSpeed), num2);
-      }
-      if ((double) this.Timer == 72.0)
-      {
-        SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.BaronRoar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        this.Trail = 8;
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), shootSpeed);
-        Vector2 vector2_1 = Vector2.Normalize(((Entity) this.NPC).velocity);
-        Vector2 vector2_2 = Vector2.op_Subtraction(((Entity) this.player).Center, ((Entity) this.NPC).Center);
-        float num3 = Vector2.Dot(vector2_1, vector2_2);
-        this.LockVector2 = Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(vector2_1, num3));
-        if ((double) Math.Abs(FargoSoulsUtil.RotationDifference(this.LockVector1, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, ((Entity) this.player).Center))) > 1.5707963705062866)
-          this.AI3 = 1f;
-      }
-      if ((double) this.Timer >= 72.0 && (double) this.Timer < 137.0 && (double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() > 5.0 && (double) this.Timer % (double) (int) (160.0 / (double) ((Vector2) ref ((Entity) this.NPC).velocity).Length()) == 0.0)
-      {
-        SoundEngine.PlaySound(ref SoundID.Item64, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        for (int index = -1; index < 2; index += 2)
-        {
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedBy(Utils.ToRotationVector2(this.NPC.rotation), 1.5707963705062866 * (double) index, new Vector2()), 1f);
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(vector2, 20f)), Vector2.op_Multiply(vector2, 0.3f), ModContent.ProjectileType<BaronRocket>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 2f, (float) ((Entity) this.player).whoAmI, 0.0f);
-          }
-        }
-      }
-      if ((double) ((Entity) this.NPC).Distance(this.LockVector2) <= (double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() || (double) this.Timer > 117.0 && (double) this.Timer < 162.0 || (double) this.Timer > 207.0 && WorldSavingSystem.EternityMode)
-        this.AI3 = 1f;
-      if ((double) this.AI3 == 1.0)
-      {
-        NPC npc = this.NPC;
-        ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.97f);
-        if ((double) this.Timer >= 137.0)
-          this.RotateTowards(((Entity) this.player).Center, 8f);
-      }
-      if ((double) this.Timer == 162.0 && WorldSavingSystem.EternityMode)
-      {
-        SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.BaronRoar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        ((Entity) this.NPC).velocity = Vector2.op_Multiply(Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), shootSpeed), 1.2f);
-      }
-      if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() >= 5.0 || (double) this.AI3 != 1.0 || WorldSavingSystem.EternityMode && (double) this.Timer <= 162.0)
-        return;
-      this.Trail = 0;
-      NPC npc1 = this.NPC;
-      ((Entity) npc1).velocity = Vector2.op_Multiply(((Entity) npc1).velocity, 0.9f);
-      if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() >= 0.699999988079071)
-        return;
-      this.StateReset();
-    }
-
-    private void P2CarpetBomb()
-    {
-      if ((double) this.Timer == 1.0)
-        this.AI2 = (float) Math.Sign(((Entity) this.NPC).Center.X - ((Entity) this.player).Center.X);
-      if ((double) this.AI3 == 0.0)
-      {
-        this.LockVector1 = Vector2.op_Addition(((Entity) this.player).Center, new Vector2(800f * this.AI2, -300f));
-        this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, this.LockVector1));
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < 30.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length())
-        {
-          NPC npc1 = this.NPC;
-          ((Entity) npc1).velocity = Vector2.op_Addition(((Entity) npc1).velocity, Vector2.op_Multiply(0.5f, Utils.ToRotationVector2(this.NPC.rotation)));
-          NPC npc2 = this.NPC;
-          ((Entity) npc2).velocity = Vector2.op_Multiply(((Entity) npc2).velocity, 1.03f);
-        }
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(((Vector2) ref ((Entity) this.NPC).velocity).Length(), Utils.ToRotationVector2(this.NPC.rotation)), 0.3f);
-        if ((double) ((Entity) this.NPC).Distance(this.LockVector1) < 25.0)
-          this.AI3 = 1f;
-      }
-      if ((double) this.AI3 > 0.0)
-      {
-        float p = this.AI3 / 90f;
-        Vector2 vector2_1 = Curve(p);
-        this.NPC.rotation = Utils.ToRotation(Vector2.op_Subtraction(Curve(p + 1E-05f), vector2_1));
-        this.LockVector1 = Vector2.op_Addition(((Entity) this.player).Center, vector2_1);
-        ((Entity) this.NPC).velocity = Vector2.op_Subtraction(this.LockVector1, ((Entity) this.NPC).Center);
-        ++this.AI3;
-        if ((double) this.AI3 % Math.Round(90.0 / (WorldSavingSystem.MasochistModeReal ? 8.0 : (WorldSavingSystem.EternityMode ? 7.0 : 6.0))) == 0.0)
-        {
-          SoundEngine.PlaySound(ref SoundID.Item63, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 vector2_2;
-            // ISSUE: explicit constructor call
-            ((Vector2) ref vector2_2).\u002Ector(0.0f, (float) Main.rand.Next(15, 20));
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, vector2_2, ModContent.ProjectileType<BaronMine>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 2f, (float) ((Entity) this.player).whoAmI, 0.0f);
-          }
-        }
-        if ((double) p >= 1.0)
-        {
-          this.AI3 = -1f;
-          SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.BaronYell, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        }
-      }
-      if ((double) this.AI3 < 0.0)
-      {
-        if ((double) ((Entity) this.NPC).Distance(((Entity) this.player).Center) < 300.0 && (double) this.AI3 < -30.0)
-          this.AI2 = -2f;
-        if ((double) this.AI2 == -2.0)
-        {
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.975f);
-        }
-        else
-        {
-          float num = (float) (15.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0);
-          if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < (double) num)
-          {
-            NPC npc = this.NPC;
-            ((Entity) npc).velocity = Vector2.op_Addition(((Entity) npc).velocity, Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), 0.02f));
-            ((Entity) this.NPC).velocity = Vector2.op_Multiply(Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), ((Vector2) ref ((Entity) this.NPC).velocity).Length()), 1.03f);
-          }
-          else
-            ((Entity) this.NPC).velocity = Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), num);
-          this.RotateTowards(((Entity) this.player).Center, 2.5f);
-        }
-        --this.AI3;
-      }
-      if (((double) this.AI3 >= -30.0 || (double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() >= 1.25) && (double) this.AI3 >= -220.0)
-        return;
-      ((Entity) this.NPC).velocity = Vector2.Zero;
-      this.StateReset();
-
-      Vector2 Curve(float p)
-      {
-        return new Vector2((float) ((double) this.AI2 * 800.0 * (1.0 - 2.0 * (double) p)), (float) (-300.0 - 200.0 * Math.Sin(3.1415927410125732 * (double) p)));
-      }
-    }
-
-    private void P2RocketStorm()
-    {
-      float num1 = 1f;
-      float num2 = 0.5f;
-      if ((double) this.Timer == 1.0)
-      {
-        this.AI2 = (float) Math.Sign(((Entity) this.NPC).Center.X - ((Entity) this.player).Center.X);
-        this.LockVector1 = new Vector2(500f * this.AI2, 0.0f);
-      }
-      this.RotateTowards(((Entity) this.player).Center, 4f);
-      this.LockVector1 = Utils.RotatedBy(this.LockVector1, (double) MathHelper.ToRadians(this.AI3 + num2 * (float) Math.Sign(this.AI3)) * (double) num1, new Vector2());
-      Vector2 vector2_1 = Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1);
-      if ((double) ((Entity) this.NPC).Distance(vector2_1) < 200.0 && (double) this.AI3 == 0.0 || (double) this.Timer % 60.0 == 0.0 && (double) this.AI3 != 0.0)
-      {
-        this.AI3 = Utils.NextFloat(Main.rand, -1f, 1f);
-        this.NPC.netUpdate = true;
-      }
-      if ((double) this.AI3 == 0.0)
-      {
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() <= 20.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0)
-        {
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Addition(((Entity) npc).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2_1), 0.02f));
-          ((Entity) this.NPC).velocity = ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2_1), ((Vector2) ref ((Entity) this.NPC).velocity).Length()), 1.05f), 0.5f);
-        }
-        else
-          ((Entity) this.NPC).velocity = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2_1), (float) (20.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0));
-        if ((double) this.Timer > 2.0)
-          this.Timer = 2f;
-      }
-      else
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Division(Vector2.op_Subtraction(vector2_1, ((Entity) this.NPC).Center), 10f), 0.3f);
-      if ((double) this.AI3 != 0.0 && (double) this.Timer < 300.0)
-      {
-        if (((double) this.Timer > 40.0 && (double) this.Timer < 100.0 || (double) this.Timer > 140.0 && (double) this.Timer < 200.0 ? 1 : ((double) this.Timer <= 240.0 ? 0 : ((double) this.Timer < 300.0 ? 1 : 0))) != 0)
-        {
-          this.Anim = 1;
-          if ((double) this.Timer % 8.0 == 0.0)
-          {
-            SoundEngine.PlaySound(ref SoundID.Item64, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            if (FargoSoulsUtil.HostCheck)
+            if (Timer > 300)
             {
-              int num3 = (double) this.Timer <= 140.0 || (double) this.Timer >= 200.0 ? 1 : -1;
-              float num4 = Utils.NextFloat(Main.rand, 10f, 25f);
-              Vector2 vector2_2 = Vector2.op_Multiply(Utils.RotatedByRandom(Utils.RotatedBy(Utils.ToRotationVector2(this.NPC.rotation), 1.5707963705062866 * (double) num3, new Vector2()), 0.39269909262657166), num4);
-              float num5 = WorldSavingSystem.MasochistModeReal ? 1f : 1f;
-              Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, Vector2.op_Multiply(Vector2.Normalize(vector2_2), 20f)), vector2_2, ModContent.ProjectileType<BaronRocket>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 1f, (float) ((Entity) this.player).whoAmI, num5);
+                Anim = 0;
             }
-          }
-        }
-        else
-          this.Anim = 0;
-      }
-      if ((double) this.Timer > 300.0)
-        this.Anim = 0;
-      if ((double) this.Timer <= 310.0)
-        return;
-      ((Entity) this.NPC).velocity = Vector2.Zero;
-      this.StateReset();
-    }
-
-    private void P2SpinDash()
-    {
-      float num1 = 3.5f;
-      if ((double) this.Timer == 1.0)
-        this.AI2 = (float) Math.Sign(((Entity) this.NPC).Center.X - ((Entity) this.player).Center.X);
-      if ((double) this.AI3 == 0.0)
-      {
-        this.LockVector1 = Utils.RotatedBy(new Vector2(0.0f, 500f), 1.0995573997497559 * -(double) this.AI2, new Vector2());
-        Vector2 vector2 = Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1);
-        this.NPC.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2));
-        this.NPC.netUpdate = true;
-        float num2 = 500f * MathHelper.ToRadians(3f);
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < (double) num2 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length())
-        {
-          NPC npc1 = this.NPC;
-          ((Entity) npc1).velocity = Vector2.op_Addition(((Entity) npc1).velocity, Vector2.op_Multiply(0.5f, Utils.ToRotationVector2(this.NPC.rotation)));
-          NPC npc2 = this.NPC;
-          ((Entity) npc2).velocity = Vector2.op_Multiply(((Entity) npc2).velocity, 1.03f);
-        }
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(((Vector2) ref ((Entity) this.NPC).velocity).Length(), Utils.ToRotationVector2(this.NPC.rotation)), 0.3f);
-        if ((double) ((Entity) this.NPC).Distance(vector2) < 25.0)
-        {
-          this.AI3 = Utils.NextFloat(Main.rand, 0.2f, 0.4f);
-          this.NPC.netUpdate = true;
-        }
-      }
-      if ((double) this.AI3 > 0.0)
-      {
-        this.AI2 += (float) Math.Sign(this.AI2);
-        Vector2 vector2 = Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1);
-        if ((double) Math.Abs(this.AI2) <= 38.0)
-        {
-          ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Division(Vector2.op_Subtraction(vector2, ((Entity) this.NPC).Center), 10f), 0.3f);
-          this.NPC.rotation = Utils.ToRotation(((Entity) this.NPC).velocity);
-          if ((double) Math.Abs(this.AI2) == 38.0)
-            SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.BaronYell, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-        }
-        else
-        {
-          num1 = 0.025f;
-          this.RotateTowards(((Entity) this.player).Center, 6f);
-          if ((double) Math.Abs(this.AI2) > 65.0)
-          {
-            SoundEngine.PlaySound(ref FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.BaronRoar, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            ((Entity) this.NPC).velocity = Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), 27f);
-            this.AI3 = -1f;
-            this.AI2 = (float) Math.Sign(this.AI2);
-          }
-        }
-        this.LockVector1 = Utils.RotatedBy(this.LockVector1, (double) MathHelper.ToRadians(this.AI3 * (float) Math.Sign(this.AI2) * num1), new Vector2());
-      }
-      if ((double) this.AI3 < 0.0)
-      {
-        if ((double) this.AI3 == -1.0)
-          this.AI2 = (float) Math.Sign(((Entity) this.NPC).Center.X - ((Entity) this.player).Center.X);
-        --this.AI3;
-        if ((double) this.AI3 >= -110.0)
-        {
-          if ((double) Math.Abs(this.AI2) < 60.0)
-            this.AI2 += (float) (Math.Sign(this.AI2) * 2);
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.995f);
-          ((Entity) this.NPC).velocity.Y += 0.2f;
-          this.NPC.rotation += (float) (-(double) this.AI2 * 3.1415927410125732 / 16.0 / 60.0);
-        }
-        else
-        {
-          if ((double) Math.Abs(this.AI2) > 4.0)
-            this.AI2 -= (float) (Math.Sign(this.AI2) * 2);
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.955f);
-          this.NPC.rotation += (float) (-(double) this.AI2 * 3.1415927410125732 / 16.0 / 60.0);
-        }
-        if ((double) this.AI3 < -42.0)
-        {
-          this.Anim = 1;
-          if (FargoSoulsUtil.HostCheck)
-          {
-            float num3 = Utils.NextFloat(Main.rand, 8f, 13f);
-            Vector2 rotationVector2 = Utils.ToRotationVector2(Utils.NextFloat(Main.rand, 6.28318548f));
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.NPC).Center, rotationVector2), Vector2.op_Multiply(rotationVector2, num3), ModContent.ProjectileType<BaronScrap>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-          }
-        }
-      }
-      if ((double) this.AI3 >= -130.0)
-        return;
-      this.Anim = 0;
-      ((Entity) this.NPC).velocity = Vector2.Zero;
-      this.StateReset();
-    }
-
-    private void P2MineFlurry()
-    {
-      if ((double) this.Timer == 1.0)
-      {
-        this.AI2 = (float) Math.Sign(((Entity) this.NPC).Center.X - ((Entity) this.player).Center.X);
-        this.LockVector1 = new Vector2(500f * this.AI2, 0.0f);
-      }
-      this.LockVector1 = new Vector2(500f * this.AI2, 0.0f);
-      Vector2 vector2 = Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1);
-      if ((double) ((Entity) this.NPC).Distance(vector2) < 25.0 && (double) this.AI3 == 0.0 || (double) this.Timer % 60.0 == 0.0 && (double) this.AI3 != 0.0)
-        this.AI3 = 1f;
-      if ((double) this.AI3 == 0.0)
-      {
-        --this.Timer;
-        this.RotateTowards(((Entity) this.player).Center, 4f);
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < 200.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0)
-        {
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Addition(((Entity) npc).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), 0.02f));
-          ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), ((Vector2) ref ((Entity) this.NPC).velocity).Length()), 1.05f), 0.7f);
-        }
-        else
-          ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), (float) (20.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0)), 0.7f);
-      }
-      else
-        ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Division(Vector2.op_Subtraction(vector2, ((Entity) this.NPC).Center), 10f), 0.3f);
-      int num1 = (double) this.Timer < 20.0 || (double) this.Timer > 50.0 ? ((double) this.Timer < 130.0 ? 0 : ((double) this.Timer <= 160.0 ? 1 : 0)) : 1;
-      bool flag = (double) this.Timer >= 20.0 && (double) this.Timer <= 35.0 || (double) this.Timer >= 130.0 && (double) this.Timer <= 145.0;
-      if ((double) this.Timer == 5.0)
-      {
-        this.AI4 = Utils.NextBool(Main.rand) ? 1f : -1f;
-        this.NPC.netUpdate = true;
-      }
-      if ((double) this.Timer == 115.0)
-      {
-        this.AI4 = -this.AI4;
-        this.NPC.netUpdate = true;
-      }
-      if ((double) this.Timer == 5.0 || (double) this.Timer == 115.0)
-      {
-        int num2 = 0;
-        if ((double) this.AI4 == (double) Math.Sign(((Entity) this.player).velocity.X))
-          num2 = (int) ((double) ((Entity) this.player).velocity.X * 10.0);
-        this.LockVector2 = new Vector2(0.0f, Utils.NextFloat(Main.rand, (float) (250 + num2), (float) (350 + num2)) * this.AI4);
-        this.NPC.netUpdate = true;
-      }
-      if ((double) this.Timer > 5.0)
-      {
-        int speed = WorldSavingSystem.MasochistModeReal ? 15 : 10;
-        this.RotateTowards(Vector2.op_Addition(((Entity) this.player).Center, this.LockVector2), (float) speed);
-      }
-      if (num1 != 0)
-      {
-        this.Anim = 1;
-        if ((double) this.Timer % 5.0 == 3.0 && (!flag || WorldSavingSystem.MasochistModeReal))
-        {
-          SoundEngine.PlaySound(ref SoundID.Item63, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Subtraction(((Entity) npc).velocity, Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), 6f));
-          if (FargoSoulsUtil.HostCheck)
-          {
-            float num3 = (float) Main.rand.Next(10, 38);
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_Multiply(num3, Utils.ToRotationVector2(this.NPC.rotation)), ModContent.ProjectileType<BaronMine>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 2f, (float) ((Entity) this.player).whoAmI, 0.0f);
-          }
-        }
-      }
-      else
-        this.Anim = 0;
-      if ((double) this.Timer <= 320.0)
-        return;
-      ((Entity) this.NPC).velocity = Vector2.Zero;
-      this.StateReset();
-    }
-
-    private void P2Whirlpool()
-    {
-      Projectile projectile = Main.projectile[this.ArenaProjID];
-      if ((projectile == null || !((Entity) projectile).active ? 0 : (projectile.type == ModContent.ProjectileType<BaronArenaWhirlpool>() ? 1 : 0)) == 0)
-      {
-        ((Entity) this.NPC).velocity = Vector2.Zero;
-        this.StateReset();
-      }
-      else
-      {
-        if ((double) this.Timer == 1.0)
-        {
-          if (this.DidWhirlpool)
-          {
-            this.DidWhirlpool = false;
-            this.StateReset();
-            return;
-          }
-          this.DidWhirlpool = true;
-          this.Anim = 1;
-          SoundEngine.PlaySound(ref SoundID.Item21, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-          SoundEngine.PlaySound(ref SoundID.Item92, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, -24f, 0.0f);
-        }
-        if ((double) this.Timer == 61.0)
-        {
-          this.Anim = 0;
-          projectile.ai[2] = 1f;
-          projectile.netUpdate = true;
-        }
-        if ((double) this.Timer >= 61.0)
-        {
-          this.LockVector1 = Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(((Entity) this.NPC).Center, ((Entity) this.player).Center)), 500f);
-          Vector2 vector2 = Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1);
-          if ((double) ((Entity) this.NPC).Distance(vector2) < 25.0 && (double) this.AI3 == 0.0 || (double) this.Timer % 60.0 == 0.0 && (double) this.AI3 != 0.0)
-          {
-            this.AI3 = Utils.NextFloat(Main.rand, -1f, 1f);
-            this.NPC.netUpdate = true;
-          }
-          if ((double) this.AI3 == 0.0)
-          {
-            if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < 20.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0)
+            if (Timer > 310)
             {
-              NPC npc = this.NPC;
-              ((Entity) npc).velocity = Vector2.op_Addition(((Entity) npc).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), 0.02f));
-              ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), ((Vector2) ref ((Entity) this.NPC).velocity).Length()), 1.05f), 0.3f);
+                NPC.velocity = Vector2.Zero;
+                StateReset();
+            }
+        }
+        void P2SpinDash()
+        {
+            const int radius = 500;
+            const float startRot = MathHelper.PiOver2 * 0.7f;
+            float rotModifier = 3.5f;
+            if (Timer == 1)
+            {
+                AI2 = Math.Sign(NPC.Center.X - player.Center.X);
+
+            }
+            if (AI3 == 0) //startup, reach starting point
+            {
+
+                LockVector1 = new Vector2(0, radius).RotatedBy(startRot * -AI2);
+                Vector2 target = player.Center + LockVector1;
+                //NPC.rotation = NPC.SafeDirectionTo(target).ToRotation();
+                RotateTowards(player.Center, 1f);
+
+                //velocity on rotation = radius * rotation per tick
+                NPC.netUpdate = true;
+                float rotVelocity = radius * MathHelper.ToRadians(3); //maximum value since random rotation velocity is not determined yet (could be done better by determining random before but would have to rework structure and i'm too lazy)
+                /*
+                if (NPC.velocity.Length() < rotVelocity + player.velocity.Length())
+                {
+                    NPC.velocity += 0.5f * NPC.rotation.ToRotationVector2();
+                    NPC.velocity *= 1.03f;
+                }
+                NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.velocity.Length() * NPC.rotation.ToRotationVector2(), 0.3f);
+                */
+                Movement(target, 30f, 2f);
+                if (NPC.Distance(target) < 25)
+                {
+                    AI3 = Main.rand.NextFloat(0.2f, 0.4f); //reached point, start attack, decide random rotation during charge windup
+                    NPC.netUpdate = true;
+                }
+            }
+            if (AI3 > 0) //rotate a random bit below, and then dash
+            {
+                const int rotStart = 38;
+                const int dashStart = 45;
+                const int DashSpeed = 27;
+
+                AI2 += Math.Sign(AI2); //internal timer, efficient variable use (?)
+
+                Vector2 target = player.Center + LockVector1;
+
+
+
+                if (Math.Abs(AI2) <= rotStart)
+                {
+                    //NPC.velocity = Vector2.Lerp(NPC.velocity, (target - NPC.Center) / 10, 0.3f);
+                    Movement(target, 25f, 1.5f);
+                    RotateTowards(player.Center, 1f);
+                    NPC.rotation += Main.rand.NextFloat(-MathHelper.PiOver2 * 0.04f, MathHelper.PiOver2 * 0.04f);
+                    if (Math.Abs(AI2) == rotStart)
+                    {
+                        SoundEngine.PlaySound(FargosSoundRegistry.BaronYell, NPC.Center);
+                    }
+                }
+                else //prepare for dash and dash
+                {
+                    const int reactTime = 20;
+                    rotModifier = 0.025f; //rotate very slowly when preparing for dash
+                    RotateTowards(player.Center, 6f);
+                    if (Math.Abs(AI2) > dashStart + reactTime)
+                    {
+                        SoundEngine.PlaySound(FargosSoundRegistry.BaronRoar, NPC.Center);
+                        SoundEngine.PlaySound(SoundID.Item14, NPC.Center);
+                        NPC.velocity = NPC.rotation.ToRotationVector2() * DashSpeed;
+                        AI3 = -1;
+                        AI2 = Math.Sign(AI2);
+                    }
+                }
+
+                float rotation = MathHelper.ToRadians(AI3 * Math.Sign(AI2) * rotModifier);
+                LockVector1 = LockVector1.RotatedBy(rotation);
+
+            }
+            const int end = -110;
+            const int bulletStart = -42;
+            if (AI3 < 0) //spin after dash
+            {
+                if (AI3 == -1)
+                {
+                    AI2 = Math.Sign(NPC.Center.X - player.Center.X);
+                }
+                AI3--;
+
+
+                if (AI3 >= end)
+                {
+                    if (Math.Abs(AI2) < 60)
+                    {
+                        AI2 += Math.Sign(AI2) * 2;
+                    }
+                    NPC.velocity *= 0.995f;
+                    NPC.velocity.Y += 0.2f;
+                    NPC.rotation += -AI2 * MathHelper.Pi / 16 / 60;
+                }
+                else
+                {
+                    if (Math.Abs(AI2) > 4)
+                    {
+                        AI2 -= Math.Sign(AI2) * 2;
+                    }
+
+                    NPC.velocity *= 0.955f;
+                    NPC.rotation += -AI2 * MathHelper.Pi / 16 / 60;
+                }
+                if (AI3 < bulletStart)
+                {
+                    Anim = 1;
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        float speed = Main.rand.NextFloat(8, 13);
+                        Vector2 v = Main.rand.NextFloat(MathHelper.TwoPi).ToRotationVector2();
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center + v, v * speed, ModContent.ProjectileType<BaronScrap>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                    }
+                }
+            }
+            if (AI3 < end - 20)
+            {
+                Anim = 0;
+                NPC.velocity = Vector2.Zero;
+                StateReset();
+            }
+        }
+        void P2MineFlurry()
+        {
+            const int distance = 500;
+            if (Timer == 1)
+            {
+                AI2 = Math.Sign(NPC.Center.X - player.Center.X);
+                LockVector1 = new Vector2(distance * AI2, 0);
+
+            }
+
+            LockVector1 = new Vector2(distance * AI2, 0);
+            Vector2 target = player.Center + LockVector1;
+
+            if ((NPC.Distance(target) < 25 && AI3 == 0) || (Timer % 60 == 0 && AI3 != 0))
+            {
+                AI3 = 1;
+            }
+
+            if (AI3 == 0)
+            {
+                Timer--; //timer doesnt go up until you reach start position
+                RotateTowards(player.Center, 4);
+                /*
+                if (NPC.velocity.Length() < 200 + (player.velocity.Length() / 2))
+                {
+                    NPC.velocity += NPC.SafeDirectionTo(target) * 0.02f;
+                    NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(target) * NPC.velocity.Length() * 1.05f, 0.7f);
+                }
+                else
+                {
+                    NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(target) * (20 + (player.velocity.Length() / 2)), 0.7f);
+
+                }
+                */
+                Movement(target, 30f, 2f);
             }
             else
-              ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), (float) (20.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0)), 0.3f);
-          }
-          else
-            ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Division(Vector2.op_Subtraction(vector2, ((Entity) this.NPC).Center), 10f), 0.3f);
-        }
-        this.RotateTowards(((Entity) this.player).Center, 2f);
-        if ((double) this.Timer > 420.0)
-        {
-          projectile.ai[2] = 0.0f;
-          projectile.netUpdate = true;
-        }
-        if ((double) this.Timer <= (WorldSavingSystem.MasochistModeReal ? 560.0 : 500.0))
-          return;
-        ((Entity) this.NPC).velocity = Vector2.Zero;
-        this.StateReset();
-      }
-    }
+            {
+                Movement(target, 20f, 0.75f);
+                //NPC.velocity = Vector2.Lerp(NPC.velocity, (target - NPC.Center) / 10, 0.3f);
+            }
 
-    private void P2LaserSweep()
-    {
-      int num1 = 120;
-      if ((double) this.Timer == 1.0)
-      {
-        Projectile projectile = Main.projectile[this.ArenaProjID];
-        if ((projectile == null || !((Entity) projectile).active ? 0 : (projectile.type == ModContent.ProjectileType<BaronArenaWhirlpool>() ? 1 : 0)) == 0)
-        {
-          this.LockVector1 = new Vector2((float) (500 * Math.Sign(((Entity) this.NPC).Center.X - ((Entity) this.player).Center.X)), -350f);
-        }
-        else
-        {
-          this.LockVector1 = new Vector2((float) ((int) Math.Min(Math.Abs(((Entity) projectile).Center.X - ((Entity) this.player).Center.X), 500f) * Math.Sign(((Entity) projectile).Center.X - ((Entity) this.player).Center.X)), -350f);
-          this.HitPlayer = false;
-        }
-      }
-      if ((double) this.Timer < 30.0 && (double) ((Entity) this.NPC).Distance(Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1)) > 15.0)
-        --this.Timer;
-      else if ((double) this.Timer < 30.0)
-      {
-        this.Timer = 30f;
-        this.HitPlayer = true;
-        if (WorldSavingSystem.EternityMode)
-        {
-          SoundEngine.PlaySound(ref SoundID.Item61, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 vector2 = Vector2.op_Multiply(Utils.ToRotationVector2(this.NPC.rotation), 10f);
-            int num2 = Main.rand.Next(160, 160);
-            this.NPC.netUpdate = true;
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.op_UnaryNegation(vector2), ModContent.ProjectileType<BaronNuke>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, (float) num2, (float) ((Entity) this.player).whoAmI, 1f);
-          }
-        }
-      }
-      if ((double) this.Timer < 30.0)
-      {
-        Vector2 vector2 = Vector2.op_Addition(((Entity) this.player).Center, this.LockVector1);
-        if ((double) ((Vector2) ref ((Entity) this.NPC).velocity).Length() < 20.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0)
-        {
-          NPC npc = this.NPC;
-          ((Entity) npc).velocity = Vector2.op_Addition(((Entity) npc).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), 0.02f));
-          ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), ((Vector2) ref ((Entity) this.NPC).velocity).Length()), 1.05f), 0.75f);
-        }
-        else
-          ((Entity) this.NPC).velocity = Vector2.Lerp(((Entity) this.NPC).velocity, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, vector2), (float) (20.0 + (double) ((Vector2) ref ((Entity) this.player).velocity).Length() / 2.0)), 0.75f);
-        this.RotateTowards(((Entity) this.player).Center, 2f);
-      }
-      else if ((double) this.Timer < 120.0)
-      {
-        NPC npc = this.NPC;
-        ((Entity) npc).velocity = Vector2.op_Multiply(((Entity) npc).velocity, 0.8f);
-        if ((double) this.Timer == 30.0)
-        {
-          SoundStyle soundStyle;
-          // ISSUE: explicit constructor call
-          ((SoundStyle) ref soundStyle).\u002Ector("FargowiltasSouls/Assets/Sounds/LaserTelegraph", (SoundType) 0);
-          ((SoundStyle) ref soundStyle).Volume = 1.25f;
-          SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-          this.AI3 = Utils.NextBool(Main.rand) ? 1f : -1f;
-          this.LockVector1 = Utils.RotatedBy(Vector2.op_Subtraction(((Entity) this.player).Center, ((Entity) this.NPC).Center), (double) this.AI3 * 0.62831854820251465, new Vector2());
-          if (FargoSoulsUtil.HostCheck)
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Vector2.Zero, ModContent.ProjectileType<BloomLine>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 7f, (float) ((Entity) this.NPC).whoAmI, 110f);
-          this.NPC.netUpdate = true;
-        }
-        this.RotateTowards(Vector2.op_Addition(((Entity) this.NPC).Center, this.LockVector1), 1.75f);
-      }
-      else if ((double) this.Timer < (double) (120 + num1))
-      {
-        float num3 = WorldSavingSystem.EternityMode ? 1.1f : 1f;
-        if ((double) this.Timer == 120.0)
-        {
-          this.AI4 = FargoSoulsUtil.RotationDifference(Utils.ToRotationVector2(this.NPC.rotation), Vector2.op_Subtraction(((Entity) this.player).Center, ((Entity) this.NPC).Center));
-          SoundStyle soundStyle;
-          // ISSUE: explicit constructor call
-          ((SoundStyle) ref soundStyle).\u002Ector("FargowiltasSouls/Assets/Sounds/LaserSound_Slow", (SoundType) 0);
-          ((SoundStyle) ref soundStyle).Pitch = -0.2f;
-          SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-            Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, Utils.ToRotationVector2(this.NPC.rotation), ModContent.ProjectileType<BaronDeathray>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, (float) ((Entity) this.NPC).whoAmI, 0.0f, (float) num1);
-          this.NPC.netUpdate = true;
-        }
-        this.NPC.rotation += (float) ((double) Math.Sign(this.AI4) * (double) num3 * 3.1415927410125732 / 180.0);
-      }
-      else if (WorldSavingSystem.EternityMode && (double) this.Timer > (double) (120 + num1))
-      {
-        this.StateReset();
-      }
-      else
-      {
-        if ((double) this.Timer <= (double) (120 + num1 + 10))
-          return;
-        ((Entity) this.NPC).velocity = Vector2.Zero;
-        this.StateReset();
-      }
-    }
+            const int cd = 5;
+            const int Flurry1Time = 20;
+            const int Flurry2Time = 20 + 110;
 
-    private void StateReset(bool randomizeState = true)
-    {
-      this.NPC.TargetClosest(false);
-      if (WorldSavingSystem.EternityMode && (double) this.State == 14.0)
-      {
-        this.State = 8f;
-        this.availablestates.Remove(14);
-        this.availablestates.Remove(8);
-      }
-      else if ((double) this.State == 15.0 || this.Phase == 2)
-      {
-        if (randomizeState)
-          this.RandomizeState();
-      }
-      else
-        this.State = 15f;
-      if ((((double) this.NPC.GetLifePercent() >= 0.66666668653488159 || this.Phase != 1 ? 0 : (Main.expertMode ? 1 : 0)) | ((double) this.NPC.GetLifePercent() >= 0.5 || this.Phase != 1 ? (false ? 1 : 0) : (!Main.expertMode ? 1 : 0))) != 0)
-        this.State = 1f;
-      this.Timer = 0.0f;
-      this.AI2 = 0.0f;
-      this.AI3 = 0.0f;
-    }
+            bool time = (Timer >= Flurry1Time && Timer <= Flurry1Time + (cd * 6)) || (Timer >= Flurry2Time && Timer <= Flurry2Time + (cd * 6));
+            bool timeFirstHalf = (Timer >= Flurry1Time && Timer <= Flurry1Time + (cd * 3)) || (Timer >= Flurry2Time && Timer <= Flurry2Time + (cd * 3));
+            if (Timer == Flurry1Time - 15) //choose side
+            {
+                AI4 = Main.rand.NextBool() ? 1 : -1;
+                NPC.netUpdate = true;
+            }
+            if (Timer == Flurry2Time - 15)
+            {
+                AI4 = -AI4; //switch side
+                NPC.netUpdate = true;
+            }
+            if (Timer == Flurry1Time - 15 || Timer == Flurry2Time - 15) //choose position
+            {
+                int ExtraDistance = 0;
+                if (AI4 == Math.Sign(player.velocity.X))
+                {
+                    ExtraDistance = (int)(player.velocity.X * 10);
+                }
+                LockVector2 = new Vector2(0, Main.rand.NextFloat(250 + ExtraDistance, 350 + ExtraDistance) * AI4);
+                NPC.netUpdate = true;
+            }
+            if (Timer > Flurry1Time - 15)
+            {
+                int rotspeed = WorldSavingSystem.MasochistModeReal ? 15 : 10;
+                RotateTowards(player.Center + LockVector2, rotspeed);
+            }
+            if (time)
+            {
+                Anim = 1;
 
-    private void RandomizeState()
-    {
-      if (this.availablestates.Count < 1)
-      {
-        this.availablestates.Clear();
-        if (this.Phase == 1)
-          this.availablestates.AddRange((IEnumerable<int>) FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.P1Attacks);
-        else if (this.Phase == 2)
-          this.availablestates.AddRange((IEnumerable<int>) FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.P2Attacks);
-        this.availablestates.Remove(this.LastState);
-      }
-      if (FargoSoulsUtil.HostCheck)
-      {
-        int index = Main.rand.Next(this.availablestates.Count);
-        this.State = (float) this.availablestates[index];
-        this.availablestates.RemoveAt(index);
-      }
-      this.LastState = (int) this.State;
-      this.NPC.netUpdate = true;
-    }
+                if (Timer % cd == cd - 2 && (!timeFirstHalf || (WorldSavingSystem.MasochistModeReal))) //shoot
+                {
+                    SoundEngine.PlaySound(SoundID.Item63, NPC.Center);
+                    NPC.velocity -= NPC.rotation.ToRotationVector2() * 6;
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        float speed = Main.rand.Next(10, 38);
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, speed * NPC.rotation.ToRotationVector2(), ModContent.ProjectileType<BaronMine>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 2, player.whoAmI);
+                    }
+                }
+            }
+            else
+            {
+                Anim = 0;
+            }
 
-    private bool AliveCheck(Player p, bool forceDespawn = false)
-    {
-      if (forceDespawn || !((Entity) p).active || p.dead || (double) Vector2.Distance(((Entity) this.NPC).Center, ((Entity) p).Center) > 5000.0)
-      {
-        this.NPC.TargetClosest(true);
-        p = Main.player[this.NPC.target];
-        if (forceDespawn || !((Entity) p).active || p.dead || (double) Vector2.Distance(((Entity) this.NPC).Center, ((Entity) p).Center) > 5000.0)
-        {
-          this.NPC.noTileCollide = true;
-          if (this.NPC.timeLeft > 30)
-            this.NPC.timeLeft = 30;
-          ++((Entity) this.NPC).velocity.Y;
-          if (this.NPC.timeLeft == 1 && FargoSoulsUtil.HostCheck)
-            FargoSoulsUtil.ClearHostileProjectiles(2, ((Entity) this.NPC).whoAmI);
-          return false;
+
+            //int maxTime = WorldSavingSystem.MasochistModeReal ? 320 * 2 : 320;
+            int maxTime = 320;
+            if (Timer > maxTime)
+            {
+                NPC.velocity = Vector2.Zero;
+                StateReset();
+            }
         }
-      }
-      if (this.NPC.timeLeft < 600)
-        this.NPC.timeLeft = 600;
-      return true;
-    }
+        void P2Whirlpool()
+        {
+            Projectile arena = Main.projectile[ArenaProjID];
+            bool arenaReal = arena != null && arena.active && arena.type == ModContent.ProjectileType<BaronArenaWhirlpool>();
+            if (!arenaReal)
+            {
+                NPC.velocity = Vector2.Zero;
+                StateReset();
+                return;
+            }
 
-    private void RotateTowards(Vector2 target, float speed)
-    {
-      float num = FargoSoulsUtil.RotationDifference(Utils.ToRotationVector2(this.NPC.rotation), Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.NPC, target));
-      if ((double) num <= 0.0 && (double) num >= 0.0)
-        return;
-      this.NPC.rotation = Utils.ToRotation(Utils.RotatedBy(Utils.ToRotationVector2(this.NPC.rotation), (double) Math.Sign(num) * (double) Math.Min(Math.Abs(num), (float) ((double) speed * 3.1415927410125732 / 180.0)), new Vector2()));
-    }
+            if (Timer == 1)
+            {
+                if (DidWhirlpool)
+                {
+                    DidWhirlpool = false;
+                    StateReset();
+                    return;
+                }
+                DidWhirlpool = true;
+                Anim = 1;
+                SoundEngine.PlaySound(SoundID.Item21, NPC.Center);
+                SoundEngine.PlaySound(SoundID.Item92, NPC.Center);
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<GlowRing>(), 0, 0f, Main.myPlayer, NPC.whoAmI, -24);
+                }
+            }
+            if (Timer == 61)
+            {
+                Anim = 0;
+                arena.ai[2] = 1; //activate projectile shooting AI of arena
+                arena.netUpdate = true;
+            }
+            if (Timer >= 61)
+            {
+                LockVector1 = Vector2.Normalize(NPC.Center - player.Center) * 500;
 
-    static BanishedBaron()
-    {
-      List<int> intList1 = new List<int>();
-      CollectionsMarshal.SetCount<int>(intList1, 6);
-      Span<int> span1 = CollectionsMarshal.AsSpan<int>(intList1);
-      int num1 = 0;
-      span1[num1] = 2;
-      int num2 = num1 + 1;
-      span1[num2] = 3;
-      int num3 = num2 + 1;
-      span1[num3] = 4;
-      int num4 = num3 + 1;
-      span1[num4] = 5;
-      int num5 = num4 + 1;
-      span1[num5] = 6;
-      int num6 = num5 + 1;
-      span1[num6] = 7;
-      int num7 = num6 + 1;
-      FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.P1Attacks = intList1;
-      List<int> intList2 = new List<int>();
-      CollectionsMarshal.SetCount<int>(intList2, 7);
-      Span<int> span2 = CollectionsMarshal.AsSpan<int>(intList2);
-      int num8 = 0;
-      span2[num8] = 8;
-      int num9 = num8 + 1;
-      span2[num9] = 9;
-      int num10 = num9 + 1;
-      span2[num10] = 10;
-      int num11 = num10 + 1;
-      span2[num11] = 11;
-      int num12 = num11 + 1;
-      span2[num12] = 12;
-      int num13 = num12 + 1;
-      span2[num13] = 13;
-      int num14 = num13 + 1;
-      span2[num14] = 14;
-      num7 = num14 + 1;
-      FargowiltasSouls.Content.Bosses.BanishedBaron.BanishedBaron.P2Attacks = intList2;
-    }
+                Vector2 target = player.Center + LockVector1;
+                if ((NPC.Distance(target) < 25 && AI3 == 0) || (Timer % 60 == 0 && AI3 != 0))
+                {
+                    AI3 = Main.rand.NextFloat(-1, 1);
+                    NPC.netUpdate = true;
+                }
 
-    public enum StateEnum
-    {
-      Opening,
-      Phase2Transition,
-      P1BigNuke,
-      P1RocketStorm,
-      P1SurfaceMines,
-      P1FadeDash,
-      P1SineSwim,
-      P1Whirlpool,
-      P2PredictiveDash,
-      P2CarpetBomb,
-      P2RocketStorm,
-      P2SpinDash,
-      P2MineFlurry,
-      P2Whirlpool,
-      P2LaserSweep,
-      Swim,
-      DeathAnimation,
+                if (AI3 == 0)
+                {
+                    /*
+                    if (NPC.velocity.Length() < 20 + (player.velocity.Length() / 2))
+                    {
+                        NPC.velocity += NPC.SafeDirectionTo(target) * 0.02f;
+                        NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(target) * NPC.velocity.Length() * 1.05f, 0.3f);
+                    }
+                    else
+                    {
+                        NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(target) * (20 + (player.velocity.Length() / 2)), 0.3f);
+
+                    }
+                    */
+                    Movement(target, 30f, 2f);
+                }
+                else
+                {
+                    //NPC.velocity = Vector2.Lerp(NPC.velocity, (target - NPC.Center) / 10, 0.3f);
+                    Movement(target, 15f, 0.25f);
+                }
+            }
+            RotateTowards(player.Center, 2f);
+            if (Timer > 420)
+            {
+                arena.ai[2] = 0; //deactivate projectile shooting AI of arena
+                arena.netUpdate = true;
+            }
+            int endTime = WorldSavingSystem.MasochistModeReal ? 560 : 500; //maso alternation makes it kinda bullshit otherwise
+            if (Timer > endTime)
+            {
+                NPC.velocity = Vector2.Zero;
+                StateReset();
+            }
+        }
+        void P2LaserSweep()
+        {
+            const int PositioningTime = 30;
+            const int WindupTime = 90;
+            int AttackTime = 120;
+            const int Endlag = 10;
+            const int distance = 500;
+            const float MaxRot = MathHelper.Pi / 5;
+
+            if (Timer == 1)
+            {
+
+                //go towards center of arena so you don't get fucked by arena border and can't go around
+                Projectile arena = Main.projectile[ArenaProjID];
+                bool arenaReal = arena != null && arena.active && arena.type == ModContent.ProjectileType<BaronArenaWhirlpool>();
+                if (!arenaReal)
+                {
+                    LockVector1 = new Vector2(distance * Math.Sign(NPC.Center.X - player.Center.X), -distance * 0.7f);
+                }
+                else
+                {
+                    int x = (int)Math.Min(Math.Abs(arena.Center.X - player.Center.X), distance) * Math.Sign(arena.Center.X - player.Center.X);
+                    LockVector1 = new Vector2(x, -distance * 0.7f);
+                    HitPlayer = false;
+                }
+
+
+            }
+            if (Timer < PositioningTime && NPC.Distance(player.Center + LockVector1) > 15) //don't progress time if too far away from start position
+            {
+                Timer--;
+            }
+            else if (Timer < PositioningTime) //if close enough, start attack
+            {
+                Timer = PositioningTime;
+                HitPlayer = true;
+                if (WorldSavingSystem.EternityMode)
+                {
+                    SoundEngine.PlaySound(SoundID.Item61, NPC.Center);
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 vel = NPC.rotation.ToRotationVector2() * 10f;
+                        int nukeDur = Main.rand.Next(160, 160); //nuke duration
+                        NPC.netUpdate = true;
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, -vel, ModContent.ProjectileType<BaronNuke>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, nukeDur, player.whoAmI, 1);
+                    }
+                }
+            }
+            if (Timer < PositioningTime) //get to position
+            {
+                Vector2 target = player.Center + LockVector1;
+                /*
+                if (NPC.velocity.Length() < 20 + (player.velocity.Length() / 2))
+                {
+                    NPC.velocity += NPC.SafeDirectionTo(target) * 0.02f;
+                    NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(target) * NPC.velocity.Length() * 1.05f, 0.75f);
+                }
+                else
+                {
+                    NPC.velocity = Vector2.Lerp(NPC.velocity, NPC.SafeDirectionTo(target) * (20 + (player.velocity.Length() / 2)), 0.75f);
+
+                }
+                */
+                Movement(target, 20f, 1f);
+                RotateTowards(player.Center, 2);
+            }
+            else if (Timer < PositioningTime + WindupTime) //rotate with telegraph line
+            {
+                NPC.velocity *= 0.8f;
+                if (Timer == PositioningTime)
+                {
+                    SoundEngine.PlaySound(FargosSoundRegistry.BaronLaserTelegraph with { Volume = 1.25f }, NPC.Center);
+                    AI3 = Main.rand.NextBool() ? 1 : -1; //sign for rotation
+                    LockVector1 = (player.Center - NPC.Center).RotatedBy(AI3 * MaxRot);
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, Vector2.Zero, ModContent.ProjectileType<BloomLine>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, 7, NPC.whoAmI, WindupTime + 20);
+                    }
+                    NPC.netUpdate = true;
+                }
+                RotateTowards(NPC.Center + LockVector1, 1.75f);
+            }
+            else if (Timer < PositioningTime + WindupTime + AttackTime) //rotate back with attack deathray
+            {
+                float RotationSpeed = WorldSavingSystem.EternityMode ? 1.1f : 1f;
+
+                if (Timer == PositioningTime + WindupTime)
+                {
+                    /*
+                    if (WorldSavingSystem.MasochistModeReal)
+                    {
+                        SoundEngine.PlaySound(SoundID.Item61, NPC.Center);
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            Vector2 vel = NPC.rotation.ToRotationVector2() * 10f;
+                            int nukeDur = Main.rand.Next(160, 160); //nuke duration
+                            NPC.netUpdate = true;
+                            Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, -vel, ModContent.ProjectileType<BaronNuke>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, nukeDur, player.whoAmI, 1);
+                        }
+                    }
+                    */
+                    //const float RotationFactor = 0.75f;
+
+
+                    AI4 = FargoSoulsUtil.RotationDifference(NPC.rotation.ToRotationVector2(), (player.Center - NPC.Center)); //cache rotation direction towards player
+
+                    SoundEngine.PlaySound(FargosSoundRegistry.BaronLaserSoundSlow with { Pitch = -0.2f }, NPC.Center);
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, NPC.rotation.ToRotationVector2(), ModContent.ProjectileType<BaronDeathray>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, ai0: NPC.whoAmI, ai2: AttackTime);
+                    }
+                    NPC.netUpdate = true;
+                }
+                float rotDirection = Math.Sign(AI4);
+                NPC.rotation += rotDirection * RotationSpeed * MathHelper.Pi / 180; //keep rotating in direction rotated first frame, no turning direction
+
+
+            }
+            else if (WorldSavingSystem.EternityMode && Timer > PositioningTime + WindupTime + AttackTime) // in emode, go right into predictive dash without endlag
+            {
+                StateReset();
+            }
+            else if (Timer > PositioningTime + WindupTime + AttackTime + Endlag)
+            {
+
+                NPC.velocity = Vector2.Zero;
+                StateReset();
+            }
+        }
+        #endregion
+        #endregion
+        #region Help Methods
+        void Movement(Vector2 target, float maxSpeed = 35f, float speedMultiplier = 1f)
+        {
+            float accel = 0.4f * speedMultiplier;
+            float decel = 0.7f * speedMultiplier;
+            float resistance = NPC.velocity.Length() * accel / (maxSpeed * speedMultiplier);
+            NPC.velocity = FargoSoulsUtil.SmartAccel(NPC.Center, target, NPC.velocity, accel - resistance, decel + resistance);
+        }
+        void StateReset(bool randomizeState = true)
+        {
+            NPC.TargetClosest(false);
+            if (WorldSavingSystem.EternityMode && State == (int)StateEnum.P2LaserSweep) //combos into predictive dash in emode
+            {
+                State = (int)StateEnum.P2PredictiveDash;
+                availablestates.Remove((int)StateEnum.P2LaserSweep);
+                availablestates.Remove((int)StateEnum.P2PredictiveDash);
+            }
+            else if ((State == (int)StateEnum.Swim) || Phase == 2)
+            {
+                if (randomizeState)
+                    RandomizeState();
+            }
+            else
+                State = (int)StateEnum.Swim;
+            bool expertP2 = NPC.GetLifePercent() < (2f / 3) && Phase == 1 && Main.expertMode;
+            bool nonexpertP2 = NPC.GetLifePercent() < 0.5f && Phase == 1 && !Main.expertMode;
+            if (expertP2 || nonexpertP2)
+            {
+                State = (float)StateEnum.Phase2Transition;
+            }
+            Timer = 0;
+            AI2 = 0;
+            AI3 = 0;
+        }
+        void RandomizeState() // cycles between attacks in a random order: for increased variety
+        {
+            int index;
+            if (availablestates.Count < 1)
+            {
+                availablestates.Clear();
+                if (Phase == 1)
+                {
+                    availablestates.AddRange(P1Attacks);
+                }
+                else if (Phase == 2)
+                {
+                    availablestates.AddRange(P2Attacks);
+                }
+                availablestates.Remove(LastState); //avoid possible repeat after refilling list
+            }
+            if (FargoSoulsUtil.HostCheck) //only run for host in mp, will sync to others
+            {
+                index = Main.rand.Next(availablestates.Count);
+                State = availablestates[index];
+                availablestates.RemoveAt(index);
+            }
+            LastState = (int)State;
+            NPC.netUpdate = true;
+        }
+        bool AliveCheck(Player p, bool forceDespawn = false)
+        {
+            if (forceDespawn || !p.active || p.dead || Vector2.Distance(NPC.Center, p.Center) > 5000f)
+            {
+                NPC.TargetClosest();
+                p = Main.player[NPC.target];
+                if (forceDespawn || !p.active || p.dead || Vector2.Distance(NPC.Center, p.Center) > 5000f)
+                {
+                    NPC.noTileCollide = true;
+                    if (NPC.timeLeft > 30)
+                        NPC.timeLeft = 30;
+                    NPC.velocity.Y += 1f;
+                    if (NPC.timeLeft == 1)
+                    {
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            FargoSoulsUtil.ClearHostileProjectiles(2, NPC.whoAmI);
+                        }
+                    }
+                    return false;
+                }
+            }
+            if (NPC.timeLeft < 600)
+                NPC.timeLeft = 600;
+
+            return true;
+        }
+        void RotateTowards(Vector2 target, float speed)
+        {
+            Vector2 LV = NPC.rotation.ToRotationVector2();
+            Vector2 PV = NPC.SafeDirectionTo(target);
+            float anglediff = FargoSoulsUtil.RotationDifference(LV, PV);
+            if (!(anglediff > 0 || anglediff < 0))
+                return;
+            //change rotation towards target
+            NPC.rotation = NPC.rotation.ToRotationVector2().RotatedBy(Math.Sign(anglediff) * Math.Min(Math.Abs(anglediff), speed * MathHelper.Pi / 180)).ToRotation();
+        }
+        #endregion
     }
-  }
 }

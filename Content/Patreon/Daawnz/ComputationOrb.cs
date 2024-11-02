@@ -1,31 +1,36 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.Daawnz.ComputationOrb
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
+﻿using Terraria;
+using Terraria.ID;
 
-using FargowiltasSouls.Core.ModPlayers;
-using Terraria;
-
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.Daawnz
 {
-  public class ComputationOrb : PatreonModItem
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public virtual void SetDefaults()
+    public class ComputationOrb : PatreonModItem
     {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 8;
-      this.Item.value = 100000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+            // DisplayName.SetDefault("Computation Orb");
+            /* Tooltip.SetDefault(
+@"Non-magic/summon attacks deal 25% extra damage but are affected by Mana Sickness
+Non-magic/summon weapons require 10 mana to use
+'Within the core, a spark of hope remains.'"); */
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "演算宝珠");
+            //Tooltip.AddTranslation((int)GameCulture.CultureName.Chinese,
+            //@"非魔法攻击将额外造成25%伤害, 并消耗10法力");
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.GetModPlayer<PatreonPlayer>().CompOrb = true;
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Yellow;
+            Item.value = 100000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            PatreonPlayer modPlayer = player.GetModPlayer<PatreonPlayer>();
+            modPlayer.CompOrb = true;
+        }
     }
-  }
 }

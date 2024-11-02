@@ -1,110 +1,195 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Souls.SupersonicSoul
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Accessories.Masomode;
+﻿using FargowiltasSouls.Content.Items.Accessories.Masomode;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.DataStructures;
-using Terraria.Localization;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Souls
 {
-  public class SupersonicSoul : BaseSoul
-  {
-    public static readonly Color ItemColor = new Color(238, 0, 69);
-
-    public override void SetDefaults()
+    //[AutoloadEquip(EquipType.Shoes)]
+    public class SupersonicSoul : BaseSoul
     {
-      base.SetDefaults();
-      this.Item.value = 750000;
-    }
 
-    protected override Color? nameColor => new Color?(SupersonicSoul.ItemColor);
-
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.FargoSouls();
-      SupersonicSoul.AddEffects(player, this.Item, hideVisual);
-    }
-
-    public static void AddEffects(Player player, Item item, bool hideVisual)
-    {
-      Player player1 = player;
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      player.AddEffect<MasoAeolusFrog>(item);
-      player.AddEffect<MasoAeolusFlower>(item);
-      player.AddEffect<ZephyrJump>(item);
-      fargoSoulsPlayer.SupersonicSoul = true;
-      if (player1.AddEffect<SupersonicSpeedEffect>(item) && !fargoSoulsPlayer.noSupersonic && !Luminance.Common.Utilities.Utilities.AnyBosses())
-      {
-        player1.runAcceleration += 0.5f;
-        player1.maxRunSpeed += 10f;
-        if (player.HasEffect<MasoAeolusFrog>())
-          player1.autoJump = true;
-        player1.jumpSpeedBoost += 2.4f;
-        player1.maxFallSpeed += 5f;
-        player1.jumpBoost = true;
-      }
-      else
-        player1.accRunSpeed = player.AddEffect<RunSpeed>(item) ? 15.6f : 6.75f;
-      if (player.AddEffect<NoMomentum>(item))
-        fargoSoulsPlayer.NoMomentum = true;
-      player1.moveSpeed += 0.5f;
-      if (player.AddEffect<SupersonicRocketBoots>(item))
-      {
-        player1.rocketBoots = player1.vanityRocketBoots = 4;
-        player1.rocketTimeMax = 10;
-      }
-      player1.iceSkate = true;
-      player1.waterWalk = true;
-      player1.fireWalk = true;
-      player1.lavaImmune = true;
-      player1.noFallDmg = true;
-      if (player1.AddEffect<SupersonicJumps>(item) && (double) player1.wingTime == 0.0)
-      {
-        ((ExtraJumpState) ref player1.GetJumpState<ExtraJump>(ExtraJump.CloudInABottle)).Enable();
-        ((ExtraJumpState) ref player1.GetJumpState<ExtraJump>(ExtraJump.SandstormInABottle)).Enable();
-        ((ExtraJumpState) ref player1.GetJumpState<ExtraJump>(ExtraJump.BlizzardInABottle)).Enable();
-        ((ExtraJumpState) ref player1.GetJumpState<ExtraJump>(ExtraJump.FartInAJar)).Enable();
-      }
-      if (((Entity) player1).whoAmI == Main.myPlayer && player1.AddEffect<SupersonicCarpet>(item))
-      {
-        player1.carpet = true;
-        if (Main.netMode == 1)
-          NetMessage.SendData(4, -1, -1, (NetworkText) null, ((Entity) player1).whoAmI, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-        if (player1.canCarpet)
-          fargoSoulsPlayer.extraCarpetDuration = true;
-        else if (fargoSoulsPlayer.extraCarpetDuration)
+        public override void SetDefaults()
         {
-          fargoSoulsPlayer.extraCarpetDuration = false;
-          player1.carpetTime = 1000;
-        }
-      }
-      if (player1.AddEffect<CthulhuShield>(item))
-        player1.dashType = 2;
-      if (player1.AddEffect<SupersonicTabi>(item))
-        player1.dashType = 1;
-      if (player1.AddEffect<BlackBelt>(item))
-        player1.blackBelt = true;
-      if (player1.AddEffect<BlackBelt>(item))
-        player1.spikedBoots = 2;
-      if (player1.HasEffect<DefenseBeeEffect>() || player1.AddEffect<DefenseBeeEffect>(item))
-        player1.honeyCombItem = item;
-      if (!player1.AddEffect<SupersonicPanic>(item))
-        return;
-      player1.panic = true;
-    }
+            base.SetDefaults();
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.ItemType<AeolusBoots>(), 1).AddIngredient(934, 1).AddIngredient(1578, 1).AddIngredient(3251, 1).AddIngredient(5331, 1).AddIngredient(3097, 1).AddIngredient(984, 1).AddIngredient(3353, 1).AddIngredient(3260, 1).AddIngredient(3771, 1).AddIngredient(1914, 1).AddIngredient(2771, 1).AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet")).Register();
+            Item.value = 750000;
+        }
+        public static readonly Color ItemColor = new(238, 0, 69);
+        protected override Color? nameColor => ItemColor;
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            AddEffects(player, Item, hideVisual);
+        }
+        public static void AddEffects(Player player, Item item, bool hideVisual)
+        {
+            Player Player = player;
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            player.AddEffect<MasoAeolusFrog>(item);
+            player.AddEffect<MasoAeolusFlower>(item);
+            player.AddEffect<ZephyrJump>(item);
+
+            modPlayer.SupersonicSoul = true;
+
+            //calculated to match flight mastery soul, 6.75 same as frostspark
+            Player.accRunSpeed = player.AddEffect<RunSpeed>(item) ? 15.6f : 6.75f;
+
+            if (player.AddEffect<NoMomentum>(item))
+                modPlayer.NoMomentum = true;
+
+            Player.moveSpeed += 0.5f;
+
+            if (player.AddEffect<SupersonicRocketBoots>(item))
+            {
+                Player.rocketBoots = Player.vanityRocketBoots = ArmorIDs.RocketBoots.TerrasparkBoots;
+                Player.rocketTimeMax = 10;
+            }
+
+            Player.iceSkate = true;
+
+            //lava waders
+            Player.waterWalk = true;
+            Player.fireWalk = true;
+            Player.lavaImmune = true;
+            Player.noFallDmg = true;
+
+            //bundle
+            if (Player.AddEffect<SupersonicJumps>(item) && Player.wingTime == 0)
+            {
+                Player.GetJumpState(ExtraJump.CloudInABottle).Enable();
+                Player.GetJumpState(ExtraJump.SandstormInABottle).Enable();
+                Player.GetJumpState(ExtraJump.BlizzardInABottle).Enable();
+                Player.GetJumpState(ExtraJump.FartInAJar).Enable();
+            }
+
+            //magic carpet
+            if (Player.whoAmI == Main.myPlayer && Player.AddEffect<SupersonicCarpet>(item))
+            {
+                Player.carpet = true;
+                if (Main.netMode == NetmodeID.MultiplayerClient)
+                    NetMessage.SendData(MessageID.SyncPlayer, number: Player.whoAmI);
+
+                if (Player.canCarpet)
+                {
+                    modPlayer.extraCarpetDuration = true;
+                }
+                else if (modPlayer.extraCarpetDuration)
+                {
+                    modPlayer.extraCarpetDuration = false;
+                    Player.carpetTime = 1000;
+                }
+            }
+
+            //EoC Shield
+            if (Player.AddEffect<CthulhuShield>(item))
+                Player.dashType = 2;
+
+            //ninja gear
+            if (Player.AddEffect<SupersonicTabi>(item))
+                Player.dashType = 1;
+            if (Player.AddEffect<BlackBelt>(item))
+                Player.blackBelt = true;
+            if (Player.AddEffect<BlackBelt>(item))
+                Player.spikedBoots = 2;
+
+            //sweetheart necklace
+            if (Player.HasEffect<DefenseBeeEffect>() || Player.AddEffect<DefenseBeeEffect>(item))
+            {
+                Player.honeyCombItem = item;
+            }
+            if (Player.AddEffect<SupersonicPanic>(item))
+            {
+                Player.panic = true;
+            }
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ModContent.ItemType<AeolusBoots>()) //add terraspark boots
+            .AddIngredient(ItemID.FlyingCarpet)
+            .AddIngredient(ItemID.SweetheartNecklace)
+            .AddIngredient(ItemID.BalloonHorseshoeHoney)
+            .AddIngredient(ItemID.HorseshoeBundle)
+            .AddIngredient(ItemID.EoCShield)
+            .AddIngredient(ItemID.MasterNinjaGear)
+
+            .AddIngredient(ItemID.MinecartMech)
+            .AddIngredient(ItemID.BlessedApple)
+            .AddIngredient(ItemID.AncientHorn)
+            .AddIngredient(ItemID.ReindeerBells)
+            .AddIngredient(ItemID.BrainScrambler)
+
+            .AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"))
+
+
+            .Register();
+        }
     }
-  }
+    // AAAAAAAAAAAAAAAAAAA
+    public class RunSpeed : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupersonicHeader>();
+        
+        public override int ToggleItemType => ModContent.ItemType<SupersonicSoul>();
+    }
+    public class NoMomentum : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupersonicHeader>();
+        public override int ToggleItemType => ModContent.ItemType<SupersonicSoul>();
+        
+    }
+    public class SupersonicRocketBoots : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupersonicHeader>();
+        public override int ToggleItemType => ItemID.RocketBoots;
+        
+    }
+    public class SupersonicJumps : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupersonicHeader>();
+        public override int ToggleItemType => ModContent.ItemType<SupersonicSoul>();
+    }
+    public class SupersonicCarpet : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupersonicHeader>();
+        public override int ToggleItemType => ItemID.FlyingCarpet;
+        
+    }
+    public class CthulhuShield : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupersonicHeader>();
+        public override int ToggleItemType => ItemID.EoCShield;
+    }
+    public class SupersonicTabi : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupersonicHeader>();
+        public override int ToggleItemType => ItemID.Tabi;
+        
+    }
+    public class BlackBelt : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupersonicHeader>();
+
+        public override int ToggleItemType => ItemID.BlackBelt;
+    }
+    public class SupersonicClimbing : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupersonicHeader>();
+
+        public override int ToggleItemType => ItemID.TigerClimbingGear;
+    }
+    public class SupersonicPanic : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<SupersonicHeader>();
+
+        public override int ToggleItemType => ItemID.PanicNecklace;
+    }
 }

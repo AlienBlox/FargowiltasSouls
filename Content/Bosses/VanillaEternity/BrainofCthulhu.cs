@@ -1,9 +1,3 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.VanillaEternity.BrainofCthulhu
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Common.Utilities;
 using FargowiltasSouls.Content.NPCs.EternityModeNPCs;
 using FargowiltasSouls.Content.Projectiles;
@@ -13,257 +7,590 @@ using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Content;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.VanillaEternity
 {
-  public class BrainofCthulhu : EModeNPCBehaviour
-  {
-    public int ConfusionTimer;
-    public int IllusionTimer;
-    public int ForceDespawnTimer;
-    public bool EnteredPhase2;
-    public bool DroppedSummon;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(266);
-
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    public class BrainofCthulhu : EModeNPCBehaviour
     {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.ConfusionTimer);
-      binaryWriter.Write7BitEncodedInt(this.IllusionTimer);
-      bitWriter.WriteBit(this.EnteredPhase2);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.BrainofCthulhu);
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.ConfusionTimer = binaryReader.Read7BitEncodedInt();
-      this.IllusionTimer = binaryReader.Read7BitEncodedInt();
-      this.EnteredPhase2 = bitReader.ReadBit();
-    }
+        public int ConfusionTimer;
+        public int IllusionTimer;
+        public int ForceDespawnTimer;
 
-    public virtual void SetDefaults(NPC npc)
-    {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(npc);
-      npc.lifeMax = (int) Math.Round((double) npc.lifeMax * 1.25);
-      npc.scale += 0.25f;
-    }
+        public bool EnteredPhase2;
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      npc.buffImmune[69] = true;
-    }
+        public bool DroppedSummon;
 
-    public virtual bool CanHitPlayer(NPC npc, Player target, ref int CooldownSlot)
-    {
-      return npc.alpha == 0;
-    }
+        public int ClonefadeDashTimer;
+        public float CloneFade = 0f;
+        public bool ManuallyDrawing;
+        public bool KnockbackImmune;
 
-    public override bool SafePreAI(NPC npc)
-    {
-      EModeGlobalNPC.brainBoss = ((Entity) npc).whoAmI;
-      if (WorldSavingSystem.SwarmActive)
-        return base.SafePreAI(npc);
-      if (((Entity) Main.LocalPlayer).active && Main.LocalPlayer.Eternity().ShorterDebuffsTimer < 2)
-        Main.LocalPlayer.Eternity().ShorterDebuffsTimer = 2;
-      if (!npc.HasValidTarget || (double) ((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center) > 3000.0)
-      {
-        if (++this.ForceDespawnTimer > 60)
+        public float GlowOpacity = 0f;
+
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
         {
-          ((Entity) npc).velocity.Y += 0.75f;
-          if (npc.timeLeft > 60)
-            npc.timeLeft = 60;
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(ConfusionTimer);
+            binaryWriter.Write7BitEncodedInt(IllusionTimer);
+            binaryWriter.Write7BitEncodedInt(ClonefadeDashTimer);
+            binaryWriter.Write(CloneFade);
+            bitWriter.WriteBit(EnteredPhase2);
+            bitWriter.WriteBit(KnockbackImmune);
         }
-      }
-      else
-        this.ForceDespawnTimer = 0;
-      if (npc.alpha > 0 && ((double) npc.ai[0] == 2.0 || (double) npc.ai[0] == -3.0) && npc.HasValidTarget)
-      {
-        Vector2 center = ((Entity) Main.player[npc.target]).Center;
-        if ((double) ((Entity) npc).Distance(center) < 360.0)
-          ((Entity) npc).Center = Vector2.op_Addition(center, Vector2.op_Multiply(((Entity) npc).DirectionFrom(center), 360f));
-      }
-      if (this.EnteredPhase2)
-      {
-        if (npc.alpha > 0 && npc.buffType[0] != 0)
-          npc.DelBuff(0);
-        int num1 = WorldSavingSystem.MasochistModeReal ? 240 : 300;
-        int num2 = num1 - 60;
-        if (--this.ConfusionTimer < 0)
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
         {
-          this.ConfusionTimer = num1;
-          if (!Main.player[npc.target].HasBuff(31))
-          {
-            SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-            Vector2 vector2 = Vector2.op_Subtraction(((Entity) npc).Center, ((Entity) Main.player[npc.target]).Center);
-            Vector2 center = ((Entity) Main.player[npc.target]).Center;
-            TelegraphConfusion(new Vector2(center.X + vector2.X, center.Y + vector2.Y));
-            TelegraphConfusion(new Vector2(center.X + vector2.X, center.Y - vector2.Y));
-            TelegraphConfusion(new Vector2(center.X - vector2.X, center.Y + vector2.Y));
-            TelegraphConfusion(new Vector2(center.X - vector2.X, center.Y - vector2.Y));
-          }
-          npc.netUpdate = true;
-          EModeNPCBehaviour.NetSync(npc);
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            ConfusionTimer = binaryReader.Read7BitEncodedInt();
+            IllusionTimer = binaryReader.Read7BitEncodedInt();
+            ClonefadeDashTimer = binaryReader.Read7BitEncodedInt();
+            CloneFade = binaryReader.ReadSingle();
+            EnteredPhase2 = bitReader.ReadBit();
+            KnockbackImmune = bitReader.ReadBit();
         }
-        else if (this.ConfusionTimer == num2)
+
+        public override void SetDefaults(NPC npc)
         {
-          if (Main.player[npc.target].HasBuff(31))
-          {
-            SoundEngine.PlaySound(ref SoundID.ForceRoarPitched, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-            TelegraphConfusion(((Entity) npc).Center);
-            this.IllusionTimer = 210;
-            if (FargoSoulsUtil.HostCheck)
+            base.SetDefaults(npc);
+
+            npc.lifeMax = (int)Math.Round(npc.lifeMax * 1.25);
+            npc.scale += 0.25f;
+        }
+
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
+
+            npc.buffImmune[BuffID.Ichor] = true;
+        }
+
+        public override bool CanHitPlayer(NPC npc, Player target, ref int CooldownSlot)
+        {
+            return npc.alpha == 0;
+        }
+
+        public override bool SafePreAI(NPC npc)
+        {
+            EModeGlobalNPC.brainBoss = npc.whoAmI;
+
+            if (Main.LocalPlayer.active && Main.LocalPlayer.Eternity().ShorterDebuffsTimer < 2)
+                Main.LocalPlayer.Eternity().ShorterDebuffsTimer = 2;
+
+            if (!npc.HasValidTarget || npc.Distance(Main.player[npc.target].Center) > 3000)
             {
-              int type = ModContent.ProjectileType<BrainIllusionProj>();
-              int alpha = (int) ((double) byte.MaxValue * (double) npc.life / (double) npc.lifeMax);
-              foreach (Projectile projectile in ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (p => ((Entity) p).active && p.type == type && (double) p.ai[0] == (double) ((Entity) npc).whoAmI && (double) p.ai[1] == 0.0)))
-              {
-                if ((double) ((Entity) projectile).Distance(((Entity) Main.player[npc.target]).Center) < 1000.0)
-                  SpawnClone(((Entity) projectile).Center);
-                projectile.Kill();
-              }
-              Vector2 vector2 = Vector2.op_Subtraction(((Entity) npc).Center, ((Entity) Main.player[npc.target]).Center);
-              Vector2 center = ((Entity) Main.player[npc.target]).Center;
-              SpawnClone(new Vector2(center.X + vector2.X, center.Y + vector2.Y));
-              SpawnClone(new Vector2(center.X + vector2.X, center.Y - vector2.Y));
-              SpawnClone(new Vector2(center.X - vector2.X, center.Y + vector2.Y));
-              SpawnClone(new Vector2(center.X - vector2.X, center.Y - vector2.Y));
-
-              void SpawnClone(Vector2 center)
-              {
-                int num = NPC.NewNPC(((Entity) npc).GetSource_FromAI((string) null), (int) center.X, (int) center.Y, ModContent.NPCType<BrainIllusionAttack>(), ((Entity) npc).whoAmI, (float) ((Entity) npc).whoAmI, (float) alpha, 0.0f, 0.0f, (int) byte.MaxValue);
-                if (num == Main.maxNPCs)
-                  return;
-                NetMessage.SendData(23, -1, -1, (NetworkText) null, num, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-              }
+                if (++ForceDespawnTimer > 60)
+                {
+                    npc.velocity.Y += 0.75f;
+                    if (npc.timeLeft > 60)
+                        npc.timeLeft = 60;
+                }
             }
-          }
-          else
-          {
-            Vector2 vector2 = Vector2.op_Subtraction(((Entity) npc).Center, ((Entity) Main.player[npc.target]).Center);
-            Vector2 center = ((Entity) Main.player[npc.target]).Center;
-            LaserSpread(new Vector2(center.X + vector2.X, center.Y + vector2.Y));
-            LaserSpread(new Vector2(center.X + vector2.X, center.Y - vector2.Y));
-            LaserSpread(new Vector2(center.X - vector2.X, center.Y + vector2.Y));
-            LaserSpread(new Vector2(center.X - vector2.X, center.Y - vector2.Y));
-          }
-          if ((double) ((Entity) npc).Distance(((Entity) Main.LocalPlayer).Center) < 3000.0 && !Main.LocalPlayer.HasBuff(31))
-            FargoSoulsUtil.AddDebuffFixedDuration(Main.LocalPlayer, 31, num1 + 10, false);
+            else
+            {
+                ForceDespawnTimer = 0;
+            }
+
+            if (npc.alpha > 0 && (npc.ai[0] == 2 || npc.ai[0] == -3) && npc.HasValidTarget) //stay at a minimum distance
+            {
+                const float safeRange = 360;
+                /*Vector2 stayAwayFromHere = Main.player[npc.target].Center + Main.player[npc.target].velocity * 30f;
+                if (npc.Distance(stayAwayFromHere) < safeRange)
+                    npc.Center = stayAwayFromHere + npc.DirectionFrom(stayAwayFromHere) * safeRange;*/
+                Vector2 stayAwayFromHere = Main.player[npc.target].Center;
+                if (npc.Distance(stayAwayFromHere) < safeRange)
+                    npc.Center = stayAwayFromHere + npc.DirectionFrom(stayAwayFromHere) * safeRange;
+            }
+
+            if (EnteredPhase2)
+            {
+                int confusionThreshold = 400;
+                int confusionThreshold2 = confusionThreshold - 60;
+                // Fade dash
+                float cloneTime = 50;
+                int dashTime = 60;
+                ref float teleportTimer = ref npc.localAI[1];
+                bool confused = npc.HasPlayerTarget && Main.player[npc.target].HasBuff(BuffID.Confused);
+                bool noFadeDash = ConfusionTimer.IsWithinBounds(confusionThreshold2 - 60, confusionThreshold2);
+                //if (npc.life > npc.lifeMax / 2 && !WorldSavingSystem.MasochistModeReal && !(npc.HasPlayerTarget && !Main.player[npc.target].HasBuff(BuffID.Confused)))
+                //    noFadeDash = false;
+                if (teleportTimer >= cloneTime - 25 && !noFadeDash)
+                {
+                    if (CloneFade < 1)
+                        CloneFade += 0.05f;
+                }
+                else
+                {
+                    CloneFade = 0;
+                }
+                if (teleportTimer >= cloneTime && teleportTimer <= 60 && !noFadeDash)
+                {
+                    if (!confused)
+                    {
+                        ConfusionTimer++;
+                    }
+                    if (ClonefadeDashTimer < dashTime && npc.HasPlayerTarget)
+                    {
+                        if (ClonefadeDashTimer == 0)
+                            npc.netUpdate = true;
+
+                        KnockbackImmune = true;
+                        ClonefadeDashTimer++;
+                        teleportTimer = cloneTime + 5;
+                        Player player = Main.player[npc.target];
+                        npc.velocity += npc.DirectionTo(player.Center) * 0.35f;
+                    }
+                    else
+                    {
+                        teleportTimer = 60;
+                        npc.netUpdate = true;
+                    }
+                       
+                }
+                if (teleportTimer < cloneTime)
+                {
+                    const float safeRange = 360;
+                    Vector2 stayAwayFromHere = Main.player[npc.target].Center;
+                    if (npc.Distance(stayAwayFromHere) < safeRange)
+                        npc.Center = stayAwayFromHere + npc.DirectionFrom(stayAwayFromHere) * safeRange;
+
+                    ClonefadeDashTimer = 0;
+                    KnockbackImmune = false;
+                }
+                    
+
+                //debuff cleanse when tp'ing
+                if (npc.alpha > 0 && npc.buffType[0] != 0)
+                {
+                    npc.DelBuff(0);
+                }
+
+                void TelegraphConfusion(Vector2 spawn)
+                {
+                    Projectile.NewProjectile(npc.GetSource_FromThis(), spawn, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0f, Main.myPlayer, 8, 180);
+                    Projectile.NewProjectile(npc.GetSource_FromThis(), spawn, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0f, Main.myPlayer, 8, 200);
+                    Projectile.NewProjectile(npc.GetSource_FromThis(), spawn, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0f, Main.myPlayer, 8, 220);
+                };
+
+                void LaserSpread(Vector2 spawn)
+                {
+                    if (npc.life > npc.lifeMax / 2 && !WorldSavingSystem.MasochistModeReal)
+                        return;
+
+                    if (npc.HasValidTarget && FargoSoulsUtil.HostCheck) //laser spreads from each illusion
+                    {
+                        int max = WorldSavingSystem.MasochistModeReal ? 7 : 3;
+                        int degree = WorldSavingSystem.MasochistModeReal ? 2 : 3;
+                        int laserDamage = FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 4f / 3);
+
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), spawn, new Vector2(0, -4), ModContent.ProjectileType<BrainofConfusion>(), 0, 0, Main.myPlayer);
+                        for (int i = -max; i <= max; i++)
+                            Projectile.NewProjectile(npc.GetSource_FromThis(), spawn, 0.2f * Main.player[npc.target].DirectionFrom(spawn).RotatedBy(MathHelper.ToRadians(degree) * i), ModContent.ProjectileType<DestroyerLaser>(), laserDamage, 0f, Main.myPlayer);
+                    }
+                };
+
+                if (--ConfusionTimer < 0)
+                {
+                    ConfusionTimer = confusionThreshold;
+
+                    if (!Main.player[npc.target].HasBuff(BuffID.Confused))
+                    {
+                        SoundEngine.PlaySound(SoundID.Roar, npc.Center);
+
+                        Vector2 offset = npc.Center - Main.player[npc.target].Center;
+                        Vector2 spawnPos = Main.player[npc.target].Center;
+
+                        TelegraphConfusion(new Vector2(spawnPos.X + offset.X, spawnPos.Y + offset.Y));
+                        TelegraphConfusion(new Vector2(spawnPos.X + offset.X, spawnPos.Y - offset.Y));
+                        TelegraphConfusion(new Vector2(spawnPos.X - offset.X, spawnPos.Y + offset.Y));
+                        TelegraphConfusion(new Vector2(spawnPos.X - offset.X, spawnPos.Y - offset.Y));
+                    }
+
+                    npc.netUpdate = true;
+                    NetSync(npc);
+                }
+                else if (ConfusionTimer > confusionThreshold2) // after telegraph
+                {
+                    KnockbackImmune = false;
+                    // no teleporting
+                    teleportTimer = 2;
+                    if (!(npc.life > npc.lifeMax / 2 && !WorldSavingSystem.MasochistModeReal))
+                    {
+                        ClonefadeDashTimer = 0;
+                        CloneFade = 0;
+                    }
+
+                    if (!Main.player[npc.target].HasBuff(BuffID.Confused))
+                    {
+                        if (npc.HasPlayerTarget)
+                        {
+                            Player player = Main.player[npc.target];
+                            Vector2 desiredPos = player.Center;
+                            Vector2 toNPC = npc.Center - desiredPos;
+                            desiredPos += Vector2.UnitX * MathF.Sign(toNPC.X) * 300f + Vector2.UnitY * MathF.Sign(toNPC.Y) * 300f;
+                            npc.velocity = Vector2.Lerp(npc.velocity, npc.DirectionTo(desiredPos) * Math.Min(10, npc.Distance(desiredPos)), 0.2f);
+                            KnockbackImmune = true;
+                        }
+                        
+                    }
+                    void TelegraphCircle()
+                    {
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            float size = 20f + 180f * (ConfusionTimer - confusionThreshold2) / (confusionThreshold - confusionThreshold2);
+                            foreach (Player p in Main.player.Where(p => p.Alive()))
+                                Projectile.NewProjectile(npc.GetSource_FromThis(), p.Center, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0f, Main.myPlayer, 15, size);
+                        }
+                    }
+                    if (ConfusionTimer % 15 == 0 && !WorldSavingSystem.MasochistModeReal)
+                        if (!Main.dedServ)
+                        {
+                            TelegraphCircle();
+                            SoundEngine.PlaySound(new SoundStyle("FargowiltasSouls/Assets/Sounds/ReticleBeep"), Main.LocalPlayer.Center);
+                        }
+                            
+
+                    if (ConfusionTimer == confusionThreshold2 + 1 && !WorldSavingSystem.MasochistModeReal)
+                        if (!Main.dedServ)
+                        {
+                            TelegraphCircle();
+                            SoundEngine.PlaySound(new SoundStyle("FargowiltasSouls/Assets/Sounds/ReticleBeep") with { Pitch = -0.5f }, Main.LocalPlayer.Center);
+                        }
+                }
+                else if (ConfusionTimer == confusionThreshold2)
+                {
+                    //npc.netUpdate = true; //disabled because might be causing mp issues???
+                    //NetSync(npc);
+
+                    if (Main.player[npc.target].HasBuff(BuffID.Confused))
+                    {
+                        SoundEngine.PlaySound(SoundID.ForceRoarPitched, npc.Center);
+                        TelegraphConfusion(npc.Center);
+
+                        IllusionTimer = 120 + 90;
+
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            int type = ModContent.ProjectileType<BrainIllusionProj>(); //make illusions attack
+                            int alpha = (int)(255f * npc.life / npc.lifeMax);
+
+                            void SpawnClone(Vector2 center)
+                            {
+                                int n = NPC.NewNPC(npc.GetSource_FromAI(), (int)center.X, (int)center.Y, ModContent.NPCType<BrainIllusionAttack>(), npc.whoAmI, npc.whoAmI, alpha);
+                                if (n != Main.maxNPCs)
+                                    NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, n);
+                            }
+
+                            foreach (Projectile p in Main.projectile.Where(p => p.active && p.type == type && p.ai[0] == npc.whoAmI && p.ai[1] == 0f))
+                            {
+                                if (p.Distance(Main.player[npc.target].Center) < 1000)
+                                {
+                                    //p.ai[1] = 1f;
+                                    //p.netUpdate = true;
+
+                                    SpawnClone(p.Center);
+                                }
+                                p.Kill();
+                            }
+
+                            Vector2 offset = npc.Center - Main.player[npc.target].Center;
+                            Vector2 spawnPos = Main.player[npc.target].Center;
+
+                            SpawnClone(new Vector2(spawnPos.X + offset.X, spawnPos.Y + offset.Y));
+                            SpawnClone(new Vector2(spawnPos.X + offset.X, spawnPos.Y - offset.Y));
+                            SpawnClone(new Vector2(spawnPos.X - offset.X, spawnPos.Y + offset.Y));
+                            SpawnClone(new Vector2(spawnPos.X - offset.X, spawnPos.Y - offset.Y));
+                        }
+                    }
+                    else
+                    {
+                        Vector2 offset = npc.Center - Main.player[npc.target].Center;
+                        Vector2 spawnPos = Main.player[npc.target].Center;
+
+                        LaserSpread(new Vector2(spawnPos.X + offset.X, spawnPos.Y + offset.Y));
+                        LaserSpread(new Vector2(spawnPos.X + offset.X, spawnPos.Y - offset.Y));
+                        LaserSpread(new Vector2(spawnPos.X - offset.X, spawnPos.Y + offset.Y));
+                        LaserSpread(new Vector2(spawnPos.X - offset.X, spawnPos.Y - offset.Y));
+                    }
+
+                    if (npc.Distance(Main.LocalPlayer.Center) < 3000 && !Main.LocalPlayer.HasBuff(BuffID.Confused)) //inflict confusion
+                    {
+                        FargoSoulsUtil.AddDebuffFixedDuration(Main.LocalPlayer, BuffID.Confused, confusionThreshold + 10, false);
+                    }
+                }
+
+                if (--IllusionTimer < 0) //spawn illusions
+                {
+                    IllusionTimer = Main.rand.Next(5, 11);
+                    if (npc.life > npc.lifeMax / 2)
+                        IllusionTimer += 5;
+                    if (npc.life < npc.lifeMax / 10)
+                        IllusionTimer -= 2;
+                    if (WorldSavingSystem.MasochistModeReal)
+                        IllusionTimer -= 2;
+                    npc.netUpdate = true;
+
+                    if (FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 spawn = Main.player[npc.target].Center + Main.rand.NextVector2CircularEdge(1200f, 1200f);
+                        Vector2 speed = Main.player[npc.target].Center + Main.player[npc.target].velocity * 45f + Main.rand.NextVector2Circular(-600f, 600f) - spawn;
+                        speed = Vector2.Normalize(speed) * Main.rand.NextFloat(12f, 48f);
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), spawn, speed, ModContent.ProjectileType<BrainIllusionProj>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 4f / 3), 0f, Main.myPlayer, npc.whoAmI);
+                    }
+                }
+
+                if (IllusionTimer > 60)
+                {
+                    if (npc.ai[0] == -1f && npc.localAI[1] < 80) //force a tp
+                    {
+                        npc.localAI[1] = 80f;
+                    }
+                    if (npc.ai[0] == -3f && npc.ai[3] > 200) //stay invis
+                    {
+                        npc.dontTakeDamage = true;
+                        npc.ai[0] = -3f;
+                        npc.ai[3] = 255;
+                        npc.alpha = 255;
+                        return false;
+                    }
+                }
+                if (IllusionTimer == 60)
+                {
+                    npc.localAI[1] = 120;
+                    npc.ai[0] = -1;
+                }
+            }
+            else if (!npc.dontTakeDamage)
+            {
+                EnteredPhase2 = true;
+
+                if (FargoSoulsUtil.HostCheck) //spawn illusions
+                {
+                    bool recolor = SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
+                    int type = recolor ? ModContent.NPCType<BrainIllusion2>() : ModContent.NPCType<BrainIllusion>();
+
+                    FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, type, npc.whoAmI, npc.whoAmI, -1, 1);
+                    FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, type, npc.whoAmI, npc.whoAmI, 1, -1);
+                    FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, type, npc.whoAmI, npc.whoAmI, 1, 1);
+
+                    if (WorldSavingSystem.MasochistModeReal)
+                        FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, ModContent.NPCType<BrainClone>(), npc.whoAmI);
+
+                    for (int i = 0; i < Main.maxProjectiles; i++) //clear old golden showers
+                    {
+                        if (Main.projectile[i].active && Main.projectile[i].type == ModContent.ProjectileType<GoldenShowerHoming>())
+                            Main.projectile[i].Kill();
+                    }
+                }
+            }
+
+            EModeUtils.DropSummon(npc, "GoreySpine", NPC.downedBoss2, ref DroppedSummon);
+
+            npc.defense = 0;
+            npc.defDefense = 0;
+
+            return base.SafePreAI(npc);
         }
-        if (--this.IllusionTimer < 0)
+        public override Color? GetAlpha(NPC npc, Color drawColor)
         {
-          this.IllusionTimer = Main.rand.Next(5, 11);
-          if (npc.life > npc.lifeMax / 2)
-            this.IllusionTimer += 5;
-          if (npc.life < npc.lifeMax / 10)
-            this.IllusionTimer -= 2;
-          if (WorldSavingSystem.MasochistModeReal)
-            this.IllusionTimer -= 2;
-          if (FargoSoulsUtil.HostCheck)
-          {
-            Vector2 vector2_1 = Vector2.op_Addition(((Entity) Main.player[npc.target]).Center, Utils.NextVector2CircularEdge(Main.rand, 1200f, 1200f));
-            Vector2 vector2_2 = Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(Vector2.op_Addition(Vector2.op_Addition(((Entity) Main.player[npc.target]).Center, Vector2.op_Multiply(((Entity) Main.player[npc.target]).velocity, 45f)), Utils.NextVector2Circular(Main.rand, -600f, 600f)), vector2_1)), Utils.NextFloat(Main.rand, 12f, 48f));
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), vector2_1, vector2_2, ModContent.ProjectileType<BrainIllusionProj>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 1.33333337f), 0.0f, Main.myPlayer, (float) ((Entity) npc).whoAmI, 0.0f, 0.0f);
-          }
+            if (!ManuallyDrawing)
+                drawColor *= (1 - CloneFade);
+            drawColor *= npc.Opacity;
+            return drawColor;
         }
-        if (this.IllusionTimer > 60)
+        public override bool PreDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
         {
-          if ((double) npc.ai[0] == -1.0 && (double) npc.localAI[1] < 80.0)
-            npc.localAI[1] = 80f;
-          if ((double) npc.ai[0] == -3.0 && (double) npc.ai[3] > 200.0)
-          {
-            npc.dontTakeDamage = true;
-            npc.ai[0] = -3f;
-            npc.ai[3] = (float) byte.MaxValue;
-            npc.alpha = (int) byte.MaxValue;
+            if (CloneFade > 0)
+            {
+                Asset<Texture2D> texture = TextureAssets.Npc[npc.type];
+                ManuallyDrawing = true;
+                Color color = npc.GetAlpha(drawColor);
+                SpriteEffects effects = npc.spriteDirection < 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+                Vector2 halfSize = new(texture.Width() / 2, texture.Height() / Main.npcFrameCount[npc.type] / 2);
+                float num35 = 50f * npc.scale;
+                float num36 = Main.NPCAddHeight(npc);
+
+                Vector2 drawPos = new(npc.position.X - screenPos.X + (float)(npc.width / 2) - (float)TextureAssets.Npc[npc.type].Width() * npc.scale / 2f + halfSize.X * npc.scale, 
+                    npc.position.Y - screenPos.Y + (float)npc.height - (float)texture.Height() * npc.scale / (float)Main.npcFrameCount[npc.type] + 4f + halfSize.Y * npc.scale + num36 + num35 + npc.gfxOffY);
+
+                // glow
+                Main.spriteBatch.UseBlendState(BlendState.Additive);
+                if (GlowOpacity < 1)
+                    GlowOpacity += 0.1f;
+                Color glowColor = npc.GetAlpha(Color.DarkRed) * GlowOpacity;
+                for (int i = 0; i < 12; i++)
+                {
+                    Vector2 afterimageOffset = (MathHelper.TwoPi * i / 12f).ToRotationVector2() * 6f;
+
+                    spriteBatch.Draw(texture.Value, drawPos + afterimageOffset, npc.frame, glowColor, npc.rotation, halfSize, npc.scale, effects, 0f);
+                }
+                Main.spriteBatch.ResetToDefault();
+                spriteBatch.Draw(texture.Value, drawPos, npc.frame, color, npc.rotation, halfSize, npc.scale, effects, 0f);
+                ManuallyDrawing = false;
+                //Main.EntitySpriteDraw(texture, npc.Center - screenPos + new Vector2(0f, npc.gfxOffY + Main.NPCAddHeight(npc)), npc.frame, color, npc.rotation, npc.frame.Size() / 2, npc.scale, effects, 0);
+                return true;
+            }
+            else
+            {
+                GlowOpacity = 0;
+            }
+            return base.PreDraw(npc, spriteBatch, screenPos, drawColor);
+        }
+
+        public override void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
+        {
+            if (npc.life > 0)
+                modifiers.FinalDamage *= Math.Max(0.18f, (float)Math.Sqrt((double)npc.life / npc.lifeMax));
+
+            if (KnockbackImmune)
+            {
+                modifiers.DisableKnockback();
+            }
+                
+
+            base.ModifyIncomingHit(npc, ref modifiers);
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            if (WorldSavingSystem.MasochistModeReal)
+            {
+                target.AddBuff(BuffID.Poisoned, 120);
+                target.AddBuff(BuffID.Darkness, 120);
+                target.AddBuff(BuffID.Bleeding, 120);
+                target.AddBuff(BuffID.Slow, 120);
+                target.AddBuff(BuffID.Weak, 120);
+                target.AddBuff(BuffID.BrokenArmor, 120);
+            }
+        }
+
+        public override void LoadSprites(NPC npc, bool recolor)
+        {
+            base.LoadSprites(npc, recolor);
+
+            LoadNPCSprite(recolor, npc.type);
+            LoadBossHeadSprite(recolor, 23);
+            LoadGoreRange(recolor, 392, 402);
+        }
+    }
+
+    public class Creeper : EModeNPCBehaviour
+    {
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Creeper);
+
+        public int IchorAttackTimer;
+
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(IchorAttackTimer);
+        }
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+        {
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            IchorAttackTimer = binaryReader.Read7BitEncodedInt();
+        }
+
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
+
+            npc.lifeMax = (int)Math.Round(npc.lifeMax * 1.5);
+
+            IchorAttackTimer = Main.rand.Next(60 * NPC.CountNPCS(NPCID.Creeper)) + Main.rand.Next(61) + 60;
+        }
+
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
+
+            npc.buffImmune[BuffID.Ichor] = true;
+        }
+
+        public override bool SafePreAI(NPC npc)
+        {
+            bool result = base.SafePreAI(npc);
+
+            if (--IchorAttackTimer < 0)
+            {
+                IchorAttackTimer = 60 * NPC.CountNPCS(NPCID.Creeper) - 30;
+                if (IchorAttackTimer >= 60)
+                    IchorAttackTimer += Main.rand.Next(-30, 31);
+
+                if (npc.HasPlayerTarget && FargoSoulsUtil.HostCheck)
+                {
+                    Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, 10f * npc.DirectionFrom(Main.player[npc.target].Center).RotatedByRandom(Math.PI),
+                        ModContent.ProjectileType<GoldenShowerHoming>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer, npc.target, -60f);
+                }
+
+                npc.netUpdate = true;
+                NetSync(npc);
+            }
+
+            if (IchorAttackTimer % 60 == 0) //update timer periodically for if player suddenly kills a lot of creepers at once
+            {
+                IchorAttackTimer = Math.Min(IchorAttackTimer, 60 * NPC.CountNPCS(npc.type));
+            }
+
+            return result;
+        }
+        public override void SafeModifyHitByProjectile(NPC npc, Projectile projectile, ref NPC.HitModifiers modifiers)
+        {
+            if (projectile.penetrate > 1 || projectile.penetrate < -1)
+                modifiers.FinalDamage *= 0.75f;
+        }
+        public override void SafeModifyHitByItem(NPC npc, Player player, Item item, ref NPC.HitModifiers modifiers)
+        {
+            modifiers.FinalDamage *= 0.75f;
+        }
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            if (WorldSavingSystem.MasochistModeReal)
+            {
+                target.AddBuff(BuffID.Poisoned, 120);
+                target.AddBuff(BuffID.Darkness, 120);
+                target.AddBuff(BuffID.Bleeding, 120);
+                target.AddBuff(BuffID.Slow, 120);
+                target.AddBuff(BuffID.Weak, 120);
+                target.AddBuff(BuffID.BrokenArmor, 120);
+            }
+        }
+
+        public override bool CheckDead(NPC npc)
+        {
+            if (npc.DeathSound != null)
+                SoundEngine.PlaySound(npc.DeathSound.Value, npc.Center);
+            npc.active = false;
             return false;
-          }
         }
-      }
-      else if (!npc.dontTakeDamage)
-      {
-        this.EnteredPhase2 = true;
-        if (FargoSoulsUtil.HostCheck)
+
+        public override void LoadSprites(NPC npc, bool recolor)
         {
-          int type = (!SoulConfig.Instance.BossRecolors ? 0 : (WorldSavingSystem.EternityMode ? 1 : 0)) != 0 ? ModContent.NPCType<BrainIllusion2>() : ModContent.NPCType<BrainIllusion>();
-          FargoSoulsUtil.NewNPCEasy(((Entity) npc).GetSource_FromAI((string) null), ((Entity) npc).Center, type, ((Entity) npc).whoAmI, (float) ((Entity) npc).whoAmI, -1f, 1f, velocity: new Vector2());
-          FargoSoulsUtil.NewNPCEasy(((Entity) npc).GetSource_FromAI((string) null), ((Entity) npc).Center, type, ((Entity) npc).whoAmI, (float) ((Entity) npc).whoAmI, 1f, -1f, velocity: new Vector2());
-          FargoSoulsUtil.NewNPCEasy(((Entity) npc).GetSource_FromAI((string) null), ((Entity) npc).Center, type, ((Entity) npc).whoAmI, (float) ((Entity) npc).whoAmI, 1f, 1f, velocity: new Vector2());
-          if (WorldSavingSystem.MasochistModeReal)
-            FargoSoulsUtil.NewNPCEasy(((Entity) npc).GetSource_FromAI((string) null), ((Entity) npc).Center, ModContent.NPCType<BrainClone>(), ((Entity) npc).whoAmI, velocity: new Vector2());
-          for (int index = 0; index < Main.maxProjectiles; ++index)
-          {
-            if (((Entity) Main.projectile[index]).active && Main.projectile[index].type == ModContent.ProjectileType<GoldenShowerHoming>())
-              Main.projectile[index].Kill();
-          }
+            base.LoadSprites(npc, recolor);
+
+            LoadNPCSprite(recolor, npc.type);
         }
-      }
-      EModeUtils.DropSummon(npc, "GoreySpine", NPC.downedBoss2, ref this.DroppedSummon);
-      npc.defense = 0;
-      npc.defDefense = 0;
-      return base.SafePreAI(npc);
-
-      void TelegraphConfusion(Vector2 spawn)
-      {
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), spawn, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0.0f, Main.myPlayer, 8f, 180f, 0.0f);
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), spawn, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0.0f, Main.myPlayer, 8f, 200f, 0.0f);
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), spawn, Vector2.Zero, ModContent.ProjectileType<GlowRingHollow>(), 0, 0.0f, Main.myPlayer, 8f, 220f, 0.0f);
-      }
-
-      void LaserSpread(Vector2 spawn)
-      {
-        if (npc.life > npc.lifeMax / 2 && !WorldSavingSystem.MasochistModeReal || !npc.HasValidTarget || !FargoSoulsUtil.HostCheck)
-          return;
-        int num1 = WorldSavingSystem.MasochistModeReal ? 7 : 3;
-        int num2 = WorldSavingSystem.MasochistModeReal ? 2 : 3;
-        int num3 = FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, 1.33333337f);
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), spawn, new Vector2(0.0f, -4f), ModContent.ProjectileType<BrainofConfusion>(), 0, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-        for (int index = -num1; index <= num1; ++index)
-          Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), spawn, Vector2.op_Multiply(0.2f, Utils.RotatedBy(((Entity) Main.player[npc.target]).DirectionFrom(spawn), (double) MathHelper.ToRadians((float) num2) * (double) index, new Vector2())), ModContent.ProjectileType<DestroyerLaser>(), num3, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      }
     }
-
-    public virtual void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
-    {
-      if (npc.life > 0)
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Multiply(local, Math.Max(0.2f, (float) Math.Sqrt((double) npc.life / (double) npc.lifeMax)));
-      }
-      base.ModifyIncomingHit(npc, ref modifiers);
-    }
-
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      if (!WorldSavingSystem.MasochistModeReal)
-        return;
-      target.AddBuff(20, 120, true, false);
-      target.AddBuff(22, 120, true, false);
-      target.AddBuff(30, 120, true, false);
-      target.AddBuff(32, 120, true, false);
-      target.AddBuff(33, 120, true, false);
-      target.AddBuff(36, 120, true, false);
-    }
-
-    public override void LoadSprites(NPC npc, bool recolor)
-    {
-      base.LoadSprites(npc, recolor);
-      EModeNPCBehaviour.LoadNPCSprite(recolor, npc.type);
-      EModeNPCBehaviour.LoadBossHeadSprite(recolor, 23);
-      EModeNPCBehaviour.LoadGoreRange(recolor, 392, 402);
-    }
-  }
 }

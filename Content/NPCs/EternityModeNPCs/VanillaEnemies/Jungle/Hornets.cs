@@ -1,81 +1,111 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Jungle.Hornets
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using FargowiltasSouls.Core.Systems;
-using Microsoft.Xna.Framework;
 using System;
 using Terraria;
 using Terraria.Audio;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Jungle
 {
-  public class Hornets : EModeNPCBehaviour
-  {
-    public int Timer;
-
-    public override NPCMatcher CreateMatcher()
+    public class Hornets : EModeNPCBehaviour
     {
-      return new NPCMatcher().MatchTypeRange(42, 231, 232, 233, 234, 235, -57, -59, -61, -63, -65, -20, -21, -56, -58, -60, -62, -64, -19, 176, -18);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.Hornet,
+            NPCID.HornetFatty,
+            NPCID.HornetHoney,
+            NPCID.HornetLeafy,
+            NPCID.HornetSpikey,
+            NPCID.HornetStingy,
+            NPCID.BigHornetFatty,
+            NPCID.BigHornetHoney,
+            NPCID.BigHornetLeafy,
+            NPCID.BigHornetSpikey,
+            NPCID.BigHornetStingy,
+            NPCID.BigMossHornet,
+            NPCID.GiantMossHornet,
+            NPCID.LittleHornetFatty,
+            NPCID.LittleHornetHoney,
+            NPCID.LittleHornetLeafy,
+            NPCID.LittleHornetSpikey,
+            NPCID.LittleHornetStingy,
+            NPCID.LittleMossHornet,
+            NPCID.MossHornet,
+            NPCID.TinyMossHornet
+        );
 
-    public override void OnFirstTick(NPC npc)
-    {
-      base.OnFirstTick(npc);
-      npc.buffImmune[20] = true;
-      npc.buffImmune[70] = true;
-    }
+        public int Timer;
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      if (++this.Timer > (WorldSavingSystem.MasochistModeReal ? 240 : 420))
-        this.Timer = 0;
-      if (!npc.HasPlayerTarget)
-        return;
-      if ((!npc.HasValidTarget || !Main.player[npc.target].FargoSouls().Swarming ? 0 : (!Collision.CanHitLine(((Entity) npc).Center, 0, 0, ((Entity) Main.player[npc.target]).Center, 0, 0) ? 1 : 0)) != 0)
-        npc.noTileCollide = true;
-      else if (npc.noTileCollide && !Collision.SolidCollision(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height))
-        npc.noTileCollide = false;
-      if (!npc.noTileCollide && (!npc.HasValidTarget || !Main.player[npc.target].FargoSouls().Swarming))
-        return;
-      int index = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 44, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, new Color(), 1f);
-      Main.dust[index].noGravity = true;
-      if (this.Timer != 0)
-        return;
-      if (!Collision.CanHitLine(((Entity) npc).Center, 0, 0, ((Entity) Main.player[npc.target]).Center, 0, 0))
-        ((Entity) npc).velocity = Vector2.op_Multiply(Math.Min(6f, ((Vector2) ref ((Entity) npc).velocity).Length()), Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center));
-      if ((double) ((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center) > 1200.0)
-        this.Timer += 90;
-      npc.netUpdate = true;
-      EModeNPCBehaviour.NetSync(npc);
-    }
+        public override void OnFirstTick(NPC npc)
+        {
+            base.OnFirstTick(npc);
 
-    public virtual bool CheckDead(NPC npc)
-    {
-      if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.beeBoss, 222))
-        return base.CheckDead(npc);
-      ((Entity) npc).active = false;
-      if (npc.DeathSound.HasValue)
-      {
-        SoundStyle soundStyle = npc.DeathSound.Value;
-        SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-      }
-      return false;
-    }
+            npc.buffImmune[BuffID.Poisoned] = true;
+            npc.buffImmune[BuffID.Venom] = true;
+        }
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(ModContent.BuffType<InfestedBuff>(), 300, true, false);
-      target.AddBuff(ModContent.BuffType<SwarmingBuff>(), 600, true, false);
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            //put here so they dont all dash at once after you get swarming
+            if (++Timer > (WorldSavingSystem.MasochistModeReal ? 240 : 420))
+            {
+                Timer = 0;
+            }
+
+            if (npc.HasPlayerTarget)
+            {
+                bool shouldNotTileCollide = npc.HasValidTarget
+                    && Main.player[npc.target].FargoSouls().Swarming
+                    && !Collision.CanHitLine(npc.Center, 0, 0, Main.player[npc.target].Center, 0, 0);
+                if (shouldNotTileCollide)
+                    npc.noTileCollide = true;
+                else if (npc.noTileCollide && !Collision.SolidCollision(npc.position, npc.width, npc.height)) //still intangible, but should stop, and isnt on tiles
+                    npc.noTileCollide = false;
+
+                if (npc.noTileCollide || (npc.HasValidTarget && Main.player[npc.target].FargoSouls().Swarming))
+                {
+                    int d = Dust.NewDust(npc.position, npc.width, npc.height, DustID.JungleSpore, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f);
+                    Main.dust[d].noGravity = true;
+
+                    if (Timer == 0) //if player behind blocks, periodically dash closer
+                    {
+                        if (!Collision.CanHitLine(npc.Center, 0, 0, Main.player[npc.target].Center, 0, 0))
+                            npc.velocity = Math.Min(6f, npc.velocity.Length()) * npc.SafeDirectionTo(Main.player[npc.target].Center);
+
+                        //move in more frequently when especially far away
+                        if (npc.Distance(Main.player[npc.target].Center) > 1200)
+                            Timer += 90;
+
+                        npc.netUpdate = true;
+                        NetSync(npc);
+                    }
+                }
+            }
+        }
+
+        public override bool CheckDead(NPC npc)
+        {
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.beeBoss, NPCID.QueenBee))
+            {
+                npc.active = false;
+                if (npc.DeathSound != null)
+                    SoundEngine.PlaySound(npc.DeathSound.Value, npc.Center);
+                return false;
+            }
+
+            return base.CheckDead(npc);
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(ModContent.BuffType<InfestedBuff>(), 300);
+            target.AddBuff(ModContent.BuffType<SwarmingBuff>(), 600);
+        }
     }
-  }
 }

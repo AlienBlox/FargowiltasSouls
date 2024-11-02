@@ -1,56 +1,48 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Materials.EternalEnergy
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Terraria;
-using Terraria.Audio;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Materials
 {
-  public class EternalEnergy : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class EternalEnergy : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 30;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 30;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.maxStack = 30;
-      this.Item.rare = 11;
-      this.Item.useStyle = 2;
-      this.Item.useAnimation = 17;
-      this.Item.useTime = 17;
-      this.Item.consumable = true;
-      this.Item.buffType = ModContent.BuffType<SadismBuff>();
-      this.Item.buffTime = 25200;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item3);
-      this.Item.value = Item.sellPrice(0, 5, 0, 0);
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.maxStack = 30;
+            Item.rare = ItemRarityID.Purple;
+            Item.useStyle = ItemUseStyleID.EatFood;
+            Item.useAnimation = 17;
+            Item.useTime = 17;
+            Item.consumable = true;
+            Item.buffType = ModContent.BuffType<Buffs.Masomode.SadismBuff>();
+            Item.buffTime = 25200;
+            Item.UseSound = SoundID.Item3;
+            Item.value = Item.sellPrice(0, 5);
+        }
 
-    public override void SafeModifyTooltips(List<TooltipLine> list)
-    {
-      foreach (TooltipLine tooltipLine in list)
-      {
-        if (tooltipLine.Mod == "Terraria" && tooltipLine.Name == "ItemName")
-          tooltipLine.OverrideColor = new Color?(Main.DiscoColor);
-      }
-    }
+        public override void SafeModifyTooltips(List<TooltipLine> list)
+        {
+            foreach (TooltipLine line2 in list)
+            {
+                if (line2.Mod == "Terraria" && line2.Name == "ItemName")
+                {
+                    line2.OverrideColor = Main.DiscoColor;//new Color(Main.DiscoR, 51, 255 - (int)(Main.DiscoR * 0.4));
+                }
+            }
+        }
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(new Color(Main.DiscoR, Main.DiscoG, Main.DiscoB));
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(Main.DiscoR, Main.DiscoG, Main.DiscoB);
+        }
     }
-  }
 }

@@ -1,128 +1,126 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.TrojanSquirrel.TrojanSquirrelProj
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.TrojanSquirrel
 {
-  public class TrojanSquirrelProj : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class TrojanSquirrelProj : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Top Hat Squirrel");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 16;
-      ((Entity) this.Projectile).height = 16;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.tileCollide = false;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 16;
+            Projectile.height = 16;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.tileCollide = false;
+        }
 
-    public virtual void AI()
-    {
-      ((Entity) this.Projectile).velocity.Y += this.Projectile.ai[0];
-      if ((double) --this.Projectile.ai[1] <= 0.0 && !this.Projectile.tileCollide && !Collision.SolidCollision(((Entity) this.Projectile).Center, 0, 0))
-        this.Projectile.tileCollide = true;
-      this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-      if ((double) this.Projectile.localAI[0] != 0.0)
-        return;
-      this.Projectile.localAI[0] = Utils.NextBool(Main.rand) ? 1f : -1f;
-    }
+        public override void AI()
+        {
+            Projectile.velocity.Y += Projectile.ai[0];
 
-    public virtual bool TileCollideStyle(
-      ref int width,
-      ref int height,
-      ref bool fallThrough,
-      ref Vector2 hitboxCenterFrac)
-    {
-      fallThrough = false;
-      return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
-    }
+            if (--Projectile.ai[1] <= 0 && !Projectile.tileCollide)
+            {
+                if (!Collision.SolidCollision(Projectile.Center, 0, 0))
+                    Projectile.tileCollide = true;
+            }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(ModContent.BuffType<GuiltyBuff>(), 120, true, false);
-    }
+            Projectile.rotation = Projectile.velocity.ToRotation();
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundStyle npcDeath1 = SoundID.NPCDeath1;
-      ((SoundStyle) ref npcDeath1).Volume = 0.5f;
-      SoundEngine.PlaySound(ref npcDeath1, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      for (int index = 0; index < 20; ++index)
-        Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 5, 0.0f, -1f, 0, new Color(), 1f);
-      if (Utils.NextBool(Main.rand, 5) && !Main.dedServ)
-      {
-        int index = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Vector2.op_Multiply(-0.1f, Utils.RotatedByRandom(((Entity) this.Projectile).oldVelocity, 0.78539818525314331)), ModContent.Find<ModGore>(((ModType) this).Mod.Name, Utils.NextBool(Main.rand) ? "TrojanSquirrelGore2" : "TrojanSquirrelGore2_2").Type, this.Projectile.scale);
-        Main.gore[index].rotation = Utils.NextFloat(Main.rand, 6.28318548f);
-      }
-      SoundStyle soundStyle = SoundID.Item14;
-      ((SoundStyle) ref soundStyle).Volume = 0.5f;
-      SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      for (int index1 = 0; index1 < 10; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 100, new Color(), 1.5f);
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
-      }
-      for (int index3 = 0; index3 < 5; ++index3)
-      {
-        int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 2.5f);
-        Main.dust[index4].noGravity = true;
-        Dust dust1 = Main.dust[index4];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 5f);
-        int index5 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 6, 0.0f, 0.0f, 100, new Color(), 1f);
-        Dust dust2 = Main.dust[index5];
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 3f);
-      }
-      for (int index6 = 0; index6 < 2; ++index6)
-      {
-        int index7 = Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, new Vector2(), Main.rand.Next(61, 64), 1f);
-        Gore gore1 = Main.gore[index7];
-        gore1.velocity = Vector2.op_Multiply(gore1.velocity, 0.4f);
-        Gore gore2 = Main.gore[index7];
-        gore2.velocity = Vector2.op_Addition(gore2.velocity, Utils.RotatedBy(new Vector2(1f, 1f), 3.1415927410125732 * (double) index6, new Vector2()));
-      }
-    }
+            if (Projectile.localAI[0] == 0)
+                Projectile.localAI[0] = Main.rand.NextBool() ? 1 : -1;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(alpha, this.Projectile.Opacity), 0.75f), 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override bool TileCollideStyle(ref int width, ref int height, ref bool fallThrough, ref Vector2 hitboxCenterFrac)
+        {
+            fallThrough = false;
+
+            return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+                target.AddBuff(ModContent.BuffType<GuiltyBuff>(), 120);
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.NPCDeath1 with { Volume = 0.5f }, Projectile.Center);
+
+            for (int k = 0; k < 20; k++)
+                Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Blood, 0f, -1f);
+
+            if (Main.rand.NextBool(5) && !Main.dedServ)
+            {
+                int g = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, -0.1f * Projectile.oldVelocity.RotatedByRandom(MathHelper.PiOver4), ModContent.Find<ModGore>(Mod.Name, Main.rand.NextBool() ? "TrojanSquirrelGore2" : "TrojanSquirrelGore2_2").Type, Projectile.scale);
+                Main.gore[g].rotation = Main.rand.NextFloat(MathHelper.TwoPi);
+            }
+
+            SoundEngine.PlaySound(SoundID.Item14 with { Volume = 0.5f }, Projectile.Center);
+
+            for (int i = 0; i < 10; i++)
+            {
+                int dust = Dust.NewDust(Projectile.position, Projectile.width,
+                    Projectile.height, DustID.Smoke, 0f, 0f, 100, default, 1.5f);
+                Main.dust[dust].velocity *= 1.4f;
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                int dust = Dust.NewDust(Projectile.position, Projectile.width,
+                    Projectile.height, DustID.Torch, 0f, 0f, 100, default, 2.5f);
+                Main.dust[dust].noGravity = true;
+                Main.dust[dust].velocity *= 5f;
+                dust = Dust.NewDust(Projectile.position, Projectile.width,
+                    Projectile.height, DustID.Torch, 0f, 0f, 100, default, 1f);
+                Main.dust[dust].velocity *= 3f;
+            }
+
+            for (int j = 0; j < 2; j++)
+            {
+                int gore = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, default, Main.rand.Next(61, 64));
+                Main.gore[gore].velocity *= 0.4f;
+                Main.gore[gore].velocity += new Vector2(1f, 1f).RotatedBy(MathHelper.TwoPi / 2 * j);
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color26 * Projectile.Opacity * 0.75f * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

@@ -1,51 +1,79 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.SkyAndRain.Harpy
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.SkyAndRain
 {
-  public class Harpy : EModeNPCBehaviour
-  {
-    public int FeatherRingTimer;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(48);
-
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    public class Harpy : EModeNPCBehaviour
     {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.FeatherRingTimer);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Harpy);
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.FeatherRingTimer = binaryReader.Read7BitEncodedInt();
-    }
+        public int FeatherRingTimer;
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      if (++this.FeatherRingTimer <= 300)
-        return;
-      this.FeatherRingTimer = 0;
-      FargoSoulsUtil.XWay(8, ((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, 38, 4f, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f);
-    }
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 300, true, false);
+            binaryWriter.Write7BitEncodedInt(FeatherRingTimer);
+        }
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+        {
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            FeatherRingTimer = binaryReader.Read7BitEncodedInt();
+        }
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            if (++FeatherRingTimer > 300)
+            {
+                FeatherRingTimer = 0;
+                FargoSoulsUtil.XWay(8, npc.GetSource_FromThis(), npc.Center, ProjectileID.HarpyFeather, 4f, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0);
+            }
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 300);
+            //if (target.whoAmI == Main.myPlayer && target.HasBuff(ModContent.BuffType<LoosePockets>()))
+            //{
+            //    bool stolen = false;
+            //    if (Main.mouseItem.healLife > 0 && NPCs.EModeGlobalNPC.StealFromInventory(target, ref Main.mouseItem))
+            //    {
+            //        stolen = true;
+            //    }
+            //    else
+            //    {
+            //        for (int j = 0; j < target.inventory.Length; j++)
+            //        {
+            //            Item item = target.inventory[j];
+            //            if (item.healLife > 0)
+            //            {
+            //                if (NPCs.EModeGlobalNPC.StealFromInventory(target, ref target.inventory[j]))
+            //                    stolen = true;
+            //                break;
+            //            }
+            //        }
+            //    }
+
+            //    if (stolen)
+            //    {
+            //        string text = Language.GetTextValue($"Mods.{mod.Name}.Message.ItemStolen");
+            //        Main.NewText(text, new Color(255, 50, 50));
+            //        CombatText.NewText(target.Hitbox, new Color(255, 50, 50), text, true);
+            //    }
+            //}
+            //target.AddBuff(ModContent.BuffType<LoosePockets>(), 240);
+        }
     }
-  }
 }

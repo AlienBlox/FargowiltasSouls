@@ -1,60 +1,73 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Cavern.Beetles
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
+using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Cavern
 {
-  public abstract class Beetles : EModeNPCBehaviour
-  {
-    protected virtual int DustType { get; }
-
-    protected virtual void BeetleEffect(NPC affectedNPC)
+    public abstract class Beetles : EModeNPCBehaviour
     {
+        protected virtual int DustType { get; }
+
+        protected virtual void BeetleEffect(NPC affectedNPC) { }
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            for (int i = 0; i < 10; i++)
+            {
+                Vector2 offset = new();
+                double angle = Main.rand.NextDouble() * 2d * Math.PI;
+                offset.X += (float)(Math.Sin(angle) * 400);
+                offset.Y += (float)(Math.Cos(angle) * 400);
+                if (Collision.SolidCollision(npc.Center + offset, 0, 0))
+                    continue;
+                Dust dust = Main.dust[Dust.NewDust(
+                    npc.Center + offset - new Vector2(4, 4), 0, 0,
+                    DustType, 0, 0, 100, Color.White, 0.5f
+                    )];
+                dust.velocity = npc.velocity;
+                if (Main.rand.NextBool(3))
+                    dust.velocity += Vector2.Normalize(offset) * -5f;
+                dust.noGravity = true;
+            }
+
+            foreach (NPC n in Main.npc.Where(n => n.active && !n.friendly && n.type != NPCID.CochinealBeetle && n.Distance(npc.Center) < 400))
+            {
+                BeetleEffect(n);
+                n.Eternity().BeetleTimer = 60;
+                if (Main.rand.NextBool())
+                {
+                    int d = Dust.NewDust(n.position, n.width, n.height, DustID.RedTorch, 0f, -1.5f, 0, new Color());
+                    Main.dust[d].velocity *= 0.5f;
+                    Main.dust[d].noLight = true;
+                }
+            }
+        }
     }
 
-    public virtual void AI(NPC npc)
+    public class CochinealBeetle : Beetles
     {
-      base.AI(npc);
-      for (int index = 0; index < 10; ++index)
-      {
-        Vector2 vector2 = new Vector2();
-        double num = Main.rand.NextDouble() * 2.0 * Math.PI;
-        vector2.X += (float) (Math.Sin(num) * 400.0);
-        vector2.Y += (float) (Math.Cos(num) * 400.0);
-        if (!Collision.SolidCollision(Vector2.op_Addition(((Entity) npc).Center, vector2), 0, 0))
-        {
-          Dust dust1 = Main.dust[Dust.NewDust(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) npc).Center, vector2), new Vector2(4f, 4f)), 0, 0, this.DustType, 0.0f, 0.0f, 100, Color.White, 0.5f)];
-          dust1.velocity = ((Entity) npc).velocity;
-          if (Utils.NextBool(Main.rand, 3))
-          {
-            Dust dust2 = dust1;
-            dust2.velocity = Vector2.op_Addition(dust2.velocity, Vector2.op_Multiply(Vector2.Normalize(vector2), -5f));
-          }
-          dust1.noGravity = true;
-        }
-      }
-      foreach (NPC npc1 in ((IEnumerable<NPC>) Main.npc).Where<NPC>((Func<NPC, bool>) (n => ((Entity) n).active && !n.friendly && n.type != 217 && (double) ((Entity) n).Distance(((Entity) npc).Center) < 400.0)))
-      {
-        this.BeetleEffect(npc1);
-        npc1.Eternity().BeetleTimer = 60;
-        if (Utils.NextBool(Main.rand))
-        {
-          int index = Dust.NewDust(((Entity) npc1).position, ((Entity) npc1).width, ((Entity) npc1).height, 60, 0.0f, -1.5f, 0, new Color(), 1f);
-          Dust dust = Main.dust[index];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 0.5f);
-          Main.dust[index].noLight = true;
-        }
-      }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.CochinealBeetle);
+        protected override int DustType => DustID.RedTorch;
+        protected override void BeetleEffect(NPC affectedNPC) => affectedNPC.Eternity().BeetleOffenseAura = true;
     }
-  }
+
+    public class CyanBeetle : Beetles
+    {
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.CyanBeetle);
+        protected override int DustType => 187;
+        protected override void BeetleEffect(NPC affectedNPC) => affectedNPC.Eternity().BeetleUtilAura = true;
+    }
+
+    public class LacBeetle : Beetles
+    {
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.LacBeetle);
+        protected override int DustType => 21;
+        protected override void BeetleEffect(NPC affectedNPC) => affectedNPC.Eternity().BeetleDefenseAura = true;
+    }
 }

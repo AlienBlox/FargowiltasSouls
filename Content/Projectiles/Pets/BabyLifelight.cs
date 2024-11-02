@@ -1,81 +1,96 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Pets.BabyLifelight
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Pets
 {
-  public class BabyLifelight : ModProjectile
-  {
-    private int realFrameCounter;
-    private int realFrame;
-
-    public virtual void SetStaticDefaults()
+    public class BabyLifelight : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = 4;
-      Main.projPet[this.Projectile.type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Petlight");
+            Main.projFrames[Projectile.type] = 4;
+            Main.projPet[Projectile.type] = true;
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(886);
-      this.AIType = 886;
-      ((Entity) this.Projectile).width = 82;
-      ((Entity) this.Projectile).height = 38;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.QueenBeePet);
+            AIType = ProjectileID.QueenBeePet;
+            Projectile.width = 82;
+            Projectile.height = 38;
+        }
 
-    public virtual bool PreAI()
-    {
-      Main.player[this.Projectile.owner].petFlagQueenBeePet = false;
-      return true;
-    }
+        public override bool PreAI()
+        {
+            Main.player[Projectile.owner].petFlagQueenBeePet = false;
+            return true;
+        }
 
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (player.dead)
-        fargoSoulsPlayer.BabyLifelight = false;
-      if (fargoSoulsPlayer.BabyLifelight)
-        this.Projectile.timeLeft = 2;
-      if (++this.realFrameCounter > 2)
-      {
-        this.realFrameCounter = 0;
-        if (++this.realFrame >= Main.projFrames[this.Projectile.type])
-          this.realFrame = 0;
-      }
-      this.Projectile.frame = this.realFrame;
-      Vector2 center = ((Entity) this.Projectile).Center;
-      Color pink1 = Color.Pink;
-      double num1 = (double) ((Color) ref pink1).R / (double) byte.MaxValue;
-      Color pink2 = Color.Pink;
-      double num2 = (double) ((Color) ref pink2).G / (double) byte.MaxValue;
-      Color pink3 = Color.Pink;
-      double num3 = (double) ((Color) ref pink3).B / (double) byte.MaxValue;
-      Lighting.AddLight(center, (float) num1, (float) num2, (float) num3);
-    }
+        int realFrameCounter;
+        int realFrame;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection < 0 ? (SpriteEffects) 1 : (SpriteEffects) 0;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (player.dead)
+            {
+                modPlayer.BabyLifelight = false;
+            }
+            if (modPlayer.BabyLifelight)
+            {
+                Projectile.timeLeft = 2;
+            }
+
+
+
+            if (++realFrameCounter > 2)
+            {
+                realFrameCounter = 0;
+                if (++realFrame >= Main.projFrames[Projectile.type])
+                    realFrame = 0;
+            }
+
+            Projectile.frame = realFrame;
+
+            Lighting.AddLight(Projectile.Center, Color.Pink.R / 255f, Color.Pink.G / 255f, Color.Pink.B / 255f);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            SpriteEffects spriteEffects = Projectile.spriteDirection < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, spriteEffects, 0);
+            return false;
+        }
+        /*public override void PostDraw(Color lightColor)
+        {
+            if (Projectile.frame != 2) //hide during the frame when it's behind the sprite
+            {
+                Main.spriteBatch.End();
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
+                Texture2D star = ModContent.Request<Texture2D>("FargowiltasSouls/Assets/Effects/LifeStar", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+                Rectangle rect = new Rectangle(0, 0, star.Width, star.Height);
+                float scale = 0.25f * Main.rand.NextFloat(0.5f, 1.25f);
+                Vector2 origin = new Vector2((star.Width / 2) + scale, (star.Height / 2) + scale);
+
+                Main.spriteBatch.Draw(star, Projectile.Center - Main.screenPosition, new Rectangle?(rect), Color.HotPink, 0, origin, scale, SpriteEffects.None, 0);
+                DrawData starDraw = new DrawData(star, Projectile.Center - Main.screenPosition, new Rectangle?(rect), Color.HotPink, 0, origin, scale, SpriteEffects.None, 0);
+                GameShaders.Misc["LCWingShader"].UseColor(Color.HotPink).UseSecondaryColor(Color.HotPink);
+                GameShaders.Misc["LCWingShader"].Apply(new DrawData?());
+                starDraw.Draw(Main.spriteBatch);
+                Main.spriteBatch.End();
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
+            }
+
+        }*/
     }
-  }
 }

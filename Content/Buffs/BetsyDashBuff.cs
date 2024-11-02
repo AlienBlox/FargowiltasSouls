@@ -1,33 +1,35 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.BetsyDashBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
-using Terraria.ID;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs
 {
-  public class BetsyDashBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class BetsyDashBuff : ModBuff
     {
-      Main.buffNoSave[this.Type] = true;
-      Main.buffNoTimeDisplay[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Dash");
+            // Description.SetDefault("You're moving at high speed!");
+            //Main.debuff[Type] = true;
+            Main.buffNoSave[Type] = true;
+            Main.buffNoTimeDisplay[Type] = true;
+            Terraria.ID.BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.controlJump = false;
-      player.controlDown = false;
-      player.controlUseItem = false;
-      player.controlUseTile = false;
-      player.controlHook = false;
-      player.controlMount = false;
+        public override void Update(Player player, ref int buffIndex)
+        {
+            /*player.controlLeft = false;
+            player.controlRight = false;*/
+            player.controlJump = false;
+            player.controlDown = false;
+            player.controlUseItem = false;
+            player.controlUseTile = false;
+            player.controlHook = false;
+            player.controlMount = false;
+
+            //player.immune = true;
+            //player.immuneTime = Math.Max(player.immuneTime, 2);
+            //player.hurtCooldowns[0] = Math.Max(player.hurtCooldowns[0], 2);
+            //player.hurtCooldowns[1] = Math.Max(player.hurtCooldowns[1], 2);
+        }
     }
-  }
 }

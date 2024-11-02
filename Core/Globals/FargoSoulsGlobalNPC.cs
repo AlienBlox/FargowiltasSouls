@@ -1,13 +1,9 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Core.Globals.FargoSoulsGlobalNPC
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Fargowiltas.NPCs;
+using FargowiltasSouls.Common.Graphics.Particles;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Buffs.Souls;
 using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+using FargowiltasSouls.Content.Items.Accessories.Forces;
 using FargowiltasSouls.Content.Items.Accessories.Masomode;
 using FargowiltasSouls.Content.Items.Misc;
 using FargowiltasSouls.Content.Items.Summons;
@@ -21,919 +17,1375 @@ using FargowiltasSouls.Core.AccessoryEffectSystem;
 using FargowiltasSouls.Core.ItemDropRules;
 using FargowiltasSouls.Core.ModPlayers;
 using FargowiltasSouls.Core.Systems;
+using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
-using Terraria.Localization;
 using Terraria.ModLoader;
+using static FargowiltasSouls.Content.Items.Accessories.Forces.TimberForce;
+using static tModPorter.ProgressUpdate;
 
-#nullable disable
 namespace FargowiltasSouls.Core.Globals
 {
-  public class FargoSoulsGlobalNPC : GlobalNPC
-  {
-    public static int boss = -1;
-    public int originalDefense;
-    public bool BrokenArmor;
-    public bool CanHordeSplit = true;
-    public bool FirstTick;
-    public bool OriPoison;
-    public bool SBleed;
-    public bool Rotting;
-    public bool LeadPoison;
-    public bool Needled;
-    public bool SolarFlare;
-    public bool TimeFrozen;
-    public bool HellFire;
-    public bool HellFireMarked;
-    public bool Corrupted;
-    public bool CorruptedForce;
-    public bool Infested;
-    public int MaxInfestTime;
-    public float InfestedDust;
-    public bool Electrified;
-    public bool CurseoftheMoon;
-    public int lightningRodTimer;
-    public bool Sadism;
-    public bool OceanicMaul;
-    public bool MutantNibble;
-    public int LifePrevious = -1;
-    public bool GodEater;
-    public bool Suffocation;
-    public int SuffocationTimer;
-    public bool FlamesoftheUniverse;
-    public bool Lethargic;
-    public int LethargicCounter;
-    public bool Sublimation;
-    public bool SnowChilled;
-    public int SnowChilledTimer;
-    public int EbonCorruptionTimer;
-    public bool Chilled;
-    public bool Smite;
-    public bool MoltenAmplify;
-    public bool Anticoagulation;
-    public bool BloodDrinker;
-    public bool MagicalCurse;
-    public int NecroDamage;
-    public bool PungentGazeWasApplied;
-    public int PungentGazeTime;
-    public int GrazeCD;
-    private static HashSet<int> RareNPCs = new HashSet<int>();
-    private bool lootMultiplierCheck;
-
-    public virtual bool InstancePerEntity => true;
-
-    public virtual void Unload()
+    public class FargoSoulsGlobalNPC : GlobalNPC
     {
-      ((ModType) this).Unload();
-      FargoSoulsGlobalNPC.RareNPCs = (HashSet<int>) null;
-    }
+        public override bool InstancePerEntity => true;
 
-    public virtual void ResetEffects(NPC npc)
-    {
-      this.BrokenArmor = false;
-      this.TimeFrozen = false;
-      this.SBleed = false;
-      this.Rotting = false;
-      this.LeadPoison = false;
-      this.SolarFlare = false;
-      this.HellFire = false;
-      this.HellFireMarked = false;
-      this.Corrupted = false;
-      this.CorruptedForce = false;
-      this.OriPoison = false;
-      this.Infested = false;
-      this.Electrified = false;
-      this.CurseoftheMoon = false;
-      this.Sadism = false;
-      this.OceanicMaul = false;
-      this.MutantNibble = false;
-      this.GodEater = false;
-      this.Suffocation = false;
-      this.Sublimation = false;
-      this.Chilled = false;
-      this.Smite = false;
-      this.MoltenAmplify = false;
-      this.Anticoagulation = false;
-      this.BloodDrinker = false;
-      this.FlamesoftheUniverse = false;
-      this.MagicalCurse = false;
-      this.PungentGazeTime = 0;
-    }
+#pragma warning disable CA2211
 
-    public virtual void SetStaticDefaults()
-    {
-      ModBuff modBuff;
-      if (!ModContent.TryFind<ModBuff>("CalamityMod", "MiracleBlight", ref modBuff))
-        return;
-      foreach (ModNPC modNpc in ((ModType) this).Mod.GetContent<ModNPC>())
-        NPCID.Sets.SpecificDebuffImmunity[modNpc.Type][modBuff.Type] = new bool?(true);
-    }
+        public static int boss = -1;
+#pragma warning restore CA2211
 
-    public virtual void SetDefaults(NPC npc)
-    {
-      if (npc.rarity <= 0 || FargoSoulsGlobalNPC.RareNPCs.Contains(npc.type))
-        return;
-      FargoSoulsGlobalNPC.RareNPCs.Add(npc.type);
-    }
+        public int originalDefense;
+        public bool BrokenArmor;
 
-    public virtual bool PreAI(NPC npc)
-    {
-      if (npc.boss || npc.type == 13)
-        FargoSoulsGlobalNPC.boss = ((Entity) npc).whoAmI;
-      if (!Luminance.Common.Utilities.Utilities.AnyBosses())
-        FargoSoulsGlobalNPC.boss = -1;
-      bool flag = base.PreAI(npc);
-      if (this.TimeFrozen)
-      {
-        ((Entity) npc).position = ((Entity) npc).oldPosition;
-        npc.frameCounter = 0.0;
-        flag = false;
-      }
-      if (!this.FirstTick)
-      {
-        this.originalDefense = npc.defense;
-        this.FirstTick = true;
-      }
-      if (this.Lethargic && ++this.LethargicCounter > 3)
-      {
-        this.LethargicCounter = 0;
-        flag = false;
-      }
-      if (!npc.HasBuff<CorruptingBuff>())
-        this.EbonCorruptionTimer -= Math.Min(3, this.EbonCorruptionTimer);
-      if (this.SnowChilled)
-      {
-        --this.SnowChilledTimer;
-        if (this.SnowChilledTimer <= 0)
-          this.SnowChilled = false;
-        if (this.SnowChilledTimer % 2 == 1)
-        {
-          ((Entity) npc).position = ((Entity) npc).oldPosition;
-          flag = false;
-        }
-      }
-      return flag;
-    }
+        public bool CanHordeSplit = true;
 
-    public virtual void PostAI(NPC npc)
-    {
-      if (this.BrokenArmor)
-        npc.defense = this.originalDefense - 10;
-      if (this.Sublimation)
-        npc.defense = this.originalDefense - 15;
-      if (this.SnowChilled)
-      {
-        int index = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 76, ((Entity) npc).velocity.X, ((Entity) npc).velocity.Y, 100, new Color(), 1f);
-        Main.dust[index].noGravity = true;
-      }
-      this.SuffocationTimer += this.Suffocation ? 1 : -3;
-      if (this.SuffocationTimer < 0)
-        this.SuffocationTimer = 0;
-      if (npc.friendly || npc.damage <= 0 || !((Entity) Main.LocalPlayer).active || Main.LocalPlayer.dead)
-        return;
-      if (--this.GrazeCD < 0)
-        this.GrazeCD = 6;
-      NPC npc1 = FargoSoulsUtil.NPCExists(npc.realLife, Array.Empty<int>());
-      FargoSoulsGlobalNPC fargoSoulsGlobalNpc = npc1 != null ? npc1.FargoSouls() : npc.FargoSouls();
-      if (fargoSoulsGlobalNpc.GrazeCD != 0)
-        return;
-      FargoSoulsPlayer fargoPlayer = Main.LocalPlayer.FargoSouls();
-      if (!fargoPlayer.Graze || Main.LocalPlayer.immune || Main.LocalPlayer.hurtCooldowns[0] > 0 || Main.LocalPlayer.hurtCooldowns[1] > 0)
-        return;
-      Vector2 vector2 = FargoSoulsUtil.ClosestPointInHitbox(((Entity) npc).Hitbox, ((Entity) Main.LocalPlayer).Center);
-      int num = -1;
-      if ((double) ((Entity) Main.LocalPlayer).Distance(vector2) >= (double) fargoPlayer.GrazeRadius || !NPCLoader.CanHitPlayer(npc, Main.LocalPlayer, ref num) || npc.ModNPC != null && !npc.ModNPC.CanHitPlayer(Main.LocalPlayer, ref num) || !npc.noTileCollide && !Collision.CanHitLine(vector2, 0, 0, ((Entity) Main.LocalPlayer).Center, 0, 0))
-        return;
-      fargoSoulsGlobalNpc.GrazeCD = 30;
-      if (fargoPlayer.DeviGraze)
-        SparklingAdoration.OnGraze(fargoPlayer, npc.damage);
-      if (!fargoPlayer.CirnoGraze)
-        return;
-      IceQueensCrown.OnGraze(fargoPlayer, npc.damage);
-    }
+        public bool FirstTick;
+        //        //debuffs
+        public bool OriPoison;
+        public bool EarthPoison;
+        public int EarthDoTValue; //value to base Earth Poison DoT on.
+        public bool SBleed;
+        public bool TimberBleed;
+        //        public bool Shock;
+        public bool Rotting;
+        public bool LeadPoison;
+        public bool Needled;
+        public bool SolarFlare;
+        public bool TimeFrozen;
+        public bool HellFire;
+        public bool HellFireMarked;
+        public bool Corrupted;
+        public bool CorruptedForce;
+        public bool Infested;
+        public int MaxInfestTime;
+        public float InfestedDust;
+        public bool Electrified;
+        public bool CurseoftheMoon;
+        public int lightningRodTimer;
+        public bool Sadism;
+        public bool OceanicMaul;
+        public bool MutantNibble;
+        public int LifePrevious = -1;
+        public bool GodEater;
+        public bool Suffocation;
+        public int SuffocationTimer;
+        public bool DeathMarked;
+        //        public bool Villain;
+        public bool FlamesoftheUniverse;
+        public bool Lethargic;
+        public int LethargicCounter;
+        //        public bool ExplosiveCritter = false;
+        //        private int critterCounter = 120;
+        public bool Sublimation;
 
-    public virtual void DrawEffects(NPC npc, ref Color drawColor)
-    {
-      if (this.LeadPoison && Main.rand.Next(4) < 3)
-      {
-        int index = Dust.NewDust(new Vector2(((Entity) npc).position.X - 2f, ((Entity) npc).position.Y - 2f), ((Entity) npc).width + 4, ((Entity) npc).height + 4, 82, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 100, new Color(), 1f);
-        Main.dust[index].noGravity = true;
-        Dust dust1 = Main.dust[index];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 1.8f);
-        Dust dust2 = Main.dust[index];
-        dust2.velocity.Y -= 0.5f;
-        if (Utils.NextBool(Main.rand, 4))
-        {
-          dust2.noGravity = false;
-          dust2.scale *= 0.5f;
-        }
-      }
-      if ((this.Corrupted || this.CorruptedForce) && Main.rand.Next(8) < 9)
-      {
-        int index = Dust.NewDust(new Vector2(((Entity) npc).position.X - 2f, ((Entity) npc).position.Y - 2f), ((Entity) npc).width + 4, ((Entity) npc).height + 4, 27, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 100, new Color(), 1f);
-        Main.dust[index].noGravity = true;
-        Main.dust[index].velocity.Y -= 10f;
-      }
-      if (this.OriPoison && Main.rand.Next(4) < 3)
-      {
-        int index = Dust.NewDust(new Vector2(((Entity) npc).position.X - 2f, ((Entity) npc).position.Y - 2f), ((Entity) npc).width + 4, ((Entity) npc).height + 4, 242, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 100, new Color(), 1f);
-        Main.dust[index].noGravity = true;
-        Dust dust3 = Main.dust[index];
-        dust3.velocity = Vector2.op_Multiply(dust3.velocity, 1.8f);
-        Dust dust4 = Main.dust[index];
-        dust4.velocity.Y -= 0.5f;
-        if (Utils.NextBool(Main.rand, 4))
-        {
-          dust4.noGravity = false;
-          dust4.scale *= 0.5f;
-        }
-      }
-      if (this.MagicalCurse && Utils.NextBool(Main.rand, 4))
-      {
-        int index = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, Utils.NextBool(Main.rand) ? 107 : 157, 0.0f, 0.0f, 0, new Color(), 1f);
-        Main.dust[index].noGravity = true;
-        Dust dust = Main.dust[index];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 0.2f);
-        Main.dust[index].scale = 1.5f;
-      }
-      if (this.Sublimation && Utils.NextBool(Main.rand, 4))
-      {
-        int index = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 263, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, new Color(220, (int) byte.MaxValue, 220), 2.5f);
-        --Main.dust[index].velocity.Y;
-        Dust dust = Main.dust[index];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 1.5f);
-        Main.dust[index].noGravity = true;
-      }
-      if (this.HellFire && Main.rand.Next(4) < 3)
-      {
-        int index = Dust.NewDust(new Vector2(((Entity) npc).position.X - 2f, ((Entity) npc).position.Y - 2f), ((Entity) npc).width + 4, ((Entity) npc).height + 4, 259, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 100, new Color(), 1f);
-        Main.dust[index].noGravity = true;
-        Main.dust[index].shader = GameShaders.Armor.GetSecondaryShader(56, Main.LocalPlayer);
-        Dust dust = Main.dust[index];
-        dust.velocity.Y -= 0.5f;
-        if (Utils.NextBool(Main.rand, 4))
-        {
-          dust.noGravity = false;
-          dust.scale *= 0.5f;
-        }
-      }
-      if (this.HellFireMarked && Utils.NextBool(Main.rand, 3))
-      {
-        int index = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 259, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, new Color(), 4f);
-        Main.dust[index].noGravity = true;
-        Main.dust[index].shader = GameShaders.Armor.GetSecondaryShader(56, Main.LocalPlayer);
-        Dust dust5 = Main.dust[index];
-        dust5.velocity.Y -= 0.5f;
-        if (Utils.NextBool(Main.rand, 4))
-        {
-          dust5.noGravity = false;
-          dust5.scale *= 0.5f;
-        }
-        Dust dust6 = dust5;
-        dust6.velocity = Vector2.op_Multiply(dust6.velocity, 3f);
-      }
-      if (this.SBleed && Main.rand.Next(4) < 3)
-      {
-        int index = Dust.NewDust(new Vector2(((Entity) npc).position.X - 2f, ((Entity) npc).position.Y - 2f), ((Entity) npc).width + 4, ((Entity) npc).height + 4, 5, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 100, new Color(), 1f);
-        Main.dust[index].noGravity = true;
-        Main.dust[index].shader = GameShaders.Armor.GetSecondaryShader(56, Main.LocalPlayer);
-        Dust dust = Main.dust[index];
-        dust.velocity.Y -= 0.5f;
-        if (Utils.NextBool(Main.rand, 4))
-        {
-          dust.noGravity = false;
-          dust.scale *= 0.5f;
-        }
-      }
-      if (this.Suffocation)
-        drawColor = Colors.RarityPurple;
-      if (this.Electrified)
-      {
-        if (Main.rand.Next(4) < 3)
-        {
-          int index = Dust.NewDust(new Vector2(((Entity) npc).position.X - 2f, ((Entity) npc).position.Y - 2f), ((Entity) npc).width + 4, ((Entity) npc).height + 4, 229, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, new Color(), 1f);
-          Main.dust[index].noGravity = true;
-          Dust dust = Main.dust[index];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 1.8f);
-          if (Utils.NextBool(Main.rand, 3))
-          {
-            Main.dust[index].noGravity = false;
-            Main.dust[index].scale *= 0.5f;
-          }
-        }
-        Lighting.AddLight((int) ((Entity) npc).Center.X / 16, (int) ((Entity) npc).Center.Y / 16, 0.3f, 0.8f, 1.1f);
-      }
-      if (this.CurseoftheMoon)
-      {
-        int index1 = Dust.NewDust(((Entity) npc).Center, 0, 0, 229, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, new Color(), 1f);
-        Main.dust[index1].noGravity = true;
-        Dust dust7 = Main.dust[index1];
-        dust7.velocity = Vector2.op_Multiply(dust7.velocity, 3f);
-        Main.dust[index1].scale += 0.5f;
-        if (Main.rand.Next(4) < 3)
-        {
-          int index2 = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 229, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, new Color(), 1f);
-          Main.dust[index2].noGravity = true;
-          --Main.dust[index2].velocity.Y;
-          Dust dust8 = Main.dust[index2];
-          dust8.velocity = Vector2.op_Multiply(dust8.velocity, 2f);
-        }
-      }
-      if (this.Sadism && Utils.NextBool(Main.rand, 7))
-      {
-        int index = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 156, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, Color.White, 4f);
-        Main.dust[index].noGravity = true;
-        Dust dust = Main.dust[index];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 2f);
-      }
-      if (this.GodEater)
-      {
-        if (Utils.NextBool(Main.rand, 7))
-        {
-          int index = Dust.NewDust(Vector2.op_Subtraction(((Entity) npc).position, new Vector2(2f, 2f)), ((Entity) npc).width + 4, ((Entity) npc).height + 4, 86, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, Color.White, 4f);
-          Main.dust[index].noGravity = true;
-          Dust dust = Main.dust[index];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 1.2f);
-          Main.dust[index].velocity.Y -= 0.15f;
-        }
-        Lighting.AddLight(((Entity) npc).position, 0.15f, 0.03f, 0.09f);
-      }
-      if (this.Chilled)
-      {
-        int index3 = Dust.NewDust(((Entity) npc).Center, 0, 0, 15, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, new Color(), 1f);
-        Main.dust[index3].noGravity = true;
-        Dust dust9 = Main.dust[index3];
-        dust9.velocity = Vector2.op_Multiply(dust9.velocity, 3f);
-        Main.dust[index3].scale += 0.5f;
-        if (Main.rand.Next(4) < 3)
-        {
-          int index4 = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 15, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, new Color(), 1f);
-          Main.dust[index4].noGravity = true;
-          --Main.dust[index4].velocity.Y;
-          Dust dust10 = Main.dust[index4];
-          dust10.velocity = Vector2.op_Multiply(dust10.velocity, 2f);
-        }
-      }
-      if (this.FlamesoftheUniverse && !Utils.NextBool(Main.rand, 3))
-      {
-        int index = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 203, ((Entity) npc).velocity.X * 0.4f, ((Entity) npc).velocity.Y * 0.4f, 0, new Color(50 * Main.rand.Next(6) + 5, 50 * Main.rand.Next(6) + 5, 50 * Main.rand.Next(6) + 5, 0), 2.5f);
-        --Main.dust[index].velocity.Y;
-        Dust dust = Main.dust[index];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 1.5f);
-        Main.dust[index].noGravity = true;
-      }
-      if (this.Smite && !Utils.NextBool(Main.rand, 4))
-      {
-        Color discoColor = Main.DiscoColor;
-        int index = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 91, 0.0f, 0.0f, 100, discoColor, 2.5f);
-        Dust dust = Main.dust[index];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 2f);
-        Main.dust[index].noGravity = true;
-      }
-      if (this.Anticoagulation && !Utils.NextBool(Main.rand, 4))
-      {
-        int index = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 5, 0.0f, 0.0f, 0, new Color(), 1f);
-        Dust dust = Main.dust[index];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 2f);
-        ++Main.dust[index].scale;
-      }
-      if (this.BloodDrinker && !Utils.NextBool(Main.rand, 3))
-      {
-        int index = Dust.NewDust(((Entity) npc).position, ((Entity) npc).width, ((Entity) npc).height, 235, ((Entity) npc).velocity.X * 0.2f, ((Entity) npc).velocity.Y * 0.2f, 0, Color.White, 2.5f);
-        Main.dust[index].noGravity = true;
-      }
-      if (this.PungentGazeTime <= 0 || !Utils.NextBool(Main.rand))
-        return;
-      float num = (float) this.PungentGazeTime / 300f;
-      int index5 = Dust.NewDust(((Entity) npc).Center, 0, 0, 90, ((Entity) npc).velocity.X * 0.2f, ((Entity) npc).velocity.Y * 0.2f, 0, Color.White, 1f);
-      Main.dust[index5].scale = MathHelper.Lerp(0.5f, 3f, num);
-      Dust dust11 = Main.dust[index5];
-      dust11.velocity = Vector2.op_Multiply(dust11.velocity, Main.dust[index5].scale);
-      Main.dust[index5].noGravity = true;
-    }
+        public bool SnowChilled;
+        public int SnowChilledTimer;
 
-    public virtual void PostDraw(
-      NPC npc,
-      SpriteBatch spriteBatch,
-      Vector2 screenPos,
-      Color drawColor)
-    {
-      int num1 = 0;
-      for (int index = 0; index < Main.maxProjectiles; ++index)
-      {
-        Projectile projectile = Main.projectile[index];
-        if (projectile.TypeAlive<BaronTuskShrapnel>() && projectile.owner == Main.myPlayer && Luminance.Common.Utilities.Utilities.As<BaronTuskShrapnel>(projectile).EmbeddedNPC == npc)
-          ++num1;
-      }
-      if (num1 >= 15)
-      {
-        Texture2D texture2D = Asset<Texture2D>.op_Explicit(ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/GlowRing", (AssetRequestMode) 1));
-        Rectangle bounds = texture2D.Bounds;
-        Vector2 vector2 = Vector2.op_Division(Utils.Size(bounds), 2f);
-        Color red = Color.Red;
-        float num2 = npc.scale / 3f;
-        spriteBatch.Draw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) npc).Center, Main.screenPosition), new Vector2(0.0f, npc.gfxOffY)), new Rectangle?(bounds), red, npc.rotation, vector2, num2, (SpriteEffects) 0, 0.0f);
-      }
-      base.PostDraw(npc, spriteBatch, screenPos, drawColor);
-    }
+        public int EbonCorruptionTimer;
 
-    public virtual Color? GetAlpha(NPC npc, Color drawColor)
-    {
-      if (!this.Chilled)
-        return new Color?();
-      drawColor = Color.LightBlue;
-      return new Color?(drawColor);
-    }
+        public bool Chilled;
+        public bool Smite;
+        public bool MoltenAmplify;
+        public bool Anticoagulation;
+        public bool BloodDrinker;
+        public bool MagicalCurse;
 
-    public virtual void UpdateLifeRegen(NPC npc, ref int damage)
-    {
-      FargoSoulsPlayer modPlayer = Main.player[Main.myPlayer].FargoSouls();
-      if (this.Rotting)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 100;
-        if (damage < 5)
-          damage = 5;
-      }
-      if (this.LeadPoison)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        int num = npc.type == 14 ? 4 : 20;
-        ModNPC modNpc;
-        if (Terraria.ModLoader.ModLoader.HasMod("CalamityMod") && ModContent.TryFind<ModNPC>("CalamityMod", "DesertScourgeBody", ref modNpc) && npc.type == modNpc.Type)
-          num = 4;
-        if (((IEnumerable<Player>) Main.player).Any<Player>((Func<Player, bool>) (p =>
+        public int NecroDamage;
+
+        public bool PungentGazeWasApplied;
+        public int PungentGazeTime;
+
+        public int GrazeCD;
+
+        //        public static bool Revengeance => CalamityMod.World.CalamityWorld.revenge;
+
+        static HashSet<int> RareNPCs = [];
+
+        public override void Unload()
         {
-          if (p.Alive() && p.HasEffect<LeadEffect>())
-          {
-            FargoSoulsPlayer fargoSoulsPlayer = p.FargoSouls();
-            switch (fargoSoulsPlayer)
+            base.Unload();
+            RareNPCs = null;
+        }
+
+        public override void ResetEffects(NPC npc)
+        {
+            BrokenArmor = false;
+            TimeFrozen = false;
+            SBleed = false;
+            TimberBleed = false;
+            //            Shock = false;
+            Rotting = false;
+            LeadPoison = false;
+            SolarFlare = false;
+            HellFire = false;
+            HellFireMarked = false;
+            Corrupted = false;
+            CorruptedForce = false;
+            OriPoison = false;
+            EarthPoison = false;
+            Infested = false;
+            Electrified = false;
+            CurseoftheMoon = false;
+            Sadism = false;
+            OceanicMaul = false;
+            MutantNibble = false;
+            GodEater = false;
+            Suffocation = false;
+            Sublimation = false;
+            DeathMarked = false;
+            //            //SnowChilled = false;
+            Chilled = false;
+            Smite = false;
+            MoltenAmplify = false;
+            Anticoagulation = false;
+            BloodDrinker = false;
+            FlamesoftheUniverse = false;
+            MagicalCurse = false;
+            PungentGazeTime = 0;
+        }
+        public override void SetStaticDefaults()
+        {
+            //blightus deletus
+            if (ModContent.TryFind("CalamityMod", "MiracleBlight", out ModBuff miracleBlight))
             {
-              case null:
-              case null:
-                break;
-              default:
-                return fargoSoulsPlayer.ForceEffect<LeadEnchant>();
+                foreach (ModNPC npc in Mod.GetContent<ModNPC>())
+                {
+                    NPCID.Sets.SpecificDebuffImmunity[npc.Type][miracleBlight.Type] = true;
+                }
             }
-          }
-          return false;
-        })))
-          num *= 3;
-        npc.lifeRegen -= num;
-      }
-      if (this.SolarFlare)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 100;
-        if (damage < 10)
-          damage = 10;
-      }
-      if (this.HellFire)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        int num1 = this.HellFireMarked ? 5 : 1;
-        npc.lifeRegen -= 200 * num1;
-        int num2 = 50 * num1;
-        if (damage < num2)
-          damage = num2;
-      }
-      if (this.Sublimation)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 50;
-        if (damage < 5)
-          damage = 5;
-      }
-      if (this.OriPoison)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 40;
-        if (damage < 4)
-          damage = 4;
-      }
-      if (this.Infested)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= this.InfestedExtraDot(npc);
-        if (damage < 8)
-          damage = 8;
-      }
-      else
-        this.MaxInfestTime = 0;
-      if (this.Electrified)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 4;
-        if (Vector2.op_Inequality(((Entity) npc).velocity, Vector2.Zero))
-          npc.lifeRegen -= 16;
-        if (((Entity) npc).wet)
-          npc.lifeRegen -= 16;
-        if (damage < 4)
-          damage = 4;
-      }
-      if (this.CurseoftheMoon)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 24;
-        if (damage < 6)
-          damage = 6;
-      }
-      if (this.OceanicMaul)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 48;
-        if (damage < 12)
-          damage = 12;
-      }
-      if (this.Sadism)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 306;
-        if (damage < 70)
-          damage = 70;
-      }
-      if (this.MutantNibble)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        if (npc.lifeRegenCount > 0)
-          npc.lifeRegenCount = 0;
-        if (npc.life > 0 && this.LifePrevious > 0)
-        {
-          if (npc.life > this.LifePrevious)
-            npc.life = this.LifePrevious;
-          else
-            this.LifePrevious = npc.life;
+
+
         }
-      }
-      else
-        this.LifePrevious = npc.life;
-      if (this.GodEater)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 4200;
-        if (damage < 777)
-          damage = 777;
-      }
-      if (this.Suffocation)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= (int) (40.0 * (double) Math.Min(1f, (float) (1.0 * (double) this.SuffocationTimer / 480.0)));
-        if (damage < 5)
-          damage = 5;
-      }
-      if (this.FlamesoftheUniverse)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 79;
-        if (damage < 20)
-          damage = 20;
-      }
-      if (this.Anticoagulation)
-      {
-        if (npc.lifeRegen > 0)
-          npc.lifeRegen = 0;
-        npc.lifeRegen -= 16;
-        if (damage < 6)
-          damage = 6;
-      }
-      if (modPlayer.Player.HasEffect<OrichalcumEffect>() && npc.lifeRegen < 0)
-        OrichalcumEffect.OriDotModifier(npc, modPlayer, ref damage);
-      if (this.MagicalCurse && npc.lifeRegen < 0)
-      {
-        npc.lifeRegen *= 2;
-        damage *= 2;
-      }
-      if (!this.TimeFrozen || npc.life != 1 || npc.lifeRegen >= 0)
-        return;
-      npc.lifeRegen = 0;
-    }
-
-    private int InfestedExtraDot(NPC npc)
-    {
-      int buffIndex = npc.FindBuffIndex(ModContent.BuffType<InfestedBuff>());
-      if (buffIndex == -1)
-        return 0;
-      int num1 = npc.buffTime[buffIndex];
-      if (this.MaxInfestTime <= 0)
-        this.MaxInfestTime = num1;
-      float num2 = (float) (this.MaxInfestTime - num1) / 30f;
-      int num3 = (int) ((double) num2 * (double) num2 + 8.0);
-      this.InfestedDust = (float) ((double) num2 / 15.0 + 0.5);
-      if ((double) this.InfestedDust <= 5.0)
-        return num3;
-      this.InfestedDust = 5f;
-      return num3;
-    }
-
-    public virtual void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
-    {
-      if (player.FargoSouls().Bloodthirsty)
-      {
-        spawnRate = (int) ((double) spawnRate * 0.01);
-        maxSpawns *= 3;
-      }
-      if (!player.HasEffect<SinisterIconEffect>())
-        return;
-      spawnRate /= 2;
-      maxSpawns *= 2;
-    }
-
-    public virtual void EditSpawnPool(IDictionary<int, float> pool, NPCSpawnInfo spawnInfo)
-    {
-      if (spawnInfo.Player.FargoSouls().PungentEyeball)
-      {
-        foreach (KeyValuePair<int, float> keyValuePair in (IEnumerable<KeyValuePair<int, float>>) pool)
+        public override void SetDefaults(NPC npc)
         {
-          if (FargoSoulsGlobalNPC.RareNPCs.Contains(keyValuePair.Key))
-            pool[keyValuePair.Key] = keyValuePair.Value * 5f;
+            if (npc.rarity > 0 && !RareNPCs.Contains(npc.type))
+                RareNPCs.Add(npc.type);
         }
-      }
-      int spawnTileY = spawnInfo.SpawnTileY;
-      if (!(Main.dayTime & ((double) spawnTileY < Main.worldSurface && !spawnInfo.Sky)) || !spawnInfo.PlayerInTown || !FargowiltasSouls.FargowiltasSouls.NoBiome(spawnInfo) || !FargowiltasSouls.FargowiltasSouls.NoZone(spawnInfo))
-        return;
-      pool[ModContent.NPCType<TophatSquirrelCritter>()] = 0.03f;
-    }
-
-    private static int[] IllegalLootMultiplierNPCs
-    {
-      get => new int[4]{ 551, 14, 13, 15 };
-    }
-
-    public virtual void OnKill(NPC npc)
-    {
-      Player player = Main.player[npc.lastInteraction];
-      FargoSoulsPlayer modPlayer = player.FargoSouls();
-      if (player.HasEffect<NecroEffect>() && !npc.boss)
-        NecroEffect.NecroSpawnGraveEnemy(npc, player, modPlayer);
-      if (!this.lootMultiplierCheck)
-      {
-        this.lootMultiplierCheck = true;
-        if (player.HasEffect<SinisterIconDropsEffect>() && !npc.boss && !((IEnumerable<int>) FargoSoulsGlobalNPC.IllegalLootMultiplierNPCs).Contains<int>(npc.type))
-          npc.NPCLoot();
-        if (player.FargoSouls().PlatinumEffect != null && !npc.boss && Utils.NextBool(Main.rand, player.FargoSouls().ForceEffect(new int?(player.FargoSouls().PlatinumEffect.type)) ? 3 : 5) && !((IEnumerable<int>) FargoSoulsGlobalNPC.IllegalLootMultiplierNPCs).Contains<int>(npc.type))
+        public override bool PreAI(NPC npc)
         {
-          int num = 5;
-          npc.extraValue /= num;
-          for (int index = 0; index < num - 1; ++index)
-            npc.NPCLoot();
+            if (npc.boss || npc.type == NPCID.EaterofWorldsHead)
+                boss = npc.whoAmI;
+            if (!LumUtils.AnyBosses())
+                boss = -1;
+
+            bool retval = base.PreAI(npc);
+            if (TimeFrozen)
+            {
+                npc.position = npc.oldPosition;
+                npc.frameCounter = 0;
+                retval = false;
+            }
+
+            if (!FirstTick)
+            {
+                originalDefense = npc.defense;
+
+
+                //                switch (npc.type)
+                //                {
+                //                    case NPCID.TheDestroyer:
+                //                    case NPCID.TheDestroyerBody:
+                //                    case NPCID.TheDestroyerTail:
+                //                        npc.buffImmune[ModContent.BuffType<TimeFrozen>()] = false;
+                //                        npc.buffImmune[ModContent.BuffType<Frozen>()] = false;
+                //                        //npc.buffImmune[BuffID.Darkness] = false;
+                //                        break;
+
+                //                    /*case NPCID.WallofFlesh:
+                //                    case NPCID.WallofFleshEye:
+                //                    case NPCID.MoonLordCore:
+                //                    case NPCID.MoonLordHand:
+                //                    case NPCID.MoonLordHead:
+                //                    case NPCID.MoonLordLeechBlob:
+                //                    case NPCID.TargetDummy:
+                //                    case NPCID.GolemFistLeft:
+                //                    case NPCID.GolemFistRight:
+                //                    case NPCID.GolemHead:
+                //                    case NPCID.DungeonGuardian:
+                //                    case NPCID.DukeFishron:
+                //                        SpecialEnchantImmune = true;
+                //                        break;*/
+
+                //                    default:
+                //                        break;
+                //                }
+
+                //                //critters
+                //                if (npc.damage == 0 && !npc.townNPC && npc.lifeMax == 5)
+                //                {
+                //                    Player player = Main.player[Main.myPlayer];
+
+                //                    /*if ( npc.releaseOwner == player.whoAmI && player.FargoSouls().WoodEnchant)
+                //                    {
+                //                        switch (npc.type)
+                //                        {
+                //                            case NPCID.Bunny:
+
+
+                //                                npc.active = false;
+                //                                break;
+                //                        }
+
+
+
+                //                        ExplosiveCritter = true;
+                //                    }*/
+                //                }
+
+                FirstTick = true;
+            }
+
+            if (Lethargic && ++LethargicCounter > 3)
+            {
+                LethargicCounter = 0;
+                retval = false;
+            }
+
+            //            if (ExplosiveCritter)
+            //            {
+            //                critterCounter--;
+
+            //                if (critterCounter <= 0)
+            //                {
+            //                    Player player = Main.player[npc.releaseOwner];
+            //                    FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            //                    int damage = 25;
+
+            //                    if (modPlayer.WoodForce || modPlayer.WizardEnchant)
+            //                    {
+            //                        damage *= 5;
+            //                    }
+
+            //                    Projectile.NewProjectile(npc.Center, Vector2.Zero, ModContent.ProjectileType<ExplosionSmall>(), modPlayer.HighestDamageTypeScaling(damage), 4, npc.releaseOwner);
+            //                    //gold critters make coin value go up of hit enemy, millions of other effects eeech
+            //                }
+
+            //            }
+            if (!npc.HasBuff<CorruptingBuff>())
+            {
+                EbonCorruptionTimer -= Math.Min(1, EbonCorruptionTimer);
+            }
+            if (SnowChilled)
+            {
+                SnowChilledTimer--;
+
+                if (SnowChilledTimer <= 0)
+                    SnowChilled = false;
+
+                if (SnowChilledTimer % 2 == 1)
+                {
+                    npc.position = npc.oldPosition;
+                    retval = false;
+                }
+            }
+            return retval;
         }
-      }
-      if (!npc.boss || WorldSavingSystem.DownedAnyBoss)
-        return;
-      WorldSavingSystem.DownedAnyBoss = true;
-      if (Main.netMode != 2)
-        return;
-      NetMessage.SendData(7, -1, -1, (NetworkText) null, 0, 0.0f, 0.0f, 0.0f, 0, 0, 0);
-    }
 
-    public virtual void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
-    {
-      switch (npc.type)
-      {
-        case 4:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<LeashOfCthulhu>()));
-          break;
-        case 13:
-        case 14:
-        case 15:
-          LeadingConditionRule leadingConditionRule1 = new LeadingConditionRule((IItemDropRuleCondition) new Conditions.LegacyHack_IsABoss());
-          Chains.OnSuccess((IItemDropRule) leadingConditionRule1, BossDrop(ModContent.ItemType<EaterLauncherJr>()), false);
-          ((NPCLoot) ref npcLoot).Add((IItemDropRule) leadingConditionRule1);
-          break;
-        case 35:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<BoneZone>()));
-          break;
-        case 50:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<SlimeKingsSlasher>()));
-          break;
-        case 113:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<FleshHand>()));
-          break;
-        case 125:
-        case 126:
-          LeadingConditionRule leadingConditionRule2 = new LeadingConditionRule((IItemDropRuleCondition) new Conditions.MissingTwin());
-          Chains.OnSuccess((IItemDropRule) leadingConditionRule2, BossDrop(ModContent.ItemType<TwinRangs>()), false);
-          ((NPCLoot) ref npcLoot).Add((IItemDropRule) leadingConditionRule2);
-          break;
-        case (int) sbyte.MaxValue:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<RefractorBlaster>()));
-          break;
-        case 134:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<DestroyerGun>()));
-          break;
-        case 222:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<TheSmallSting>()));
-          break;
-        case 245:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<RockSlide>()));
-          break;
-        case 262:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<Dicer>()));
-          break;
-        case 266:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<BrainStaff>()));
-          break;
-        case 370:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<FishStick>()));
-          break;
-        case 398:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<MoonBow>()));
-          break;
-        case 476:
-          ((NPCLoot) ref npcLoot).Add(ItemDropRule.OneFromOptions(1, new int[3]
-          {
-            ModContent.ItemType<Vineslinger>(),
-            ModContent.ItemType<Mahoguny>(),
-            ModContent.ItemType<OvergrownKey>()
-          }));
-          break;
-        case 551:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<DragonBreath>()));
-          break;
-        case 636:
-          ((NPCLoot) ref npcLoot).Add(BossDrop(ModContent.ItemType<PrismaRegalia>()));
-          break;
-      }
 
-      static IItemDropRule BossDrop(int item)
-      {
-        return (IItemDropRule) new DropBasedOnEMode(ItemDropRule.Common(item, 3, 1, 1), ItemDropRule.Common(item, 10, 1, 1));
-      }
-    }
+        public override void PostAI(NPC npc)
+        {
+            if (BrokenArmor)
+            {
+                npc.defense = originalDefense - 10;
+                if (npc.defense < 0)
+                    npc.defense = 0;
+            }
 
-    public virtual bool CheckDead(NPC npc)
-    {
-      if (this.TimeFrozen)
-      {
-        npc.life = 1;
-        return false;
-      }
-      Player player = FargoSoulsUtil.PlayerExists(npc.lastInteraction);
-      if (player == null)
-        return base.CheckDead(npc);
-      FargoSoulsPlayer modPlayer = player.FargoSouls();
-      if (player.HasEffect<WoodCompletionEffect>())
-        WoodCompletionEffect.WoodCheckDead(modPlayer, npc);
-      if (this.Needled && npc.lifeMax > 1 && npc.lifeMax != int.MaxValue)
-        CactusEffect.CactusProc(npc, player);
-      return base.CheckDead(npc);
-    }
+            if (Sublimation)
+            {
+                npc.defense = originalDefense - 15; //ichor 2
+                if (npc.defense < 0)
+                    npc.defense = 0;
+            }
 
-    public virtual void OnHitByItem(
-      NPC npc,
-      Player player,
-      Item item,
-      NPC.HitInfo hit,
-      int damageDone)
-    {
-      this.OnHitByEither(npc, player, damageDone);
-    }
+            if (SnowChilled)
+            {
+                int dustId = Dust.NewDust(npc.position, npc.width, npc.height, DustID.Snow, npc.velocity.X, npc.velocity.Y, 100, default, 1f);
+                Main.dust[dustId].noGravity = true;
+            }
 
-    public virtual void OnHitByProjectile(
-      NPC npc,
-      Projectile projectile,
-      NPC.HitInfo hit,
-      int damageDone)
-    {
-      this.OnHitByEither(npc, Main.player[projectile.owner], damageDone);
-    }
+            SuffocationTimer += Suffocation ? 1 : -3;
+            if (SuffocationTimer < 0)
+                SuffocationTimer = 0;
 
-    public void OnHitByEither(NPC npc, Player player, int damageDone)
-    {
-      if (this.Anticoagulation && ((Entity) player).whoAmI == Main.myPlayer)
-      {
-        int index = ModContent.ProjectileType<Bloodshed>();
-        if (Utils.NextBool(Main.rand, player.ownedProjectileCounts[index] + 2))
-          Projectile.NewProjectile(((Entity) npc).GetSource_OnHurt((Entity) player, (string) null), ((Entity) npc).Center, Utils.NextVector2Circular(Main.rand, 12f, 12f), index, 0, 0.0f, Main.myPlayer, 1f, 0.0f, 0.0f);
-      }
-      if (damageDone <= 0 || !player.HasEffect<NecroEffect>() || !npc.boss)
-        return;
-      NecroEffect.NecroSpawnGraveBoss(this, npc, player, damageDone);
-    }
+            if (!npc.friendly && npc.damage > 0
+                && Main.LocalPlayer.active && !Main.LocalPlayer.dead)
+            {
+                if (--GrazeCD < 0) //managed by the npc itself so worm segments dont make it count down faster
+                    GrazeCD = 6;
 
-    public virtual bool CanHitPlayer(NPC npc, Player target, ref int CooldownSlot)
-    {
-      return !this.TimeFrozen;
-    }
+                NPC realLifeNPC = FargoSoulsUtil.NPCExists(npc.realLife);
+                FargoSoulsGlobalNPC npcForGrazeCD = realLifeNPC is not null ? realLifeNPC.FargoSouls() : npc.FargoSouls();
 
-    public virtual void ModifyHitNPC(NPC npc, NPC target, ref NPC.HitModifiers modifiers)
-    {
-      Main.player[Main.myPlayer].FargoSouls();
-      if (target.type != ModContent.NPCType<CreeperGutted>())
-        return;
-      ref StatModifier local = ref modifiers.FinalDamage;
-      local = StatModifier.op_Division(local, 20f);
-    }
+                if (npcForGrazeCD.GrazeCD == 0)
+                {
+                    FargoSoulsPlayer fargoPlayer = Main.LocalPlayer.FargoSouls();
+                    if (fargoPlayer.Graze && !Main.LocalPlayer.immune && Main.LocalPlayer.hurtCooldowns[0] <= 0 && Main.LocalPlayer.hurtCooldowns[1] <= 0)
+                    {
+                        Vector2 point = FargoSoulsUtil.ClosestPointInHitbox(npc.Hitbox, Main.LocalPlayer.Center);
+                        int dummy = -1;
+                        if (Main.LocalPlayer.Distance(point) < fargoPlayer.GrazeRadius
+                            && NPCLoader.CanHitPlayer(npc, Main.LocalPlayer, ref dummy)
+                            && (npc.ModNPC == null || npc.ModNPC.CanHitPlayer(Main.LocalPlayer, ref dummy))
+                            && (npc.noTileCollide || Collision.CanHitLine(point, 0, 0, Main.LocalPlayer.Center, 0, 0)))
+                        {
+                            npcForGrazeCD.GrazeCD = 30;
 
-    public virtual bool? CanBeHitByItem(NPC npc, Player player, Item item)
-    {
-      return this.TimeFrozen && npc.life == 1 ? new bool?(false) : new bool?();
-    }
+                            if (fargoPlayer.DeviGraze)
+                                SparklingAdoration.OnGraze(fargoPlayer, npc.damage);
+                            if (fargoPlayer.CirnoGraze)
+                                IceQueensCrown.OnGraze(fargoPlayer, npc.damage);
+                        }
+                    }
+                }
+            }
+        }
 
-    public virtual bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
-    {
-      return this.TimeFrozen && npc.life == 1 ? new bool?(false) : new bool?();
-    }
+        public override void DrawEffects(NPC npc, ref Color drawColor)
+        {
+            if (LeadPoison)
+            {
+                if (Main.rand.Next(4) < 3)
+                {
+                    int dust = Dust.NewDust(new Vector2(npc.position.X - 2f, npc.position.Y - 2f), npc.width + 4, npc.height + 4, DustID.Lead, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 100, default, 1f);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].velocity *= 1.8f;
+                    Dust d = Main.dust[dust];
+                    d.velocity.Y -= 0.5f;
+                    if (Main.rand.NextBool(4))
+                    {
+                        d.noGravity = false;
+                        d.scale *= 0.5f;
+                    }
+                }
+            }
 
-    public virtual void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = Main.player[Main.myPlayer].FargoSouls();
-      if (this.Corrupted)
-      {
-        ref AddableFloat local = ref modifiers.ArmorPenetration;
-        local = AddableFloat.op_Addition(local, 10f);
-      }
-      if (this.CorruptedForce)
-      {
-        ref AddableFloat local = ref modifiers.ArmorPenetration;
-        local = AddableFloat.op_Addition(local, 40f);
-      }
-      if (this.OceanicMaul)
-      {
-        ref AddableFloat local = ref modifiers.ArmorPenetration;
-        local = AddableFloat.op_Addition(local, 20f);
-      }
-      if (this.CurseoftheMoon)
-      {
-        ref AddableFloat local = ref modifiers.ArmorPenetration;
-        local = AddableFloat.op_Addition(local, 10f);
-      }
-      if (this.Rotting)
-      {
-        ref AddableFloat local = ref modifiers.ArmorPenetration;
-        local = AddableFloat.op_Addition(local, 10f);
-      }
-      if (this.Smite)
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Multiply(local, 1.2f);
-      }
-      if (this.MoltenAmplify)
-      {
-        float num = 1.2f;
-        if (fargoSoulsPlayer.ForceEffect<MoltenEnchant>())
-          num = 1.3f;
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Multiply(local, num);
-      }
-      if (this.PungentGazeTime > 0)
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Multiply(local, (float) (1.0 + 0.15000000596046448 * (double) this.PungentGazeTime / 300.0));
-      }
-      if (!fargoSoulsPlayer.DeviGraze)
-        return;
-      ref StatModifier local1 = ref modifiers.FinalDamage;
-      local1 = StatModifier.op_Multiply(local1, 1f + (float) fargoSoulsPlayer.DeviGrazeBonus);
-    }
+            if (Corrupted || CorruptedForce)
+            {
+                if (Main.rand.Next(8) < 9)
+                {
+                    int dust = Dust.NewDust(new Vector2(npc.position.X - 2f, npc.position.Y - 2f), npc.width + 4, npc.height + 4, DustID.Shadowflame, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 100);
+                    Main.dust[dust].noGravity = true;
 
-    public virtual void ModifyShop(NPCShop shop)
-    {
-      if (((AbstractNPCShop) shop).NpcType != ModContent.NPCType<Deviantt>())
-        return;
-      NPCShop npcShop = shop;
-      Item obj = new Item(ModContent.ItemType<EternityAdvisor>(), 1, 0);
-      obj.shopCustomPrice = new int?(Item.buyPrice(0, 0, 0, 10000));
-      Condition[] conditionArray = Array.Empty<Condition>();
-      npcShop.Add(obj, conditionArray);
-    }
+                    Dust d = Main.dust[dust];
+                    d.velocity.Y -= 10f;
+                }
+            }
 
-    public virtual void ModifyActiveShop(NPC npc, string shopName, Item[] items)
-    {
-      if (!Main.player[Main.myPlayer].FargoSouls().WoodEnchantDiscount)
-        return;
-      WoodEnchant.WoodDiscount(items);
-    }
+            if (OriPoison)
+            {
+                if (Main.rand.Next(4) < 3)
+                {
+                    int dust = Dust.NewDust(new Vector2(npc.position.X - 2f, npc.position.Y - 2f), npc.width + 4, npc.height + 4, DustID.PinkTorch, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 100, default, 1f);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].velocity *= 1.8f;
+                    Dust d = Main.dust[dust];
+                    d.velocity.Y -= 0.5f;
+                    if (Main.rand.NextBool(4))
+                    {
+                        d.noGravity = false;
+                        d.scale *= 0.5f;
+                    }
+                }
+            }
 
-    public virtual void SetupTravelShop(int[] shop, ref int nextSlot)
-    {
-      if (!Main.hardMode || Main.moonPhase != 0)
-        return;
-      shop[nextSlot] = ModContent.ItemType<MechLure>();
-      ++nextSlot;
+            if (MagicalCurse)
+            {
+                if (Main.rand.NextBool(4))
+                {
+                    int d = Dust.NewDust(npc.position, npc.width, npc.height, Main.rand.NextBool() ? 107 : 157);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity *= 0.2f;
+                    Main.dust[d].scale = 1.5f;
+                }
+            }
+
+            if (Sublimation)
+            {
+                if (Main.rand.NextBool(4))
+                {
+                    int d = Dust.NewDust(npc.position, npc.width, npc.height, DustID.PortalBolt, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 0, new Color(220, 255, 220), 2.5f);
+                    Main.dust[d].velocity.Y -= 1;
+                    Main.dust[d].velocity *= 1.5f;
+                    Main.dust[d].noGravity = true;
+                }
+            }
+
+            if (HellFire)
+            {
+                if (Main.rand.Next(4) < 3)
+                {
+                    int dust = Dust.NewDust(new Vector2(npc.position.X - 2f, npc.position.Y - 2f), npc.width + 4, npc.height + 4, DustID.SolarFlare, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 100);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].shader = GameShaders.Armor.GetSecondaryShader(56, Main.LocalPlayer);
+
+                    Dust d = Main.dust[dust];
+                    d.velocity.Y -= 0.5f;
+                    if (Main.rand.NextBool(4))
+                    {
+                        d.noGravity = false;
+                        d.scale *= 0.5f;
+                    }
+                }
+            }
+
+            if (HellFireMarked)
+            {
+                if (Main.rand.NextBool(3))
+                {
+                    int dust = Dust.NewDust(npc.position, npc.width, npc.height, DustID.SolarFlare, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, Scale: 4f);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].shader = GameShaders.Armor.GetSecondaryShader(56, Main.LocalPlayer);
+
+                    Dust d = Main.dust[dust];
+                    d.velocity.Y -= 0.5f;
+                    if (Main.rand.NextBool(4))
+                    {
+                        d.noGravity = false;
+                        d.scale *= 0.5f;
+                    }
+
+                    d.velocity *= 3;
+                }
+            }
+
+            if (SBleed || TimberBleed)
+            {
+                if (Main.rand.Next(4) < 3)
+                {
+                    int dust = Dust.NewDust(new Vector2(npc.position.X - 2f, npc.position.Y - 2f), npc.width + 4, npc.height + 4, DustID.Blood, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 100);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].shader = GameShaders.Armor.GetSecondaryShader(56, Main.LocalPlayer);
+
+                    Dust d = Main.dust[dust];
+                    d.velocity.Y -= 0.5f;
+                    if (Main.rand.NextBool(4))
+                    {
+                        d.noGravity = false;
+                        d.scale *= 0.5f;
+                    }
+                }
+            }
+
+            //            /*if (Infested)
+            //            {
+            //                if (Main.rand.Next(4) < 3)
+            //                {
+            //                    int dust = Dust.NewDust(new Vector2(npc.position.X - 2f, npc.position.Y - 2f), npc.width + 4, npc.height + 4, 44, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 100, Color.LimeGreen, InfestedDust);
+            //                    Main.dust[dust].noGravity = true;
+            //                    Main.dust[dust].velocity *= 1.8f;
+            //                    Dust expr_1CCF_cp_0 = Main.dust[dust];
+            //                    expr_1CCF_cp_0.velocity.Y = expr_1CCF_cp_0.velocity.Y - 0.5f;
+            //                    if (Main.rand.NextBool(4))
+            //                    {
+            //                        Main.dust[dust].noGravity = false;
+            //                        Main.dust[dust].scale *= 0.5f;
+            //                    }
+            //                }
+
+            //                Lighting.AddLight((int)(npc.position.X / 16f), (int)(npc.position.Y / 16f + 1f), 1f, 0.3f, 0.1f);
+            //            }*/
+
+            if (Suffocation)
+                drawColor = Colors.RarityPurple;
+
+            //            if (Villain)
+            //            {
+            //                if (Main.rand.Next(4) < 3)
+            //                {
+            //                    int dust = Dust.NewDust(new Vector2(npc.position.X - 2f, npc.position.Y - 2f), npc.width + 4, npc.height + 4, DustID.AncientLight, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 100);
+            //                    Main.dust[dust].noGravity = true;
+            //                    Main.dust[dust].velocity *= 1.8f;
+            //                    Dust expr_1CCF_cp_0 = Main.dust[dust];
+            //                    expr_1CCF_cp_0.velocity.Y = expr_1CCF_cp_0.velocity.Y - 0.5f;
+            //                    if (Main.rand.NextBool(4))
+            //                    {
+            //                        Main.dust[dust].noGravity = false;
+            //                        Main.dust[dust].scale *= 0.5f;
+            //                    }
+            //                }
+
+            //                Lighting.AddLight((int)(npc.position.X / 16f), (int)(npc.position.Y / 16f + 1f), 1f, 0.3f, 0.1f);
+            //            }
+
+            if (Electrified)
+            {
+                if (Main.rand.Next(4) < 3)
+                {
+                    int dust = Dust.NewDust(new Vector2(npc.position.X - 2f, npc.position.Y - 2f), npc.width + 4, npc.height + 4, DustID.Vortex, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].velocity *= 1.8f;
+                    if (Main.rand.NextBool(3))
+                    {
+                        Main.dust[dust].noGravity = false;
+                        Main.dust[dust].scale *= 0.5f;
+                    }
+                }
+
+                Lighting.AddLight((int)npc.Center.X / 16, (int)npc.Center.Y / 16, 0.3f, 0.8f, 1.1f);
+            }
+
+            if (CurseoftheMoon)
+            {
+                int d = Dust.NewDust(npc.Center, 0, 0, DustID.Vortex, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f);
+                Main.dust[d].noGravity = true;
+                Main.dust[d].velocity *= 3f;
+                Main.dust[d].scale += 0.5f;
+
+                if (Main.rand.Next(4) < 3)
+                {
+                    d = Dust.NewDust(npc.position, npc.width, npc.height, DustID.Vortex, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity.Y -= 1f;
+                    Main.dust[d].velocity *= 2f;
+                }
+            }
+
+            if (Sadism)
+            {
+                if (Main.rand.NextBool(7))
+                {
+                    int d = Dust.NewDust(npc.position, npc.width, npc.height, DustID.UltraBrightTorch, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 0, Color.White, 4f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity *= 2f;
+                }
+            }
+
+            if (GodEater)
+            {
+                if (Main.rand.NextBool(7))
+                {
+                    int dust = Dust.NewDust(npc.position - new Vector2(2f, 2f), npc.width + 4, npc.height + 4, DustID.GemAmethyst, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 0, Color.White, 4f);
+                    Main.dust[dust].noGravity = true;
+                    Main.dust[dust].velocity *= 1.2f;
+                    Main.dust[dust].velocity.Y -= 0.15f;
+                }
+                Lighting.AddLight(npc.position, 0.15f, 0.03f, 0.09f);
+            }
+
+            if (Chilled)
+            {
+                int d = Dust.NewDust(npc.Center, 0, 0, DustID.MagicMirror, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f);
+                Main.dust[d].noGravity = true;
+                Main.dust[d].velocity *= 3f;
+                Main.dust[d].scale += 0.5f;
+
+                if (Main.rand.Next(4) < 3)
+                {
+                    d = Dust.NewDust(npc.position, npc.width, npc.height, DustID.MagicMirror, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity.Y -= 1f;
+                    Main.dust[d].velocity *= 2f;
+                }
+            }
+
+            if (FlamesoftheUniverse)
+            {
+                if (!Main.rand.NextBool(3))
+                {
+                    int d = Dust.NewDust(npc.position, npc.width, npc.height, DustID.Scorpion, npc.velocity.X * 0.4f, npc.velocity.Y * 0.4f, 0, new Color(50 * Main.rand.Next(6) + 5, 50 * Main.rand.Next(6) + 5, 50 * Main.rand.Next(6) + 5, 0), 2.5f);
+                    Main.dust[d].velocity.Y -= 1;
+                    Main.dust[d].velocity *= 1.5f;
+                    Main.dust[d].noGravity = true;
+                }
+            }
+
+            if (Smite)
+            {
+                if (!Main.rand.NextBool(4))
+                {
+                    Color color = Main.DiscoColor;
+                    int d = Dust.NewDust(npc.position, npc.width, npc.height, DustID.GemDiamond, 0.0f, 0.0f, 100, color, 2.5f);
+                    Main.dust[d].velocity *= 2f;
+                    Main.dust[d].noGravity = true;
+                }
+            }
+
+            if (Anticoagulation)
+            {
+                if (!Main.rand.NextBool(4))
+                {
+                    int d = Dust.NewDust(npc.position, npc.width, npc.height, DustID.Blood);
+                    Main.dust[d].velocity *= 2f;
+                    Main.dust[d].scale += 1f;
+                }
+            }
+
+            if (BloodDrinker)
+            {
+                if (!Main.rand.NextBool(3))
+                {
+                    int d = Dust.NewDust(npc.position, npc.width, npc.height, DustID.LifeDrain, npc.velocity.X * 0.2f, npc.velocity.Y * 0.2f, 0, Color.White, 2.5f);
+                    Main.dust[d].noGravity = true;
+                }
+            }
+
+            if (PungentGazeTime > 0)
+            {
+                if (Main.rand.NextBool(3))
+                {
+                    float ratio = (float)PungentGazeTime / PungentGazeBuff.MAX_TIME;
+                    Vector2 sparkDir = Vector2.UnitX.RotatedByRandom(MathHelper.TwoPi);
+                    float sparkDistance = 20 * Main.rand.NextFloat(0.6f, 1.3f);
+                    Vector2 sparkCenter = npc.Center + sparkDir * sparkDistance * 2;
+                    float sparkTime = 15;
+                    Vector2 sparkVel = (npc.Center - sparkCenter) / sparkTime;
+                    float sparkScale = MathHelper.Lerp(0.25f, 1.5f,ratio);
+                    Particle spark = new SmallSparkle(npc.Center, sparkVel, Color.Red, sparkScale, (int)sparkTime);
+                    spark.Spawn();
+                }
+            }
+            if (DeathMarked)
+            {
+                drawColor.R = (byte)(drawColor.R * 0.7f);
+                drawColor.G = (byte)(drawColor.G * 0.6f);
+                drawColor.B = (byte)(drawColor.B * 0.7f);
+            }
+
+        }
+        public override void PostDraw(NPC npc, SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor)
+        {
+            int shrapnel = 0;
+            for (int i = 0; i < Main.maxProjectiles; i++)
+            {
+                Projectile proj = Main.projectile[i];
+                if (proj.TypeAlive<BaronTuskShrapnel>() && proj.owner == Main.myPlayer)
+                {
+                    if (proj.As<BaronTuskShrapnel>().EmbeddedNPC == npc)
+                    {
+                        shrapnel++;
+                    }
+                }
+            }
+            if (shrapnel >= 15)
+            {
+                Texture2D texture = (Texture2D)ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/GlowRing", AssetRequestMode.ImmediateLoad);
+                Rectangle rectangle = texture.Bounds;
+                Vector2 origin2 = rectangle.Size() / 2f;
+                Color color = Color.Red;
+                float ringScale = npc.scale / 3f;
+                spriteBatch.Draw(texture, npc.Center - Main.screenPosition + new Vector2(0f, npc.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color, npc.rotation, origin2, ringScale, SpriteEffects.None, 0);
+            }
+            base.PostDraw(npc, spriteBatch, screenPos, drawColor);
+        }
+        public override Color? GetAlpha(NPC npc, Color drawColor)
+        {
+            if (Chilled)
+            {
+                drawColor = Color.LightBlue;
+                return drawColor;
+            }
+
+            return null;
+        }
+
+        public override void UpdateLifeRegen(NPC npc, ref int damage)
+        {
+            Player player = Main.player[Main.myPlayer];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (Rotting)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                npc.lifeRegen -= 100;
+
+                if (damage < 5)
+                    damage = 5;
+            }
+
+            if (LeadPoison)
+            {
+                if (npc.lifeRegen > 0)
+                {
+                    npc.lifeRegen = 0;
+                }
+
+                int dot = npc.type == NPCID.EaterofWorldsBody ? 4 : 20;
+
+                //calamity worms mod compat
+                if (ModLoader.HasMod("CalamityMod"))
+                {
+                    if (ModContent.TryFind("CalamityMod", "DesertScourgeBody", out ModNPC scourgeBody) && npc.type == scourgeBody.Type)
+                    {
+                        dot = 4;
+                    }
+                }
+                bool forceEffect = Main.player.Any(p => p.Alive() && p.HasEffect<LeadEffect>() && p.FargoSouls() is FargoSoulsPlayer pF && pF != null && pF.ForceEffect<LeadEnchant>());
+                if (forceEffect)
+                {
+                    dot *= 3;
+                }
+
+                bool terraEffect = Main.player.Any(p => p.Alive() && p.HasEffect<TerraLightningEffect>());
+                if (terraEffect)
+                    dot = 250;
+
+                npc.lifeRegen -= dot;
+                if (damage < (int)(dot / 10f))
+                    damage = (int)(dot / 10f);
+            }
+
+
+            //50 dps
+            if (SolarFlare)
+            {
+                if (npc.lifeRegen > 0)
+                {
+                    npc.lifeRegen = 0;
+                }
+
+                npc.lifeRegen -= 100;
+
+                if (damage < 10)
+                {
+                    damage = 10;
+                }
+            }
+
+            //100 dps
+            if (HellFire)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                int hellfireMarkedMultiplier = HellFireMarked ? 5 : 1;
+
+                npc.lifeRegen -= 200 * hellfireMarkedMultiplier;
+
+                int shownDamage = 50 * hellfireMarkedMultiplier;
+                if (damage < shownDamage)
+                {
+                    damage = shownDamage;
+                }
+            }
+
+            //25 dps which is 1 more than  
+            if (Sublimation)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                npc.lifeRegen -= 50;
+
+                if (damage < 5)
+                    damage = 5;
+            }
+
+            //20 dps 
+            if (OriPoison)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                npc.lifeRegen -= 40;
+
+                if (damage < 4)
+                    damage = 4;
+            }
+            if (EarthPoison)
+            {
+                int EarthDamage = EarthDoTValue;
+
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                npc.lifeRegen -= EarthDamage;
+                if (damage < EarthDamage / 8)
+                    damage = EarthDamage / 8;
+            }
+
+            if (Infested)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                npc.lifeRegen -= InfestedExtraDot(npc);
+
+                if (damage < 8)
+                    damage = 8;
+            }
+            else
+            {
+                MaxInfestTime = 0;
+            }
+
+            if (Electrified)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                npc.lifeRegen -= 4;
+                if (npc.velocity != Vector2.Zero)
+                    npc.lifeRegen -= 16;
+                if (npc.wet)
+                    npc.lifeRegen -= 16;
+
+                if (damage < 4)
+                    damage = 4;
+            }
+
+            if (CurseoftheMoon)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                npc.lifeRegen -= 24;
+
+                if (damage < 6)
+                    damage = 6;
+            }
+
+            if (OceanicMaul)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                npc.lifeRegen -= 48;
+
+                if (damage < 12)
+                    damage = 12;
+            }
+
+            if (Sadism)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                npc.lifeRegen -= 170 + 48 + 60 + 8 + 4 + 16;
+
+                if (damage < 70)
+                    damage = 70;
+            }
+
+            if (MutantNibble)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+                if (npc.lifeRegenCount > 0)
+                    npc.lifeRegenCount = 0;
+
+                if (npc.life > 0 && LifePrevious > 0) //trying to prevent some wack despawn stuff
+                {
+                    if (npc.life > LifePrevious)
+                        npc.life = LifePrevious;
+                    else
+                        LifePrevious = npc.life;
+                }
+            }
+            else
+            {
+                LifePrevious = npc.life;
+            }
+
+            if (GodEater)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+
+                npc.lifeRegen -= 4200;
+
+                if (damage < 777)
+                    damage = 777;
+            }
+
+            if (Suffocation)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+                npc.lifeRegen -= (int)(40f * Math.Min(1f, 1f * SuffocationTimer / 480));
+                if (damage < 5)
+                    damage = 5;
+            }
+
+            if (FlamesoftheUniverse)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+                npc.lifeRegen -= (30 + 50 + 48 + 30) / 2;
+                if (damage < 20)
+                    damage = 20;
+            }
+
+            if (TimberBleed)
+            {
+                npc.lifeRegen -= 400;
+                if (damage < 40)
+                    damage = 40;
+            }
+
+            if (Anticoagulation)
+            {
+                if (npc.lifeRegen > 0)
+                    npc.lifeRegen = 0;
+                npc.lifeRegen -= 16;
+                if (damage < 6)
+                    damage = 6;
+            }
+
+            float dotMultiplier = DoTMultiplier(npc, modPlayer.Player);
+            if (dotMultiplier != 1 && npc.lifeRegen < 0)
+            {
+                npc.lifeRegen = (int)(npc.lifeRegen * dotMultiplier);
+                damage = (int)(damage * dotMultiplier);
+            }
+
+            if (TimeFrozen && npc.life == 1)
+            {
+                if (npc.lifeRegen < 0)
+                    npc.lifeRegen = 0;
+            }
+        }
+        public static float DoTMultiplier(NPC npc, Player player)
+        {
+            float multiplier = 1;
+            if (npc.lifeRegen >= 0)
+                return multiplier;
+
+            if (player.HasEffect<OrichalcumEffect>())
+                multiplier += OrichalcumEffect.OriDotModifier(npc, player.FargoSouls()) - 1;
+
+            if (player.HasEffect<EarthForceEffect>())
+                multiplier += 3;
+
+            if (npc.FargoSouls().MagicalCurse)
+                multiplier += 1;
+
+            //half as effective if daybreak applied
+            if (npc.daybreak && multiplier > 1)
+                multiplier -= (multiplier - 1) / 2;
+
+            return multiplier;
+        }
+        private int InfestedExtraDot(NPC npc)
+        {
+            int buffIndex = npc.FindBuffIndex(ModContent.BuffType<InfestedBuff>());
+            if (buffIndex == -1)
+                return 0;
+
+            int timeLeft = npc.buffTime[buffIndex];
+            if (MaxInfestTime <= 0)
+                MaxInfestTime = timeLeft;
+            float baseVal = (MaxInfestTime - timeLeft) / 20f; //change the denominator to adjust max power of DOT
+            int dmg = (int)(baseVal * baseVal + 8);
+
+            InfestedDust = baseVal / 15 + .5f;
+            if (InfestedDust > 5f)
+                InfestedDust = 5f;
+
+            return dmg;
+        }
+
+        public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (modPlayer.Bloodthirsty)
+            {
+                //100x spawn rate
+                spawnRate = (int)(spawnRate * 0.01);
+                //2x max spawn
+                maxSpawns *= 3;
+            }
+
+            if (modPlayer.Illuminated)
+            {
+                spawnRate = (int)(spawnRate / 1.5f);
+                maxSpawns = (int)(maxSpawns * 1.5f);
+                /*
+                Color light = Lighting.GetColor(player.Center.ToTileCoordinates());
+                float modifier = (light.R + light.G + light.B) / 700f;
+                modifier = MathHelper.Clamp(modifier, 0, 1);
+                modifier += 1;
+
+                spawnRate = (int)(spawnRate / modifier);
+                maxSpawns = (int)(maxSpawns * modifier);
+                Main.NewText(spawnRate);
+                Main.NewText(maxSpawns);
+                */
+            }
+
+            if (player.HasEffect<SinisterIconEffect>())
+            {
+                spawnRate /= 2;
+                maxSpawns *= 2;
+            }
+
+            //if (modPlayer.BuilderMode) maxSpawns = 0;
+        }
+
+        public override void EditSpawnPool(IDictionary<int, float> pool, NPCSpawnInfo spawnInfo)
+        {
+            if (spawnInfo.Player.FargoSouls().PungentEyeball)
+            {
+                foreach (var entry in pool)
+                {
+                    if (RareNPCs.Contains(entry.Key))
+                    {
+                        pool[entry.Key] = entry.Value * 5;
+                    }
+                }
+            }
+
+            int y = spawnInfo.SpawnTileY;
+            bool day = Main.dayTime;
+            bool surface = y < Main.worldSurface && !spawnInfo.Sky;
+            if (day && surface && spawnInfo.PlayerInTown && FargowiltasSouls.NoBiome(spawnInfo) && FargowiltasSouls.NoZone(spawnInfo))
+            {
+                pool[ModContent.NPCType<TophatSquirrelCritter>()] = 0.03f;
+            }
+        }
+
+        private bool lootMultiplierCheck;
+        private static int[] IllegalLootMultiplierNPCs => [
+            NPCID.DD2Betsy,
+            NPCID.EaterofWorldsBody,
+            NPCID.EaterofWorldsHead,
+            NPCID.EaterofWorldsTail
+        ];
+
+        public override void OnKill(NPC npc)
+        {
+            Player player = Main.player[npc.lastInteraction];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (player.HasEffect<NecroEffect>() && !npc.boss)
+            {
+                NecroEffect.NecroSpawnGraveEnemy(npc, player, modPlayer);
+            }
+
+            if (!lootMultiplierCheck)
+            {
+                lootMultiplierCheck = true;
+
+                if (player.HasEffect<SinisterIconDropsEffect>() && !npc.boss && !IllegalLootMultiplierNPCs.Contains(npc.type))
+                {
+                    npc.NPCLoot();
+                }
+
+                if (player.FargoSouls().PlatinumEffect != null && !npc.boss)
+                {
+                    bool isForcePlatinum = player.FargoSouls().ForceEffect(player.FargoSouls().PlatinumEffect.type);
+
+                    if (Main.rand.NextBool(isForcePlatinum ? 3 : 5) && !IllegalLootMultiplierNPCs.Contains(npc.type))
+                    {
+                        int repeats = 5;
+
+                        npc.extraValue /= repeats;
+
+                        for (int i = 0; i < repeats - 1; i++)
+                            npc.NPCLoot();
+                    }
+                }
+            }
+
+            if (npc.boss && !WorldSavingSystem.DownedAnyBoss)
+            {
+                WorldSavingSystem.DownedAnyBoss = true;
+                if (Main.netMode == NetmodeID.Server)
+                    NetMessage.SendData(MessageID.WorldData);
+            }
+        }
+
+        public override void ModifyNPCLoot(NPC npc, NPCLoot npcLoot)
+        {
+            static IItemDropRule BossDrop(int item)
+            {
+                return new DropBasedOnEMode(ItemDropRule.Common(item, 3), ItemDropRule.Common(item, 10));
+            }
+
+            switch (npc.type)
+            {
+                case NPCID.KingSlime:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<SlimeKingsSlasher>()));
+                    break;
+
+                case NPCID.EyeofCthulhu:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<LeashOfCthulhu>()));
+                    break;
+
+                case NPCID.EaterofWorldsHead:
+                case NPCID.EaterofWorldsBody:
+                case NPCID.EaterofWorldsTail:
+                    {
+                        LeadingConditionRule lastEater = new(new Conditions.LegacyHack_IsABoss());
+                        lastEater.OnSuccess(BossDrop(ModContent.ItemType<EaterLauncherJr>()));
+                        npcLoot.Add(lastEater);
+                    }
+                    break;
+
+                case NPCID.BrainofCthulhu:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<BrainStaff>()));
+                    break;
+
+                case NPCID.QueenBee:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<TheSmallSting>()));
+                    break;
+
+                case NPCID.SkeletronHead:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<BoneZone>()));
+                    //npcLoot.Add(BossDrop(ModContent.ItemType<BrittleBone>(), 200));
+                    break;
+
+                case NPCID.WallofFlesh:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<FleshHand>()));
+                    break;
+
+                case NPCID.TheDestroyer:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<ElectricWhip>()));
+                    break;
+
+                case NPCID.SkeletronPrime:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<RefractorBlaster>()));
+                    break;
+
+                case NPCID.Retinazer:
+                case NPCID.Spazmatism:
+                    {
+                        LeadingConditionRule noTwin = new(new Conditions.MissingTwin());
+                        noTwin.OnSuccess(BossDrop(ModContent.ItemType<TwinRangs>()));
+                        npcLoot.Add(noTwin);
+                    }
+                    break;
+
+                case NPCID.Plantera:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<Dicer>()));
+                    break;
+
+                case NPCID.Golem:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<RockSlide>()));
+                    break;
+
+                case NPCID.DukeFishron:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<FishStick>()));
+                    break;
+
+                case NPCID.HallowBoss:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<PrismaRegalia>()));
+                    break;
+
+                case NPCID.DD2Betsy:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<DragonBreath>()));
+                    break;
+
+                case NPCID.MoonLordCore:
+                    npcLoot.Add(BossDrop(ModContent.ItemType<MoonBow>()));
+                    break;
+
+                case NPCID.BigMimicJungle:
+                    npcLoot.Add(ItemDropRule.OneFromOptions(1,
+                        ModContent.ItemType<Vineslinger>(),
+                        ModContent.ItemType<Mahoguny>(),
+                        ModContent.ItemType<OvergrownKey>()));
+                    break;
+
+                default:
+                    break;
+            }
+
+            //if (Fargowiltas.Instance.CalamityLoaded && Revengeance && WorldSavingSystem.EternityMode && Main.bloodMoon && Main.moonPhase == 0 && Main.raining && Main.rand.NextBool(10))
+            //{
+            //    Mod calamity = ModLoader.GetMod("CalamityMod");
+
+            //    if (npc.type == calamity.NPCType("DevourerofGodsHeadS"))
+            //    {
+            //        Item.NewItem(npc.Hitbox, calamity.ItemType("CosmicPlushie"));
+            //    }
+            //}
+        }
+
+        public override bool CheckDead(NPC npc)
+        {
+            if (TimeFrozen)
+            {
+                npc.life = 1;
+                return false;
+            }
+
+            Player player = FargoSoulsUtil.PlayerExists(npc.lastInteraction);
+            if (player == null)
+                return base.CheckDead(npc);
+
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            //            /*if (npc.boss && FargoSoulsUtil.BossIsAlive(ref mutantBoss, ModContent.NPCType<MutantBoss.MutantBoss>()) && npc.type != ModContent.NPCType<MutantBoss.MutantBoss>())
+            //            {
+            //                npc.active = false;
+            //                SoundEngine.PlaySound(npc.DeathSound, npc.Center);
+            //                return false;
+            //            }*/
+
+            if (player.HasEffect<WoodCompletionEffect>())
+            {
+                WoodCompletionEffect.WoodCheckDead(modPlayer, npc);
+            }
+
+            if (player.HasEffect<CactusEffect>() && npc.lifeMax > 10 && !npc.townNPC && npc.lifeMax != int.MaxValue) //super dummy
+            {
+                CactusEffect.CactusProc(npc, player);
+            }
+
+            return base.CheckDead(npc);
+        }
+        public override void OnHitByItem(NPC npc, Player player, Item item, NPC.HitInfo hit, int damageDone)
+        {
+            OnHitByEither(npc, player, damageDone);
+        }
+
+        public override void OnHitByProjectile(NPC npc, Projectile projectile, NPC.HitInfo hit, int damageDone)
+        {
+            OnHitByEither(npc, Main.player[projectile.owner], damageDone);
+            
+        }
+
+        // TODO: damageDone or hitInfo.Damage ?
+        public void OnHitByEither(NPC npc, Player player, int damageDone)
+        {
+            if (Anticoagulation && player.whoAmI == Main.myPlayer)
+            {
+                int type = ModContent.ProjectileType<Bloodshed>();
+                if (Main.rand.NextBool(player.ownedProjectileCounts[type] + 2))
+                {
+                    const float speed = 12f;
+                    Projectile.NewProjectile(npc.GetSource_OnHurt(player), npc.Center, Main.rand.NextVector2Circular(speed, speed), type, 0, 0f, Main.myPlayer, 1f);
+                }
+            }
+            
+
+            if (damageDone > 0 && player.HasEffect<NecroEffect>() && npc.boss)
+            {
+                NecroEffect.NecroSpawnGraveBoss(this, npc, player, damageDone);
+            }
+        }
+
+        public override bool CanHitPlayer(NPC npc, Player target, ref int CooldownSlot)
+        {
+            if (TimeFrozen)
+                return false;
+            return true;
+        }
+
+        public override void ModifyHitNPC(NPC npc, NPC target, ref NPC.HitModifiers modifiers)
+        {
+            Player player = Main.player[Main.myPlayer];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (target.type == ModContent.NPCType<CreeperGutted>())
+                modifiers.FinalDamage /= 20;
+        }
+
+        public override bool? CanBeHitByItem(NPC npc, Player player, Item item)
+        {
+            if (TimeFrozen && npc.life == 1)
+                return false;
+            return null;
+        }
+
+        public override bool? CanBeHitByProjectile(NPC npc, Projectile projectile)
+        {
+            if (TimeFrozen && npc.life == 1)
+                return false;
+            return null;
+        }
+
+        public override void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
+        {
+            Player player = Main.player[Main.myPlayer];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (Corrupted)
+            {
+                modifiers.FlatBonusDamage += 5;
+            }
+            if (CorruptedForce)
+            {
+                int pen = player.HasEffect<TimberEffect>() ? 15 : 20;
+                modifiers.FlatBonusDamage += pen;
+            }
+
+            if (OceanicMaul)
+                modifiers.ArmorPenetration += 20;
+            if (CurseoftheMoon)
+                modifiers.ArmorPenetration += 10;
+            if (Rotting)
+                modifiers.ArmorPenetration += 10;
+            if (DeathMarked)
+                modifiers.FinalDamage *= 1.15f;
+            if (Smite)
+            {
+                modifiers.FinalDamage *= 1.2f;
+            }
+
+            if (MoltenAmplify)
+            {
+                float modifier = 1.2f;
+                if (player.HasEffect<NatureEffect>())
+                    modifier = 1.15f;
+                else if (modPlayer.ForceEffect<MoltenEnchant>())
+                    modifier = 1.3f;
+                modifiers.FinalDamage *= modifier;
+            }
+
+            if (PungentGazeTime > 0)
+            {
+                modifiers.FinalDamage *= 1.0f + 0.15f * PungentGazeTime / PungentGazeBuff.MAX_TIME;
+            }
+
+            //            //if (modPlayer.KnightEnchant && Villain && !npc.boss)
+            //            //{
+            //            //    damage *= 1.5;
+            //            //}
+
+            //            if (crit && modPlayer.ShroomEnchant && !modPlayer.TerrariaSoul && player.stealth == 0)
+            //            {
+            //                damage *= 1.5;
+            //            }
+
+            if (modPlayer.DeviGraze)
+            {
+                modifiers.FinalDamage *= 1.0f + (float)modPlayer.DeviGrazeBonus;
+            }
+
+            //            //normal damage calc
+        }
+
+        public override void ModifyShop(NPCShop shop)
+        {
+            if (shop.NpcType == ModContent.NPCType<Deviantt>())
+            {
+                shop.Add(new Item(ModContent.ItemType<EternityAdvisor>()) { shopCustomPrice = Item.buyPrice(copper: 10000) });
+            }
+        }
+        public override void ModifyActiveShop(NPC npc, string shopName, Item[] items)
+        {
+            Player player = Main.player[Main.myPlayer];
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (modPlayer.WoodEnchantDiscount)
+            {
+                WoodEnchant.WoodDiscount(items);
+            }
+        }
+        public override void SetupTravelShop(int[] shop, ref int nextSlot)
+        {
+            if (Main.hardMode && Main.moonPhase == 0)
+            {
+                shop[nextSlot] = ModContent.ItemType<MechLure>();
+                nextSlot++;
+            }
+        }
+
     }
-  }
 }

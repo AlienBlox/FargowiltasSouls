@@ -1,120 +1,143 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.EaterRocketJr
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
-
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  [LegacyName(new string[] {"EaterStaff"})]
-  public class EaterRocketJr : ModProjectile
-  {
-    private bool sweetspot;
-
-    public virtual void SetStaticDefaults()
+    [LegacyName("EaterStaff")]
+    public class EaterRocketJr : ModProjectile
     {
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 19;
-      ((Entity) this.Projectile).height = 19;
-      this.Projectile.scale = 1f;
-      this.Projectile.aiStyle = -1;
-      this.AIType = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Ranged;
-      this.Projectile.timeLeft = 1200;
-    }
-
-    public virtual void AI()
-    {
-      int index = Dust.NewDust(new Vector2(((Entity) this.Projectile).position.X, ((Entity) this.Projectile).position.Y + 2f), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height + 5, 24, ((Entity) this.Projectile).velocity.X * 0.2f, ((Entity) this.Projectile).velocity.Y * 0.2f, 100, new Color(), 1f);
-      Main.dust[index].noGravity = true;
-      ((Entity) this.Projectile).velocity.Y += 0.11f;
-      this.Projectile.rotation += (float) (0.78539818525314331 * ((double) ((Entity) this.Projectile).velocity.X / 40.0));
-    }
-
-    public virtual void ModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers)
-    {
-      Player player = Main.player[this.Projectile.owner];
-      int num1 = 300;
-      int rockeaterDistance = player.FargoSouls().RockeaterDistance;
-      int num2 = (num1 + rockeaterDistance) / 2;
-      Vector2 desiredLocation = Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) player, ((Entity) target).Center), (float) num2));
-      float num3 = Vector2.Distance(FargoSoulsUtil.ClosestPointInHitbox(((Entity) target).Hitbox, desiredLocation), ((Entity) player).Center);
-      if ((double) num3 <= (double) num1 || (double) num3 >= (double) rockeaterDistance)
-        return;
-      ref StatModifier local = ref modifiers.FinalDamage;
-      local = StatModifier.op_Multiply(local, 1.5f);
-      this.sweetspot = true;
-    }
-
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index1 = 0; index1 < 20; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).Center, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 24, (float) (-(double) ((Entity) this.Projectile).velocity.X * 0.20000000298023224), (float) (-(double) ((Entity) this.Projectile).velocity.Y * 0.20000000298023224), 100, new Color(), 1.5f);
-        Main.dust[index2].noGravity = true;
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 2f);
-      }
-      if (this.sweetspot)
-      {
-        for (int index3 = 0; index3 < 40; ++index3)
+        public override void SetStaticDefaults()
         {
-          int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 24, 0.0f, 0.0f, 100, new Color(), 2f);
-          Main.dust[index4].noGravity = true;
-          Main.dust[index4].noLight = true;
-          Main.dust[index4].velocity = Vector2.op_Addition(Vector2.op_Multiply(Vector2.Normalize(((Entity) this.Projectile).velocity), 9f), Utils.NextVector2Circular(Main.rand, 5f, 5f));
-          Dust dust = Main.dust[index4];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 1.25f);
-          Main.dust[index4].scale *= Utils.NextFloat(Main.rand, 1.5f, 1.25f);
+            // DisplayName.SetDefault("Eater Rocket");
+            //ProjectileID.Sets.TrailCacheLength[Projectile.type] = 12;
+            //ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-      }
-      SoundEngine.PlaySound(ref SoundID.NPCDeath1, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      for (int index5 = 0; index5 < 5; ++index5)
-      {
-        int index6 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 24, 0.0f, 0.0f, 100, new Color(), 1f);
-        Main.dust[index6].noGravity = true;
-        Dust dust1 = Main.dust[index6];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 4f);
-        int index7 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 24, 0.0f, 0.0f, 100, new Color(), 1.5f);
-        Dust dust2 = Main.dust[index7];
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 2f);
-      }
-      if (this.Projectile.owner != Main.myPlayer)
-        return;
-      int num = 1;
-      for (int index8 = 0; index8 < num; ++index8)
-      {
-        int index9 = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, new Vector2((float) Main.rand.Next(-10, 10), (float) Main.rand.Next(-10, 10)), 307, this.Projectile.damage / 2, this.Projectile.knockBack / 6f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-        if (index9 != Main.maxProjectiles)
-          Main.projectile[index9].DamageType = DamageClass.Ranged;
-      }
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 19;
+            Projectile.height = 19;
+            Projectile.scale = 1f;
+            Projectile.aiStyle = -1;
+            AIType = -1;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Ranged;
+            Projectile.timeLeft = 1200;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+            //Projectile.penetrate = 99;
+            //Projectile.usesLocalNPCImmunity = true;
+            //Projectile.localNPCHitCooldown = 20;
+        }
+
+        public override void AI()
+        {
+            //dust!
+            int dustId = Dust.NewDust(new Vector2(Projectile.position.X, Projectile.position.Y + 2f), Projectile.width, Projectile.height + 5, DustID.CorruptionThorns, Projectile.velocity.X * 0.2f,
+                Projectile.velocity.Y * 0.2f, 100, default, 1f);
+            Main.dust[dustId].noGravity = true;
+
+            Projectile.velocity.Y += 0.11f;
+            Projectile.rotation += (MathHelper.TwoPi / 8f) * (Projectile.velocity.X / 40f);
+        }
+
+        bool sweetspot;
+        public override void ModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers)
+        {
+            Player owner = Main.player[Projectile.owner];
+
+            int closeDistance = 300;
+            int farDistance = owner.FargoSouls().RockeaterDistance;
+            int midDistance = (closeDistance + farDistance) / 2;
+
+            Vector2 middleOfSweetspot = owner.Center + owner.SafeDirectionTo(target.Center) * midDistance;
+            Vector2 targetPoint = FargoSoulsUtil.ClosestPointInHitbox(target.Hitbox, middleOfSweetspot);
+            float dist = Vector2.Distance(targetPoint, owner.Center);
+
+            if (dist > closeDistance && dist < farDistance)
+            {
+                modifiers.FinalDamage *= 1.5f;
+                sweetspot = true;
+            }
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            //dust
+            for (int num468 = 0; num468 < 20; num468++)
+            {
+                int num469 = Dust.NewDust(Projectile.Center, Projectile.width, Projectile.height, DustID.CorruptionThorns, -Projectile.velocity.X * 0.2f,
+                    -Projectile.velocity.Y * 0.2f, 100, default, 1.5f);
+                Main.dust[num469].noGravity = true;
+                Main.dust[num469].velocity *= 2f;
+            }
+
+            if (sweetspot)
+            {
+                for (int i = 0; i < 40; i++)
+                {
+                    int index2 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.CorruptionThorns, 0f, 0f, 100, default, 2f);
+                    Main.dust[index2].noGravity = true;
+                    Main.dust[index2].noLight = true;
+                    Main.dust[index2].velocity = Vector2.Normalize(Projectile.velocity) * 9f + Main.rand.NextVector2Circular(5f, 5f);
+                    Main.dust[index2].velocity *= 1.25f;
+                    Main.dust[index2].scale *= Main.rand.NextFloat(1.5f, 1.25f);
+                }
+            }
+
+            Terraria.Audio.SoundEngine.PlaySound(SoundID.NPCDeath1, Projectile.Center);
+
+            for (int i = 0; i < 5; i++)
+            {
+                int dust = Dust.NewDust(Projectile.position, Projectile.width,
+                    Projectile.height, DustID.CorruptionThorns, 0f, 0f, 100, default, 1f);
+                Main.dust[dust].noGravity = true;
+                Main.dust[dust].velocity *= 4f;
+                dust = Dust.NewDust(Projectile.position, Projectile.width,
+                    Projectile.height, DustID.CorruptionThorns, 0f, 0f, 100, default, 1.5f);
+                Main.dust[dust].velocity *= 2f;
+            }
+
+            /*
+            float scaleFactor9 = 0.5f;
+            for (int j = 0; j < 4; j++)
+            {
+                int gore = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center,
+                    default,
+                    Main.rand.Next(61, 64));
+
+                Main.gore[gore].velocity *= scaleFactor9;
+                Main.gore[gore].velocity += new Vector2(1, 1).RotatedBy(MathHelper.TwoPi / 4 * j);
+            }
+            */
+
+
+            if (Projectile.owner == Main.myPlayer)
+            {
+                int max = 1;
+                for (int i = 0; i < max; i++)
+                {
+                    int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, new Vector2(Main.rand.Next(-10, 10), Main.rand.Next(-10, 10)), ProjectileID.TinyEater, Projectile.damage / 2, Projectile.knockBack / 6, Main.myPlayer);
+                    if (p != Main.maxProjectiles)
+                        Main.projectile[p].DamageType = DamageClass.Ranged;
+                }
+            }
+
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.MutantBoss.MutantSansBeam
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Boss;
+﻿using FargowiltasSouls.Content.Buffs.Boss;
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Projectiles.Deathrays;
 using FargowiltasSouls.Core.Systems;
@@ -16,146 +10,150 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.MutantBoss
 {
-  public class MutantSansBeam : BaseDeathray
-  {
-    private const int descendTime = 50;
-
-    public virtual string Texture => "FargowiltasSouls/Content/Projectiles/Deathrays/GolemBeam";
-
-    public MutantSansBeam()
-      : base(420f)
+    public class MutantSansBeam : BaseDeathray
     {
-    }
+        public override string Texture => "FargowiltasSouls/Content/Projectiles/Deathrays/GolemBeam";
+        public MutantSansBeam() : base(420) { }
 
-    public virtual bool CanHitPlayer(Player target) => target.hurtCooldowns[1] == 0;
-
-    public virtual bool? CanDamage() => new bool?((double) this.Projectile.localAI[0] > 50.0);
-
-    public virtual void AI()
-    {
-      this.Projectile.alpha = 0;
-      Vector2? nullable = new Vector2?();
-      if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-      Projectile projectile = FargoSoulsUtil.ProjectileExists(FargoSoulsUtil.GetProjectileByIdentity(this.Projectile.owner, this.Projectile.ai[1]), new int[1]
-      {
-        ModContent.ProjectileType<MutantSansHead>()
-      });
-      if (projectile != null)
-      {
-        ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) projectile).Center, Vector2.op_Multiply(Vector2.op_Multiply(((Entity) this.Projectile).velocity, 16f), 3f));
-        if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-          ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-        if ((double) this.Projectile.localAI[0] == 0.0 && !Main.dedServ)
+        public override bool CanHitPlayer(Player target)
         {
-          SoundStyle soundStyle = new SoundStyle("FargowiltasSouls/Assets/Sounds/GolemBeam", (SoundType) 0);
-          SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
+            return target.hurtCooldowns[1] == 0;
         }
-        float num1 = 1.3f;
-        ++this.Projectile.localAI[0];
-        if ((double) this.Projectile.localAI[0] >= (double) this.maxTime)
-        {
-          this.Projectile.Kill();
-        }
-        else
-        {
-          this.Projectile.scale = num1;
-          float rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-          this.Projectile.rotation = rotation - 1.57079637f;
-          ((Entity) this.Projectile).velocity = Utils.ToRotationVector2(rotation);
-          float length = 3f;
-          int width = ((Entity) this.Projectile).width;
-          Vector2 center = ((Entity) this.Projectile).Center;
-          if (nullable.HasValue)
-          {
-            Vector2 vector2 = nullable.Value;
-          }
-          float[] numArray = new float[(int) length];
-          for (int index = 0; index < numArray.Length; ++index)
-            numArray[index] = 1800f;
-          float num2 = 0.0f;
-          for (int index = 0; index < numArray.Length; ++index)
-            num2 += numArray[index];
-          float num3 = num2 / length;
-          if ((double) this.Projectile.localAI[0] > 50.0)
-            return;
-          this.Projectile.localAI[1] = MathHelper.Lerp(0.0f, Math.Max(num3, 320f), this.Projectile.localAI[0] / 50f);
-          if (++this.Projectile.frameCounter <= 3)
-            return;
-          this.Projectile.frameCounter = 0;
-          if (++this.Projectile.frame < Main.projFrames[this.Projectile.type])
-            return;
-          this.Projectile.frame = 0;
-        }
-      }
-      else
-        this.Projectile.Kill();
-    }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (WorldSavingSystem.EternityMode)
-      {
-        target.FargoSouls().MaxLifeReduction += 100;
-        target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400, true, false);
-        target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180, true, false);
-      }
-      target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300, true, false);
-    }
+        public override bool? CanDamage() => Projectile.localAI[0] > descendTime;
 
-    private Rectangle Frame(Texture2D tex)
-    {
-      int num = tex.Height / Main.projFrames[this.Projectile.type];
-      return new Rectangle(0, num * this.Projectile.frame, tex.Width, num);
-    }
-
-    public override bool PreDraw(ref Color lightColor)
-    {
-      if (Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        return false;
-      SpriteEffects spriteEffects1 = (SpriteEffects) 0;
-      Texture2D texture2D1 = ModContent.Request<Texture2D>(base.Texture, (AssetRequestMode) 1).Value;
-      Texture2D texture2D2 = ModContent.Request<Texture2D>(base.Texture + "2", (AssetRequestMode) 1).Value;
-      Texture2D texture2D3 = ModContent.Request<Texture2D>(base.Texture + "3", (AssetRequestMode) 1).Value;
-      float num1 = this.Projectile.localAI[1];
-      Texture2D texture2D4 = texture2D1;
-      Vector2 vector2_1 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition);
-      Rectangle bounds1 = texture2D1.Bounds;
-      Vector2 vector2_2 = vector2_1;
-      Rectangle? nullable1 = new Rectangle?(bounds1);
-      Color color1 = lightColor;
-      double rotation1 = (double) this.Projectile.rotation;
-      Vector2 vector2_3 = Vector2.op_Division(Utils.Size(bounds1), 2f);
-      double scale1 = (double) this.Projectile.scale;
-      Main.EntitySpriteDraw(texture2D4, vector2_2, nullable1, color1, (float) rotation1, vector2_3, (float) scale1, (SpriteEffects) 0, 0.0f);
-      float num2 = num1 - (float) (texture2D1.Height / 2 + texture2D3.Height) * this.Projectile.scale;
-      Vector2 vector2_4 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Division(Vector2.op_Multiply(Vector2.op_Multiply(((Entity) this.Projectile).velocity, this.Projectile.scale), (float) texture2D1.Height), 2f));
-      if ((double) num2 > 0.0)
-      {
-        float num3 = 0.0f;
-        Rectangle bounds2 = texture2D2.Bounds;
-        while ((double) num3 < (double) num2)
+        public override void AI()
         {
-          Main.EntitySpriteDraw(texture2D2, Vector2.op_Subtraction(vector2_4, Main.screenPosition), new Rectangle?(bounds2), Lighting.GetColor((int) vector2_4.X / 16, (int) vector2_4.Y / 16), this.Projectile.rotation, Vector2.op_Division(Utils.Size(bounds2), 2f), this.Projectile.scale, spriteEffects1, 0.0f);
-          num3 += (float) bounds2.Height * this.Projectile.scale;
-          vector2_4 = Vector2.op_Addition(vector2_4, Vector2.op_Multiply(Vector2.op_Multiply(((Entity) this.Projectile).velocity, (float) bounds2.Height), this.Projectile.scale));
+            Projectile.alpha = 0;
+
+            Vector2? vector78 = null;
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+            Projectile head = FargoSoulsUtil.ProjectileExists(FargoSoulsUtil.GetProjectileByIdentity(Projectile.owner, Projectile.ai[1]), ModContent.ProjectileType<MutantSansHead>());
+            if (head != null)
+            {
+                Projectile.Center = head.Center + Projectile.velocity * 16 * 3;
+            }
+            else
+            {
+                Projectile.Kill();
+                return;
+            }
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+            if (Projectile.localAI[0] == 0f)
+            {
+                if (!Main.dedServ)
+                    SoundEngine.PlaySound(new SoundStyle("FargowiltasSouls/Assets/Sounds/VanillaEternity/Golem/GolemBeam"), Projectile.Center);
+            }
+            float num801 = 1.3f;
+            Projectile.localAI[0] += 1f;
+            if (Projectile.localAI[0] >= maxTime)
+            {
+                Projectile.Kill();
+                return;
+            }
+            Projectile.scale = num801;
+            float num804 = Projectile.velocity.ToRotation();
+            //num804 += Projectile.ai[0];
+            Projectile.rotation = num804 - 1.57079637f;
+            Projectile.velocity = num804.ToRotationVector2();
+            float num805 = 3f;
+            float num806 = Projectile.width;
+            Vector2 samplingPoint = Projectile.Center;
+            if (vector78.HasValue)
+            {
+                samplingPoint = vector78.Value;
+            }
+            float[] array3 = new float[(int)num805];
+            //Collision.LaserScan(samplingPoint, Projectile.velocity, num806 * Projectile.scale, 2400f, array3);
+            for (int i = 0; i < array3.Length; i++)
+                array3[i] = 1800f;
+            float num807 = 0f;
+            int num3;
+            for (int num808 = 0; num808 < array3.Length; num808 = num3 + 1)
+            {
+                num807 += array3[num808];
+                num3 = num808;
+            }
+            num807 /= num805;
+
+            if (Projectile.localAI[0] <= descendTime)
+            {
+                float targetLength = Math.Max(num807, 250 + 70);
+                Projectile.localAI[1] = MathHelper.Lerp(0, targetLength, Projectile.localAI[0] / descendTime);
+
+                if (++Projectile.frameCounter > 3)
+                {
+                    Projectile.frameCounter = 0;
+                    if (++Projectile.frame >= Main.projFrames[Projectile.type])
+                        Projectile.frame = 0;
+                }
+            }
         }
-      }
-      Texture2D texture2D5 = texture2D3;
-      Vector2 vector2_5 = Vector2.op_Subtraction(vector2_4, Main.screenPosition);
-      Rectangle bounds3 = texture2D3.Bounds;
-      Vector2 vector2_6 = vector2_5;
-      Rectangle? nullable2 = new Rectangle?(bounds3);
-      Color color2 = Lighting.GetColor((int) vector2_4.X / 16, (int) vector2_4.Y / 16);
-      double rotation2 = (double) this.Projectile.rotation;
-      Vector2 vector2_7 = Vector2.op_Division(Utils.Size(bounds3), 2f);
-      double scale2 = (double) this.Projectile.scale;
-      SpriteEffects spriteEffects2 = spriteEffects1;
-      Main.EntitySpriteDraw(texture2D5, vector2_6, nullable2, color2, (float) rotation2, vector2_7, (float) scale2, spriteEffects2, 0.0f);
-      return false;
+
+        const int descendTime = 50;
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.FargoSouls().MaxLifeReduction += 100;
+                target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400);
+                target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180);
+            }
+            target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300);
+        }
+
+        Rectangle Frame(Texture2D tex)
+        {
+            int frameHeight = tex.Height / Main.projFrames[Projectile.type];
+            return new Rectangle(0, frameHeight * Projectile.frame, tex.Width, frameHeight);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            if (Projectile.velocity == Vector2.Zero)
+            {
+                return false;
+            }
+
+            SpriteEffects spriteEffects = SpriteEffects.None;
+
+            Texture2D texture2D19 = ModContent.Request<Texture2D>(Texture, AssetRequestMode.ImmediateLoad).Value;
+            Texture2D texture2D20 = ModContent.Request<Texture2D>($"{Texture}2", AssetRequestMode.ImmediateLoad).Value;
+            Texture2D texture2D21 = ModContent.Request<Texture2D>($"{Texture}3", AssetRequestMode.ImmediateLoad).Value;
+
+            float rayLength = Projectile.localAI[1];
+            Texture2D arg_ABD8_1 = texture2D19;
+            Vector2 arg_ABD8_2 = Projectile.Center - Main.screenPosition;
+            Rectangle sourceRectangle2 = texture2D19.Bounds;
+            Main.EntitySpriteDraw(arg_ABD8_1, arg_ABD8_2, sourceRectangle2, lightColor, Projectile.rotation, sourceRectangle2.Size() / 2f, Projectile.scale, SpriteEffects.None, 0);
+            rayLength -= (texture2D19.Height / 2 + texture2D21.Height) * Projectile.scale;
+            Vector2 value20 = Projectile.Center;
+            value20 += Projectile.velocity * Projectile.scale * texture2D19.Height / 2f;
+            if (rayLength > 0f)
+            {
+                float num224 = 0f;
+                Rectangle rectangle7 = texture2D20.Bounds;
+                while (num224 < rayLength)
+                {
+                    Main.EntitySpriteDraw(texture2D20, value20 - Main.screenPosition, new Microsoft.Xna.Framework.Rectangle?(rectangle7), Lighting.GetColor((int)value20.X / 16, (int)value20.Y / 16), Projectile.rotation, rectangle7.Size() / 2, Projectile.scale, spriteEffects, 0);
+                    num224 += rectangle7.Height * Projectile.scale;
+                    value20 += Projectile.velocity * rectangle7.Height * Projectile.scale;
+                }
+            }
+            Texture2D arg_AE2D_1 = texture2D21;
+            Vector2 arg_AE2D_2 = value20 - Main.screenPosition;
+            sourceRectangle2 = texture2D21.Bounds;
+            Main.EntitySpriteDraw(arg_AE2D_1, arg_AE2D_2, sourceRectangle2, Lighting.GetColor((int)value20.X / 16, (int)value20.Y / 16), Projectile.rotation, sourceRectangle2.Size() / 2, Projectile.scale, spriteEffects, 0);
+            return false;
+        }
     }
-  }
 }

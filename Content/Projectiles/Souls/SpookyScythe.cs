@@ -1,80 +1,89 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Souls.SpookyScythe
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Souls
 {
-  public class SpookyScythe : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class SpookyScythe : ModProjectile
     {
-      ProjectileID.Sets.MinionShot[this.Projectile.type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Scythe");
+            ProjectileID.Sets.MinionShot[Projectile.type] = true;
+        }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 84;
-      ((Entity) this.Projectile).height = 84;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.penetrate = 3;
-      this.Projectile.timeLeft = 50;
-      this.Projectile.tileCollide = false;
-      this.Projectile.scale *= 0.5f;
-      this.Projectile.timeLeft = 300;
-      this.Projectile.usesIDStaticNPCImmunity = true;
-      this.Projectile.idStaticNPCHitCooldown = 10;
-      this.Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 84;
+            Projectile.height = 84;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.penetrate = 3;
+            Projectile.timeLeft = 50;
+            Projectile.tileCollide = false;
+            Projectile.scale *= .5f;
+            Projectile.timeLeft = 300;
 
-    public virtual void AI()
-    {
-      if (!this.Projectile.tileCollide && !Collision.SolidTiles(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height))
-        this.Projectile.tileCollide = true;
-      int index1 = Dust.NewDust(new Vector2(((Entity) this.Projectile).position.X, ((Entity) this.Projectile).position.Y + 2f), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height + 5, 55, ((Entity) this.Projectile).velocity.X * 0.2f, ((Entity) this.Projectile).velocity.Y * 0.2f, 100, new Color(), 1f);
-      Main.dust[index1].noGravity = true;
-      int index2 = Dust.NewDust(new Vector2(((Entity) this.Projectile).position.X, ((Entity) this.Projectile).position.Y + 2f), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height + 5, 55, ((Entity) this.Projectile).velocity.X * 0.2f, ((Entity) this.Projectile).velocity.Y * 0.2f, 100, new Color(), 1f);
-      Main.dust[index2].noGravity = true;
-      this.Projectile.rotation += 0.4f;
-    }
+            //this deals more dmg generally but e
+            /*Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = -1;*/
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Dig, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-      for (int index1 = 0; index1 < 5; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 55, 10f, 30f, 100, new Color(), 1f);
-        Main.dust[index2].noGravity = true;
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 1.5f);
-        Main.dust[index2].scale *= 0.9f;
-      }
-    }
+            Projectile.usesIDStaticNPCImmunity = true;
+            Projectile.idStaticNPCHitCooldown = 10;
+            Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override void AI()
+        {
+            if (!Projectile.tileCollide && !Collision.SolidTiles(Projectile.position, Projectile.width, Projectile.height))
+                Projectile.tileCollide = true;
+
+            //dust!
+            int dustId = Dust.NewDust(new Vector2(Projectile.position.X, Projectile.position.Y + 2f), Projectile.width, Projectile.height + 5, DustID.Pixie, Projectile.velocity.X * 0.2f,
+                Projectile.velocity.Y * 0.2f, 100, default, 1f);
+            Main.dust[dustId].noGravity = true;
+            int dustId3 = Dust.NewDust(new Vector2(Projectile.position.X, Projectile.position.Y + 2f), Projectile.width, Projectile.height + 5, DustID.Pixie, Projectile.velocity.X * 0.2f,
+                Projectile.velocity.Y * 0.2f, 100, default, 1f);
+            Main.dust[dustId3].noGravity = true;
+
+            Projectile.rotation += 0.4f;
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.Dig, Projectile.position);
+            for (int num489 = 0; num489 < 5; num489++)
+            {
+                int num490 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Pixie, 10f, 30f, 100);
+                Main.dust[num490].noGravity = true;
+                Main.dust[num490].velocity *= 1.5f;
+                Main.dust[num490].scale *= 0.9f;
+            }
+
+            /*for (int i = 0; i < 3; i++)
+            {
+                float x = -Projectile.velocity.X * Main.rand.Next(40, 70) * 0.01f + Main.rand.Next(-20, 21) * 0.4f;
+                float y = -Projectile.velocity.Y * Main.rand.Next(40, 70) * 0.01f + Main.rand.Next(-20, 21) * 0.4f;
+                int p = Projectile.NewProjectile(Projectile.position.X + x, Projectile.position.Y + y, x, y, 45, (int) (Projectile.damage * 0.5), 0f, Projectile.owner);
+
+                Main.projectile[p].FargoSouls().CanSplit = false;
+            } */
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

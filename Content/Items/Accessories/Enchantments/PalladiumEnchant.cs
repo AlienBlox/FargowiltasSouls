@@ -1,36 +1,89 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.PalladiumEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Items.Accessories.Forces;
+using FargowiltasSouls.Content.Projectiles.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
+using System;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class PalladiumEnchant : BaseEnchant
-  {
-    public override Color nameColor => new Color(245, 172, 40);
-
-    public override void SetDefaults()
+    public class PalladiumEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 5;
-      this.Item.value = 100000;
-    }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<PalladiumEffect>(this.Item);
-      player.AddEffect<PalladiumHealing>(this.Item);
-    }
+        public override Color nameColor => new(245, 172, 40);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddRecipeGroup("FargowiltasSouls:AnyPallaHead", 1).AddIngredient(1208, 1).AddIngredient(1209, 1).AddIngredient(5097, 1).AddIngredient(3006, 1).AddIngredient(1483, 1).AddTile(125).Register();
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Pink;
+            Item.value = 100000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<PalladiumEffect>(Item);
+            player.AddEffect<PalladiumHealing>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddRecipeGroup("FargowiltasSouls:AnyPallaHead")
+            .AddIngredient(ItemID.PalladiumBreastplate)
+            .AddIngredient(ItemID.PalladiumLeggings)
+            .AddIngredient(ItemID.BatBat)
+            .AddIngredient(ItemID.SoulDrain)
+            .AddIngredient(ItemID.UndergroundReward)
+
+            .AddTile(TileID.CrystalBall)
+            .Register();
+        }
     }
-  }
+    public class PalladiumHealing : AccessoryEffect
+    {
+        public override Header ToggleHeader => null;
+        public override void OnHitNPCEither(Player player, NPC target, NPC.HitInfo hitInfo, DamageClass damageClass, int baseDamage, Projectile projectile, Item item)
+        {
+            if (player.HasEffect<EarthForceEffect>())
+                return;
+
+            if (!player.onHitRegen)
+            {
+                player.AddBuff(BuffID.RapidHealing, Math.Min(LumUtils.SecondsToFrames(5), hitInfo.Damage / 3)); //heal time based on damage dealt, capped at 5sec
+            }
+        }
+    }
+    public class PalladiumEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<EarthHeader>();
+        public override int ToggleItemType => ModContent.ItemType<PalladiumEnchant>();
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            int increment = player.statLife - modPlayer.StatLifePrevious;
+            if (increment > 0)
+            {
+                modPlayer.PalladCounter += increment;
+                if (modPlayer.PalladCounter > 80)
+                {
+                    modPlayer.PalladCounter = 0;
+                    if (player.whoAmI == Main.myPlayer && player.statLife < player.statLifeMax2)
+                    {
+                        int damage = player.ForceEffect<PalladiumEffect>() ? 100 : 50;
+                        Projectile.NewProjectile(player.GetSource_Accessory(player.EffectItem<PalladiumEffect>()), player.Center, -Vector2.UnitY, ModContent.ProjectileType<PalladOrb>(),
+                            FargoSoulsUtil.HighestDamageTypeScaling(player, damage), 10f, player.whoAmI, -1);
+                    }
+                }
+            }
+
+            if (player.ForceEffect<PalladiumEffect>() || modPlayer.TerrariaSoul)
+                player.onHitRegen = true;
+        }
+    }
 }

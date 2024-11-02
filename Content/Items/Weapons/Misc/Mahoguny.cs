@@ -1,69 +1,65 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.Misc.Mahoguny
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Projectiles.JungleMimic;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.Misc
 {
-  public class Mahoguny : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class Mahoguny : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+            // DisplayName.SetDefault("Mahoguny");
+            /* Tooltip.SetDefault("Uses acorns as ammo\n" +
+            "Fires leaves and acorns"); */
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 59;
-      this.Item.DamageType = DamageClass.Ranged;
-      ((Entity) this.Item).width = 58;
-      ((Entity) this.Item).height = 26;
-      this.Item.useTime = 33;
-      this.Item.useAnimation = 33;
-      this.Item.useStyle = 5;
-      this.Item.noMelee = true;
-      this.Item.knockBack = 5f;
-      this.Item.value = Item.sellPrice(0, 8, 0, 0);
-      this.Item.rare = 4;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item61);
-      this.Item.autoReuse = true;
-      this.Item.shoot = ModContent.ProjectileType<AcornProjectile>();
-      this.Item.shootSpeed = 18f;
-      this.Item.useAmmo = 27;
-    }
+        public override void SetDefaults()
+        {
+            Item.damage = 59;
+            Item.DamageType = DamageClass.Ranged;
+            Item.width = 58;
+            Item.height = 26;
+            Item.useTime = 33;
+            Item.useAnimation = 33;
+            Item.useStyle = ItemUseStyleID.Shoot;
+            Item.noMelee = true;
+            Item.knockBack = 5f;
+            Item.value = Item.sellPrice(0, 8);
+            Item.rare = ItemRarityID.LightRed;
+            Item.UseSound = SoundID.Item61;
+            Item.autoReuse = true;
+            Item.shoot = ModContent.ProjectileType<AcornProjectile>();
+            Item.shootSpeed = 18f;
+            Item.useAmmo = ItemID.Acorn;
+        }
 
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      Vector2 vector2_1 = Vector2.op_Multiply(Vector2.Normalize(velocity), 46f);
-      if (Collision.CanHit(position, 0, 0, Vector2.op_Addition(position, vector2_1), 0, 0))
-        position = Vector2.op_Addition(position, vector2_1);
-      int num = 2 + Main.rand.Next(2);
-      for (int index = 0; index < num; ++index)
-      {
-        Vector2 vector2_2 = Utils.RotatedByRandom(velocity, (double) MathHelper.ToRadians(30f));
-        Projectile.NewProjectile((IEntitySource) source, position.X, position.Y, vector2_2.X, vector2_2.Y, ModContent.ProjectileType<MahogunyLeafProjectile>(), (int) ((double) damage * 0.6), knockback, ((Entity) player).whoAmI, 0.0f, 0.0f, 0.0f);
-      }
-      return true;
-    }
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            Vector2 muzzleOffset = Vector2.Normalize(velocity) * 46f;
+            if (Collision.CanHit(position, 0, 0, position + muzzleOffset, 0, 0))
+            {
+                position += muzzleOffset;
+            }
+            {
+                //Item.damage = 80;
+                int numberProjectiles = 2 + Main.rand.Next(2);
+                for (int i = 0; i < numberProjectiles; i++)
+                {
+                    Vector2 perturbedSpeed = velocity.RotatedByRandom(MathHelper.ToRadians(30));
+                    Projectile.NewProjectile(source, position.X, position.Y, perturbedSpeed.X, perturbedSpeed.Y, ModContent.ProjectileType<MahogunyLeafProjectile>(), (int)(damage * 0.6), knockback, player.whoAmI);
+                }
+            }
 
-    public virtual Vector2? HoldoutOffset() => new Vector2?(new Vector2(-3f, -3f));
-  }
+            return true;
+        }
+
+        public override Vector2? HoldoutOffset()
+        {
+            return new Vector2(-3, -3);
+        }
+    }
 }

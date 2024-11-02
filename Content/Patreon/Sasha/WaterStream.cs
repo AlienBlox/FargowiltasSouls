@@ -1,30 +1,31 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.Sasha.WaterStream
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.Sasha
 {
-  public class WaterStream : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class WaterStream : ModProjectile
     {
-      ProjectileID.Sets.MinionShot[this.Projectile.type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Water Stream");
+            ProjectileID.Sets.MinionShot[Projectile.type] = true;
+        }
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(22);
-      this.AIType = 22;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.penetrate = -1;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 60;
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.WaterStream);
+            AIType = ProjectileID.WaterStream;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.penetrate = -1;
+
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 60;
+        }
+
+        //public override void OnHitNPC(NPC target, int damage, float knockback, bool crit)
+        //{
+        //    target.immune[Projectile.owner] = 7;
+        //}
     }
-  }
 }

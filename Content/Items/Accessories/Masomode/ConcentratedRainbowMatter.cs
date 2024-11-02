@@ -1,42 +1,65 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.ConcentratedRainbowMatter
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using Fargowiltas;
+using FargowiltasSouls.Content.Buffs.Minions;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class ConcentratedRainbowMatter : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class ConcentratedRainbowMatter : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 5;
-      this.Item.value = Item.sellPrice(0, 4, 0, 0);
-    }
+        public override void SetStaticDefaults()
+        {
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.buffImmune[ModContent.BuffType<FlamesoftheUniverseBuff>()] = true;
-      player.FargoSouls().ConcentratedRainbowMatter = true;
-      player.AddEffect<RainbowSlimeMinion>(this.Item);
-      player.AddEffect<RainbowHealEffect>(this.Item);
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
+
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.Pink;
+            Item.value = Item.sellPrice(0, 4);
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.buffImmune[ModContent.BuffType<Buffs.Masomode.FlamesoftheUniverseBuff>()] = true;
+            player.FargoSouls().ConcentratedRainbowMatter = true;
+            player.AddEffect<RainbowSlimeMinion>(Item);
+            player.AddEffect<RainbowHealEffect>(Item);
+        }
+        public override void UpdateVanity(Player player)
+        {
+            player.AddEffect<RainbowHealEffect>(Item);
+            player.FargoSouls().ConcentratedRainbowMatter = true;
+        }
+        public override void UpdateInventory(Player player)
+        {
+            player.AddEffect<RainbowHealEffect>(Item);
+            player.FargoSouls().ConcentratedRainbowMatter = true;
+        }
     }
-  }
+    public class RainbowHealEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<BionomicHeader>();
+        public override int ToggleItemType => ModContent.ItemType<ConcentratedRainbowMatter>();
+        
+    }
+    public class RainbowSlimeMinion : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<BionomicHeader>();
+        public override int ToggleItemType => ModContent.ItemType<ConcentratedRainbowMatter>();
+        public override bool MinionEffect => true;
+        public override void PostUpdateEquips(Player player)
+        {
+            if (!player.HasBuff<SouloftheMasochistBuff>())
+                player.AddBuff(ModContent.BuffType<Buffs.Minions.RainbowSlimeBuff>(), 2);
+        }
+    }
 }

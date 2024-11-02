@@ -1,187 +1,208 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.MinosPrime
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿/*
 using FargowiltasSouls.Content.Items.Accessories.Expert;
 using FargowiltasSouls.Content.Items.Accessories.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class MinosPrime : ModProjectile
-  {
-    private Vector2 mousePos;
-    private int syncTimer;
-    private float Wobble;
-    public int ColorTimer;
 
-    public ref float Timer => ref this.Projectile.ai[0];
-
-    public virtual void SetStaticDefaults()
+    public class MinosPrime : ModProjectile
     {
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 9;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
+        public ref float Timer => ref Projectile.ai[0];
+
+        private Vector2 mousePos;
+        private int syncTimer;
+        private float Wobble;
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Lunar Cultist");
+            //Main.projFrames[Projectile.type] = 12;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 9;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+            //ProjectileID.Sets.MinionTargettingFeature[Projectile.type] = true;
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.netImportant = true;
+            Projectile.width = 84;
+            Projectile.height = 98;
+            Projectile.timeLeft *= 5;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.minion = true;
+            Projectile.DamageType = DamageClass.Generic;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+
+
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 10;
+        }
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(mousePos.X);
+            writer.Write(mousePos.Y);
+        }
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            Vector2 buffer;
+            buffer.X = reader.ReadSingle();
+            buffer.Y = reader.ReadSingle();
+            if (Projectile.owner != Main.myPlayer)
+            {
+                mousePos = buffer;
+            }
+        }
+        public override bool? CanHitNPC(NPC target) => false; //no contact damage
+        public override void AI()
+        {
+
+            Player player = Main.player[Projectile.owner];
+            if (player.active && !player.dead && player.HasEffect<PrimeSoulEffect>())
+                Projectile.timeLeft = 2;
+
+            SyncMouse(player);
+            Wobble = 20f * (float)Math.Sin(MathHelper.TwoPi * (Timer / 60f));
+            Movement(player);
+        }
+        public void SyncMouse(Player player)
+        {
+            if (player.whoAmI == Main.myPlayer)
+            {
+                mousePos = Main.MouseWorld;
+
+                if (++syncTimer > 20)
+                {
+                    syncTimer = 0;
+                    Projectile.netUpdate = true;
+                }
+            }
+        }
+        public void Movement(Player player)
+        {
+            int offset = Math.Sign(mousePos.X - player.Center.X);
+            Projectile.spriteDirection = Projectile.direction = -offset;
+            offset *= 225;
+            Vector2 idlePosition = mousePos + Vector2.UnitX * offset;
+            Vector2 toIdlePosition = idlePosition - Projectile.Center;
+            float distance = toIdlePosition.Length();
+            float speed = 38f;
+            float inertia = 15f;
+            toIdlePosition.Normalize();
+            toIdlePosition *= speed;
+            Projectile.velocity = (Projectile.velocity * (inertia - 1f) + toIdlePosition) / inertia;
+            if (distance == 0)
+                Projectile.velocity = Vector2.Zero;
+            if (distance < Projectile.velocity.Length())
+                Projectile.velocity = Vector2.Normalize(Projectile.velocity) * distance;
+            if (Projectile.velocity == Vector2.Zero && distance > 10)
+            {
+                Projectile.velocity.X = -0.15f;
+                Projectile.velocity.Y = -0.05f;
+            }
+        }
+
+        public override bool? CanCutTiles()
+        {
+            return false;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color = lightColor;
+            Player player = Main.player[Projectile.owner];
+            if (player.Alive())
+            {
+                Color? soulColor = GetColor(player);
+                if (soulColor.HasValue)
+                    color = soulColor.Value;
+            }
+
+
+            //Color color26 = lightColor;
+            //color26 = Projectile.GetAlpha(color26);
+
+            //Texture2D texture2D14 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/Minions/LunarCultistTrail", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 3)
+            {
+                Color color2 = color;
+                color2 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + Vector2.UnitY * Wobble + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color2, num165, origin2, Projectile.scale, Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + Vector2.UnitY * Wobble + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color, Projectile.rotation, origin2, Projectile.scale, Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally, 0);
+            return false;
+        }
+        public int ColorTimer = 0;
+        public Color? GetColor(Player player)
+        {
+            ColorTimer++;
+            List<Color> colors = [];
+
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (modPlayer.MeleeSoul)
+                colors.Add(BerserkerSoul.ItemColor);
+            if (modPlayer.RangedSoul)
+                colors.Add(SnipersSoul.ItemColor);
+            if (modPlayer.MagicSoul)
+                colors.Add(ArchWizardsSoul.ItemColor);
+            if (modPlayer.SummonSoul)
+                colors.Add(ConjuristsSoul.ItemColor);
+            if (modPlayer.WorldShaperSoul)
+                colors.Add(WorldShaperSoul.ItemColor);
+            if (modPlayer.MasochistSoul)
+                colors.Add(MasochistSoul.ItemColor);
+            if (modPlayer.SupersonicSoul)
+                colors.Add(SupersonicSoul.ItemColor);
+            if (modPlayer.ColossusSoul)
+                colors.Add(ColossusSoul.ItemColor);
+            if (modPlayer.FlightMasterySoul)
+                colors.Add(FlightMasterySoul.ItemColor);
+            if (modPlayer.FishSoul2)
+                colors.Add(TrawlerSoul.ItemColor);
+
+            int colorAmt = colors.Count;
+            if (colorAmt == 0)
+                return null;
+
+            const float ColorTime = 300f;
+
+            if (ColorTimer >= ColorTime * colorAmt)
+                ColorTimer = 1;
+
+            float lerp = (ColorTimer % ColorTime) / ColorTime; // Current lerp progress between colors
+
+            int i = (int)Math.Floor(ColorTimer / ColorTime); // Current soul color being lerped from
+            if (colorAmt <= 1)
+                return colors[i];
+            int j = i + 1; // Current soul color being lerped to
+            if (j >= colorAmt)
+                j = 0;
+
+            Color color = Color.Lerp(colors[i], colors[j], lerp);
+
+            return color;
+        }
     }
-
-    public virtual void SetDefaults()
-    {
-      this.Projectile.netImportant = true;
-      ((Entity) this.Projectile).width = 84;
-      ((Entity) this.Projectile).height = 98;
-      this.Projectile.timeLeft *= 5;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.minion = true;
-      this.Projectile.DamageType = DamageClass.Generic;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 10;
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.mousePos.X);
-      writer.Write(this.mousePos.Y);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      Vector2 vector2;
-      vector2.X = reader.ReadSingle();
-      vector2.Y = reader.ReadSingle();
-      if (this.Projectile.owner == Main.myPlayer)
-        return;
-      this.mousePos = vector2;
-    }
-
-    public virtual bool? CanHitNPC(NPC target) => new bool?(false);
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      if (((Entity) player).active && !player.dead && player.HasEffect<PrimeSoulEffect>())
-        this.Projectile.timeLeft = 2;
-      this.SyncMouse(player);
-      this.Wobble = 20f * (float) Math.Sin(6.2831854820251465 * ((double) this.Timer / 60.0));
-      this.Movement(player);
-    }
-
-    public void SyncMouse(Player player)
-    {
-      if (((Entity) player).whoAmI != Main.myPlayer)
-        return;
-      this.mousePos = Main.MouseWorld;
-      if (++this.syncTimer <= 20)
-        return;
-      this.syncTimer = 0;
-      this.Projectile.netUpdate = true;
-    }
-
-    public void Movement(Player player)
-    {
-      int num1 = Math.Sign(this.mousePos.X - ((Entity) player).Center.X);
-      this.Projectile.spriteDirection = ((Entity) this.Projectile).direction = -num1;
-      Vector2 vector2_1 = Vector2.op_Subtraction(Vector2.op_Addition(this.mousePos, Vector2.op_Multiply(Vector2.UnitX, (float) (num1 * 225))), ((Entity) this.Projectile).Center);
-      float num2 = ((Vector2) ref vector2_1).Length();
-      float num3 = 38f;
-      float num4 = 15f;
-      ((Vector2) ref vector2_1).Normalize();
-      Vector2 vector2_2 = Vector2.op_Multiply(vector2_1, num3);
-      ((Entity) this.Projectile).velocity = Vector2.op_Division(Vector2.op_Addition(Vector2.op_Multiply(((Entity) this.Projectile).velocity, num4 - 1f), vector2_2), num4);
-      if ((double) num2 == 0.0)
-        ((Entity) this.Projectile).velocity = Vector2.Zero;
-      if ((double) num2 < (double) ((Vector2) ref ((Entity) this.Projectile).velocity).Length())
-        ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Vector2.Normalize(((Entity) this.Projectile).velocity), num2);
-      if (!Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero) || (double) num2 <= 10.0)
-        return;
-      ((Entity) this.Projectile).velocity.X = -0.15f;
-      ((Entity) this.Projectile).velocity.Y = -0.05f;
-    }
-
-    public virtual bool? CanCutTiles() => new bool?(false);
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color color1 = lightColor;
-      Player player = Main.player[this.Projectile.owner];
-      if (player.Alive())
-      {
-        Color? color2 = this.GetColor(player);
-        if (color2.HasValue)
-          color1 = color2.Value;
-      }
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index += 3)
-      {
-        Color color3 = Color.op_Multiply(color1, (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), Vector2.op_Multiply(Vector2.UnitY, this.Wobble)), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color3, num3, vector2, this.Projectile.scale, this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), Vector2.op_Multiply(Vector2.UnitY, this.Wobble)), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color1, this.Projectile.rotation, vector2, this.Projectile.scale, this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1, 0.0f);
-      return false;
-    }
-
-    public Color? GetColor(Player player)
-    {
-      ++this.ColorTimer;
-      List<Color> colorList = new List<Color>();
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (fargoSoulsPlayer.MeleeSoul)
-        colorList.Add(BerserkerSoul.ItemColor);
-      if (fargoSoulsPlayer.RangedSoul)
-        colorList.Add(SnipersSoul.ItemColor);
-      if (fargoSoulsPlayer.MagicSoul)
-        colorList.Add(ArchWizardsSoul.ItemColor);
-      if (fargoSoulsPlayer.SummonSoul)
-        colorList.Add(ConjuristsSoul.ItemColor);
-      if (fargoSoulsPlayer.WorldShaperSoul)
-        colorList.Add(WorldShaperSoul.ItemColor);
-      if (fargoSoulsPlayer.MasochistSoul)
-        colorList.Add(MasochistSoul.ItemColor);
-      if (fargoSoulsPlayer.SupersonicSoul)
-        colorList.Add(SupersonicSoul.ItemColor);
-      if (fargoSoulsPlayer.ColossusSoul)
-        colorList.Add(ColossusSoul.ItemColor);
-      if (fargoSoulsPlayer.FlightMasterySoul)
-        colorList.Add(FlightMasterySoul.ItemColor);
-      if (fargoSoulsPlayer.FishSoul2)
-        colorList.Add(TrawlerSoul.ItemColor);
-      int count = colorList.Count;
-      if (count == 0)
-        return new Color?();
-      if ((double) this.ColorTimer >= 300.0 * (double) count)
-        this.ColorTimer = 1;
-      float num = (float) ((double) this.ColorTimer % 300.0 / 300.0);
-      int index1 = (int) Math.Floor((double) this.ColorTimer / 300.0);
-      if (count <= 1)
-        return new Color?(colorList[index1]);
-      int index2 = index1 + 1;
-      if (index2 >= count)
-        index2 = 0;
-      return new Color?(Color.Lerp(colorList[index1], colorList[index2], num));
-    }
-  }
 }
+*/

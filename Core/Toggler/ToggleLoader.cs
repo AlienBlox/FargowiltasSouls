@@ -1,51 +1,92 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Core.Toggler.ToggleLoader
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.AccessoryEffectSystem;
+﻿using FargowiltasSouls.Core.AccessoryEffectSystem;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-#nullable disable
 namespace FargowiltasSouls.Core.Toggler
 {
-  public static class ToggleLoader
-  {
-    public static Dictionary<AccessoryEffect, Toggle> LoadedToggles { get; set; }
-
-    public static HashSet<Header> LoadedHeaders { get; set; }
-
-    public static void Load()
+    public static class ToggleLoader
     {
-    }
+        public static Dictionary<AccessoryEffect, Toggle> LoadedToggles
+        {
+            get;
+            set;
+        }
+        public static HashSet<Header> LoadedHeaders
+        {
+            get;
+            set;
+        }
 
-    public static void Unload()
-    {
-      ToggleLoader.LoadedToggles?.Clear();
-      ToggleLoader.LoadedHeaders?.Clear();
-    }
 
-    public static void LoadTogglesFromAssembly(Assembly assembly)
-    {
-    }
+        public static void Load()
+        {
+            //LoadTogglesFromAssembly(FargowiltasSouls.Instance.Code);
+        }
 
-    public static void RegisterToggle(Toggle toggle)
-    {
-      if (ToggleLoader.LoadedToggles == null)
-        ToggleLoader.LoadedToggles = new Dictionary<AccessoryEffect, Toggle>();
-      if (ToggleLoader.LoadedToggles.ContainsKey(toggle.Effect))
-        throw new Exception("Toggle of effect " + toggle.Effect.Name + " is already registered");
-      ToggleLoader.LoadedToggles.Add(toggle.Effect, toggle);
-    }
+        public static void Unload()
+        {
+            LoadedToggles?.Clear();
+            LoadedHeaders?.Clear();
+        }
 
-    public static void RegisterHeader(Header header)
-    {
-      if (ToggleLoader.LoadedHeaders == null)
-        ToggleLoader.LoadedHeaders = new HashSet<Header>();
-      ToggleLoader.LoadedHeaders.Add(header);
+
+        public static void LoadTogglesFromAssembly(Assembly assembly)
+        {
+            // Toggles are now registered from the AccessoryEffect system. Headers are now registered from each derived class of the Header baseclass.
+
+            #region Collection Loading (outdated)
+            /*
+            Type[] types = assembly.GetTypes();
+            List<ToggleCollection> collections = new();
+
+            for (int i = 0; i < types.Length; i++)
+            {
+                Type type = types[i];
+                if (typeof(ToggleCollection).IsAssignableFrom(type) && !type.IsAbstract)
+                {
+                    ToggleCollection toggles = (ToggleCollection)Activator.CreateInstance(type);
+
+                    if (toggles.Active)
+                    {
+                        collections.Add(toggles);
+                    }
+
+                }
+            }
+
+            var orderedCollections = collections.OrderBy((collection) => collection.Priority);
+            FargowiltasSouls.Instance.Logger.Info($"ToggleCollections found: {orderedCollections.Count()}");
+
+            foreach (ToggleCollection collection in orderedCollections)
+            {
+                List<Toggle> toggleCollectionChildren = collection.Load();
+
+                foreach (Toggle toggle in toggleCollectionChildren)
+                {
+                    RegisterToggle(toggle);
+                }
+            }
+            */
+            #endregion
+        }
+
+        public static void RegisterToggle(Toggle toggle)
+        {
+
+            LoadedToggles ??= [];
+            if (LoadedToggles.ContainsKey(toggle.Effect)) throw new Exception("Toggle of effect " + toggle.Effect.Name + " is already registered");
+
+            LoadedToggles.Add(toggle.Effect, toggle);
+
+        }
+        public static void RegisterHeader(Header header)
+        {
+
+            LoadedHeaders ??= [];
+            //if (LoadedHeaders.Contains(header)) throw new Exception("Header with internal name " + header.Name + " is already registered");
+
+            LoadedHeaders.Add(header);
+        }
     }
-  }
 }

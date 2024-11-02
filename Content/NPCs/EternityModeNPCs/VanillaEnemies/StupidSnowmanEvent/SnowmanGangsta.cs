@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.StupidSnowmanEvent.SnowmanGangsta
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
@@ -13,41 +7,43 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.StupidSnowmanEvent
 {
-  public class SnowmanGangsta : EModeNPCBehaviour
-  {
-    public int Counter;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(143);
-
-    public virtual void AI(NPC npc)
+    public class SnowmanGangsta : EModeNPCBehaviour
     {
-      base.AI(npc);
-      if (++this.Counter <= 300)
-        return;
-      this.Counter = 0;
-      if (FargoSoulsUtil.HostCheck && npc.HasPlayerTarget)
-      {
-        for (int index = 0; index < 6; ++index)
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.SnowmanGangsta);
+
+        public int Counter;
+
+        public override void AI(NPC npc)
         {
-          Vector2 vector2 = Vector2.op_Multiply(Vector2.UnitX, ((Entity) Main.player[npc.target]).Center.X - ((Entity) npc).Center.X);
-          vector2.X += (float) Main.rand.Next(-40, 41);
-          vector2.Y += (float) Main.rand.Next(-40, 41);
-          ((Vector2) ref vector2).Normalize();
-          vector2 = Vector2.op_Multiply(vector2, 11f);
-          Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center.X, ((Entity) npc).Center.Y, vector2.X, vector2.Y, 110, 20, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-        }
-      }
-      SoundEngine.PlaySound(ref SoundID.Item38, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-    }
+            base.AI(npc);
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 300, true, false);
-      target.AddBuff(44, 300, true, false);
+            if (++Counter > 300)
+            {
+                Counter = 0;
+                if (FargoSoulsUtil.HostCheck && npc.HasPlayerTarget)
+                {
+                    for (int index = 0; index < 6; ++index)
+                    {
+                        Vector2 Speed = Vector2.UnitX * (Main.player[npc.target].Center.X - npc.Center.X);
+                        Speed.X += Main.rand.Next(-40, 41);
+                        Speed.Y += Main.rand.Next(-40, 41);
+                        Speed.Normalize();
+                        Speed *= 11f;
+                        Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center.X, npc.Center.Y, Speed.X, Speed.Y, ProjectileID.BulletSnowman, 20, 0f, Main.myPlayer);
+                    }
+                }
+                SoundEngine.PlaySound(SoundID.Item38, npc.Center);
+            }
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 300);
+            target.AddBuff(BuffID.Frostburn, 300);
+        }
     }
-  }
 }

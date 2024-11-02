@@ -1,62 +1,73 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.GolemGeyser
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class GolemGeyser : ModProjectile
-  {
-    public virtual string Texture => FargoSoulsUtil.EmptyTexture;
-
-    public virtual void SetStaticDefaults()
+    public class GolemGeyser : ModProjectile
     {
-    }
+        public override string Texture => FargoSoulsUtil.EmptyTexture;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 2;
-      ((Entity) this.Projectile).height = 2;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.timeLeft = 600;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.hide = true;
-      this.Projectile.extraUpdates = 14;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Geyser");
+        }
 
-    public virtual bool? CanDamage() => new bool?(false);
+        public override void SetDefaults()
+        {
+            Projectile.width = 2;
+            Projectile.height = 2;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.penetrate = -1;
+            Projectile.timeLeft = 600;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.hide = true;
+            Projectile.extraUpdates = 14;
+        }
 
-    public virtual void AI()
-    {
-      Tile tileSafely = Framing.GetTileSafely(((Entity) this.Projectile).Center);
-      if ((double) this.Projectile.ai[1] == 0.0)
-      {
-        ((Entity) this.Projectile).position.Y += 16f;
-        if (((Tile) ref tileSafely).HasUnactuatedTile && Main.tileSolid[(int) ((Tile) ref tileSafely).TileType] && ((Tile) ref tileSafely).TileType != (ushort) 19 && ((Tile) ref tileSafely).TileType != (ushort) 380)
-          return;
-        this.Projectile.ai[1] = 1f;
-        this.Projectile.netUpdate = true;
-      }
-      else if (((Tile) ref tileSafely).HasUnactuatedTile && Main.tileSolid[(int) ((Tile) ref tileSafely).TileType] && ((Tile) ref tileSafely).TileType != (ushort) 19 && ((Tile) ref tileSafely).TileType != (ushort) 380)
-        this.Projectile.Kill();
-      else
-        ((Entity) this.Projectile).position.Y -= 16f;
-    }
+        public override bool? CanDamage()
+        {
+            return false;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, Vector2.UnitY, ModContent.ProjectileType<GolemDeathraySmall>(), this.Projectile.damage, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
+        public override void AI()
+        {
+            Tile tile = Framing.GetTileSafely(Projectile.Center);
+
+            if (Projectile.ai[1] == 0) //spawned, while in ground tile
+            {
+                Projectile.position.Y += 16; //go down
+
+                if (!(tile.HasUnactuatedTile && Main.tileSolid[tile.TileType] && tile.TileType != TileID.Platforms && tile.TileType != TileID.PlanterBox)) //if reached air tile
+                {
+                    Projectile.ai[1] = 1;
+                    Projectile.netUpdate = true;
+                }
+            }
+            else //has exited ground tiles and reached air tiles, now stop the next time you reach a ground tile
+            {
+                if (tile.HasUnactuatedTile && Main.tileSolid[tile.TileType] && tile.TileType != TileID.Platforms && tile.TileType != TileID.PlanterBox) //if inside solid tile, go back down
+                {
+                    Projectile.Kill();
+                    return;
+                }
+                else //if in air, go up
+                {
+                    Projectile.position.Y -= 16;
+                }
+            }
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            if (FargoSoulsUtil.HostCheck)
+            {
+                Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center, Vector2.UnitY, ModContent.ProjectileType<GolemDeathraySmall>(), Projectile.damage, 0f, Main.myPlayer);
+                //Projectile.NewProjectile(Projectile.InheritSource(Projectile), Projectile.Center, Vector2.UnitY * 8, ProjectileID.GeyserTrap, Projectile.damage, 0f, Main.myPlayer);
+            }
+        }
     }
-  }
 }

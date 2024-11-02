@@ -1,1684 +1,1940 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.EModeGlobalProjectile
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Bosses.Champions.Earth;
-using FargowiltasSouls.Content.Bosses.Champions.Spirit;
-using FargowiltasSouls.Content.Bosses.Champions.Terra;
-using FargowiltasSouls.Content.Bosses.Champions.Timber;
-using FargowiltasSouls.Content.Bosses.Champions.Will;
-using FargowiltasSouls.Content.Bosses.VanillaEternity;
-using FargowiltasSouls.Content.Buffs.Boss;
-using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Projectiles.Masomode;
-using FargowiltasSouls.Content.Projectiles.Souls;
-using FargowiltasSouls.Core.Globals;
-using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
+using FargowiltasSouls.Content.Buffs.Masomode;
+using FargowiltasSouls.Content.Buffs.Boss;
+using FargowiltasSouls.Content.Projectiles.Souls;
+using FargowiltasSouls.Core.Systems;
+using FargowiltasSouls.Content.Bosses.VanillaEternity;
+using FargowiltasSouls.Core.Globals;
+using FargowiltasSouls.Content.Bosses.DeviBoss;
+using FargowiltasSouls.Content.Bosses.MutantBoss;
+using FargowiltasSouls.Content.Bosses.Champions.Earth;
+using FargowiltasSouls.Content.Bosses.Champions.Terra;
+using FargowiltasSouls.Content.Bosses.Champions.Timber;
+using FargowiltasSouls.Content.Bosses.Champions.Will;
+using FargowiltasSouls.Content.Bosses.Champions.Spirit;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles
 {
-  public class EModeGlobalProjectile : GlobalProjectile
-  {
-    public bool HasKillCooldown;
-    public bool EModeCanHurt = true;
-    public int NerfDamageBasedOnProjTypeCount;
-    public bool altBehaviour;
-    private int counter;
-    private bool preAICheckDone;
-    private bool firstTickAICheckDone;
-    public static Dictionary<int, bool> IgnoreMinionNerf = new Dictionary<int, bool>();
-    private int FadeTimer;
-
-    public virtual bool InstancePerEntity => true;
-
-    public virtual void Unload()
+    public class EModeGlobalProjectile : GlobalProjectile
     {
-      ((ModType) this).Unload();
-      EModeGlobalProjectile.IgnoreMinionNerf.Clear();
-    }
+        public override bool InstancePerEntity => true;
 
-    public virtual void SetStaticDefaults()
-    {
-      EModeGlobalProjectile.IgnoreMinionNerf[625] = true;
-      EModeGlobalProjectile.IgnoreMinionNerf[626] = true;
-      EModeGlobalProjectile.IgnoreMinionNerf[627] = true;
-      EModeGlobalProjectile.IgnoreMinionNerf[628] = true;
-      EModeGlobalProjectile.IgnoreMinionNerf[831] = true;
-      EModeGlobalProjectile.IgnoreMinionNerf[833] = true;
-      EModeGlobalProjectile.IgnoreMinionNerf[834] = true;
-      EModeGlobalProjectile.IgnoreMinionNerf[835] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[756] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[5] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[36] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[496] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[638] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[27] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[22] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[274] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[263] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[116] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[467] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[468] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[385] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[811] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[873] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[872] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[919] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[180] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[5] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[36] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[638] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[188] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[187] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[654] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[258] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[259] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[462] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[452] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[454] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[290] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[292] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[291] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[129] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[83] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[288] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[96] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[270] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[696] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[926] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[102] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[657] = true;
-      A_SourceNPCGlobalProjectile.SourceNPCSync[575] = true;
-    }
+        public bool HasKillCooldown;
+        public bool EModeCanHurt = true;
+        public int NerfDamageBasedOnProjTypeCount;
+        public bool altBehaviour;
 
-    public virtual void SetDefaults(Projectile projectile)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      int type = projectile.type;
-      if (type <= 449)
-      {
-        if (type <= 110)
+        private int counter;
+        private bool preAICheckDone;
+        private bool firstTickAICheckDone;
+
+        public static Dictionary<int, bool> IgnoreMinionNerf = [];
+
+        public int SourceItemType = 0;
+
+        public override void Unload()
         {
-          if (type <= 89)
-          {
-            if (type != 83)
-              return;
-          }
-          else
-          {
-            if ((uint) (type - 91) <= 1U)
-              return;
-            if (type != 101)
-            {
-              if (type != 110)
+            base.Unload();
+
+            IgnoreMinionNerf.Clear();
+        }
+
+        public override void SetStaticDefaults()
+        {
+            IgnoreMinionNerf[ProjectileID.StardustDragon1] = true;
+            IgnoreMinionNerf[ProjectileID.StardustDragon2] = true;
+            IgnoreMinionNerf[ProjectileID.StardustDragon3] = true;
+            IgnoreMinionNerf[ProjectileID.StardustDragon4] = true;
+            IgnoreMinionNerf[ProjectileID.StormTigerGem] = true;
+            IgnoreMinionNerf[ProjectileID.StormTigerTier1] = true;
+            IgnoreMinionNerf[ProjectileID.StormTigerTier2] = true;
+            IgnoreMinionNerf[ProjectileID.StormTigerTier3] = true;
+
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.SharpTears] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.JestersArrow] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.MeteorShot] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.ShadowFlame] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.MoonlordBullet] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.WaterBolt] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.WaterStream] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.DeathSickle] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.IceSickle] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.SwordBeam] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.CultistBossFireBall] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.CultistBossFireBallClone] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.SharknadoBolt] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.BloodShot] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.HallowBossRainbowStreak] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.HallowBossLastingRainbow] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.FairyQueenLance] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.BulletDeadeye] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.JestersArrow] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.MeteorShot] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.MoonlordBullet] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.FlamesTrap] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.FlamethrowerTrap] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.GeyserTrap] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.Fireball] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.EyeBeam] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.PhantasmalBolt] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.PhantasmalEye] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.PhantasmalSphere] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.ShadowBeamHostile] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.InfernoHostileBlast] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.InfernoHostileBolt] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.RuneBlast] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.EyeLaser] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.GoldenShowerHostile] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.CursedFlameHostile] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.Skull] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.DD2ExplosiveTrapT3Explosion] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.QueenSlimeGelAttack] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.BombSkeletronPrime] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.SandnadoHostile] = true;
+            A_SourceNPCGlobalProjectile.SourceNPCSync[ProjectileID.NebulaSphere] = true;
+
+        }
+
+        public override void SetDefaults(Projectile projectile)
+        {
+            if (!WorldSavingSystem.EternityMode)
                 return;
-              projectile.tileCollide = false;
-              projectile.timeLeft = 600;
-              return;
-            }
-          }
-          projectile.tileCollide = false;
-        }
-        else if (type <= 240)
-        {
-          if (type != 115)
-          {
-            if (type != 207)
-            {
-              if (type != 240)
-                return;
-              projectile.scale = 2f;
-            }
-            else
-            {
-              projectile.extraUpdates = 1;
-              projectile.timeLeft = 150;
-            }
-          }
-          else
-            ++projectile.extraUpdates;
-        }
-        else if (type != 384 && type != 386)
-        {
-          if (type != 449)
-            return;
-          projectile.tileCollide = false;
-        }
-        else
-        {
-          if (WorldSavingSystem.MasochistModeReal)
-            return;
-          this.EModeCanHurt = false;
-          projectile.hide = true;
-        }
-      }
-      else
-      {
-        if (type <= 873)
-        {
-          if (type <= 687)
-          {
-            if (type != 454)
-            {
-              if (type != 593)
-              {
-                if (type != 687)
-                  return;
-                projectile.tileCollide = false;
-                projectile.penetrate = -1;
-                return;
-              }
-              projectile.scale *= 1.5f;
-              return;
-            }
-          }
-          else if (type != 728)
-          {
-            if (type != 811)
-            {
-              if ((uint) (type - 872) > 1U)
-                return;
-            }
-            else
-            {
-              projectile.tileCollide = false;
-              return;
-            }
-          }
-          else
-          {
-            projectile.penetrate = 7;
-            return;
-          }
-        }
-        else if (type <= 933)
-        {
-          if (type != 919)
-          {
-            if (type != 920)
-            {
-              if (type != 933 || WorldSavingSystem.DownedMutant)
-                return;
-              projectile.usesLocalNPCImmunity = false;
-              projectile.localNPCHitCooldown = 0;
-              projectile.usesIDStaticNPCImmunity = true;
-              projectile.idStaticNPCHitCooldown = !WorldSavingSystem.DownedAbom ? 5 : 3;
-              projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
-              return;
-            }
-            projectile.scale *= 1.5f;
-            projectile.timeLeft = 180;
-            projectile.tileCollide = false;
-            return;
-          }
-        }
-        else
-        {
-          if (type != 962)
-          {
-            if (type != 967)
-            {
-              if (type != 969)
-                return;
-              projectile.idStaticNPCHitCooldown = 10;
-              projectile.penetrate = 45;
-              return;
-            }
-            ++projectile.extraUpdates;
-            return;
-          }
-          projectile.extraUpdates = 1;
-          return;
-        }
-        this.EModeCanHurt = false;
-      }
-    }
 
-    private static bool NonSwarmFight(Projectile projectile, params int[] types)
-    {
-      if (WorldSavingSystem.SwarmActive)
-        return false;
-      NPC sourceNpc = projectile.GetSourceNPC();
-      return projectile.GetSourceNPC() != null && ((IEnumerable<int>) types).Contains<int>(sourceNpc.type);
-    }
-
-    public virtual void OnSpawn(Projectile projectile, IEntitySource source)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      Projectile projectile1 = (Projectile) null;
-      if (source is EntitySource_Parent entitySourceParent && entitySourceParent.Entity is Projectile)
-        projectile1 = entitySourceParent.Entity as Projectile;
-      if (FargoSoulsUtil.IsSummonDamage(projectile, includeWhips: false))
-      {
-        bool flag1;
-        if (projectile.minion && !(EModeGlobalProjectile.IgnoreMinionNerf.TryGetValue(projectile.type, out flag1) & flag1))
-        {
-          this.NerfDamageBasedOnProjTypeCount = projectile.type;
-        }
-        else
-        {
-          bool flag2;
-          if (projectile1 != null && !(EModeGlobalProjectile.IgnoreMinionNerf.TryGetValue(projectile1.type, out flag2) & flag2))
-            this.NerfDamageBasedOnProjTypeCount = projectile1.Eternity().NerfDamageBasedOnProjTypeCount;
-        }
-      }
-      switch (projectile.type)
-      {
-        case 12:
-          if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.mutantBoss, ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>()))
-            break;
-          ((Entity) projectile).active = false;
-          break;
-        case 305:
-          if (Main.player[projectile.owner].statLife > Main.player[projectile.owner].statLifeMax2 / 3)
-            Main.player[projectile.owner].lifeSteal -= projectile.ai[1];
-          if (Main.player[projectile.owner].statLife <= Main.player[projectile.owner].statLifeMax2 * 2 / 3)
-            break;
-          Main.player[projectile.owner].lifeSteal -= projectile.ai[1];
-          break;
-        case 386:
-          if (!EModeGlobalProjectile.NonSwarmFight(projectile, 370) || !WorldSavingSystem.MasochistModeReal || (double) projectile.ai[1] != 25.0 && (projectile1 == null || !projectile1.Eternity().altBehaviour))
-            break;
-          this.altBehaviour = true;
-          break;
-        case 876:
-          projectile.originalDamage = projectile.damage;
-          break;
-        case 961:
-          if (WorldSavingSystem.SwarmActive)
-            break;
-          if (WorldSavingSystem.MasochistModeReal)
-            projectile.ai[0] -= 20f;
-          if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.deerBoss, 668) && (double) Main.npc[EModeGlobalNPC.deerBoss].ai[0] == 4.0)
-          {
-            projectile.ai[0] -= 30f;
-            if (Main.npc[EModeGlobalNPC.deerBoss].GetGlobalNPC<Deerclops>().EnteredPhase2)
-              projectile.ai[0] -= 30f;
-            if (Main.npc[EModeGlobalNPC.deerBoss].GetGlobalNPC<Deerclops>().EnteredPhase3)
-              projectile.ai[0] -= 120f;
-          }
-          if (projectile.GetSourceNPC() == null || projectile.GetSourceNPC().type != 668 || projectile1 != null || ((double) projectile.GetSourceNPC().ai[0] != 1.0 || (double) projectile.GetSourceNPC().ai[1] != 52.0) && ((double) projectile.GetSourceNPC().ai[0] != 4.0 || (double) projectile.GetSourceNPC().ai[1] != 70.0 || projectile.GetSourceNPC().GetGlobalNPC<Deerclops>().DoLaserAttack))
-            break;
-          bool flag3 = (double) projectile.GetSourceNPC().ai[0] == 1.0;
-          bool flag4 = true;
-          if (flag3)
-          {
-            for (int index = 0; index < Main.maxProjectiles; ++index)
+            switch (projectile.type)
             {
-              if (((Entity) Main.projectile[index]).active && Main.projectile[index].type == projectile.type && (double) Main.projectile[index].scale == (double) projectile.scale && Math.Sign(((Entity) Main.projectile[index]).velocity.X) == Math.Sign(((Entity) projectile).velocity.X))
-              {
-                if (index != ((Entity) projectile).whoAmI)
-                {
-                  flag4 = false;
-                  break;
-                }
-                break;
-              }
-            }
-          }
-          if (!flag4)
-            break;
-          float num = 1.3f;
-          if (projectile.GetSourceNPC().GetGlobalNPC<Deerclops>().EnteredPhase2)
-            num = 1.35f;
-          Vector2 vector2 = Vector2.op_Addition(((Entity) projectile).Center, Vector2.op_Multiply(200f, Vector2.Normalize(((Entity) projectile).velocity)));
-          if (!FargoSoulsUtil.HostCheck)
-            break;
-          Projectile.NewProjectile(((Entity) projectile).GetSource_FromThis((string) null), vector2, ((Entity) projectile).velocity, projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0.0f, num, 0.0f);
-          if (flag3)
-          {
-            Projectile.NewProjectile(((Entity) projectile).GetSource_FromThis((string) null), vector2, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, (float) Math.Sign(((Entity) projectile).velocity.X)), ((Vector2) ref ((Entity) projectile).velocity).Length()), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0.0f, num, 0.0f);
-            Projectile.NewProjectile(((Entity) projectile).GetSource_FromThis((string) null), vector2, new Vector2(((Entity) projectile).velocity.X, -((Entity) projectile).velocity.Y), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0.0f, num, 0.0f);
-            break;
-          }
-          Projectile.NewProjectile(((Entity) projectile).GetSource_FromThis((string) null), ((Entity) projectile).Center, new Vector2(-((Entity) projectile).velocity.X, ((Entity) projectile).velocity.Y), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0.0f, num, 0.0f);
-          if ((double) ((Entity) projectile).Center.Y < (double) ((Entity) projectile.GetSourceNPC()).Center.Y)
-          {
-            Projectile.NewProjectile(((Entity) projectile).GetSource_FromThis((string) null), ((Entity) projectile).Center, Vector2.op_UnaryNegation(((Entity) projectile).velocity), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0.0f, num, 0.0f);
-            Projectile.NewProjectile(((Entity) projectile).GetSource_FromThis((string) null), ((Entity) projectile).Center, new Vector2(((Entity) projectile).velocity.X, -((Entity) projectile).velocity.Y), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0.0f, num, 0.0f);
-            break;
-          }
-          Projectile.NewProjectile(((Entity) projectile).GetSource_FromThis((string) null), vector2, new Vector2(-((Entity) projectile).velocity.X, ((Entity) projectile).velocity.Y), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0.0f, num, 0.0f);
-          break;
-      }
-    }
-
-    public void OnFirstTick(Projectile projectile)
-    {
-      if (!A_SourceNPCGlobalProjectile.NeedsSync(A_SourceNPCGlobalProjectile.SourceNPCSync, projectile.type))
-        return;
-      NPC sourceNpc = projectile.GetSourceNPC();
-      switch (projectile.type)
-      {
-        case 5:
-        case 22:
-        case 27:
-        case 36:
-        case 116:
-        case 263:
-        case 274:
-        case 496:
-        case 638:
-        case 756:
-          if (sourceNpc == null || sourceNpc.friendly || sourceNpc.townNPC)
-            break;
-          projectile.friendly = false;
-          projectile.hostile = true;
-          projectile.DamageType = DamageClass.Default;
-          break;
-        case 385:
-          if (sourceNpc == null || sourceNpc.type != 370 || !sourceNpc.GetGlobalNPC<DukeFishron>().IsEX)
-            break;
-          ++projectile.extraUpdates;
-          break;
-        case 462:
-          if (!EModeGlobalProjectile.NonSwarmFight(projectile, 397, 396, 400) || WorldSavingSystem.MasochistModeReal && Main.getGoodWorld)
-            break;
-          if (FargoSoulsUtil.HostCheck)
-          {
-            for (int index = -2; index <= 2; ++index)
-              Projectile.NewProjectile(Entity.InheritSource((Entity) projectile), ((Entity) projectile).Center, Vector2.op_Multiply(1.5f, Utils.RotatedBy(Vector2.Normalize(((Entity) projectile).velocity), Math.PI / 4.0 * (double) index, new Vector2())), ModContent.ProjectileType<PhantasmalBolt2>(), projectile.damage, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-          }
-          projectile.Kill();
-          break;
-        case 467:
-          if (!EModeGlobalProjectile.NonSwarmFight(projectile, 439) || !sourceNpc.GetGlobalNPC<LunaticCultist>().EnteredPhase2)
-            break;
-          projectile.timeLeft = 0;
-          this.EModeCanHurt = false;
-          break;
-        case 468:
-          if (!EModeGlobalProjectile.NonSwarmFight(projectile, 439))
-            break;
-          projectile.timeLeft = 0;
-          this.EModeCanHurt = false;
-          break;
-        case 811:
-          if (sourceNpc == null || sourceNpc.type != 619)
-            break;
-          projectile.damage /= 2;
-          break;
-        case 872:
-          if (!EModeGlobalProjectile.NonSwarmFight(projectile, 636))
-            break;
-          projectile.timeLeft += 60;
-          projectile.localAI[1] = Utils.ToRotation(((Entity) projectile).velocity);
-          if ((double) sourceNpc.ai[0] == 7.0 && (double) sourceNpc.ai[1] >= (double) byte.MaxValue && sourceNpc.GetGlobalNPC<EmpressofLight>().DoParallelSwordWalls)
-          {
-            this.altBehaviour = true;
-            break;
-          }
-          if (sourceNpc.GetGlobalNPC<EmpressofLight>().AttackTimer != 1)
-            break;
-          projectile.localAI[0] = 1f;
-          break;
-        case 873:
-          if (!EModeGlobalProjectile.NonSwarmFight(projectile, 636))
-            break;
-          if (WorldSavingSystem.MasochistModeReal && (double) sourceNpc.ai[0] != 8.0 && (double) sourceNpc.ai[0] != 9.0)
-            this.EModeCanHurt = true;
-          if ((double) sourceNpc.ai[0] != 12.0)
-            break;
-          Projectile projectile1 = projectile;
-          ((Entity) projectile1).velocity = Vector2.op_Multiply(((Entity) projectile1).velocity, 0.7f);
-          break;
-        case 919:
-          if (!EModeGlobalProjectile.NonSwarmFight(projectile, 636) || (double) sourceNpc.ai[0] != 7.0)
-            break;
-          if ((double) sourceNpc.ai[1] < (double) byte.MaxValue)
-          {
-            Vector2 vector2 = Vector2.op_Multiply(Utils.ToRotationVector2(Utils.NextFloat(Main.rand, 6.28318548f)), 2f);
-            Projectile projectile2 = projectile;
-            ((Entity) projectile2).position = Vector2.op_Subtraction(((Entity) projectile2).position, Vector2.op_Multiply(vector2, 60f));
-            ((Entity) projectile).velocity = vector2;
-            break;
-          }
-          if (!sourceNpc.GetGlobalNPC<EmpressofLight>().DoParallelSwordWalls)
-            break;
-          this.altBehaviour = true;
-          break;
-        default:
-          if (!SpearRework.ReworkedSpears.Contains(projectile.type))
-            break;
-          projectile.damage = (int) ((double) projectile.damage * 1.5);
-          break;
-      }
-    }
-
-    public virtual bool? CanDamage(Projectile projectile)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return base.CanDamage(projectile);
-      return !this.EModeCanHurt ? new bool?(false) : base.CanDamage(projectile);
-    }
-
-    public virtual bool PreAI(Projectile projectile)
-    {
-      if (!WorldSavingSystem.EternityMode)
-      {
-        this.preAICheckDone = true;
-        return base.PreAI(projectile);
-      }
-      if (!this.preAICheckDone)
-      {
-        this.preAICheckDone = true;
-        this.OnFirstTick(projectile);
-      }
-      if (projectile.friendly && Main.player[projectile.owner].HasBuff(ModContent.BuffType<HypothermiaBuff>()) && (double) ((Vector2) ref ((Entity) projectile).velocity).Length() > 3.0)
-      {
-        Projectile projectile1 = projectile;
-        ((Entity) projectile1).velocity = Vector2.op_Multiply(((Entity) projectile1).velocity, 0.975f);
-      }
-      ++this.counter;
-      if (this.counter < 30 && (double) projectile.ai[0] == 15.0 && !WorldSavingSystem.MasochistModeReal && (projectile.type == 384 || projectile.type == 386) && (double) projectile.ai[1] == (projectile.type == 384 ? 15.0 : 24.0))
-      {
-        ++projectile.timeLeft;
-        return false;
-      }
-      int type = projectile.type;
-      return base.PreAI(projectile);
-    }
-
-    public virtual void AI(Projectile projectile)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      NPC sourceNpc = projectile.GetSourceNPC();
-      switch (projectile.type)
-      {
-        case 102:
-          if (sourceNpc != null && sourceNpc.type == 44)
-            projectile.damage = sourceNpc.damage / 2;
-          if (!WorldSavingSystem.SwarmActive)
-          {
-            projectile.damage = 40;
-            break;
-          }
-          break;
-        case 258:
-          NPC npc1 = FargoSoulsUtil.NPCExists(NPC.golemBoss, new int[1]
-          {
-            245
-          });
-          if (npc1 != null && !npc1.dontTakeDamage)
-          {
-            projectile.timeLeft = 0;
-            break;
-          }
-          break;
-        case 259:
-          if (!WorldSavingSystem.MasochistModeReal)
-          {
-            if (EModeGlobalProjectile.NonSwarmFight(projectile, 246, 249))
-            {
-              if (!this.firstTickAICheckDone)
-              {
-                ((Entity) projectile).velocity = Utils.SafeNormalize(((Entity) projectile).velocity, Vector2.UnitY);
-                projectile.timeLeft = 180 * projectile.MaxUpdates;
-              }
-              if (projectile.timeLeft % projectile.MaxUpdates == 0 && (double) ++projectile.localAI[1] < 90.0)
-              {
-                Projectile projectile1 = projectile;
-                ((Entity) projectile1).velocity = Vector2.op_Multiply(((Entity) projectile1).velocity, 1.04f);
-                break;
-              }
-              break;
-            }
-            break;
-          }
-          break;
-        case 325:
-        case 508:
-          Projectile projectile2 = projectile;
-          ((Entity) projectile2).position = Vector2.op_Addition(((Entity) projectile2).position, Vector2.op_Multiply(((Entity) projectile).velocity, 0.5f));
-          break;
-        case 384:
-        case 386:
-          this.EModeCanHurt = true;
-          projectile.hide = false;
-          if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.fishBoss, 370))
-          {
-            projectile.timeLeft = Math.Min(120, projectile.timeLeft);
-            break;
-          }
-          break;
-        case 452:
-          if (EModeGlobalProjectile.NonSwarmFight(projectile, 397, 396, 400))
-          {
-            if ((double) projectile.ai[0] == 2.0 && this.counter > 60)
-              ((Entity) projectile).velocity.Y = 9f;
-            else
-              ((Entity) projectile).position.Y -= ((Entity) projectile).velocity.Y / 4f;
-            float num = WorldSavingSystem.MasochistModeReal ? 2f : 1f;
-            if ((double) ((Entity) projectile).velocity.X > (double) num)
-            {
-              ((Entity) projectile).velocity.X = num;
-              break;
-            }
-            if ((double) ((Entity) projectile).velocity.X < -(double) num)
-            {
-              ((Entity) projectile).velocity.X = -num;
-              break;
-            }
-            break;
-          }
-          break;
-        case 454:
-          if (!WorldSavingSystem.SwarmActive && (!WorldSavingSystem.MasochistModeReal || !Main.getGoodWorld))
-          {
-            this.EModeCanHurt = projectile.alpha == 0;
-            if (sourceNpc != null && sourceNpc.type == 397 && (double) projectile.ai[0] == -1.0)
-            {
-              if ((double) ++projectile.localAI[1] < 150.0)
-              {
-                Projectile projectile3 = projectile;
-                ((Entity) projectile3).velocity = Vector2.op_Multiply(((Entity) projectile3).velocity, 1.018f);
-              }
-              if ((double) projectile.localAI[0] == 0.0 && (double) ((Vector2) ref ((Entity) projectile).velocity).Length() > 11.0)
-              {
-                projectile.localAI[0] = 1f;
-                ((Vector2) ref ((Entity) projectile).velocity).Normalize();
-                if (FargoSoulsUtil.HostCheck && !WorldSavingSystem.MasochistModeReal)
-                  Projectile.NewProjectile(Entity.InheritSource((Entity) projectile), ((Entity) projectile).Center, ((Entity) projectile).velocity, ModContent.ProjectileType<PhantasmalSphereDeathray>(), 0, 0.0f, Main.myPlayer, 0.0f, (float) projectile.identity, 0.0f);
-                projectile.netUpdate = true;
-                break;
-              }
-              break;
-            }
-            break;
-          }
-          this.EModeCanHurt = true;
-          break;
-        case 455:
-          if (WorldSavingSystem.MasochistModeReal)
-          {
-            ((Entity) projectile).velocity = Utils.RotatedBy(((Entity) projectile).velocity, (double) projectile.ai[0] * 0.5, new Vector2());
-            projectile.rotation = Utils.ToRotation(((Entity) projectile).velocity) - 1.57079637f;
-            projectile.scale *= sourceNpc == null || sourceNpc.type != 396 ? Utils.NextFloat(Main.rand, 4f, 6f) : Utils.NextFloat(Main.rand, 6f, 9f);
-            if (!Main.dedServ && ((Entity) Main.LocalPlayer).active)
-            {
-              FargoSoulsUtil.ScreenshakeRumble(6f);
-              break;
-            }
-            break;
-          }
-          break;
-        case 456:
-          if ((double) projectile.ai[0] > 0.0 && !WorldSavingSystem.SwarmActive)
-          {
-            Vector2 vector2 = Vector2.op_Subtraction(Vector2.op_Subtraction(((Entity) Main.player[(int) projectile.ai[1]]).Center, ((Entity) projectile).Center), ((Entity) projectile).velocity);
-            if (Vector2.op_Inequality(vector2, Vector2.Zero))
-            {
-              Projectile projectile4 = projectile;
-              ((Entity) projectile4).position = Vector2.op_Addition(((Entity) projectile4).position, Vector2.op_Multiply(Vector2.Normalize(vector2), Math.Min(16f, ((Vector2) ref vector2).Length())));
-              break;
-            }
-            break;
-          }
-          break;
-        case 467:
-          if (!WorldSavingSystem.MasochistModeReal)
-          {
-            if (EModeGlobalProjectile.NonSwarmFight(projectile, 439))
-            {
-              Projectile projectile5 = projectile;
-              ((Entity) projectile5).position = Vector2.op_Subtraction(((Entity) projectile5).position, Vector2.op_Multiply(((Entity) projectile).velocity, Math.Max(0.0f, (float) (1.0 - (double) this.counter / 45.0 / (double) projectile.MaxUpdates))));
-              break;
-            }
-            break;
-          }
-          break;
-        case 490:
-          if (!WorldSavingSystem.SwarmActive)
-          {
-            NPC npc2 = FargoSoulsUtil.NPCExists(projectile.ai[1], 439);
-            if (npc2 != null && (double) npc2.ai[3] == -1.0 && (double) npc2.ai[0] == 5.0)
-              ((Entity) projectile).Center = ((Entity) Main.player[npc2.target]).Center;
-            if (!this.firstTickAICheckDone)
-            {
-              if (npc2 != null)
-              {
-                if (Main.netMode == 1)
-                {
-                  LunaticCultist globalNpc = npc2.GetGlobalNPC<LunaticCultist>();
-                  ModPacket packet = ((ModType) this).Mod.GetPacket(256);
-                  ((BinaryWriter) packet).Write((byte) 2);
-                  ((BinaryWriter) packet).Write((byte) ((Entity) npc2).whoAmI);
-                  ((BinaryWriter) packet).Write(globalNpc.MeleeDamageCounter);
-                  ((BinaryWriter) packet).Write(globalNpc.RangedDamageCounter);
-                  ((BinaryWriter) packet).Write(globalNpc.MagicDamageCounter);
-                  ((BinaryWriter) packet).Write(globalNpc.MinionDamageCounter);
-                  packet.Send(-1, -1);
-                }
-                else
-                {
-                  for (int index = 0; index < Main.maxProjectiles; ++index)
-                  {
-                    if (((Entity) Main.projectile[index]).active && (double) Main.projectile[index].ai[1] == (double) ((Entity) npc2).whoAmI && Main.projectile[index].type == ModContent.ProjectileType<CultistRitual>())
+                case ProjectileID.FinalFractal: //zenith
+                    if (!WorldSavingSystem.DownedMutant)
                     {
-                      Main.projectile[index].Kill();
-                      break;
+                        projectile.usesLocalNPCImmunity = false;
+                        projectile.localNPCHitCooldown = 0;
+
+                        projectile.usesIDStaticNPCImmunity = true;
+                        if (WorldSavingSystem.DownedAbom)
+                            projectile.idStaticNPCHitCooldown = 3;
+                        else
+                            projectile.idStaticNPCHitCooldown = 5;
+
+                        projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
                     }
-                  }
-                  Projectile.NewProjectile(((Entity) npc2).GetSource_FromThis((string) null), ((Entity) projectile).Center, Vector2.Zero, ModContent.ProjectileType<CultistRitual>(), FargoSoulsUtil.ScaledProjectileDamage(npc2.defDamage), 0.0f, Main.myPlayer, 0.0f, (float) ((Entity) npc2).whoAmI, 0.0f);
-                  for (int index1 = 0; index1 < 16; ++index1)
-                  {
-                    float num = 0.3926991f * (float) index1;
-                    for (int index2 = -1; index2 <= 1; index2 += 2)
+                    break;
+
+                case ProjectileID.Sharknado:
+                case ProjectileID.Cthulunado:
+                    if (!WorldSavingSystem.MasochistModeReal)
                     {
-                      Vector2 vector2 = Utils.RotatedBy(new Vector2(1500f, 0.0f), (double) num, new Vector2());
-                      Projectile.NewProjectile(((Entity) npc2).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) projectile).Center, vector2), Vector2.op_Multiply((float) index2, Utils.RotatedBy(Vector2.UnitY, (double) num, new Vector2())), ModContent.ProjectileType<GlowLine>(), 0, 0.0f, Main.myPlayer, 18f, (float) ((Entity) npc2).whoAmI, 0.0f);
+                        EModeCanHurt = false;
+                        projectile.hide = true;
                     }
-                  }
+                    break;
+
+                case ProjectileID.DD2BetsyFlameBreath:
+                    projectile.tileCollide = false;
+                    projectile.penetrate = -1;
+                    break;
+
+                case ProjectileID.ChlorophyteBullet:
+                    projectile.extraUpdates = 1;
+                    projectile.timeLeft = 150;
+                    break;
+
+                case ProjectileID.CrystalBullet:
+                case ProjectileID.HolyArrow:
+                case ProjectileID.HallowStar:
+                    //HasKillCooldown = true;
+                    break;
+
+                case ProjectileID.SaucerLaser:
+                    projectile.tileCollide = false;
+                    break;
+
+                case ProjectileID.AncientDoomProjectile:
+                    projectile.scale *= 1.5f;
+                    break;
+
+                case ProjectileID.UnholyTridentHostile:
+                    projectile.extraUpdates++;
+                    break;
+
+                case ProjectileID.BulletSnowman:
+                    projectile.tileCollide = false;
+                    projectile.timeLeft = 600;
+                    break;
+
+                case ProjectileID.CannonballHostile:
+                    projectile.scale = 2f;
+                    break;
+
+                case ProjectileID.EyeLaser:
+                case ProjectileID.EyeFire:
+                    projectile.tileCollide = false;
+                    break;
+
+                case ProjectileID.QueenSlimeMinionBlueSpike:
+                    projectile.scale *= 1.5f;
+                    projectile.timeLeft = 180;
+                    projectile.tileCollide = false;
+                    break;
+
+                case ProjectileID.BloodShot:
+                    projectile.tileCollide = false;
+                    break;
+
+                case ProjectileID.DeerclopsRangedProjectile:
+                    projectile.extraUpdates = 1;
+                    break;
+
+                case ProjectileID.FairyQueenLance: //these are here due to mp sync concerns and edge case on spawn
+                case ProjectileID.HallowBossLastingRainbow:
+                case ProjectileID.HallowBossRainbowStreak:
+                case ProjectileID.PhantasmalSphere:
+                    EModeCanHurt = false;
+                    break;
+                case ProjectileID.SuperStar:
+                    projectile.penetrate = 7;
+                    break;
+                case ProjectileID.WeatherPainShot:
+                    projectile.idStaticNPCHitCooldown = 10;
+                    projectile.penetrate = 45;
+                    break;
+                case ProjectileID.HoundiusShootiusFireball:
+                    projectile.extraUpdates += 1;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private static bool NonSwarmFight(Projectile projectile, params int[] types)
+        {
+            NPC npc = projectile.GetSourceNPC();
+            return projectile.GetSourceNPC() is NPC && types.Contains(npc.type);
+        }
+
+        public override void OnSpawn(Projectile projectile, IEntitySource source)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return;
+
+            Projectile sourceProj = null;
+            if (source is EntitySource_Parent parent && parent.Entity is Projectile)
+                sourceProj = parent.Entity as Projectile;
+
+            if (source is EntitySource_ItemUse itemUse && itemUse.Item != null)
+            {
+                SourceItemType = itemUse.Item.type;
+            }
+
+            if (FargoSoulsUtil.IsSummonDamage(projectile, true, false))
+            {
+                if (projectile.minion && !(IgnoreMinionNerf.TryGetValue(projectile.type, out bool ignoreNerf1) && ignoreNerf1))
+                    NerfDamageBasedOnProjTypeCount = projectile.type;
+                else if (sourceProj is Projectile && !(IgnoreMinionNerf.TryGetValue(sourceProj.type, out bool ignoreNerf2) && ignoreNerf2))
+                    NerfDamageBasedOnProjTypeCount = sourceProj.Eternity().NerfDamageBasedOnProjTypeCount;
+            }
+
+            switch (projectile.type)
+            {
+                case ProjectileID.ZapinatorLaser:
+                    projectile.originalDamage = projectile.damage;
+                    break;
+
+                case ProjectileID.FallingStar:
+                    if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.mutantBoss, ModContent.NPCType<MutantBoss>()))
+                        projectile.active = false;
+                    break;
+
+                case ProjectileID.VampireHeal:
+                    //each lifesteal hits timer again when above 50% life (total, halved lifesteal rate)
+                    if (Main.player[projectile.owner].statLife > Main.player[projectile.owner].statLifeMax2 / 3)
+                        Main.player[projectile.owner].lifeSteal -= projectile.ai[1];
+
+                    //each lifesteal hits timer again when above 75% life (stacks with above, total 1/3rd lifesteal rate)
+                    if (Main.player[projectile.owner].statLife > Main.player[projectile.owner].statLifeMax2 * 2 / 3)
+                        Main.player[projectile.owner].lifeSteal -= projectile.ai[1];
+                    break;
+
+                case ProjectileID.Cthulunado:
+                    if (NonSwarmFight(projectile, NPCID.DukeFishron) && WorldSavingSystem.MasochistModeReal)
+                    {
+                        if (projectile.ai[1] == 25 || sourceProj is Projectile && sourceProj.Eternity().altBehaviour)
+                            altBehaviour = true;
+                    }
+                    break;
+
+                case ProjectileID.DeerclopsIceSpike: //note to future self: these are all mp compatible apparently?
+
+                    if (WorldSavingSystem.MasochistModeReal)
+                        projectile.ai[0] -= 20;
+
+                    if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.deerBoss, NPCID.Deerclops))
+                    {
+                        if (Main.npc[EModeGlobalNPC.deerBoss].ai[0] == 4) //double walls
+                        {
+                            projectile.ai[0] -= 30;
+                            if (Main.npc[EModeGlobalNPC.deerBoss].GetGlobalNPC<Deerclops>().EnteredPhase2)
+                                projectile.ai[0] -= 30;
+                            if (Main.npc[EModeGlobalNPC.deerBoss].GetGlobalNPC<Deerclops>().EnteredPhase3)
+                                projectile.ai[0] -= 120;
+                        }
+                    }
+
+                    if (projectile.GetSourceNPC() is NPC && projectile.GetSourceNPC().type == NPCID.Deerclops && sourceProj is not Projectile)
+                    {
+                        //is a final spike of the attack
+                        if (projectile.GetSourceNPC().ai[0] == 1 && projectile.GetSourceNPC().ai[1] == 52 || projectile.GetSourceNPC().ai[0] == 4 && projectile.GetSourceNPC().ai[1] == 70 && !projectile.GetSourceNPC().GetGlobalNPC<Deerclops>().DoLaserAttack)
+                        {
+                            bool isSingleWaveAttack = projectile.GetSourceNPC().ai[0] == 1;
+
+                            bool shouldSplit = true;
+                            if (isSingleWaveAttack) //because deerclops spawns like 4 of them stacked on each other?
+                            {
+                                for (int i = 0; i < Main.maxProjectiles; i++)
+                                {
+                                    if (Main.projectile[i].active && Main.projectile[i].type == projectile.type
+                                        && Main.projectile[i].scale == projectile.scale
+                                        && Math.Sign(Main.projectile[i].velocity.X) == Math.Sign(projectile.velocity.X))
+                                    {
+                                        if (i != projectile.whoAmI)
+                                            shouldSplit = false;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (shouldSplit)
+                            {
+                                //projectile.ai[0] -= 60;
+                                //projectile.netUpdate = true;
+
+                                float ai1 = 1.3f;
+                                if (projectile.GetSourceNPC().GetGlobalNPC<Deerclops>().EnteredPhase2)
+                                    ai1 = 1.35f; //triggers recursive ai
+                                                 //if (projectile.GetSourceNPC().GetGlobalNPC<Deerclops>().EnteredPhase3 || WorldSavingSystem.MasochistModeReal)
+                                                 //    ai1 = 1.4f;
+                                Vector2 spawnPos = projectile.Center + 200 * Vector2.Normalize(projectile.velocity);
+
+                                if (FargoSoulsUtil.HostCheck)
+                                {
+                                    Projectile.NewProjectile(projectile.GetSource_FromThis(), spawnPos, projectile.velocity, projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0f, ai1);
+
+                                    if (isSingleWaveAttack)
+                                    {
+                                        Projectile.NewProjectile(projectile.GetSource_FromThis(), spawnPos, Vector2.UnitX * Math.Sign(projectile.velocity.X) * projectile.velocity.Length(), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0f, ai1);
+                                        Projectile.NewProjectile(projectile.GetSource_FromThis(), spawnPos, new Vector2(projectile.velocity.X, -projectile.velocity.Y), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0f, ai1);
+                                    }
+                                    else
+                                    {
+                                        Projectile.NewProjectile(projectile.GetSource_FromThis(), projectile.Center, new Vector2(-projectile.velocity.X, projectile.velocity.Y), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0f, ai1);
+                                        if (projectile.Center.Y < projectile.GetSourceNPC().Center.Y)
+                                        {
+                                            Projectile.NewProjectile(projectile.GetSource_FromThis(), projectile.Center, -projectile.velocity, projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0f, ai1);
+                                            Projectile.NewProjectile(projectile.GetSource_FromThis(), projectile.Center, new Vector2(projectile.velocity.X, -projectile.velocity.Y), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0f, ai1);
+                                        }
+                                        else
+                                        {
+                                            Projectile.NewProjectile(projectile.GetSource_FromThis(), spawnPos, new Vector2(-projectile.velocity.X, projectile.velocity.Y), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0f, ai1);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        //separate from OnSpawn for multiplayer sync
+        public void OnFirstTick(Projectile projectile)
+        {
+            if (A_SourceNPCGlobalProjectile.NeedsSync(A_SourceNPCGlobalProjectile.SourceNPCSync, projectile.type))
+            {
+                NPC sourceNPC = projectile.GetSourceNPC();
+
+                switch (projectile.type)
+                {
+                    case ProjectileID.SharpTears:
+                    case ProjectileID.JestersArrow:
+                    case ProjectileID.MeteorShot:
+                    case ProjectileID.ShadowFlame:
+                    case ProjectileID.MoonlordBullet:
+                    case ProjectileID.WaterBolt:
+                    case ProjectileID.WaterStream:
+                    case ProjectileID.DeathSickle:
+                    case ProjectileID.IceSickle:
+                    case ProjectileID.SwordBeam:
+                        if (sourceNPC is NPC && !sourceNPC.friendly && !sourceNPC.townNPC)
+                        {
+                            projectile.friendly = false;
+                            projectile.hostile = true;
+                            projectile.DamageType = DamageClass.Default;
+                        }
+                        break;
+
+                    case ProjectileID.CultistBossFireBall: //disable proj
+                        if (NonSwarmFight(projectile, NPCID.CultistBoss) && sourceNPC.GetGlobalNPC<LunaticCultist>().EnteredPhase2)
+                        {
+                            projectile.timeLeft = 0;
+                            EModeCanHurt = false;
+                        }
+                        break;
+
+                    case ProjectileID.CultistBossFireBallClone: //disable proj
+                        if (NonSwarmFight(projectile, NPCID.CultistBoss))
+                        {
+                            projectile.timeLeft = 0;
+                            EModeCanHurt = false;
+                        }
+                        break;
+
+                    case ProjectileID.PhantasmalBolt:
+                        if (NonSwarmFight(projectile, NPCID.MoonLordHand, NPCID.MoonLordHead, NPCID.MoonLordFreeEye)
+                            && !(WorldSavingSystem.MasochistModeReal && Main.getGoodWorld))
+                        {
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                for (int i = -2; i <= 2; i++)
+                                {
+                                    Projectile.NewProjectile(Entity.InheritSource(projectile), projectile.Center,
+                                        1.5f * Vector2.Normalize(projectile.velocity).RotatedBy(Math.PI / 2 / 2 * i),
+                                        ModContent.ProjectileType<PhantasmalBolt2>(), projectile.damage, 0f, Main.myPlayer);
+                                }
+                            }
+                            projectile.Kill();
+                        }
+                        break;
+
+                    case ProjectileID.SharknadoBolt:
+                        if (sourceNPC is NPC && sourceNPC.type == NPCID.DukeFishron && sourceNPC.GetGlobalNPC<DukeFishron>().IsEX)
+                            projectile.extraUpdates++;
+                        break;
+
+                    case ProjectileID.HallowBossRainbowStreak:
+                        if (NonSwarmFight(projectile, NPCID.HallowBoss))
+                        {
+                            if (WorldSavingSystem.MasochistModeReal && sourceNPC.ai[0] != 8 && sourceNPC.ai[0] != 9)
+                                EModeCanHurt = true;
+
+                            if (sourceNPC.ai[0] == 12)
+                                projectile.velocity *= 0.7f;
+                        }
+                        break;
+
+                    case ProjectileID.BloodShot:
+                        if (sourceNPC is NPC && sourceNPC.type == NPCID.BloodSquid)
+                            projectile.damage /= 2;
+                        break;
+
+                    case ProjectileID.HallowBossLastingRainbow:
+                        if (NonSwarmFight(projectile, NPCID.HallowBoss))
+                        {
+                            projectile.timeLeft += 60;
+                            projectile.localAI[1] = projectile.velocity.ToRotation();
+
+                            if (sourceNPC.ai[0] == 7 && sourceNPC.ai[1] >= 255 && sourceNPC.GetGlobalNPC<EmpressofLight>().DoParallelSwordWalls)
+                            {
+                                altBehaviour = true;
+                            }
+                            else if (sourceNPC.GetGlobalNPC<EmpressofLight>().AttackTimer == 1)
+                            {
+                                projectile.localAI[0] = 1f;
+                            }
+                        }
+                        break;
+
+                    case ProjectileID.FairyQueenLance:
+                        if (NonSwarmFight(projectile, NPCID.HallowBoss) && sourceNPC.ai[0] == 7)
+                        {
+                            if (sourceNPC.ai[1] < 255) //vanilla attack has random variation, purely visual
+                            {
+                                Vector2 appearVel = Main.rand.NextFloat(MathHelper.TwoPi).ToRotationVector2();
+                                appearVel *= 2f;
+                                projectile.position -= appearVel * 60f;
+                                projectile.velocity = appearVel;
+                            }
+                            else if (sourceNPC.GetGlobalNPC<EmpressofLight>().DoParallelSwordWalls)
+                            {
+                                altBehaviour = true;
+                            }
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
-              }
-              for (int index = 0; index < Main.maxProjectiles; ++index)
-              {
-                if (((Entity) Main.projectile[index]).active && (Main.projectile[index].type == 356 || Main.projectile[index].type == 575))
-                  Main.projectile[index].Kill();
-              }
             }
-            bool flag = false;
-            if ((double) projectile.ai[1] == -1.0)
+        }
+
+        public override bool? CanDamage(Projectile projectile)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return base.CanDamage(projectile);
+
+            if (!EModeCanHurt)
+                return false;
+
+            return base.CanDamage(projectile);
+        }
+        public override bool PreAI(Projectile projectile)
+        {
+            if (!WorldSavingSystem.EternityMode)
             {
-              if (this.counter == 5)
-                flag = true;
+                preAICheckDone = true;
+                return base.PreAI(projectile);
             }
-            else
+
+            if (!preAICheckDone)
             {
-              this.counter = 0;
-              if ((double) projectile.ai[0] == 299.0)
-                flag = true;
+                preAICheckDone = true;
+
+                OnFirstTick(projectile);
             }
-            if (flag)
+
+            //Slower friendly projectiles in Snow biome
+            if (projectile.friendly)
             {
-              int index3 = -1;
-              for (int index4 = 0; index4 < Main.maxNPCs; ++index4)
-              {
-                if (((Entity) Main.npc[index4]).active && Main.npc[index4].type == 439 && (double) Main.npc[index4].ai[2] == (double) ((Entity) projectile).whoAmI)
+                Player player = Main.player[projectile.owner];
+                if (player.HasBuff(ModContent.BuffType<HypothermiaBuff>()) && projectile.velocity.Length() > 3f)
                 {
-                  index3 = index4;
-                  break;
+                    projectile.velocity *= 0.975f;
                 }
-              }
-              if (index3 != -1)
-              {
-                float num = (float) Main.rand.Next(4);
-                LunaticCultist globalNpc = Main.npc[index3].GetGlobalNPC<LunaticCultist>();
-                int[] numArray = new int[4]
+            }
+            
+            counter++;
+
+            //delay the very bottom piece of sharknados spawning in, also delays spawning sharkrons
+            if (counter < 30 && projectile.ai[0] == 15 && !WorldSavingSystem.MasochistModeReal
+                && (projectile.type == ProjectileID.Sharknado || projectile.type == ProjectileID.Cthulunado)
+                && projectile.ai[1] == (projectile.type == ProjectileID.Sharknado ? 15 : 24))
+            {
+                projectile.timeLeft++;
+                return false;
+            }
+            switch (projectile.type)
+            {
+                default:
+                    break;
+
+            }
+
+            return base.PreAI(projectile);
+        }
+
+        public override void AI(Projectile projectile)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return;
+
+            NPC sourceNPC = projectile.GetSourceNPC();
+
+            switch (projectile.type)
+            {
+                case ProjectileID.ZapinatorLaser:
+                    if (projectile.damage > projectile.originalDamage)
+                        projectile.damage = projectile.originalDamage;
+                    break;
+
+                case ProjectileID.InsanityShadowHostile:
+
+                    if (Main.player[projectile.owner].ownedProjectileCounts[projectile.type] >= 4)
+                    {
+                        projectile.extraUpdates = 1;
+                        projectile.position += projectile.velocity * 0.5f;
+                        EModeCanHurt = true;
+                        counter = -600;
+                    }
+                    else if (!(WorldSavingSystem.MasochistModeReal && Main.getGoodWorld))
+                    {
+                        EModeCanHurt = false;
+                        projectile.position -= projectile.velocity;
+                        projectile.ai[0]--;
+                        projectile.alpha = 255;
+
+                        if (counter > 30 && Main.player[projectile.owner].ownedProjectileCounts[projectile.type] <= 1)
+                            projectile.timeLeft = 0;
+                    }
+                    break;
+
+                case ProjectileID.DeerclopsIceSpike:
+                    if (counter == 2f && projectile.hostile && projectile.ai[1] > 1.3f) //only larger spikes
+                    {
+                        float ai1 = 1.3f;
+                        if (projectile.ai[1] > 1.35f)
+                            ai1 = 1.35f;
+
+                        for (int i = -1; i <= 1; i++) //recursive fractal spread
+                        {
+                            Vector2 baseVel = Vector2.Lerp(projectile.velocity, Vector2.UnitX * projectile.velocity.Length() * Math.Sign(projectile.velocity.X), 0.75f);
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                Projectile.NewProjectile(Entity.InheritSource(projectile), projectile.Center + 200f * Vector2.Normalize(projectile.velocity), baseVel.RotatedBy(MathHelper.ToRadians(30) * i), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0f, ai1);
+                            }
+                        }
+                    }
+                    break;
+
+                case ProjectileID.BloodShot:
+                case ProjectileID.BloodNautilusTears:
+                case ProjectileID.BloodNautilusShot:
+                    if (!Collision.SolidTiles(projectile.Center, 0, 0))
+                    {
+                        Lighting.AddLight(projectile.Center, TorchID.Crimson);
+
+                        if (counter > 180)
+                            projectile.tileCollide = true;
+                    }
+                    break;
+
+                case ProjectileID.HallowBossLastingRainbow:
+                    if (!NonSwarmFight(projectile, NPCID.HallowBoss))
+                    {
+                        EModeCanHurt = true;
+                        altBehaviour = false;
+                        break;
+                    }
+
+                    if (Math.Abs(MathHelper.WrapAngle(projectile.velocity.ToRotation() - projectile.localAI[1])) > MathHelper.Pi * 0.9f)
+                        EModeCanHurt = true;
+
+                    projectile.extraUpdates = EModeCanHurt ? 1 : 3;
+
+                    if (projectile.localAI[0] == 1f)
+                        projectile.velocity = projectile.velocity.RotatedBy(-projectile.ai[0] * 2f);
+
+                    if (altBehaviour)
+                    {
+                        if (EModeCanHurt)
+                            projectile.velocity = projectile.velocity.RotatedBy(-projectile.ai[0] * 0.5f);
+                    }
+                    break;
+
+                case ProjectileID.HallowBossRainbowStreak:
+                    if (!EModeCanHurt)
+                        EModeCanHurt = projectile.timeLeft < 100;
+                    break;
+
+                case ProjectileID.FairyQueenLance:
+                    EModeCanHurt = projectile.localAI[0] > 60;
+                    if (altBehaviour)
+                    {
+                        const float slowdown = 0.33f;
+
+                        if (!EModeCanHurt)
+                        {
+                            counter = 0;
+                            projectile.timeLeft++;
+                            projectile.localAI[0] -= slowdown;
+                        }
+
+                        projectile.position -= projectile.velocity * slowdown * Utils.Clamp((float)Math.Sqrt(1f - counter / 60f), 0f, 1f);
+                    }
+                    else if (NonSwarmFight(projectile, NPCID.HallowBoss))
+                    {
+                        if (sourceNPC.ai[0] == 7 && sourceNPC.ai[1] < 255) //phase 2 exclusive angled walls attack
+                        {
+                            if (sourceNPC.HasValidTarget)
+                            {
+                                float modifier = WorldSavingSystem.MasochistModeReal ? 0.6f : 0.4f;
+                                projectile.position += modifier * (Main.player[sourceNPC.target].position - Main.player[sourceNPC.target].oldPosition);
+                            }
+                        }
+                        else if (sourceNPC.ai[0] == 6 && sourceNPC.ai[1] > 60) //the massive aoe sword spam during sun beams
+                        {
+                            projectile.position += sourceNPC.position - sourceNPC.oldPosition;
+                        }
+                    }
+                    break;
+
+                case ProjectileID.FairyQueenSunDance:
+                    if (true)
+                    {
+                        NPC npc = FargoSoulsUtil.NPCExists(projectile.ai[1], NPCID.HallowBoss);
+                        if (npc != null)
+                        {
+                            if (npc.ai[0] == 8 || npc.ai[0] == 9) //doing dash
+                            {
+                                projectile.rotation = projectile.ai[0]; //negate rotation
+
+                                if (counter < 60) //force proj into active state faster
+                                    counter += 9;
+                                if (projectile.localAI[0] < 60)
+                                    projectile.localAI[0] += 9;
+                            }
+
+                            if (npc.ai[0] == 1 || npc.ai[0] == 10) //while empress is moving back over player or p2 transition
+                            {
+                                EModeCanHurt = false;
+                                counter = 0;
+                                projectile.timeLeft = 0;
+                            }
+
+                            if (npc.ai[0] == 6 && npc.GetGlobalNPC<EmpressofLight>().AttackCounter % 2 == 0)
+                            {
+                                projectile.scale *= Utils.Clamp(npc.ai[1] / 80f, 0f, 2.5f);
+                            }
+                            else if (counter >= 60 && projectile.scale > 0.5f && counter % 10 == 0)
+                            {
+                                float offset = MathHelper.ToRadians(90) * MathHelper.Lerp(0f, 1f, counter % 50f / 50f);
+                                for (int i = -1; i <= 1; i += 2)
+                                {
+                                    if (Math.Abs(offset) < 0.001f && i < 0)
+                                        continue;
+
+                                    if (FargoSoulsUtil.HostCheck)
+                                    {
+                                        float spawnOffset = 800;
+                                        Projectile.NewProjectile(Entity.InheritSource(projectile), projectile.Center + projectile.rotation.ToRotationVector2() * spawnOffset, Vector2.Zero, ProjectileID.FairyQueenLance, projectile.damage, projectile.knockBack, projectile.owner, projectile.rotation + offset * i, projectile.ai[0]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                case ProjectileID.QueenBeeStinger:
+                    projectile.velocity.Y -= 0.1f; //negate gravity
+                    break;
+
+                case ProjectileID.BeeHive:
+                    if (projectile.timeLeft > 30 && (projectile.velocity.X != 0 || projectile.velocity.Y == 0))
+                        projectile.timeLeft = 30;
+                    break;
+
+                case ProjectileID.TowerDamageBolt:
+                    if (!firstTickAICheckDone)
+                    {
+                        NPC npc = FargoSoulsUtil.NPCExists(projectile.ai[0], NPCID.LunarTowerNebula, NPCID.LunarTowerSolar, NPCID.LunarTowerStardust, NPCID.LunarTowerVortex);
+                        if (npc != null)
+                        {
+                            //not kill, because kill decrements shield
+                            if (projectile.Distance(npc.Center) > 4000)
+                                projectile.active = false;
+                            int p = Player.FindClosest(projectile.Center, 0, 0);
+                            if (p != -1 && !(Main.player[p].active && npc.Distance(Main.player[p].Center) < 4000))
+                                projectile.active = false;
+                        }
+                    }
+                    break;
+
+                case ProjectileID.Sharknado: //this only runs after changes in preAI() finish blocking it
+                case ProjectileID.Cthulunado:
+                    EModeCanHurt = true;
+                    projectile.hide = false;
+                    if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.fishBoss, NPCID.DukeFishron))
+                        projectile.timeLeft = Math.Min(120, projectile.timeLeft);
+                    break;
+
+                case ProjectileID.WireKite:
+                    if (projectile.owner == Main.myPlayer && Main.player[projectile.owner].FargoSouls().LihzahrdCurse)
+                    {
+                        projectile.Kill();
+                    }
+                    break;
+
+                case ProjectileID.Fireball:
+                    {
+                        NPC golem = FargoSoulsUtil.NPCExists(NPC.golemBoss, NPCID.Golem);
+                        if (golem != null && !golem.dontTakeDamage)
+                            projectile.timeLeft = 0;
+                    }
+                    break;
+
+                case ProjectileID.GeyserTrap:
+                    if (!WorldSavingSystem.MasochistModeReal && sourceNPC != null && sourceNPC.type == NPCID.Golem && counter > 45)
+                        projectile.Kill();
+                    break;
+
+                case ProjectileID.CultistBossFireBall:
+                    {
+                        if (!WorldSavingSystem.MasochistModeReal && NonSwarmFight(projectile, NPCID.CultistBoss))
+                            projectile.position -= projectile.velocity * Math.Max(0, 1f - counter / 45f / projectile.MaxUpdates); //accel startup
+
+                    }
+                    break;
+
+                case ProjectileID.NebulaSphere:
+                    if (sourceNPC is NPC && sourceNPC.type == NPCID.CultistBoss)
+                    {
+                        int p = Player.FindClosest(projectile.Center, 0, 0);
+                        if (p != -1 && projectile.Distance(Main.player[p].Center) > 240)
+                            projectile.position += projectile.velocity;
+                    }
+                    break;
+
+                case ProjectileID.EyeBeam:
+                    if (NonSwarmFight(projectile, NPCID.GolemHead, NPCID.GolemHeadFree))
+                    {
+                        if (!firstTickAICheckDone)
+                        {
+                            if (WorldSavingSystem.MasochistModeReal)
+                            {
+                                // only run alt behavior (accelerating) if too close to player
+                                if (NPC.FindFirstNPC(NPCID.GolemHeadFree) is int id && id.IsWithinBounds(Main.maxNPCs) && Main.npc[id].TypeAlive(NPCID.GolemHeadFree) && Main.npc[id].HasPlayerTarget)
+                                {
+                                    NPC golemHead = Main.npc[id];
+                                    if (golemHead.Distance(Main.player[golemHead.target].Center) > 350)
+                                        break;
+                                }
+                                else
+                                    break;
+                            }
+                            altBehaviour = true;
+                            projectile.velocity = projectile.velocity.SafeNormalize(Vector2.UnitY);
+                            projectile.timeLeft = 180 * projectile.MaxUpdates;
+                        }
+
+                        if (altBehaviour && projectile.timeLeft % projectile.MaxUpdates == 0) //only run once per tick
+                        {
+                            if (++projectile.localAI[1] < 90)
+                                projectile.velocity *= 1.04f;
+                        }
+                    }
+                    break;
+
+                case ProjectileID.JavelinHostile:
+                case ProjectileID.FlamingWood:
+                    projectile.position += projectile.velocity * .5f;
+                    break;
+
+                case ProjectileID.VortexAcid:
+                    projectile.position += projectile.velocity * .25f;
+                    break;
+
+                case ProjectileID.NebulaEye:
+                    {
+                        NPC npc = FargoSoulsUtil.NPCExists(projectile.ai[1], NPCID.NebulaBrain);
+                        if (npc != null)
+                        {
+                            if (npc.ai[0] < 45 && projectile.ai[0] >= 180 - 5)
+                                projectile.ai[0] -= 180; //prevent firing shortly after teleport
+                        }
+                    }
+                    break;
+
+                case ProjectileID.CultistRitual:
+                    if (true)
+                    {
+                        NPC npc = FargoSoulsUtil.NPCExists(projectile.ai[1], NPCID.CultistBoss);
+                        if (npc != null && npc.ai[3] == -1f && npc.ai[0] == 5)
+                        {
+                            projectile.Center = Main.player[npc.target].Center;
+                        }
+
+                        if (!firstTickAICheckDone) //MP sync data to server
+                        {
+                            if (npc != null)
+                            {
+                                if (Main.netMode == NetmodeID.MultiplayerClient)
+                                {
+                                    LunaticCultist cultistData = npc.GetGlobalNPC<LunaticCultist>();
+
+                                    var netMessage = Mod.GetPacket(); //sync damage contribution (which is client side) to server
+                                    netMessage.Write((byte)FargowiltasSouls.PacketID.SyncCultistDamageCounterToServer);
+                                    netMessage.Write((byte)npc.whoAmI);
+                                    netMessage.Write(cultistData.MeleeDamageCounter);
+                                    netMessage.Write(cultistData.RangedDamageCounter);
+                                    netMessage.Write(cultistData.MagicDamageCounter);
+                                    netMessage.Write(cultistData.MinionDamageCounter);
+                                    netMessage.Send();
+                                }
+                                else //refresh ritual
+                                {
+                                    for (int i = 0; i < Main.maxProjectiles; i++)
+                                    {
+                                        if (Main.projectile[i].active && Main.projectile[i].ai[1] == npc.whoAmI && Main.projectile[i].type == ModContent.ProjectileType<CultistRitual>())
+                                        {
+                                            Main.projectile[i].Kill();
+                                            break;
+                                        }
+                                    }
+
+                                    Projectile.NewProjectile(npc.GetSource_FromThis(), projectile.Center, Vector2.Zero, ModContent.ProjectileType<CultistRitual>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer, 0f, npc.whoAmI);
+                                    const int max = 16;
+                                    const float appearRadius = 1600f - 100f;
+                                    for (int i = 0; i < max; i++)
+                                    {
+                                        float rotation = MathHelper.TwoPi / max * i;
+                                        for (int j = -1; j <= 1; j += 2)
+                                        {
+                                            Vector2 spawnoffset = new Vector2(appearRadius, 0).RotatedBy(rotation);
+                                            Projectile.NewProjectile(npc.GetSource_FromThis(), projectile.Center + spawnoffset, j * Vector2.UnitY.RotatedBy(rotation), ModContent.ProjectileType<GlowLine>(), 0, 0f, Main.myPlayer, 18, npc.whoAmI);
+                                        }
+                                    }
+                                }
+                            }
+
+                            for (int i = 0; i < Main.maxProjectiles; i++) //purge spectre mask bolts and homing nebula spheres
+                            {
+                                if (Main.projectile[i].active && (Main.projectile[i].type == ProjectileID.SpectreWrath || Main.projectile[i].type == ProjectileID.NebulaSphere))
+                                    Main.projectile[i].Kill();
+                            }
+                        }
+
+                        //if (Fargowiltas.Instance.MasomodeEXLoaded && projectile.ai[0] > 120f && projectile.ai[0] < 299f) projectile.ai[0] = 299f;
+
+                        bool dunk = false;
+
+                        if (projectile.ai[1] == -1)
+                        {
+                            if (counter == 5)
+                                dunk = true;
+                        }
+                        else
+                        {
+                            counter = 0;
+                            if (projectile.ai[0] == 299f)
+                                dunk = true;
+                        }
+
+                        if (dunk) //pillar dunk
+                        {
+                            int cult = -1;
+                            for (int i = 0; i < Main.maxNPCs; i++)
+                            {
+                                if (Main.npc[i].active && Main.npc[i].type == NPCID.CultistBoss && Main.npc[i].ai[2] == projectile.identity)
+                                {
+                                    cult = i;
+                                    break;
+                                }
+                            }
+
+                            if (cult != -1)
+                            {
+                                float ai0 = Main.rand.Next(4);
+
+                                LunaticCultist cultistData = Main.npc[cult].GetGlobalNPC<LunaticCultist>();
+                                int[] weight =
+                                [
+                                    cultistData.MagicDamageCounter,
+                                    cultistData.MeleeDamageCounter,
+                                    cultistData.RangedDamageCounter,
+                                    cultistData.MinionDamageCounter,
+                                ];
+                                cultistData.MeleeDamageCounter = 0;
+                                cultistData.RangedDamageCounter = 0;
+                                cultistData.MagicDamageCounter = 0;
+                                cultistData.MinionDamageCounter = 0;
+
+                                Main.npc[cult].netUpdate = true;
+
+                                int max = 0;
+                                for (int i = 1; i < 4; i++)
+                                    if (weight[max] < weight[i])
+                                        max = i;
+                                if (weight[max] > 0)
+                                    ai0 = max;
+
+                                if ((cultistData.EnteredPhase2 /*|| Fargowiltas.Instance.MasomodeEXLoaded*/ || WorldSavingSystem.MasochistModeReal) && FargoSoulsUtil.HostCheck && !Main.projectile.Any(p => p.active && p.hostile && p.type == ModContent.ProjectileType<CelestialPillar>()))
+                                {
+                                    Projectile.NewProjectile(Main.npc[cult].GetSource_FromThis(), projectile.Center, Vector2.UnitY * -10f, ModContent.ProjectileType<CelestialPillar>(),
+                                        Math.Max(75, FargoSoulsUtil.ScaledProjectileDamage(Main.npc[cult].damage, 4)), 0f, Main.myPlayer, ai0);
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                case ProjectileID.MoonLeech:
+                    if (projectile.ai[0] > 0f)
+                    {
+                        Vector2 distance = Main.player[(int)projectile.ai[1]].Center - projectile.Center - projectile.velocity;
+                        if (distance != Vector2.Zero)
+                            projectile.position += Vector2.Normalize(distance) * Math.Min(16f, distance.Length());
+                    }
+                    break;
+
+                case ProjectileID.SandnadoHostile:
+                    if (Main.hardMode && projectile.timeLeft == 1199 && NPC.CountNPCS(NPCID.SandShark) < 10 && FargoSoulsUtil.HostCheck)
+                    {
+                        if (!(sourceNPC is NPC && (sourceNPC.type == ModContent.NPCType<DeviBoss>() || sourceNPC.type == ModContent.NPCType<SpiritChampion>())))
+                        {
+                            FargoSoulsUtil.NewNPCEasy(Entity.InheritSource(projectile), projectile.Center, NPCID.SandShark,
+                                velocity: new Vector2(Main.rand.NextFloat(-10, 10), Main.rand.NextFloat(-20, -10)));
+                        }
+                    }
+
+                    if (sourceNPC is NPC && sourceNPC.type == ModContent.NPCType<DeviBoss>() && sourceNPC.ai[0] != 5)
+                        projectile.ai[0] += 2; //despawn faster
+                    break;
+
+                case ProjectileID.PhantasmalEye:
+                    if (NonSwarmFight(projectile, NPCID.MoonLordHand, NPCID.MoonLordHead, NPCID.MoonLordFreeEye))
+                    {
+                        if (projectile.ai[0] == 2 && counter > 60) //diving down and homing
+                            projectile.velocity.Y = 9;
+                        else
+                            projectile.position.Y -= projectile.velocity.Y / 4;
+
+                        float cap = WorldSavingSystem.MasochistModeReal ? 2 : 1;
+
+                        if (projectile.velocity.X > cap)
+                            projectile.velocity.X = cap;
+                        else if (projectile.velocity.X < -cap)
+                            projectile.velocity.X = -cap;
+                    }
+                    break;
+
+                case ProjectileID.PhantasmalSphere:
+                    if (!(WorldSavingSystem.MasochistModeReal && Main.getGoodWorld))
+                    {
+                        EModeCanHurt = projectile.alpha == 0;
+
+                        //when from hand, nerf with telegraph and accel startup
+                        if (sourceNPC is NPC && sourceNPC.type == NPCID.MoonLordHand)
+                        {
+                            if (projectile.ai[0] == -1) //sent to fly
+                            {
+                                if (++projectile.localAI[1] < 150)
+                                    projectile.velocity *= 1.018f;
+
+                                if (projectile.localAI[0] == 0 && projectile.velocity.Length() > 11) //only do this once
+                                {
+                                    projectile.localAI[0] = 1;
+                                    projectile.velocity.Normalize();
+
+                                    if (FargoSoulsUtil.HostCheck && !WorldSavingSystem.MasochistModeReal)
+                                    {
+                                        Projectile.NewProjectile(Entity.InheritSource(projectile), projectile.Center, projectile.velocity, ModContent.ProjectileType<PhantasmalSphereDeathray>(),
+                                            0, 0f, Main.myPlayer, 0f, projectile.identity);
+                                    }
+
+                                    projectile.netUpdate = true;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        EModeCanHurt = true;
+                    }
+                    break;
+
+                case ProjectileID.PhantasmalDeathray:
+                    if (WorldSavingSystem.MasochistModeReal)
+                    {
+                        projectile.velocity = projectile.velocity.RotatedBy(projectile.ai[0] * 0.5f);
+                        projectile.rotation = projectile.velocity.ToRotation() - MathHelper.PiOver2;
+
+                        projectile.scale *= sourceNPC is NPC && sourceNPC.type == NPCID.MoonLordHead
+                            ? Main.rand.NextFloat(6f, 9f)
+                            : Main.rand.NextFloat(4f, 6f);
+
+                        if (!Main.dedServ && Main.LocalPlayer.active)
+                            FargoSoulsUtil.ScreenshakeRumble(6);
+                    }
+                    break;
+
+                case ProjectileID.BombSkeletronPrime: //needs to be set every tick
+                    if (sourceNPC is NPC && sourceNPC.type == NPCID.UndeadMiner)
+                        projectile.damage = sourceNPC.damage / 2;
+                    projectile.damage = 40;
+                    break;
+
+                case ProjectileID.DD2BetsyFireball: //when spawned, also spawn a phoenix
+                    if (!firstTickAICheckDone && NonSwarmFight(projectile, NPCID.DD2Betsy))
+                    {
+                        bool phase2 = sourceNPC.GetGlobalNPC<Betsy>().InPhase2;
+                        int max = phase2 ? 2 : 1;
+                        for (int i = 0; i < max; i++)
+                        {
+                            Vector2 speed = Main.rand.NextFloat(8, 12) * -Vector2.UnitY.RotatedByRandom(Math.PI / 2);
+                            float ai1 = phase2 ? 60 + Main.rand.Next(60) : 90 + Main.rand.Next(30);
+                            if (FargoSoulsUtil.HostCheck)
+                            {
+                                Projectile.NewProjectile(Entity.InheritSource(projectile), projectile.Center, speed, ModContent.ProjectileType<BetsyPhoenix>(),
+                                    projectile.damage, 0f, Main.myPlayer, Player.FindClosest(projectile.Center, 0, 0), ai1);
+                            }
+                        }
+                    }
+                    break;
+
+                case ProjectileID.DD2BetsyFlameBreath:
+                    if (NonSwarmFight(projectile, NPCID.DD2Betsy))
+                    {
+                        bool phase2 = sourceNPC.GetGlobalNPC<Betsy>().InPhase2;
+
+                        //add chain blasts in maso p2
+                        if (phase2 && !firstTickAICheckDone && WorldSavingSystem.MasochistModeReal && FargoSoulsUtil.HostCheck)
+                        {
+                            Projectile.NewProjectile(
+                                Entity.InheritSource(projectile),
+                                projectile.Center + 100f * Vector2.Normalize(sourceNPC.velocity),
+                                Vector2.Zero,
+                                ModContent.ProjectileType<EarthChainBlast>(),
+                                projectile.damage,
+                                0f,
+                                Main.myPlayer,
+                                sourceNPC.velocity.ToRotation(),
+                                7);
+                        }
+
+                        //add fireballs
+                        if (counter > (phase2 ? 2 : 4))
+                        {
+                            counter = 0;
+
+                            SoundEngine.PlaySound(SoundID.Item34, projectile.Center);
+
+                            Vector2 projVel = projectile.velocity.RotatedBy((Main.rand.NextDouble() - 0.5) * Math.PI / 10);
+                            projVel.Normalize();
+                            projVel *= Main.rand.NextFloat(8f, 12f);
+
+                            int type = ModContent.ProjectileType<BetsyHomingFireball>();
+                            if (!phase2 || Main.rand.NextBool())
+                            {
+                                type = ModContent.ProjectileType<WillFireball>();
+                                projVel *= 2f;
+                                if (phase2)
+                                    projVel *= 1.5f;
+                            }
+
+                            if (FargoSoulsUtil.HostCheck)
+                                Projectile.NewProjectile(Entity.InheritSource(projectile), projectile.Center, projVel, type, projectile.damage, 0f, Main.myPlayer);
+                        }
+                    }
+                    break;
+
+                case ProjectileID.QueenSlimeGelAttack:
+
+                    if (!WorldSavingSystem.MasochistModeReal)
+                    {
+                        float ratio = Math.Max(0, 1f - counter / 60f / projectile.MaxUpdates);
+                        projectile.position -= projectile.velocity * ratio; //accel startup
+                        projectile.velocity.Y -= 0.15f * ratio; //compensate the gravity
+                    }
+
+                    if (!firstTickAICheckDone)
+                    {
+                        //if (projectile.velocity.Y > 0)
+                        //    projectile.velocity.Y *= -.5f; //shoot up instead
+
+                        //p1 always shoots up
+                        if (sourceNPC is NPC && sourceNPC.type == NPCID.QueenSlimeBoss && sourceNPC.life > sourceNPC.lifeMax / 2)
+                            projectile.velocity.Y -= 6f;
+                    }
+
+                    //when begins falling, spray out
+                    if (projectile.velocity.Y > 0 && projectile.localAI[0] == 0)
+                    {
+                        projectile.localAI[0] = 1;
+
+                        for (int j = -1; j <= 1; j += 2)
+                        {
+                            if (Math.Sign(projectile.velocity.X) == -j) //very specific phrasing so 0 horiz sprays both ways
+                                continue;
+
+                            Vector2 baseVel = Vector2.UnitX.RotatedBy(MathHelper.ToRadians(10 * j));
+                            const int max = 12;
+                            for (int i = 0; i < max; i++)
+                            {
+                                Vector2 vel = Main.rand.NextFloat(6f, 18f) * j * baseVel.RotatedBy(MathHelper.PiOver4 / max * (i + 0.5f) * -j);
+                                vel *= WorldSavingSystem.MasochistModeReal ? 2f : 1.5f;
+                                if (FargoSoulsUtil.HostCheck)
+                                    Projectile.NewProjectile(Entity.InheritSource(projectile), projectile.Center, vel, ProjectileID.QueenSlimeMinionBlueSpike, projectile.damage, 0f, Main.myPlayer);
+                            }
+                        }
+                    }
+                    break;
+
+                case ProjectileID.QueenSlimeMinionPinkBall:
+                    if (!WorldSavingSystem.MasochistModeReal)
+                    {
+                        float ratio = Math.Max(0, 1f - counter / 60f / projectile.MaxUpdates);
+                        projectile.position -= projectile.velocity * ratio; //accel startup
+                        projectile.velocity.Y -= 0.15f * ratio; //compensate the gravity
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+
+            firstTickAICheckDone = true;
+        }
+        private int FadeTimer = 0;
+        public override void PostAI(Projectile projectile)
+        {
+            switch (projectile.type)
+            {
+                case ProjectileID.HallowBossLastingRainbow:
+                case ProjectileID.HallowBossRainbowStreak:
+                    {
+                        if (projectile.hostile)
+                        {
+                            const int FadeTime = 20;
+                            if (!EModeCanHurt)
+                            {
+                                if (FadeTimer < FadeTime)
+                                    FadeTimer++;
+                            }
+                            else
+                            {
+                                if (FadeTimer > 0)
+                                    FadeTimer--;
+                            }
+                            float fade = 1f - (0.5f * FadeTimer / FadeTime);
+                            projectile.Opacity = fade;
+                        }
+                    }
+                    break;
+            }
+        }
+        public override void ModifyHitNPC(Projectile projectile, NPC target, ref NPC.HitModifiers modifiers)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return;
+            if (SpearRework.ReworkedSpears.Contains(projectile.type))
+                modifiers.SourceDamage *= 1.5f;
+
+            switch (projectile.type)
+            {
+                case ProjectileID.CopperCoin:
+                    modifiers.FinalDamage *= 1.6f;
+                    break;
+                case ProjectileID.SilverCoin:
+                    modifiers.FinalDamage *= 0.9f;
+                    break;
+                case ProjectileID.GoldCoin:
+                    modifiers.FinalDamage *= 0.47f;
+                    break;
+                case ProjectileID.PlatinumCoin:
+                    modifiers.FinalDamage *= 0.275f;
+                    break;
+
+                case ProjectileID.StarCloakStar:
+                case ProjectileID.StarVeilStar:
+                case ProjectileID.BeeCloakStar:
+                case ProjectileID.ManaCloakStar:
+                    if (!Main.hardMode)
+                        modifiers.FinalDamage *= 0.33f;
+                    break;
+
+                case ProjectileID.OrichalcumHalberd:
+                    modifiers.FinalDamage *= SpearRework.OrichalcumDoTDamageModifier(target.lifeRegen);
+                    break;
+            }
+
+            if (SourceItemType == ItemID.SniperRifle)
+            {
+                if (projectile.owner.IsWithinBounds(Main.maxProjectiles))
                 {
-                  globalNpc.MagicDamageCounter,
-                  globalNpc.MeleeDamageCounter,
-                  globalNpc.RangedDamageCounter,
-                  globalNpc.MinionDamageCounter
-                };
-                globalNpc.MeleeDamageCounter = 0;
-                globalNpc.RangedDamageCounter = 0;
-                globalNpc.MagicDamageCounter = 0;
-                globalNpc.MinionDamageCounter = 0;
-                Main.npc[index3].netUpdate = true;
-                int index5 = 0;
-                for (int index6 = 1; index6 < 4; ++index6)
-                {
-                  if (numArray[index5] < numArray[index6])
-                    index5 = index6;
+                    Player player = Main.player[projectile.owner];
+                    if (player.Alive())
+                    {
+                        float maxBonus = 1f;
+                        float bonus = maxBonus * player.Distance(target.Center) / 1200f;
+                        bonus = MathHelper.Clamp(bonus, 0f, maxBonus);
+                        modifiers.FinalDamage *= 1 + bonus;
+                    }
                 }
-                if (numArray[index5] > 0)
-                  num = (float) index5;
-                if ((globalNpc.EnteredPhase2 || WorldSavingSystem.MasochistModeReal) && FargoSoulsUtil.HostCheck && !((IEnumerable<Projectile>) Main.projectile).Any<Projectile>((Func<Projectile, bool>) (p => ((Entity) p).active && p.hostile && p.type == ModContent.ProjectileType<CelestialPillar>())))
-                {
-                  Projectile.NewProjectile(((Entity) Main.npc[index3]).GetSource_FromThis((string) null), ((Entity) projectile).Center, Vector2.op_Multiply(Vector2.UnitY, -10f), ModContent.ProjectileType<CelestialPillar>(), Math.Max(75, FargoSoulsUtil.ScaledProjectileDamage(Main.npc[index3].damage, 4f)), 0.0f, Main.myPlayer, num, 0.0f, 0.0f);
-                  break;
-                }
-                break;
-              }
-              break;
             }
-            break;
-          }
-          break;
-        case 574:
-          NPC npc3 = FargoSoulsUtil.NPCExists(projectile.ai[1], 420);
-          if (npc3 != null && (double) npc3.ai[0] < 45.0 && (double) projectile.ai[0] >= 175.0)
-          {
-            projectile.ai[0] -= 180f;
-            break;
-          }
-          break;
-        case 575:
-          if (sourceNpc != null && sourceNpc.type == 439)
-          {
-            int closest = (int) Player.FindClosest(((Entity) projectile).Center, 0, 0);
-            if (closest != -1 && (double) ((Entity) projectile).Distance(((Entity) Main.player[closest]).Center) > 240.0)
+            //if (projectile.arrow) //change archery and quiver to additive damage
+            //{
+            //    if (Main.player[projectile.owner].archery)
+            //    {
+            //        damage = (int)(damage / 1.2);
+            //        damage = (int)((double)damage * (1.0 + 0.2 / Main.player[projectile.owner].GetDamage(DamageClass.Ranged)));
+            //    }
+
+            //    if (Main.player[projectile.owner].magicQuiver)
+            //    {
+            //        damage = (int)(damage / 1.1);
+            //        damage = (int)((double)damage * (1.0 + 0.1 / Main.player[projectile.owner].GetDamage(DamageClass.Ranged)));
+            //    }
+            //}
+
+            /*if (NerfDamageBasedOnProjTypeCount != 0 && Main.player[projectile.owner].ownedProjectileCounts[NerfDamageBasedOnProjTypeCount] > 0)
             {
-              Projectile projectile6 = projectile;
-              ((Entity) projectile6).position = Vector2.op_Addition(((Entity) projectile6).position, ((Entity) projectile).velocity);
-              break;
+                int projTypeToCheck = NerfDamageBasedOnProjTypeCount;
+
+                //note: projs needed to reach max nerf is the sum of these values
+                const int allowedBeforeNerfBegins = 3;
+                const int maxRampup = 9;
+
+                float modifier = Utils.Clamp((float)(Main.player[projectile.owner].ownedProjectileCounts[projTypeToCheck] - allowedBeforeNerfBegins) / maxRampup, 0f, 1f);
+
+                const double maxNerfStrength = 1.0 / 3.0;
+                damage = (int)(damage * (1.0 - modifier * maxNerfStrength));
+            }*/
+
+            //if (projectile.type == ProjectileID.ChlorophyteBullet)
+            //{
+            //    damage = (int)(damage * 0.75);
+            //}
+        }
+
+        public override bool OnTileCollide(Projectile projectile, Vector2 oldVelocity)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return base.OnTileCollide(projectile, oldVelocity);
+
+            switch (projectile.type)
+            {
+                case ProjectileID.SnowBallHostile:
+                    projectile.active = false; //no block
+                    break;
+
+                case ProjectileID.SandBallFalling:
+                    if (projectile.ai[0] == 2f) //antlion sand
+                    {
+                        int num129 = Dust.NewDust(projectile.position, projectile.width, projectile.height, DustID.Sand, 0f, projectile.velocity.Y / 2f, 0, default, 1f);
+                        Dust expr_59B0_cp_0 = Main.dust[num129];
+                        expr_59B0_cp_0.velocity.X *= 0.4f;
+                        projectile.active = false;
+
+                    }
+                    break;
+
+                case ProjectileID.QueenSlimeMinionPinkBall:
+                case ProjectileID.QueenSlimeGelAttack:
+                    if (WorldSavingSystem.MasochistModeReal && Main.getGoodWorld)
+                    {
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            for (int i = 0; i < 8; i++)
+                                Projectile.NewProjectile(projectile.GetSource_FromThis(), projectile.Center, Vector2.UnitY.RotatedBy(2 * Math.PI / 8 * i) * 2f, ProjectileID.HallowSpray, 0, 0f, Main.myPlayer, 8f);
+                        }
+                    }
+                    else
+                    {
+                        //if (projectile.localAI[1] == 1)
+                        projectile.timeLeft = 0;
+                        //projectile.localAI[1] = 1;
+                    }
+                    break;
+
+                case ProjectileID.ThornBall:
+                    projectile.timeLeft = 0;
+
+                    NPC plantera = FargoSoulsUtil.NPCExists(NPC.plantBoss, NPCID.Plantera);
+                    if (plantera != null && FargoSoulsUtil.HostCheck)
+                    {
+                        Vector2 vel = 200f / 25f * projectile.SafeDirectionTo(plantera.Center);
+                        Projectile.NewProjectile(plantera.GetSource_FromThis(), projectile.Center - projectile.oldVelocity, vel, ModContent.ProjectileType<DicerPlantera>(), projectile.damage, projectile.knockBack, projectile.owner, 0, 0);
+                    }
+                    break;
+
+                default:
+                    break;
             }
-            break;
-          }
-          break;
-        case 581:
-          Projectile projectile7 = projectile;
-          ((Entity) projectile7).position = Vector2.op_Addition(((Entity) projectile7).position, Vector2.op_Multiply(((Entity) projectile).velocity, 0.25f));
-          break;
-        case 629:
-          if (!this.firstTickAICheckDone)
-          {
-            NPC npc4 = FargoSoulsUtil.NPCExists(projectile.ai[0], 507, 517, 493, 422);
-            if (npc4 != null)
+
+            return base.OnTileCollide(projectile, oldVelocity);
+        }
+
+        public override void ModifyHitPlayer(Projectile projectile, Player target, ref Player.HurtModifiers modifiers)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return;
+
+            if (NPC.downedGolemBoss && projectile.type == ProjectileID.VortexLightning)
+                modifiers.FinalDamage *= 2;
+        }
+
+
+        public override void OnHitNPC(Projectile projectile, NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            base.OnHitNPC(projectile, target, hit, damageDone);
+
+            if (!WorldSavingSystem.EternityMode)
+                return;
+            Player player = Main.player[projectile.owner];
+            switch (projectile.type)
             {
-              if ((double) ((Entity) projectile).Distance(((Entity) npc4).Center) > 4000.0)
-                ((Entity) projectile).active = false;
-              int closest = (int) Player.FindClosest(((Entity) projectile).Center, 0, 0);
-              if (closest != -1 && (!((Entity) Main.player[closest]).active || (double) ((Entity) npc4).Distance(((Entity) Main.player[closest]).Center) >= 4000.0))
-              {
-                ((Entity) projectile).active = false;
-                break;
-              }
-              break;
+                case ProjectileID.PalladiumPike:
+                    if (target.type != NPCID.TargetDummy && !target.friendly) //may add more checks here idk
+                        player.AddBuff(BuffID.RapidHealing, 60 * 5);
+                    break;
+                case ProjectileID.CobaltNaginata:
+                    if (projectile.ai[2] < 2) //only twice per swing
+                    {
+                        Projectile p = FargoSoulsUtil.NewProjectileDirectSafe(player.GetSource_OnHit(target), target.position + Vector2.UnitX * Main.rand.Next(target.width) + Vector2.UnitY * Main.rand.Next(target.height), Vector2.Zero, ModContent.ProjectileType<CobaltExplosion>(), (int)(hit.SourceDamage * 0.4f), 0f, Main.myPlayer);
+                        if (p != null)
+                            p.FargoSouls().CanSplit = false;
+                        projectile.ai[2]++;
+                    }
+                    break;
+                case ProjectileID.IceBolt: //Ice Blade projectile
+                    target.AddBuff(BuffID.Frostburn, 60 * 3);
+                    break;
+                case ProjectileID.SporeCloud:
+                    if (SourceItemType == ItemID.ChlorophyteSaber)
+                        projectile.velocity *= 0.25f;
+                    break;
+                default:
+                    break;
             }
-            break;
-          }
-          break;
-        case 651:
-          if (projectile.owner == Main.myPlayer && Main.player[projectile.owner].FargoSouls().LihzahrdCurse)
-          {
-            projectile.Kill();
-            break;
-          }
-          break;
-        case 654:
-          if (!WorldSavingSystem.MasochistModeReal && sourceNpc != null && sourceNpc.type == 245 && this.counter > 45)
-          {
-            projectile.Kill();
-            break;
-          }
-          break;
-        case 655:
-          if (projectile.timeLeft > 30 && ((double) ((Entity) projectile).velocity.X != 0.0 || (double) ((Entity) projectile).velocity.Y == 0.0))
-          {
-            projectile.timeLeft = 30;
-            break;
-          }
-          break;
-        case 657:
-          if (Main.hardMode && projectile.timeLeft == 1199 && NPC.CountNPCS(542) < 10 && FargoSoulsUtil.HostCheck && (sourceNpc == null || sourceNpc.type != ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>() && sourceNpc.type != ModContent.NPCType<SpiritChampion>()))
-            FargoSoulsUtil.NewNPCEasy(Entity.InheritSource((Entity) projectile), ((Entity) projectile).Center, 542, velocity: new Vector2(Utils.NextFloat(Main.rand, -10f, 10f), Utils.NextFloat(Main.rand, -20f, -10f)));
-          if (sourceNpc != null && sourceNpc.type == ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>() && (double) sourceNpc.ai[0] != 5.0)
-          {
-            projectile.ai[0] += 2f;
-            break;
-          }
-          break;
-        case 686:
-          if (!this.firstTickAICheckDone)
-          {
-            if (EModeGlobalProjectile.NonSwarmFight(projectile, 551))
+        }
+
+        public override void OnHitPlayer(Projectile projectile, Player target, Player.HurtInfo info)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return;
+
+            NPC sourceNPC = projectile.GetSourceNPC();
+
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.moonBoss, NPCID.MoonLordCore)
+                && sourceNPC is NPC
+                && sourceNPC.TryGetGlobalNPC(out MoonLordBodyPart _))
             {
-              bool inPhase2 = sourceNpc.GetGlobalNPC<Betsy>().InPhase2;
-              int num1 = inPhase2 ? 2 : 1;
-              for (int index = 0; index < num1; ++index)
-              {
-                Vector2 vector2 = Vector2.op_Multiply(Utils.NextFloat(Main.rand, 8f, 12f), Vector2.op_UnaryNegation(Utils.RotatedByRandom(Vector2.UnitY, Math.PI / 2.0)));
-                float num2 = inPhase2 ? (float) (60 + Main.rand.Next(60)) : (float) (90 + Main.rand.Next(30));
-                if (FargoSoulsUtil.HostCheck)
-                  Projectile.NewProjectile(Entity.InheritSource((Entity) projectile), ((Entity) projectile).Center, vector2, ModContent.ProjectileType<BetsyPhoenix>(), projectile.damage, 0.0f, Main.myPlayer, (float) Player.FindClosest(((Entity) projectile).Center, 0, 0), num2, 0.0f);
-              }
-              break;
+                target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 180);
             }
-            break;
-          }
-          break;
-        case 687:
-          if (EModeGlobalProjectile.NonSwarmFight(projectile, 551))
-          {
-            bool inPhase2 = sourceNpc.GetGlobalNPC<Betsy>().InPhase2;
-            if (inPhase2 && !this.firstTickAICheckDone && WorldSavingSystem.MasochistModeReal && FargoSoulsUtil.HostCheck)
-              Projectile.NewProjectile(Entity.InheritSource((Entity) projectile), Vector2.op_Addition(((Entity) projectile).Center, Vector2.op_Multiply(100f, Vector2.Normalize(((Entity) sourceNpc).velocity))), Vector2.Zero, ModContent.ProjectileType<EarthChainBlast>(), projectile.damage, 0.0f, Main.myPlayer, Utils.ToRotation(((Entity) sourceNpc).velocity), 7f, 0.0f);
-            if (this.counter > (inPhase2 ? 2 : 4))
+
+            if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.cultBoss, NPCID.CultistBoss)
+                && target.Distance(Main.npc[EModeGlobalNPC.cultBoss].Center) < 2400)
             {
-              this.counter = 0;
-              SoundEngine.PlaySound(ref SoundID.Item34, new Vector2?(((Entity) projectile).Center), (SoundUpdateCallback) null);
-              Vector2 vector2_1 = Utils.RotatedBy(((Entity) projectile).velocity, (Main.rand.NextDouble() - 0.5) * Math.PI / 10.0, new Vector2());
-              ((Vector2) ref vector2_1).Normalize();
-              Vector2 vector2_2 = Vector2.op_Multiply(vector2_1, Utils.NextFloat(Main.rand, 8f, 12f));
-              int num = ModContent.ProjectileType<BetsyHomingFireball>();
-              if (!inPhase2 || Utils.NextBool(Main.rand))
-              {
-                num = ModContent.ProjectileType<WillFireball>();
-                vector2_2 = Vector2.op_Multiply(vector2_2, 2f);
-                if (inPhase2)
-                  vector2_2 = Vector2.op_Multiply(vector2_2, 1.5f);
-              }
-              if (FargoSoulsUtil.HostCheck)
-              {
-                Projectile.NewProjectile(Entity.InheritSource((Entity) projectile), ((Entity) projectile).Center, vector2_2, num, projectile.damage, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                break;
-              }
-              break;
+                target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 180);
             }
-            break;
-          }
-          break;
-        case 719:
-          ((Entity) projectile).velocity.Y -= 0.1f;
-          break;
-        case 811:
-        case 813:
-        case 814:
-          if (!Collision.SolidTiles(((Entity) projectile).Center, 0, 0))
-          {
-            Lighting.AddLight(((Entity) projectile).Center, 19);
-            if (this.counter > 180)
+
+            //if (sourceNPC is NPC && sourceNPC.ModNPC is MutantBoss)
+            //    target.AddBuff(ModContent.BuffType<MutantFang>(), 180);
+
+            switch (projectile.type)
             {
-              projectile.tileCollide = true;
-              break;
+                case ProjectileID.DD2ExplosiveTrapT3Explosion:
+                    if (sourceNPC is NPC && sourceNPC.type == ModContent.NPCType<TimberChampion>())
+                        target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300);
+                    break;
+
+                case ProjectileID.InsanityShadowHostile:
+                    if (WorldSavingSystem.MasochistModeReal && Main.getGoodWorld)
+                        Deerclops.SpawnFreezeHands(projectile, target);
+                    goto case ProjectileID.DeerclopsIceSpike;
+                case ProjectileID.DeerclopsIceSpike:
+                case ProjectileID.DeerclopsRangedProjectile:
+                    target.AddBuff(BuffID.Frostburn, 90);
+                    //target.AddBuff(BuffID.BrokenArmor, 90);
+                    if (WorldSavingSystem.MasochistModeReal)
+                        target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 900);
+                    target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 1200);
+                    break;
+
+                case ProjectileID.BloodShot:
+                case ProjectileID.BloodNautilusTears:
+                case ProjectileID.BloodNautilusShot:
+                case ProjectileID.SharpTears:
+                    target.AddBuff(ModContent.BuffType<AnticoagulationBuff>(), 600);
+                    break;
+
+                case ProjectileID.FairyQueenLance:
+                    if (WorldSavingSystem.EternityMode && sourceNPC is NPC && sourceNPC.type == ModContent.NPCType<MutantBoss>())
+                    {
+                        target.FargoSouls().MaxLifeReduction += 100;
+                        target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400);
+                        target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180);
+                    }
+                    goto case ProjectileID.FairyQueenSunDance;
+
+                case ProjectileID.FairyQueenHymn:
+                case ProjectileID.FairyQueenSunDance:
+                case ProjectileID.HallowBossRainbowStreak:
+                case ProjectileID.HallowBossLastingRainbow:
+                case ProjectileID.HallowBossSplitShotCore:
+                    if (target.HasBuff<SmiteBuff>())
+                        target.AddBuff(ModContent.BuffType<PurifiedBuff>(), 300);
+                    target.AddBuff(ModContent.BuffType<SmiteBuff>(), 900);
+                    break;
+
+                case ProjectileID.RollingCactus:
+                case ProjectileID.RollingCactusSpike:
+                    target.AddBuff(BuffID.Poisoned, 120);
+                    break;
+
+                case ProjectileID.TorchGod:
+                    target.AddBuff(BuffID.OnFire, 60);
+                    break;
+
+                case ProjectileID.Boulder:
+                    target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600);
+                    break;
+
+                case ProjectileID.PoisonDartTrap:
+                case ProjectileID.SpearTrap:
+                case ProjectileID.SpikyBallTrap:
+                    target.AddBuff(ModContent.BuffType<IvyVenomBuff>(), 360);
+                    break;
+
+                case ProjectileID.JavelinHostile:
+                    target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600);
+                    target.FargoSouls().AddBuffNoStack(ModContent.BuffType<StunnedBuff>(), 30);
+                    break;
+
+                case ProjectileID.DemonSickle:
+                    target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300);
+                    break;
+
+                case ProjectileID.HarpyFeather:
+                    target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 300);
+                    break;
+
+                case ProjectileID.SandBallFalling:
+                    if (projectile.velocity.X != 0) //so only antlion sand and not falling sand 
+                    {
+                        target.FargoSouls().AddBuffNoStack(ModContent.BuffType<StunnedBuff>(), 60);
+                    }
+                    break;
+
+                case ProjectileID.Stinger:
+                case ProjectileID.QueenBeeStinger:
+                    target.AddBuff(ModContent.BuffType<SwarmingBuff>(), 300);
+                    break;
+
+                case ProjectileID.Skull:
+                    target.FargoSouls().AddBuffNoStack(BuffID.Cursed, 30);
+                    if (sourceNPC != null && sourceNPC.type == NPCID.DungeonGuardian)
+                        target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 600);
+                    break;
+
+                case ProjectileID.EyeLaser:
+                    if (sourceNPC != null && (sourceNPC.type == NPCID.WallofFlesh || sourceNPC.type == NPCID.WallofFleshEye))
+                    {
+                        target.AddBuff(BuffID.OnFire, 300);
+                        if (WorldSavingSystem.MasochistModeReal)
+                            target.AddBuff(BuffID.Burning, 30);
+                    }
+                    break;
+
+                case ProjectileID.DrManFlyFlask:
+                    switch (Main.rand.Next(7))
+                    {
+                        case 0:
+                            target.AddBuff(BuffID.Venom, 300);
+                            break;
+                        case 1:
+                            target.AddBuff(BuffID.Confused, 300);
+                            break;
+                        case 2:
+                            target.AddBuff(BuffID.CursedInferno, 300);
+                            break;
+                        case 3:
+                            target.AddBuff(BuffID.OgreSpit, 300);
+                            break;
+                        case 4:
+                            target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 600);
+                            break;
+                        case 5:
+                            target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600);
+                            break;
+                        case 6:
+                            target.AddBuff(ModContent.BuffType<PurifiedBuff>(), 600);
+                            break;
+
+                        default:
+                            break;
+                    }
+                    target.AddBuff(BuffID.Stinky, 1200);
+                    break;
+
+                case ProjectileID.SpikedSlimeSpike:
+                    target.AddBuff(BuffID.Slimed, 120);
+                    break;
+
+                case ProjectileID.QueenSlimeGelAttack:
+                case ProjectileID.QueenSlimeMinionBlueSpike:
+                case ProjectileID.QueenSlimeMinionPinkBall:
+                case ProjectileID.QueenSlimeSmash:
+                    target.AddBuff(BuffID.Slimed, 180);
+                    break;
+
+                case ProjectileID.CultistBossLightningOrb:
+                case ProjectileID.CultistBossLightningOrbArc:
+                    target.AddBuff(BuffID.Electrified, 300);
+                    break;
+
+                case ProjectileID.CultistBossIceMist:
+                    target.FargoSouls().AddBuffNoStack(BuffID.Frozen, 45);
+                    target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 1200);
+                    break;
+
+                case ProjectileID.CultistBossFireBall:
+                    target.AddBuff(BuffID.OnFire, 300);
+                    target.AddBuff(BuffID.Burning, 120);
+
+                    if (sourceNPC is NPC && sourceNPC.type == NPCID.DD2Betsy)
+                    {
+                        //target.AddBuff(BuffID.OnFire, 600);
+                        //target.AddBuff(BuffID.Ichor, 600);
+                        target.AddBuff(BuffID.WitheredArmor, 300);
+                        target.AddBuff(BuffID.WitheredWeapon, 300);
+                        target.AddBuff(BuffID.Burning, 300);
+                    }
+                    break;
+
+                case ProjectileID.CultistBossFireBallClone:
+                    target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 600);
+                    break;
+
+                case ProjectileID.PaladinsHammerHostile:
+                    target.FargoSouls().AddBuffNoStack(ModContent.BuffType<StunnedBuff>(), 60);
+                    break;
+
+                case ProjectileID.RuneBlast:
+                    target.AddBuff(ModContent.BuffType<HexedBuff>(), 240);
+
+                    if (sourceNPC is NPC && sourceNPC.type == NPCID.RuneWizard)
+                    {
+                        target.AddBuff(ModContent.BuffType<FlamesoftheUniverseBuff>(), 60);
+                        target.AddBuff(BuffID.Suffocation, 240);
+                    }
+                    break;
+
+                case ProjectileID.PoisonSeedPlantera:
+                    target.AddBuff(BuffID.Poisoned, 300);
+                    goto case ProjectileID.SeedPlantera;
+                case ProjectileID.SeedPlantera:
+                case ProjectileID.ThornBall:
+                    target.AddBuff(ModContent.BuffType<IvyVenomBuff>(), 240);
+                    break;
+
+                case ProjectileID.DesertDjinnCurse:
+                    if (target.ZoneCorrupt)
+                        target.AddBuff(BuffID.CursedInferno, 240);
+                    else if (target.ZoneCrimson)
+                        target.AddBuff(BuffID.Ichor, 240);
+                    break;
+
+                case ProjectileID.BrainScramblerBolt:
+                    target.AddBuff(ModContent.BuffType<FlippedBuff>(), 60);
+                    target.AddBuff(ModContent.BuffType<UnstableBuff>(), 60);
+                    break;
+
+                case ProjectileID.MartianTurretBolt:
+                case ProjectileID.GigaZapperSpear:
+                    target.AddBuff(ModContent.BuffType<LightningRodBuff>(), 300);
+                    break;
+
+                case ProjectileID.RayGunnerLaser:
+                    target.AddBuff(BuffID.VortexDebuff, 180);
+                    break;
+
+                case ProjectileID.SaucerMissile:
+                    target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 300);
+                    target.AddBuff(ModContent.BuffType<CrippledBuff>(), 300);
+                    break;
+
+                case ProjectileID.SaucerLaser:
+                    target.AddBuff(BuffID.Electrified, 300);
+                    break;
+
+                case ProjectileID.UFOLaser:
+                case ProjectileID.SaucerDeathray:
+                    target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 360);
+                    break;
+
+                case ProjectileID.FlamingWood:
+                case ProjectileID.GreekFire1:
+                case ProjectileID.GreekFire2:
+                case ProjectileID.GreekFire3:
+                    if (Main.hardMode)
+                        target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 180);
+                    else
+                        target.AddBuff(BuffID.OnFire3, 180);
+                    break;
+
+                case ProjectileID.VortexAcid:
+                case ProjectileID.VortexLaser:
+                    target.AddBuff(ModContent.BuffType<LightningRodBuff>(), 600);
+                    target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 300);
+                    break;
+
+                case ProjectileID.VortexLightning:
+                    target.AddBuff(BuffID.Electrified, 300);
+                    break;
+
+                case ProjectileID.LostSoulHostile:
+                    target.AddBuff(ModContent.BuffType<HexedBuff>(), 240);
+                    break;
+
+                case ProjectileID.InfernoHostileBlast:
+                case ProjectileID.InfernoHostileBolt:
+                    if (!(sourceNPC is NPC && sourceNPC.type == ModContent.NPCType<DeviBoss>()))
+                    {
+                        if (Main.rand.NextBool(5))
+                            target.AddBuff(ModContent.BuffType<FusedBuff>(), 1800);
+                    }
+                    break;
+
+                case ProjectileID.ShadowBeamHostile:
+                    if (!(sourceNPC is NPC && sourceNPC.type == ModContent.NPCType<DeviBoss>()))
+                    {
+                        target.AddBuff(ModContent.BuffType<RottingBuff>(), 1800);
+                        target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300);
+                    }
+                    break;
+
+                case ProjectileID.PhantasmalDeathray:
+                    target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 360);
+                    break;
+
+                case ProjectileID.PhantasmalBolt:
+                case ProjectileID.PhantasmalEye:
+                case ProjectileID.PhantasmalSphere:
+                    target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 360);
+                    if (WorldSavingSystem.EternityMode && sourceNPC is NPC && sourceNPC.type == ModContent.NPCType<MutantBoss>())
+                    {
+                        target.FargoSouls().MaxLifeReduction += 100;
+                        target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400);
+                        target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180);
+                    }
+                    break;
+
+                case ProjectileID.RocketSkeleton:
+                    target.AddBuff(BuffID.Dazed, 120);
+                    target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300);
+                    break;
+
+                case ProjectileID.FlamesTrap:
+                case ProjectileID.FlamethrowerTrap:
+                case ProjectileID.GeyserTrap:
+                case ProjectileID.Fireball:
+                case ProjectileID.EyeBeam:
+                    target.AddBuff(BuffID.OnFire, 300);
+
+                    if (sourceNPC is NPC)
+                    {
+                        if (sourceNPC.type == NPCID.Golem)
+                        {
+                            //target.AddBuff(BuffID.BrokenArmor, 600);
+                            target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600);
+                            //target.AddBuff(BuffID.WitheredArmor, 600);
+
+                            if (Framing.GetTileSafely(sourceNPC.Center).WallType != WallID.LihzahrdBrickUnsafe)
+                                target.AddBuff(BuffID.Burning, 120);
+                        }
+
+                        if (sourceNPC.type == ModContent.NPCType<EarthChampion>())
+                            target.AddBuff(BuffID.Burning, 300);
+
+                        if (sourceNPC.type == ModContent.NPCType<TerraChampion>())
+                        {
+                            target.AddBuff(BuffID.OnFire, 600);
+                            target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 600);
+                        }
+                    }
+                    break;
+
+                case ProjectileID.DD2BetsyFireball:
+                case ProjectileID.DD2BetsyFlameBreath:
+                    //target.AddBuff(BuffID.OnFire, 600);
+                    //target.AddBuff(BuffID.Ichor, 600);
+                    target.AddBuff(BuffID.WitheredArmor, 300);
+                    target.AddBuff(BuffID.WitheredWeapon, 300);
+                    target.AddBuff(BuffID.Burning, 300);
+                    break;
+
+                case ProjectileID.DD2DrakinShot:
+                    target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 600);
+                    break;
+
+                case ProjectileID.NebulaSphere:
+                case ProjectileID.NebulaLaser:
+                case ProjectileID.NebulaBolt:
+                    target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 300);
+                    target.AddBuff(ModContent.BuffType<LethargicBuff>(), 300);
+                    break;
+
+                case ProjectileID.StardustJellyfishSmall:
+                case ProjectileID.StardustSoldierLaser:
+                case ProjectileID.Twinkle:
+                    target.AddBuff(BuffID.Obstructed, 20);
+                    target.AddBuff(BuffID.Blackout, 300);
+                    break;
+
+                case ProjectileID.Sharknado:
+                case ProjectileID.Cthulunado:
+                    target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600);
+                    target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 15 * 60);
+                    target.FargoSouls().MaxLifeReduction += FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.fishBossEX, NPCID.DukeFishron) ? 100 : 25;
+                    break;
+
+                case ProjectileID.FlamingScythe:
+                    target.AddBuff(BuffID.OnFire, 900);
+                    target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 900);
+                    break;
+
+                case ProjectileID.FrostWave:
+                case ProjectileID.FrostShard:
+                    target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 600);
+                    break;
+
+                case ProjectileID.SnowBallHostile:
+                    target.FargoSouls().AddBuffNoStack(BuffID.Frozen, 45);
+                    break;
+
+                case ProjectileID.BulletSnowman:
+                    target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 600);
+                    break;
+
+                case ProjectileID.UnholyTridentHostile:
+                    target.AddBuff(BuffID.Darkness, 300);
+                    target.AddBuff(BuffID.Blackout, 300);
+                    target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 600);
+                    //target.AddBuff(ModContent.BuffType<MarkedforDeath>(), 180);
+                    break;
+
+                case ProjectileID.BombSkeletronPrime:
+                    target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600);
+                    break;
+
+                case ProjectileID.DeathLaser:
+                    if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.retiBoss, NPCID.Retinazer))
+                        target.AddBuff(BuffID.Ichor, 600);
+                    if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.destroyBoss, NPCID.TheDestroyer))
+                        target.AddBuff(BuffID.Electrified, 60);
+                    break;
+
+                case ProjectileID.MoonlordBullet:
+                    if (sourceNPC is NPC && sourceNPC.type == NPCID.VortexRifleman)
+                    {
+                        target.AddBuff(ModContent.BuffType<LightningRodBuff>(), 300);
+                        target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 120);
+                    }
+                    break;
+
+                case ProjectileID.IceSickle:
+                    target.AddBuff(BuffID.Frostburn, 240);
+                    target.AddBuff(BuffID.Chilled, 120);
+                    break;
+
+                case ProjectileID.WaterBolt:
+                case ProjectileID.WaterStream:
+                    target.AddBuff(BuffID.Wet, 600);
+                    break;
+
+                case ProjectileID.DeathSickle:
+                    target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 600);
+                    target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 300);
+                    break;
+
+                case ProjectileID.MeteorShot:
+                    if (sourceNPC is NPC && sourceNPC.type == NPCID.TacticalSkeleton)
+                    {
+                        target.AddBuff(BuffID.OnFire, 360);
+                        target.AddBuff(BuffID.Burning, 180);
+                    }
+                    goto case ProjectileID.BulletDeadeye;
+                case ProjectileID.JestersArrow:
+                    if (sourceNPC is NPC && sourceNPC.type == NPCID.BigMimicHallow)
+                        target.AddBuff(ModContent.BuffType<SmiteBuff>(), 600);
+                    goto case ProjectileID.BulletDeadeye;
+                case ProjectileID.BulletDeadeye:
+                    if (sourceNPC is NPC && (sourceNPC.type == NPCID.PirateShipCannon || sourceNPC.type == NPCID.PirateDeadeye || sourceNPC.type == NPCID.PirateCrossbower))
+                        target.AddBuff(ModContent.BuffType<MidasBuff>(), 600);
+                    break;
+
+                case ProjectileID.CannonballHostile:
+                    target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600);
+                    target.AddBuff(ModContent.BuffType<MidasBuff>(), 900);
+                    break;
+
+                case ProjectileID.AncientDoomProjectile:
+                    target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 300);
+                    target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300);
+                    break;
+
+                case ProjectileID.ShadowFlame:
+                    target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300);
+                    break;
+
+                case ProjectileID.SandnadoHostile:
+                    if (!target.HasBuff(BuffID.Dazed))
+                        target.AddBuff(BuffID.Dazed, 120);
+                    break;
+
+                case ProjectileID.DD2OgreSmash:
+                    target.AddBuff(BuffID.BrokenArmor, 300);
+                    break;
+
+                case ProjectileID.DD2OgreStomp:
+                    target.AddBuff(BuffID.Dazed, 120);
+                    break;
+
+                case ProjectileID.DD2DarkMageBolt:
+                    target.AddBuff(ModContent.BuffType<HexedBuff>(), 240);
+                    break;
+
+                case ProjectileID.IceSpike:
+                    //target.AddBuff(BuffID.Slimed, 120);
+                    target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 300);
+                    break;
+
+                case ProjectileID.JungleSpike:
+                    //target.AddBuff(BuffID.Slimed, 120);
+                    target.AddBuff(ModContent.BuffType<InfestedBuff>(), 300);
+                    break;
+
+                default:
+                    break;
             }
-            break;
-          }
-          break;
-        case 872:
-          if (!EModeGlobalProjectile.NonSwarmFight(projectile, 636))
-          {
-            this.EModeCanHurt = true;
-            this.altBehaviour = false;
-            break;
-          }
-          if (!WorldSavingSystem.SwarmActive)
-          {
-            if ((double) Math.Abs(MathHelper.WrapAngle(Utils.ToRotation(((Entity) projectile).velocity) - projectile.localAI[1])) > 2.8274333477020264)
-              this.EModeCanHurt = true;
-            projectile.extraUpdates = this.EModeCanHurt ? 1 : 3;
-            if ((double) projectile.localAI[0] == 1.0)
-              ((Entity) projectile).velocity = Utils.RotatedBy(((Entity) projectile).velocity, -(double) projectile.ai[0] * 2.0, new Vector2());
-          }
-          if (this.altBehaviour && this.EModeCanHurt)
-          {
-            ((Entity) projectile).velocity = Utils.RotatedBy(((Entity) projectile).velocity, -(double) projectile.ai[0] * 0.5, new Vector2());
-            break;
-          }
-          break;
-        case 873:
-          if (!this.EModeCanHurt)
-          {
-            this.EModeCanHurt = WorldSavingSystem.SwarmActive || projectile.timeLeft < 100;
-            break;
-          }
-          break;
-        case 876:
-          if (projectile.damage > projectile.originalDamage)
-          {
-            projectile.damage = projectile.originalDamage;
-            break;
-          }
-          break;
-        case 919:
-          this.EModeCanHurt = (double) projectile.localAI[0] > 60.0;
-          if (this.altBehaviour)
-          {
-            if (!this.EModeCanHurt)
+        }
+        public override bool PreKill(Projectile projectile, int timeLeft)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return base.PreKill(projectile, timeLeft);
+
+            if (projectile.owner == Main.myPlayer && HasKillCooldown)
             {
-              this.counter = 0;
-              ++projectile.timeLeft;
-              projectile.localAI[0] -= 0.33f;
+                if (Main.player[projectile.owner].Eternity().MasomodeCrystalTimer > 60)
+                    return false;
+
+                Main.player[projectile.owner].Eternity().MasomodeCrystalTimer += 12;
+                return true;
             }
-            Projectile projectile8 = projectile;
-            ((Entity) projectile8).position = Vector2.op_Subtraction(((Entity) projectile8).position, Vector2.op_Multiply(Vector2.op_Multiply(((Entity) projectile).velocity, 0.33f), Utils.Clamp<float>((float) Math.Sqrt(1.0 - (double) this.counter / 60.0), 0.0f, 1f)));
-            break;
-          }
-          if (EModeGlobalProjectile.NonSwarmFight(projectile, 636))
-          {
-            if ((double) sourceNpc.ai[0] == 7.0 && (double) sourceNpc.ai[1] < (double) byte.MaxValue)
+
+            return base.PreKill(projectile, timeLeft);
+        }
+
+        public override void OnKill(Projectile projectile, int timeLeft)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return;
+
+            switch (projectile.type)
             {
-              if (sourceNpc.HasValidTarget)
-              {
-                float num = WorldSavingSystem.MasochistModeReal ? 0.6f : 0.4f;
-                Projectile projectile9 = projectile;
-                ((Entity) projectile9).position = Vector2.op_Addition(((Entity) projectile9).position, Vector2.op_Multiply(num, Vector2.op_Subtraction(((Entity) Main.player[sourceNpc.target]).position, ((Entity) Main.player[sourceNpc.target]).oldPosition)));
-                break;
-              }
-              break;
-            }
-            if ((double) sourceNpc.ai[0] == 6.0 && (double) sourceNpc.ai[1] > 60.0)
-            {
-              Projectile projectile10 = projectile;
-              ((Entity) projectile10).position = Vector2.op_Addition(((Entity) projectile10).position, Vector2.op_Subtraction(((Entity) sourceNpc).position, ((Entity) sourceNpc).oldPosition));
-              break;
-            }
-            break;
-          }
-          break;
-        case 921:
-          if (!WorldSavingSystem.MasochistModeReal && !WorldSavingSystem.SwarmActive)
-          {
-            float num = Math.Max(0.0f, (float) (1.0 - (double) this.counter / 60.0 / (double) projectile.MaxUpdates));
-            Projectile projectile11 = projectile;
-            ((Entity) projectile11).position = Vector2.op_Subtraction(((Entity) projectile11).position, Vector2.op_Multiply(((Entity) projectile).velocity, num));
-            ((Entity) projectile).velocity.Y -= 0.15f * num;
-            break;
-          }
-          break;
-        case 923:
-          if (!WorldSavingSystem.SwarmActive)
-          {
-            NPC npc5 = FargoSoulsUtil.NPCExists(projectile.ai[1], 636);
-            if (npc5 != null)
-            {
-              if ((double) npc5.ai[0] == 8.0 || (double) npc5.ai[0] == 9.0)
-              {
-                projectile.rotation = projectile.ai[0];
-                if (this.counter < 60)
-                  this.counter += 9;
-                if ((double) projectile.localAI[0] < 60.0)
-                  projectile.localAI[0] += 9f;
-              }
-              if ((double) npc5.ai[0] == 1.0 || (double) npc5.ai[0] == 10.0)
-              {
-                this.EModeCanHurt = false;
-                this.counter = 0;
-                projectile.timeLeft = 0;
-              }
-              if ((double) npc5.ai[0] == 6.0 && npc5.GetGlobalNPC<EmpressofLight>().AttackCounter % 2 == 0)
-              {
-                projectile.scale *= Utils.Clamp<float>(npc5.ai[1] / 80f, 0.0f, 2.5f);
-                break;
-              }
-              if (this.counter >= 60 && (double) projectile.scale > 0.5 && this.counter % 10 == 0)
-              {
-                float num3 = MathHelper.ToRadians(90f) * MathHelper.Lerp(0.0f, 1f, (float) ((double) this.counter % 50.0 / 50.0));
-                for (int index = -1; index <= 1; index += 2)
-                {
-                  if (((double) Math.Abs(num3) >= 1.0 / 1000.0 || index >= 0) && FargoSoulsUtil.HostCheck)
-                  {
-                    float num4 = 800f;
-                    Projectile.NewProjectile(Entity.InheritSource((Entity) projectile), Vector2.op_Addition(((Entity) projectile).Center, Vector2.op_Multiply(Utils.ToRotationVector2(projectile.rotation), num4)), Vector2.Zero, 919, projectile.damage, projectile.knockBack, projectile.owner, projectile.rotation + num3 * (float) index, projectile.ai[0], 0.0f);
-                  }
-                }
-                break;
-              }
-              break;
-            }
-            break;
-          }
-          break;
-        case 926:
-          if (!WorldSavingSystem.SwarmActive)
-          {
-            if (!WorldSavingSystem.MasochistModeReal)
-            {
-              float num = Math.Max(0.0f, (float) (1.0 - (double) this.counter / 60.0 / (double) projectile.MaxUpdates));
-              Projectile projectile12 = projectile;
-              ((Entity) projectile12).position = Vector2.op_Subtraction(((Entity) projectile12).position, Vector2.op_Multiply(((Entity) projectile).velocity, num));
-              ((Entity) projectile).velocity.Y -= 0.15f * num;
-            }
-            if (!this.firstTickAICheckDone && sourceNpc != null && sourceNpc.type == 657 && sourceNpc.life > sourceNpc.lifeMax / 2)
-              ((Entity) projectile).velocity.Y -= 6f;
-            if ((double) ((Entity) projectile).velocity.Y > 0.0 && (double) projectile.localAI[0] == 0.0)
-            {
-              projectile.localAI[0] = 1f;
-              for (int index7 = -1; index7 <= 1; index7 += 2)
-              {
-                if (Math.Sign(((Entity) projectile).velocity.X) != -index7)
-                {
-                  Vector2 vector2_3 = Utils.RotatedBy(Vector2.UnitX, (double) MathHelper.ToRadians((float) (10 * index7)), new Vector2());
-                  for (int index8 = 0; index8 < 12; ++index8)
-                  {
-                    Vector2 vector2_4 = Vector2.op_Multiply(Vector2.op_Multiply(Utils.NextFloat(Main.rand, 6f, 18f) * (float) index7, Utils.RotatedBy(vector2_3, 0.065449848771095276 * ((double) index8 + 0.5) * (double) -index7, new Vector2())), WorldSavingSystem.MasochistModeReal ? 2f : 1.5f);
+                case ProjectileID.BloodNautilusTears:
+                case ProjectileID.BloodNautilusShot:
                     if (FargoSoulsUtil.HostCheck)
-                      Projectile.NewProjectile(Entity.InheritSource((Entity) projectile), ((Entity) projectile).Center, vector2_4, 920, projectile.damage, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                  }
-                }
-              }
-              break;
+                        Projectile.NewProjectile(Entity.InheritSource(projectile), projectile.Center, Vector2.Zero, ModContent.ProjectileType<BloodFountain>(), projectile.damage, 0f, Main.myPlayer, Main.rand.Next(16, 48));
+                    break;
+
+                default:
+                    break;
             }
-            break;
-          }
-          break;
-        case 961:
-          if (!WorldSavingSystem.SwarmActive && (double) this.counter == 2.0 && projectile.hostile && (double) projectile.ai[1] > 1.2999999523162842)
-          {
-            float num = 1.3f;
-            if ((double) projectile.ai[1] > 1.3500000238418579)
-              num = 1.35f;
-            for (int index = -1; index <= 1; ++index)
+        }
+
+        public override Color? GetAlpha(Projectile projectile, Color lightColor)
+        {
+            if (!WorldSavingSystem.EternityMode)
+                return base.GetAlpha(projectile, lightColor);
+
+            if (projectile.type == ProjectileID.PoisonSeedPlantera || projectile.type == ProjectileID.SeedPlantera)
             {
-              Vector2 vector2 = Vector2.Lerp(((Entity) projectile).velocity, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, ((Vector2) ref ((Entity) projectile).velocity).Length()), (float) Math.Sign(((Entity) projectile).velocity.X)), 0.75f);
-              if (FargoSoulsUtil.HostCheck)
-                Projectile.NewProjectile(Entity.InheritSource((Entity) projectile), Vector2.op_Addition(((Entity) projectile).Center, Vector2.op_Multiply(200f, Vector2.Normalize(((Entity) projectile).velocity))), Utils.RotatedBy(vector2, (double) MathHelper.ToRadians(30f) * (double) index, new Vector2()), projectile.type, projectile.damage, projectile.knockBack, projectile.owner, 0.0f, num, 0.0f);
+                if (counter % 8 < 4)
+                    return new Color(255, 255, 255, 0);
+                return lightColor;
             }
-            break;
-          }
-          break;
-        case 965:
-          if (!WorldSavingSystem.SwarmActive)
-          {
-            if (Main.player[projectile.owner].ownedProjectileCounts[projectile.type] >= 4)
+
+            return base.GetAlpha(projectile, lightColor);
+        }
+        public override bool PreDraw(Projectile projectile, ref Color lightColor)
+        {
+            if (projectile.type == ProjectileID.PoisonSeedPlantera || projectile.type == ProjectileID.SeedPlantera)
             {
-              projectile.extraUpdates = 1;
-              Projectile projectile13 = projectile;
-              ((Entity) projectile13).position = Vector2.op_Addition(((Entity) projectile13).position, Vector2.op_Multiply(((Entity) projectile).velocity, 0.5f));
-              this.EModeCanHurt = true;
-              this.counter = -600;
-              break;
+                projectile.Opacity = 1f;
+                FargoSoulsUtil.GenericProjectileDraw(projectile, lightColor);
             }
-            if (!WorldSavingSystem.MasochistModeReal || !Main.getGoodWorld)
-            {
-              this.EModeCanHurt = false;
-              Projectile projectile14 = projectile;
-              ((Entity) projectile14).position = Vector2.op_Subtraction(((Entity) projectile14).position, ((Entity) projectile).velocity);
-              --projectile.ai[0];
-              projectile.alpha = (int) byte.MaxValue;
-              if (this.counter > 30 && Main.player[projectile.owner].ownedProjectileCounts[projectile.type] <= 1)
-              {
-                projectile.timeLeft = 0;
-                break;
-              }
-              break;
-            }
-            break;
-          }
-          break;
-      }
-      this.firstTickAICheckDone = true;
+            return base.PreDraw(projectile, ref lightColor);
+        }
     }
-
-    public virtual void PostAI(Projectile projectile)
-    {
-      switch (projectile.type)
-      {
-        case 872:
-        case 873:
-          if (!projectile.hostile)
-            break;
-          if (!this.EModeCanHurt)
-          {
-            if (this.FadeTimer < 20)
-              ++this.FadeTimer;
-          }
-          else if (this.FadeTimer > 0)
-            --this.FadeTimer;
-          float num = (float) (1.0 - 0.5 * (double) this.FadeTimer / 20.0);
-          projectile.Opacity = num;
-          break;
-      }
-    }
-
-    public virtual void ModifyHitNPC(
-      Projectile projectile,
-      NPC target,
-      ref NPC.HitModifiers modifiers)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      switch (projectile.type)
-      {
-        case 158:
-          ref StatModifier local1 = ref modifiers.FinalDamage;
-          local1 = StatModifier.op_Multiply(local1, 1.6f);
-          break;
-        case 159:
-          ref StatModifier local2 = ref modifiers.FinalDamage;
-          local2 = StatModifier.op_Multiply(local2, 0.9f);
-          break;
-        case 160:
-          ref StatModifier local3 = ref modifiers.FinalDamage;
-          local3 = StatModifier.op_Multiply(local3, 0.47f);
-          break;
-        case 161:
-          ref StatModifier local4 = ref modifiers.FinalDamage;
-          local4 = StatModifier.op_Multiply(local4, 0.275f);
-          break;
-        case 726:
-          if (Main.hardMode)
-            break;
-          ref StatModifier local5 = ref modifiers.FinalDamage;
-          local5 = StatModifier.op_Multiply(local5, 0.33f);
-          break;
-      }
-    }
-
-    public virtual bool OnTileCollide(Projectile projectile, Vector2 oldVelocity)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return base.OnTileCollide(projectile, oldVelocity);
-      switch (projectile.type)
-      {
-        case 31:
-          if ((double) projectile.ai[0] == 2.0)
-          {
-            int index = Dust.NewDust(((Entity) projectile).position, ((Entity) projectile).width, ((Entity) projectile).height, 32, 0.0f, ((Entity) projectile).velocity.Y / 2f, 0, new Color(), 1f);
-            Main.dust[index].velocity.X *= 0.4f;
-            ((Entity) projectile).active = false;
-            break;
-          }
-          break;
-        case 109:
-          ((Entity) projectile).active = false;
-          break;
-        case 277:
-          projectile.timeLeft = 0;
-          NPC npc = FargoSoulsUtil.NPCExists(NPC.plantBoss, new int[1]
-          {
-            262
-          });
-          if (npc != null && FargoSoulsUtil.HostCheck)
-          {
-            Vector2 vector2 = Vector2.op_Multiply(8f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) projectile, ((Entity) npc).Center));
-            Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), Vector2.op_Subtraction(((Entity) projectile).Center, ((Entity) projectile).oldVelocity), vector2, ModContent.ProjectileType<DicerPlantera>(), projectile.damage, projectile.knockBack, projectile.owner, 0.0f, 0.0f, 0.0f);
-            break;
-          }
-          break;
-        case 921:
-        case 926:
-          if (WorldSavingSystem.MasochistModeReal && Main.getGoodWorld)
-          {
-            if (FargoSoulsUtil.HostCheck)
-            {
-              for (int index = 0; index < 8; ++index)
-                Projectile.NewProjectile(((Entity) projectile).GetSource_FromThis((string) null), ((Entity) projectile).Center, Vector2.op_Multiply(Utils.RotatedBy(Vector2.UnitY, Math.PI / 4.0 * (double) index, new Vector2()), 2f), 146, 0, 0.0f, Main.myPlayer, 8f, 0.0f, 0.0f);
-              break;
-            }
-            break;
-          }
-          projectile.timeLeft = 0;
-          break;
-      }
-      return base.OnTileCollide(projectile, oldVelocity);
-    }
-
-    public virtual void ModifyHitPlayer(
-      Projectile projectile,
-      Player target,
-      ref Player.HurtModifiers modifiers)
-    {
-      if (!WorldSavingSystem.EternityMode || !NPC.downedGolemBoss || projectile.type != 580)
-        return;
-      ref StatModifier local = ref modifiers.FinalDamage;
-      local = StatModifier.op_Multiply(local, 2f);
-    }
-
-    public virtual void OnHitNPC(
-      Projectile projectile,
-      NPC target,
-      NPC.HitInfo hit,
-      int damageDone)
-    {
-      base.OnHitNPC(projectile, target, hit, damageDone);
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      Player player = Main.player[projectile.owner];
-      switch (projectile.type)
-      {
-        case 97:
-          if ((double) projectile.ai[2] >= 2.0)
-            break;
-          Projectile projectile1 = FargoSoulsUtil.NewProjectileDirectSafe(((Entity) player).GetSource_OnHit((Entity) target, (string) null), Vector2.op_Addition(Vector2.op_Addition(((Entity) target).position, Vector2.op_Multiply(Vector2.UnitX, (float) Main.rand.Next(((Entity) target).width))), Vector2.op_Multiply(Vector2.UnitY, (float) Main.rand.Next(((Entity) target).height))), Vector2.Zero, ModContent.ProjectileType<CobaltExplosion>(), (int) ((double) ((NPC.HitInfo) ref hit).Damage * 0.40000000596046448), 0.0f, Main.myPlayer);
-          if (projectile1 != null)
-            projectile1.FargoSouls().CanSplit = false;
-          ++projectile.ai[2];
-          break;
-        case 118:
-          target.AddBuff(44, 180, false);
-          break;
-        case 212:
-          if (target.type == 488 || target.friendly)
-            break;
-          player.AddBuff(58, 300, true, false);
-          break;
-      }
-    }
-
-    public virtual void OnHitPlayer(Projectile projectile, Player target, Player.HurtInfo info)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      NPC sourceNpc = projectile.GetSourceNPC();
-      MoonLordBodyPart moonLordBodyPart;
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.moonBoss, 398) && sourceNpc != null && sourceNpc.TryGetGlobalNPC<MoonLordBodyPart>(ref moonLordBodyPart))
-        target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 180, true, false);
-      if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.cultBoss, 439) && (double) ((Entity) target).Distance(((Entity) Main.npc[EModeGlobalNPC.cultBoss]).Center) < 2400.0)
-        target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 180, true, false);
-      switch (projectile.type)
-      {
-        case 5:
-          if (sourceNpc != null && sourceNpc.type == 475)
-          {
-            target.AddBuff(ModContent.BuffType<SmiteBuff>(), 600, true, false);
-            goto case 180;
-          }
-          else
-            goto case 180;
-        case 22:
-        case 27:
-          target.AddBuff(103, 600, true, false);
-          break;
-        case 31:
-          if ((double) ((Entity) projectile).velocity.X == 0.0)
-            break;
-          target.FargoSouls().AddBuffNoStack(ModContent.BuffType<StunnedBuff>(), 120);
-          break;
-        case 36:
-          if (sourceNpc != null && sourceNpc.type == 292)
-          {
-            target.AddBuff(24, 360, true, false);
-            target.AddBuff(67, 180, true, false);
-            goto case 180;
-          }
-          else
-            goto case 180;
-        case 38:
-          target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 300, true, false);
-          break;
-        case 44:
-          target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300, true, false);
-          break;
-        case 55:
-        case 719:
-          target.AddBuff(ModContent.BuffType<SwarmingBuff>(), 300, true, false);
-          break;
-        case 83:
-          if (sourceNpc == null || sourceNpc.type != 113 && sourceNpc.type != 114)
-            break;
-          target.AddBuff(24, 300, true, false);
-          if (!WorldSavingSystem.MasochistModeReal)
-            break;
-          target.AddBuff(67, 60, true, false);
-          break;
-        case 99:
-          target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600, true, false);
-          break;
-        case 100:
-          if (FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.retiBoss, 125))
-            target.AddBuff(69, 600, true, false);
-          if (!FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.destroyBoss, 134))
-            break;
-          target.AddBuff(144, 60, true, false);
-          break;
-        case 102:
-          target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600, true, false);
-          break;
-        case 109:
-          target.FargoSouls().AddBuffNoStack(47, 45);
-          break;
-        case 110:
-          target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 600, true, false);
-          break;
-        case 115:
-          target.AddBuff(22, 300, true, false);
-          target.AddBuff(80, 300, true, false);
-          target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 600, true, false);
-          break;
-        case 129:
-          target.AddBuff(ModContent.BuffType<HexedBuff>(), 240, true, false);
-          if (sourceNpc == null || sourceNpc.type != 172)
-            break;
-          target.AddBuff(ModContent.BuffType<FlamesoftheUniverseBuff>(), 60, true, false);
-          target.AddBuff(68, 240, true, false);
-          break;
-        case 174:
-          target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 300, true, false);
-          break;
-        case 176:
-          target.AddBuff(ModContent.BuffType<InfestedBuff>(), 300, true, false);
-          break;
-        case 180:
-          if (sourceNpc == null || sourceNpc.type != 492 && sourceNpc.type != 214 && sourceNpc.type != 215)
-            break;
-          target.AddBuff(ModContent.BuffType<MidasBuff>(), 600, true, false);
-          break;
-        case 184:
-        case 185:
-        case 186:
-          target.AddBuff(ModContent.BuffType<IvyVenomBuff>(), 360, true, false);
-          break;
-        case 187:
-        case 188:
-        case 258:
-        case 259:
-        case 654:
-          target.AddBuff(24, 300, true, false);
-          if (sourceNpc == null)
-            break;
-          if (sourceNpc.type == 245)
-          {
-            target.AddBuff(36, 600, true, false);
-            target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600, true, false);
-            target.AddBuff(195, 600, true, false);
-            Tile tileSafely = Framing.GetTileSafely(((Entity) sourceNpc).Center);
-            if (((Tile) ref tileSafely).WallType != (ushort) 87)
-              target.AddBuff(67, 120, true, false);
-          }
-          if (sourceNpc.type == ModContent.NPCType<EarthChampion>())
-            target.AddBuff(67, 300, true, false);
-          if (sourceNpc.type != ModContent.NPCType<TerraChampion>())
-            break;
-          target.AddBuff(24, 600, true, false);
-          target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 600, true, false);
-          break;
-        case 240:
-          target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600, true, false);
-          target.AddBuff(ModContent.BuffType<MidasBuff>(), 900, true, false);
-          break;
-        case 263:
-          target.AddBuff(44, 240, true, false);
-          target.AddBuff(46, 120, true, false);
-          break;
-        case 270:
-          target.FargoSouls().AddBuffNoStack(23, 30);
-          if (sourceNpc == null || sourceNpc.type != 68)
-            break;
-          target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 600, true, false);
-          break;
-        case 274:
-          target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 600, true, false);
-          target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 300, true, false);
-          break;
-        case 275:
-        case 277:
-          target.AddBuff(ModContent.BuffType<IvyVenomBuff>(), 240, true, false);
-          break;
-        case 276:
-          target.AddBuff(20, 300, true, false);
-          goto case 275;
-        case 290:
-          if (sourceNpc != null && sourceNpc.type == ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>())
-            break;
-          target.AddBuff(ModContent.BuffType<RottingBuff>(), 1800, true, false);
-          target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300, true, false);
-          break;
-        case 291:
-        case 292:
-          if (sourceNpc != null && sourceNpc.type == ModContent.NPCType<FargowiltasSouls.Content.Bosses.DeviBoss.DeviBoss>() || !Utils.NextBool(Main.rand, 5))
-            break;
-          target.AddBuff(ModContent.BuffType<FusedBuff>(), 1800, true, false);
-          break;
-        case 293:
-          target.AddBuff(ModContent.BuffType<HexedBuff>(), 240, true, false);
-          break;
-        case 300:
-          target.FargoSouls().AddBuffNoStack(ModContent.BuffType<StunnedBuff>(), 60);
-          break;
-        case 303:
-          target.AddBuff(160, 120, true, false);
-          target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300, true, false);
-          break;
-        case 325:
-        case 326:
-        case 327:
-        case 328:
-          target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 180, true, false);
-          break;
-        case 329:
-          target.AddBuff(24, 900, true, false);
-          target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 900, true, false);
-          break;
-        case 348:
-        case 349:
-          target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 600, true, false);
-          break;
-        case 384:
-        case 386:
-          target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600, true, false);
-          target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 1200, true, false);
-          target.FargoSouls().MaxLifeReduction += FargoSoulsUtil.BossIsAlive(ref EModeGlobalNPC.fishBossEX, 370) ? 100 : 25;
-          break;
-        case 433:
-        case 447:
-          target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 360, true, false);
-          break;
-        case 435:
-        case 437:
-          target.AddBuff(ModContent.BuffType<LightningRodBuff>(), 300, true, false);
-          break;
-        case 436:
-          target.AddBuff(ModContent.BuffType<FlippedBuff>(), 60, true, false);
-          target.AddBuff(ModContent.BuffType<UnstableBuff>(), 60, true, false);
-          break;
-        case 438:
-          target.AddBuff(164, 180, true, false);
-          break;
-        case 448:
-          target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 300, true, false);
-          target.AddBuff(ModContent.BuffType<CrippledBuff>(), 300, true, false);
-          break;
-        case 449:
-          target.AddBuff(144, 300, true, false);
-          break;
-        case 452:
-        case 454:
-        case 462:
-          target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 360, true, false);
-          if (!WorldSavingSystem.EternityMode || sourceNpc == null || sourceNpc.type != ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>())
-            break;
-          target.FargoSouls().MaxLifeReduction += 100;
-          target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400, true, false);
-          target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180, true, false);
-          break;
-        case 455:
-          target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 360, true, false);
-          break;
-        case 464:
-          target.FargoSouls().AddBuffNoStack(47, 45);
-          target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 1200, true, false);
-          break;
-        case 465:
-        case 466:
-          target.AddBuff(144, 300, true, false);
-          break;
-        case 467:
-          target.AddBuff(24, 300, true, false);
-          target.AddBuff(67, 120, true, false);
-          if (sourceNpc == null || sourceNpc.type != 551)
-            break;
-          target.AddBuff(195, 300, true, false);
-          target.AddBuff(196, 300, true, false);
-          target.AddBuff(67, 300, true, false);
-          break;
-        case 468:
-          target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 600, true, false);
-          break;
-        case 496:
-          target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300, true, false);
-          break;
-        case 501:
-          switch (Main.rand.Next(7))
-          {
-            case 0:
-              target.AddBuff(70, 300, true, false);
-              break;
-            case 1:
-              target.AddBuff(31, 300, true, false);
-              break;
-            case 2:
-              target.AddBuff(39, 300, true, false);
-              break;
-            case 3:
-              target.AddBuff(197, 300, true, false);
-              break;
-            case 4:
-              target.AddBuff(ModContent.BuffType<LivingWastelandBuff>(), 600, true, false);
-              break;
-            case 5:
-              target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600, true, false);
-              break;
-            case 6:
-              target.AddBuff(ModContent.BuffType<PurifiedBuff>(), 600, true, false);
-              break;
-          }
-          target.AddBuff(120, 1200, true, false);
-          break;
-        case 508:
-          target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 600, true, false);
-          target.FargoSouls().AddBuffNoStack(ModContent.BuffType<StunnedBuff>(), 60);
-          break;
-        case 537:
-        case 538:
-        case 539:
-          target.AddBuff(163, 20, true, false);
-          target.AddBuff(80, 300, true, false);
-          break;
-        case 573:
-        case 575:
-        case 576:
-          target.AddBuff(ModContent.BuffType<BerserkedBuff>(), 300, true, false);
-          target.AddBuff(ModContent.BuffType<LethargicBuff>(), 300, true, false);
-          break;
-        case 577:
-        case 581:
-          target.AddBuff(ModContent.BuffType<LightningRodBuff>(), 600, true, false);
-          target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 300, true, false);
-          break;
-        case 580:
-          target.AddBuff(144, 300, true, false);
-          break;
-        case 593:
-          target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 300, true, false);
-          target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 300, true, false);
-          break;
-        case 596:
-          if (target.ZoneCorrupt)
-          {
-            target.AddBuff(39, 240, true, false);
-            break;
-          }
-          if (!target.ZoneCrimson)
-            break;
-          target.AddBuff(69, 240, true, false);
-          break;
-        case 605:
-          target.AddBuff(137, 120, true, false);
-          break;
-        case 638:
-          if (sourceNpc == null || sourceNpc.type != 425)
-            break;
-          target.AddBuff(ModContent.BuffType<LightningRodBuff>(), 300, true, false);
-          target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 120, true, false);
-          break;
-        case 657:
-          if (target.HasBuff(160))
-            break;
-          target.AddBuff(160, 120, true, false);
-          break;
-        case 670:
-          target.AddBuff(160, 120, true, false);
-          break;
-        case 671:
-          target.AddBuff(ModContent.BuffType<ShadowflameBuff>(), 600, true, false);
-          break;
-        case 675:
-          target.AddBuff(ModContent.BuffType<HexedBuff>(), 240, true, false);
-          break;
-        case 683:
-          target.AddBuff(36, 300, true, false);
-          break;
-        case 686:
-        case 687:
-          target.AddBuff(195, 300, true, false);
-          target.AddBuff(196, 300, true, false);
-          target.AddBuff(67, 300, true, false);
-          break;
-        case 696:
-          if (sourceNpc == null || sourceNpc.type != ModContent.NPCType<TimberChampion>())
-            break;
-          target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300, true, false);
-          break;
-        case 727:
-        case 763:
-          target.AddBuff(20, 120, true, false);
-          break;
-        case 756:
-        case 811:
-        case 813:
-        case 814:
-          target.AddBuff(ModContent.BuffType<AnticoagulationBuff>(), 600, true, false);
-          break;
-        case 871:
-        case 872:
-        case 873:
-        case 923:
-        case 924:
-          target.AddBuff(ModContent.BuffType<PurifiedBuff>(), 300, true, false);
-          target.AddBuff(ModContent.BuffType<SmiteBuff>(), 1800, true, false);
-          break;
-        case 919:
-          if (WorldSavingSystem.EternityMode && sourceNpc != null && sourceNpc.type == ModContent.NPCType<FargowiltasSouls.Content.Bosses.MutantBoss.MutantBoss>())
-          {
-            target.FargoSouls().MaxLifeReduction += 100;
-            target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 5400, true, false);
-            target.AddBuff(ModContent.BuffType<MutantFangBuff>(), 180, true, false);
-            goto case 871;
-          }
-          else
-            goto case 871;
-        case 920:
-        case 921:
-        case 922:
-        case 926:
-          target.AddBuff(137, 180, true, false);
-          break;
-        case 949:
-          target.AddBuff(24, 60, true, false);
-          break;
-        case 961:
-        case 962:
-        case 965:
-          target.AddBuff(44, 90, true, false);
-          target.AddBuff(36, 90, true, false);
-          if (WorldSavingSystem.MasochistModeReal)
-            target.AddBuff(ModContent.BuffType<MarkedforDeathBuff>(), 900, true, false);
-          target.AddBuff(ModContent.BuffType<HypothermiaBuff>(), 1200, true, false);
-          break;
-      }
-    }
-
-    public virtual bool PreKill(Projectile projectile, int timeLeft)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return base.PreKill(projectile, timeLeft);
-      if (projectile.owner != Main.myPlayer || !this.HasKillCooldown)
-        return base.PreKill(projectile, timeLeft);
-      if (Main.player[projectile.owner].Eternity().MasomodeCrystalTimer > 60)
-        return false;
-      Main.player[projectile.owner].Eternity().MasomodeCrystalTimer += 12;
-      return true;
-    }
-
-    public virtual void OnKill(Projectile projectile, int timeLeft)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      switch (projectile.type)
-      {
-        case 813:
-        case 814:
-          if (!FargoSoulsUtil.HostCheck)
-            break;
-          Projectile.NewProjectile(Entity.InheritSource((Entity) projectile), ((Entity) projectile).Center, Vector2.Zero, ModContent.ProjectileType<BloodFountain>(), projectile.damage, 0.0f, Main.myPlayer, (float) Main.rand.Next(16, 48), 0.0f, 0.0f);
-          break;
-      }
-    }
-
-    public virtual Color? GetAlpha(Projectile projectile, Color lightColor)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return base.GetAlpha(projectile, lightColor);
-      return (projectile.type == 276 || projectile.type == 275) && this.counter % 8 < 4 ? new Color?(Color.op_Multiply(new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, 0), projectile.Opacity)) : base.GetAlpha(projectile, lightColor);
-    }
-  }
 }

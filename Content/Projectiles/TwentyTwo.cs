@@ -1,57 +1,51 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.TwentyTwo
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles
 {
-  public class TwentyTwo : ModProjectile
-  {
-    public virtual void SetDefaults()
+    public class TwentyTwo : ModProjectile
     {
-      ((Entity) this.Projectile).width = 42;
-      ((Entity) this.Projectile).height = 42;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.timeLeft = 6;
-      this.Projectile.FargoSouls().CanSplit = false;
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = Player.defaultHeight;
+            Projectile.height = Player.defaultHeight;
+            Projectile.aiStyle = -1;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = 6;
+            Projectile.FargoSouls().CanSplit = false;
+            Projectile.FargoSouls().TimeFreezeImmune = true;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+        }
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] != 0.0)
-        return;
-      SoundEngine.PlaySound(ref SoundID.ScaryScream, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-    }
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0f)
+            {
+                SoundEngine.PlaySound(SoundID.ScaryScream, Projectile.Center); //arte scream
+            }
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      if (this.Projectile.owner == Main.myPlayer)
-      {
-        Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-        int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-        int num2 = num1 * this.Projectile.frame;
-        Rectangle rectangle;
-        // ISSUE: explicit constructor call
-        ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-        Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-        Color alpha = this.Projectile.GetAlpha(lightColor);
-        float num3 = (float) ((double) this.Projectile.scale * (double) Main.screenHeight / 254.0) / Main.GameZoomTarget;
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, num3, (SpriteEffects) 0, 0.0f);
-      }
-      return false;
+        public override bool PreDraw(ref Color lightColor)
+        {
+            if (Projectile.owner == Main.myPlayer)
+            {
+                Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+                int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+                int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+                Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+                Vector2 origin2 = rectangle.Size() / 2f;
+
+                Color color26 = Projectile.GetAlpha(lightColor);
+
+                float scale = Projectile.scale * Main.screenHeight / 254f / Main.GameZoomTarget;
+
+                Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, scale, SpriteEffects.None, 0);
+            }
+            return false;
+        }
     }
-  }
 }

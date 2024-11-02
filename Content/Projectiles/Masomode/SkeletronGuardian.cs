@@ -1,15 +1,9 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.SkeletronGuardian
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
+using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
@@ -17,113 +11,129 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class SkeletronGuardian : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_197";
-
-    public virtual void SetStaticDefaults()
+    public class SkeletronGuardian : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 8;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public override string Texture => "Terraria/Images/Projectile_197";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 42;
-      ((Entity) this.Projectile).height = 42;
-      this.Projectile.penetrate = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.timeLeft = 360;
-      this.Projectile.hide = true;
-      this.Projectile.light = 0.5f;
-    }
-
-    public virtual void OnSpawn(IEntitySource source)
-    {
-      if (!SkeletronBone.SourceIsSkeletron(source))
-        return;
-      this.Projectile.ai[2] = 1f;
-      this.Projectile.netUpdate = true;
-    }
-
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = 1f;
-        this.Projectile.rotation = Utils.NextFloat(Main.rand, 0.0f, 6.28318548f);
-        this.Projectile.hide = false;
-        SoundEngine.PlaySound(ref SoundID.Item21, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        for (int index1 = 0; index1 < 50; ++index1)
+        public override void SetStaticDefaults()
         {
-          int index2 = Dust.NewDust(new Vector2(((Entity) this.Projectile).Center.X + (float) Main.rand.Next(-20, 20), ((Entity) this.Projectile).Center.Y + (float) Main.rand.Next(-20, 20)), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 5, 0.0f, 0.0f, 100, new Color(), 2f);
-          Main.dust[index2].noGravity = true;
+            // DisplayName.SetDefault("Baby Guardian");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 8;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-      }
-      if ((double) this.Projectile.ai[0] == 0.0)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Subtraction(((Entity) projectile).velocity, Utils.RotatedBy(new Vector2(this.Projectile.ai[1], 0.0f), (double) Utils.ToRotation(((Entity) this.Projectile).velocity), new Vector2()));
-        if ((double) ((Vector2) ref ((Entity) this.Projectile).velocity).Length() < 1.0)
-        {
-          int closest = (int) Player.FindClosest(((Entity) this.Projectile).Center, 0, 0);
-          if (closest != -1)
-          {
-            ((Entity) this.Projectile).velocity = Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) Main.player[closest]).Center);
-            this.Projectile.ai[0] = 1f;
-            this.Projectile.ai[1] = (float) closest;
-            this.Projectile.netUpdate = true;
-            SoundEngine.PlaySound(ref SoundID.Item1, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          }
-          else
-            this.Projectile.Kill();
-        }
-      }
-      else
-      {
-        if ((double) ++this.Projectile.localAI[0] < 45.0)
-        {
-          Projectile projectile = this.Projectile;
-          ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 1.08f);
-        }
-        if ((double) this.Projectile.localAI[0] < 65.0)
-        {
-          float rotation1 = Utils.ToRotation(((Entity) this.Projectile).velocity);
-          float rotation2 = Utils.ToRotation(Vector2.op_Subtraction(((Entity) Main.player[(int) this.Projectile.ai[1]]).Center, ((Entity) this.Projectile).Center));
-          ((Entity) this.Projectile).velocity = Utils.RotatedBy(new Vector2(((Vector2) ref ((Entity) this.Projectile).velocity).Length(), 0.0f), (double) Utils.AngleLerp(rotation1, rotation2, 0.065f), new Vector2());
-        }
-      }
-      ((Entity) this.Projectile).direction = (double) ((Entity) this.Projectile).velocity.X < 0.0 ? -1 : 1;
-      this.Projectile.rotation += (float) ((Entity) this.Projectile).direction * 0.3f;
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      for (int index1 = 0; index1 < 50; ++index1)
-      {
-        int index2 = Dust.NewDust(new Vector2(((Entity) this.Projectile).Center.X + (float) Main.rand.Next(-20, 20), ((Entity) this.Projectile).Center.Y + (float) Main.rand.Next(-20, 20)), ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 5, 0.0f, 0.0f, 100, new Color(), 2f);
-        Main.dust[index2].noGravity = true;
-      }
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 42;
+            Projectile.height = 42;
+            Projectile.penetrate = -1;
+            Projectile.hostile = true;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.aiStyle = -1;
+            //CooldownSlot = 1;
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300, true, false);
-      target.AddBuff(ModContent.BuffType<LethargicBuff>(), 300, true, false);
-    }
+            Projectile.timeLeft = 360;
+            Projectile.hide = true;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture = ((double) this.Projectile.ai[2] != 1.0 || !SoulConfig.Instance.BossRecolors ? 0 : (WorldSavingSystem.EternityMode ? 1 : 0)) != 0 ? ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/DeviBoss/DeviGuardian_Recolor", (AssetRequestMode) 2).Value : TextureAssets.Projectile[this.Type].Value;
-      FargoSoulsUtil.ProjectileWithTrailDraw(this.Projectile, Color.op_Multiply(new Color((int) byte.MaxValue, 200, (int) byte.MaxValue, 0), this.Projectile.Opacity), texture);
-      FargoSoulsUtil.GenericProjectileDraw(this.Projectile, lightColor, texture);
-      return false;
+            Projectile.light = 0.5f;
+        }
+
+        public override void OnSpawn(IEntitySource source)
+        {
+            if (SkeletronBone.SourceIsSkeletron(source))
+            {
+                Projectile.localAI[2] = 1;
+                Projectile.netUpdate = true;
+            }
+        }
+        public ref float TargetID => ref Projectile.ai[2];
+        public override void AI()
+        {
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = 1;
+                Projectile.rotation = Main.rand.NextFloat(0, 2 * (float)Math.PI);
+                Projectile.hide = false;
+
+                SoundEngine.PlaySound(SoundID.Item21, Projectile.Center);
+
+                for (int i = 0; i < 50; i++)
+                {
+                    Vector2 pos = new(Projectile.Center.X + Main.rand.Next(-20, 20), Projectile.Center.Y + Main.rand.Next(-20, 20));
+                    int dust = Dust.NewDust(pos, Projectile.width, Projectile.height, DustID.Blood, 0, 0, 100, default, 2f);
+                    Main.dust[dust].noGravity = true;
+                }
+            }
+
+            if (Projectile.ai[0] == 0)
+            {
+                Projectile.velocity -= new Vector2(Projectile.ai[1], 0).RotatedBy(Projectile.velocity.ToRotation());
+
+                if (Projectile.velocity.Length() < 1)
+                {
+                    int p = (int)TargetID;
+                    if (p.IsWithinBounds(Main.maxPlayers))
+                    {
+                        Projectile.velocity = Projectile.SafeDirectionTo(Main.player[p].Center);
+                        Projectile.ai[0] = 1f;
+                        Projectile.ai[1] = p; //now used for tracking player
+                        Projectile.netUpdate = true;
+
+                        SoundEngine.PlaySound(SoundID.Item1, Projectile.Center);
+                    }
+                    else
+                    {
+                        Projectile.Kill();
+                    }
+                }
+            }
+            else //weak homing
+            {
+                if (++Projectile.localAI[0] < 45)
+                    Projectile.velocity *= 1.08f;
+
+                if (Projectile.localAI[0] < 65)
+                {
+                    float rotation = Projectile.velocity.ToRotation();
+                    Vector2 vel = Main.player[(int)Projectile.ai[1]].Center - Projectile.Center;
+                    float targetAngle = vel.ToRotation();
+                    Projectile.velocity = new Vector2(Projectile.velocity.Length(), 0f).RotatedBy(rotation.AngleLerp(targetAngle, 0.065f));
+                }
+            }
+
+            Projectile.direction = Projectile.velocity.X < 0 ? -1 : 1;
+            Projectile.rotation += Projectile.direction * .3f;
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            for (int i = 0; i < 50; i++)
+            {
+                Vector2 pos = new(Projectile.Center.X + Main.rand.Next(-20, 20), Projectile.Center.Y + Main.rand.Next(-20, 20));
+                int dust = Dust.NewDust(pos, Projectile.width, Projectile.height, DustID.Blood, 0, 0, 100, default, 2f);
+                Main.dust[dust].noGravity = true;
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(ModContent.BuffType<DefenselessBuff>(), 300);
+            target.AddBuff(ModContent.BuffType<LethargicBuff>(), 300);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            bool recolor =
+                Projectile.localAI[2] == 1 &&
+                SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
+
+            Texture2D texture2D13 = recolor ? ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/DeviBoss/DeviGuardian_Recolor").Value : TextureAssets.Projectile[Type].Value;
+            FargoSoulsUtil.ProjectileWithTrailDraw(Projectile, new Color(255, 200, 255, 0) * Projectile.Opacity, texture2D13);
+            FargoSoulsUtil.GenericProjectileDraw(Projectile, lightColor, texture2D13);
+            return false;
+        }
     }
-  }
 }

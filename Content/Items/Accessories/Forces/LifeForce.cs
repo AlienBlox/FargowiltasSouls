@@ -1,52 +1,102 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Forces.LifeForce
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Items.Accessories.Enchantments;
+﻿using FargowiltasSouls.Content.Items.Accessories.Enchantments;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
+using FargowiltasSouls.Core.Toggler.Content;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Forces
 {
-  public class LifeForce : BaseForce
-  {
-    public override void SetStaticDefaults()
+    [AutoloadEquip(EquipType.Wings)]
+    public class LifeForce : BaseForce
     {
-      BaseForce.Enchants[this.Type] = new int[5]
-      {
-        ModContent.ItemType<PumpkinEnchant>(),
-        ModContent.ItemType<BeeEnchant>(),
-        ModContent.ItemType<SpiderEnchant>(),
-        ModContent.ItemType<TurtleEnchant>(),
-        ModContent.ItemType<BeetleEnchant>()
-      };
-    }
+        public override void SetStaticDefaults()
+        {
+            Enchants[Type] =
+            [
+                ModContent.ItemType<PumpkinEnchant>(),
+                ModContent.ItemType<BeeEnchant>(),
+                ModContent.ItemType<SpiderEnchant>(),
+                ModContent.ItemType<TurtleEnchant>(),
+                ModContent.ItemType<BeetleEnchant>()
+            ];
+            ArmorIDs.Wing.Sets.Stats[Item.wingSlot] = new Terraria.DataStructures.WingStats(1000);
+        }
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            SetActive(player);
+            player.AddEffect<LifeForceEffect>(Item);
+            modPlayer.LifeForceActive = true;
+            // Pumpkin Enchant
+            if (!player.HasEffect<LifeForceEffect>())
+                player.AddEffect<PumpkinEffect>(Item);
+            // Bee Enchant
+            player.AddEffect<BeeEffect>(Item);
+            player.strongBees = true;
+            // Spider Enchant
+            player.AddEffect<SpiderEffect>(Item);
+            // Turtle Enchant
+            if (player.HasEffect<LifeForceEffect>())
+            {
+                player.turtleThorns = true;
+                player.thorns = 5f;
+                modPlayer.CactusImmune = true;
+            }
+            else
+            {
+                TurtleEnchant.AddEffects(player, Item);
+            }
+            // Beetle Enchant
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      this.SetActive(player);
-      player.AddEffect<BeeEffect>(this.Item);
-      player.AddEffect<SpiderEffect>(this.Item);
-      BeetleEnchant.AddEffects(player, this.Item);
-      player.AddEffect<PumpkinEffect>(this.Item);
-      TurtleEnchant.AddEffects(player, this.Item);
-      fargoSoulsPlayer.CactusImmune = true;
-      player.AddEffect<CactusEffect>(this.Item);
-    }
+            if (player.HasEffect<LifeForceEffect>())
+                player.AddEffect<BeetleEffect>(Item);
+            else
+                BeetleEnchant.AddEffects(player, Item);
 
-    public virtual void AddRecipes()
-    {
-      Recipe recipe = this.CreateRecipe(1);
-      foreach (int num in BaseForce.Enchants[this.Type])
-        recipe.AddIngredient(num, 1);
-      recipe.AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"));
-      recipe.Register();
+            //hover
+            if (player.controlDown && player.controlJump && !player.mount.Active)
+            {
+                player.position.Y -= player.velocity.Y;
+                if (player.velocity.Y > 0.1f)
+                    player.velocity.Y = 0.1f;
+                else if (player.velocity.Y < -0.1f)
+                    player.velocity.Y = -0.1f;
+            }
+        }
+
+        public override void AddRecipes()
+        {
+            Recipe recipe = CreateRecipe();
+            foreach (int ench in Enchants[Type])
+                recipe.AddIngredient(ench);
+            recipe.AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"));
+            recipe.Register();
+        }
+        public override void VerticalWingSpeeds(Player player, ref float ascentWhenFalling, ref float ascentWhenRising, ref float maxCanAscendMultiplier, ref float maxAscentMultiplier, ref float constantAscend)
+        {
+            player.wingsLogic = ArmorIDs.Wing.LongTrailRainbowWings;
+            ascentWhenFalling = 1.25f;
+            ascentWhenRising = 0.35f;
+            maxCanAscendMultiplier = 1.25f;
+            maxAscentMultiplier = 2f;
+            constantAscend = 0.15f;
+            if (player.controlUp)
+            {
+                ascentWhenFalling *= 6f;
+                ascentWhenRising *= 6f;
+                constantAscend *= 6f;
+            }
+        }
+        public override void HorizontalWingSpeeds(Player player, ref float speed, ref float acceleration)
+        {
+            speed = 18f;
+            acceleration = 0.75f;
+        }
     }
-  }
+    public class LifeForceEffect : AccessoryEffect
+    {
+        public override Header ToggleHeader => null;
+        //public override int ToggleItemType => ModContent.ItemType<LifeForce>();
+    }
 }

@@ -1,30 +1,24 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.HellFireMarkedBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
-using Terraria.ID;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs
 {
-  public class HellFireMarkedBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class HellFireMarkedBuff : ModBuff
     {
-      Main.buffNoSave[this.Type] = true;
-      BuffID.Sets.NurseCannotRemoveDebuff[this.Type] = true;
-      Main.debuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Hell Fire");
+            Main.buffNoSave[Type] = true;
+            Terraria.ID.BuffID.Sets.NurseCannotRemoveDebuff[Type] = true;
+            Main.debuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "地狱火");
+        }
 
-    public virtual string Texture => "FargowiltasSouls/Content/Buffs/PlaceholderDebuff";
+        public override string Texture => "FargowiltasSouls/Content/Buffs/PlaceholderDebuff";
 
-    public virtual void Update(NPC npc, ref int buffIndex)
-    {
-      npc.FargoSouls().HellFireMarked = true;
+        public override void Update(NPC npc, ref int buffIndex)
+        {
+            npc.FargoSouls().HellFireMarked = true;
+        }
     }
-  }
 }

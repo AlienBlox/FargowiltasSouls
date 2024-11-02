@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.BanishedBaron.BaronWhirlpool
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Systems;
+﻿using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using System.IO;
 using Terraria;
@@ -13,131 +7,201 @@ using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.BanishedBaron
 {
-  public class BaronWhirlpool : ModProjectile
-  {
-    public bool Fade;
-    private bool parentNPC;
 
-    public virtual void SetStaticDefaults() => Main.projFrames[this.Type] = 16;
-
-    public virtual void SetDefaults()
+    public class BaronWhirlpool : ModProjectile
     {
-      ((Entity) this.Projectile).width = 186;
-      ((Entity) this.Projectile).height = 48;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.scale = 1f;
-      this.Projectile.light = 1f;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 1;
-    }
-
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(148, 600, true, false);
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.Projectile.localAI[0]);
-      writer.Write(this.Projectile.localAI[1]);
-      writer.Write(this.Projectile.localAI[2]);
-      writer.Write(this.parentNPC);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.Projectile.localAI[0] = reader.ReadSingle();
-      this.Projectile.localAI[1] = reader.ReadSingle();
-      this.Projectile.localAI[2] = reader.ReadSingle();
-      this.parentNPC = reader.ReadBoolean();
-    }
-
-    public virtual void OnSpawn(IEntitySource source)
-    {
-      if (!(source is EntitySource_Parent entitySourceParent) || !(entitySourceParent.Entity is NPC))
-        return;
-      this.parentNPC = true;
-    }
-
-    public virtual void AI()
-    {
-      double num1 = (double) this.Projectile.ai[0];
-      ref float local1 = ref this.Projectile.ai[1];
-      ref float local2 = ref this.Projectile.ai[2];
-      ref float local3 = ref this.Projectile.localAI[0];
-      ref float local4 = ref this.Projectile.localAI[1];
-      ref float local5 = ref this.Projectile.localAI[2];
-      if ((double) local3 > 240.0)
-        this.Fade = true;
-      if (this.Projectile.alpha == 0)
-      {
-        int num2 = (int) ((double) local1 % 3.0) + (int) local5;
-        if ((double) local2 == 1.0)
+        public override void SetStaticDefaults()
         {
-          int num3 = 46;
-          if ((double) local3 % (double) num3 == 0.0 && (double) local3 % (double) (num3 * 3) == (double) (num3 * num2))
-          {
-            SoundEngine.PlaySound(ref SoundID.Item21, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-            if (FargoSoulsUtil.HostCheck)
+            // DisplayName.SetDefault("Banished Baron's Mine");
+            Main.projFrames[Type] = 16;
+        }
+        public override void SetDefaults()
+        {
+            Projectile.width = 186;
+            Projectile.height = 48;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.scale = 1f;
+            Projectile.light = 1;
+            Projectile.alpha = 255;
+            Projectile.FargoSouls().DeletionImmuneRank = 1;
+        }
+        public bool Fade = false;
+        //public bool Animate = false;
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            if (!WorldSavingSystem.EternityMode)
             {
-              for (int index = -1; index < 2; index += 2)
-                Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), Vector2.op_Addition(Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, (float) index), (float) ((Entity) this.Projectile).width), Utils.NextFloat(Main.rand, 0.2f, 0.35f))), Vector2.op_Multiply(Vector2.UnitY, (float) Main.rand.Next(-((Entity) this.Projectile).height / 4, ((Entity) this.Projectile).height / 4))), Utils.RotatedBy(Vector2.op_Multiply(Vector2.UnitX, (float) index), (double) Utils.NextFloat(Main.rand, 0.1308997f), new Vector2()), ModContent.ProjectileType<BaronWhirlpoolBolt>(), (int) ((double) this.Projectile.damage * 0.800000011920929), this.Projectile.knockBack, this.Projectile.owner, 1f, 0.0f, 0.0f);
+                return;
             }
-          }
+            //target.FargoSouls().MaxLifeReduction += 50;
+            //target.AddBuff(ModContent.BuffType<OceanicMaulBuff>(), 60 * 20);
+            target.AddBuff(BuffID.Rabies, 60 * 10);
         }
-        else if ((double) local3 % 50.0 == 0.0 && (double) local3 % 150.0 == (double) (50 * num2))
+        public override void SendExtraAI(BinaryWriter writer)
         {
-          SoundEngine.PlaySound(ref SoundID.Item21, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-          if (FargoSoulsUtil.HostCheck)
-          {
-            for (int index = -1; index < 2; index += 2)
-              Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), Vector2.op_Addition(Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.op_Multiply(Vector2.UnitX, (float) index), (float) ((Entity) this.Projectile).width), Utils.NextFloat(Main.rand, 0.2f, 0.35f))), Vector2.op_Multiply(Vector2.UnitY, (float) Main.rand.Next(-((Entity) this.Projectile).height / 4, ((Entity) this.Projectile).height / 4))), Utils.RotatedBy(Vector2.op_Multiply(Vector2.UnitX, (float) index), (double) Utils.NextFloat(Main.rand, 0.1308997f), new Vector2()), ModContent.ProjectileType<BaronWhirlpoolBolt>(), (int) ((double) this.Projectile.damage * 0.800000011920929), this.Projectile.knockBack, this.Projectile.owner, 1f, 0.0f, 0.0f);
-          }
+            writer.Write(Projectile.localAI[0]);
+            writer.Write(Projectile.localAI[1]);
+            writer.Write(Projectile.localAI[2]);
+            writer.Write(parentNPC);
         }
-      }
-      if ((double) local3 < 20.0)
-      {
-        this.Projectile.alpha -= 17;
-        if (this.Projectile.alpha <= 0)
-          this.Projectile.alpha = 0;
-      }
-      if ((WorldSavingSystem.MasochistModeReal ? 0 : (Collision.SolidCollision(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height) ? 1 : 0)) != 0 && (double) local1 > 3.0)
-        local1 = 3f;
-      if ((double) local3 == (double) (8 + ((double) local2 == 1.0 ? 5 : 0)) && (double) local1 > 0.0 && FargoSoulsUtil.HostCheck)
-      {
-        local4 = (float) Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.UnitY, (float) ((Entity) this.Projectile).height)), Vector2.Zero, this.Type, this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, (float) this.Projectile.identity, local1 - 1f, local2);
-        int num4 = this.Projectile.frame - 1;
-        if (num4 < 0 || num4 >= Main.projFrames[this.Type])
-          num4 = Main.projFrames[this.Type] - 1;
-        Main.projectile[(int) local4].frame = num4;
-      }
-      if (this.Fade)
-      {
-        this.Projectile.alpha += 17;
-        if (this.Projectile.alpha >= 238)
+        public override void ReceiveExtraAI(BinaryReader reader)
         {
-          Projectile projectile = Main.projectile[(int) local4];
-          if (projectile.TypeAlive(this.Type))
-            Luminance.Common.Utilities.Utilities.As<BaronWhirlpool>(projectile).Fade = true;
-          this.Projectile.Kill();
+            Projectile.localAI[0] = reader.ReadSingle();
+            Projectile.localAI[1] = reader.ReadSingle();
+            Projectile.localAI[2] = reader.ReadSingle();
+            parentNPC = reader.ReadBoolean();
         }
-      }
-      if (++this.Projectile.frameCounter > 2)
-      {
-        if (++this.Projectile.frame >= Main.projFrames[this.Type])
-          this.Projectile.frame = 0;
-        this.Projectile.frameCounter = 0;
-      }
-      ++local3;
+        bool parentNPC = false;
+        public override void OnSpawn(IEntitySource source)
+        {
+            if (source is EntitySource_Parent parent && parent.Entity is NPC)
+            {
+                parentNPC = true;
+            }
+        }
+        public override void AI()
+        {
+            ref float ParentID = ref Projectile.ai[0];
+            ref float Number = ref Projectile.ai[1];
+            ref float Variant = ref Projectile.ai[2];
+            ref float Timer = ref Projectile.localAI[0];
+            ref float ChildID = ref Projectile.localAI[1];
+            ref float attackRandom = ref Projectile.localAI[2];
+
+            //Projectile.netUpdate = true; //it's choppy if this isn't done always
+
+            if (Timer > 60 * 4)
+            {
+                Fade = true;
+            }
+            //Animate = true;
+            /*
+            if (parentNPC)
+            {
+                
+                NPC parent = Main.npc[(int)ParentID];
+                
+                const int BaronHeight = 132 / 2;
+                
+                if (parent != null && parent.active && parent.type == ModContent.NPCType<BanishedBaron>())
+                {
+                    Projectile.Center = parent.Center + (Vector2.UnitY * ((Projectile.height / 2) + BaronHeight));
+                }
+                
+                
+                
+            }
+            else
+            {
+                Projectile parent = Main.projectile[(int)ParentID];
+                if (parent != null && parent.active && parent.type == Type && !Animate)
+                {
+                    //Projectile.Center = parent.Center + Vector2.UnitY * Projectile.height;
+                    int frame = parent.frame - 1;
+                    if (frame < 0 || frame >= Main.projFrames[Type])
+                    {
+                        frame = Main.projFrames[Type] - 1;
+                    }
+                    Projectile.frame = frame; //makes it look good and connected
+                }
+                else
+                {
+                    Animate = true;
+                    Fade = true;
+                }
+            }
+            */
+            const int projTime = 50;
+            const int projTimeVar = 46;
+            if (Projectile.alpha == 0)
+            {
+                int everyThird = (int)(Number % 3);
+                everyThird += (int)attackRandom;
+                if (Variant == 1)
+                {
+                    int variantTime = projTimeVar; //+ (int)attackRandom;
+                    if (Timer % variantTime == 0 && Timer % (variantTime * 3) == variantTime * everyThird)
+                    {
+                        //attackRandom = Main.rand.NextBool() ? 1 : 0;
+                        //attackRandom = Main.rand.Next(-12, 0);
+                        SoundEngine.PlaySound(SoundID.Item21, Projectile.Center);
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            for (int i = -1; i < 2; i += 2)
+                            {
+                                Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center + Vector2.UnitX * i * Projectile.width * Main.rand.NextFloat(0.2f, 0.35f) + Vector2.UnitY * Main.rand.Next(-Projectile.height / 4, Projectile.height / 4), (Vector2.UnitX * i).RotatedBy(Main.rand.NextFloat(MathHelper.Pi / 24)), ModContent.ProjectileType<BaronWhirlpoolBolt>(), (int)(Projectile.damage * 0.8f), Projectile.knockBack, Projectile.owner, 1);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (Timer % projTime == 0 && Timer % (projTime * 3) == projTime * everyThird)
+                    {
+                        SoundEngine.PlaySound(SoundID.Item21, Projectile.Center);
+                        if (FargoSoulsUtil.HostCheck)
+                        {
+                            for (int i = -1; i < 2; i += 2)
+                            {
+                                Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center + Vector2.UnitX * i * Projectile.width * Main.rand.NextFloat(0.2f, 0.35f) + Vector2.UnitY * Main.rand.Next(-Projectile.height / 4, Projectile.height / 4), (Vector2.UnitX * i).RotatedBy(Main.rand.NextFloat(MathHelper.Pi / 24)), ModContent.ProjectileType<BaronWhirlpoolBolt>(), (int)(Projectile.damage * 0.8f), Projectile.knockBack, Projectile.owner, 1);
+                            }
+                        }
+                    }
+                }
+            }
+            if (Timer < 20)
+            {
+                Projectile.alpha -= 17;
+                if (Projectile.alpha <= 0)
+                {
+                    Projectile.alpha = 0;
+                }
+            }
+            bool collision = WorldSavingSystem.MasochistModeReal ? false : Collision.SolidCollision(Projectile.position, Projectile.width, Projectile.height); //no collision check in maso
+            if (collision && Number > 3)
+            {
+                Number = 3;
+            }
+            if (Timer == 8 + (Variant == 1 ? 5 : 0) && Number > 0 && FargoSoulsUtil.HostCheck)
+            {
+                ChildID = Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), Projectile.Center + Vector2.UnitY * Projectile.height, Vector2.Zero, Type, Projectile.damage, Projectile.knockBack, Projectile.owner, Projectile.identity, Number - 1, Variant);
+                int frame = Projectile.frame - 1;
+                if (frame < 0 || frame >= Main.projFrames[Type])
+                {
+                    frame = Main.projFrames[Type] - 1;
+                }
+                Main.projectile[(int)ChildID].frame = frame;
+            }
+            if (Fade)
+            {
+                Projectile.alpha += 17;
+                if (Projectile.alpha >= 238)
+                {
+                    Projectile child = Main.projectile[(int)ChildID];
+                    if (child.TypeAlive(Type))
+                        child.As<BaronWhirlpool>().Fade = true;
+
+                    Projectile.Kill();
+                }
+            }
+
+            if (++Projectile.frameCounter > 2)
+            {
+                if (++Projectile.frame >= Main.projFrames[Type])
+                {
+                    Projectile.frame = 0;
+                }
+                Projectile.frameCounter = 0;
+            }
+            Timer++;
+
+        }
     }
-  }
 }

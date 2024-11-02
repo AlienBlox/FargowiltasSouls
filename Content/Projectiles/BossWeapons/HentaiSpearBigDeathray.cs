@@ -1,17 +1,12 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.HentaiSpearBigDeathray
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
+﻿using FargowiltasSouls.Assets.ExtraTextures;
 
-using FargowiltasSouls.Assets.ExtraTextures;
+
 using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Content.Projectiles.Deathrays;
 using FargowiltasSouls.Core;
 using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using System.Collections.Generic;
 using Terraria;
@@ -19,213 +14,311 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class HentaiSpearBigDeathray : MutantSpecialDeathray
-  {
-    public HentaiSpearBigDeathray()
-      : base(60, 1.5f)
+    public class HentaiSpearBigDeathray : MutantSpecialDeathray
     {
-    }
+        public HentaiSpearBigDeathray() : base(60, 1.5f) { }
 
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override void SetDefaults()
-    {
-      base.SetDefaults();
-      this.CooldownSlot = -1;
-      this.Projectile.hostile = false;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Ranged;
-      this.Projectile.FargoSouls().CanSplit = false;
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.hide = true;
-      this.Projectile.penetrate = -1;
-    }
-
-    public virtual void DrawBehind(
-      int index,
-      List<int> behindNPCsAndTiles,
-      List<int> behindNPCs,
-      List<int> behindProjectiles,
-      List<int> overPlayers,
-      List<int> overWiresUI)
-    {
-      behindProjectiles.Add(index);
-    }
-
-    public Vector2 TipOffset
-    {
-      get
-      {
-        return Vector2.op_Multiply(Vector2.op_Multiply(9f, ((Entity) this.Projectile).velocity), this.Projectile.scale);
-      }
-    }
-
-    public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      double num1 = (double) ((Entity) this.Projectile).Distance(FargoSoulsUtil.ClosestPointInHitbox(targetHitbox, ((Entity) this.Projectile).Center));
-      Vector2 tipOffset = this.TipOffset;
-      double num2 = (double) ((Vector2) ref tipOffset).Length() * 2.0;
-      return num1 < num2 ? new bool?(true) : base.Colliding(projHitbox, targetHitbox);
-    }
-
-    public override void AI()
-    {
-      base.AI();
-      Player player = Main.player[this.Projectile.owner];
-      if (!Main.dedServ && ((Entity) Main.LocalPlayer).active)
-        FargoSoulsUtil.ScreenshakeRumble(6f);
-      Vector2? nullable = new Vector2?();
-      if (Utils.HasNaNs(((Entity) this.Projectile).velocity) || Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        ((Entity) this.Projectile).velocity = Vector2.op_UnaryNegation(Vector2.UnitY);
-      Projectile projectile1 = FargoSoulsUtil.ProjectileExists(FargoSoulsUtil.GetProjectileByIdentity(this.Projectile.owner, (int) this.Projectile.ai[1], new int[1]
-      {
-        ModContent.ProjectileType<HentaiSpearWand>()
-      }), Array.Empty<int>());
-      if (projectile1 != null)
-      {
-        this.Projectile.timeLeft = 2;
-        float num = ((Entity) player).direction < 0 ? 3.14159274f : 0.0f;
-        if ((double) Math.Abs(player.itemRotation) > Math.PI / 2.0)
-          num = (double) num == 0.0 ? 3.14159274f : 0.0f;
-        ((Entity) this.Projectile).velocity = Utils.ToRotationVector2(player.itemRotation + num);
-        ((Entity) this.Projectile).Center = Vector2.op_Addition(((Entity) projectile1).Center, Utils.NextVector2Circular(Main.rand, 5f, 5f));
-        Projectile projectile2 = this.Projectile;
-        ((Entity) projectile2).position = Vector2.op_Addition(((Entity) projectile2).position, Vector2.op_Multiply(Vector2.op_Multiply(Vector2.op_Multiply(((Entity) this.Projectile).velocity, 164f), projectile1.scale), 0.45f));
-        this.Projectile.damage = player.GetWeaponDamage(player.HeldItem, false);
-        this.Projectile.CritChance = player.GetWeaponCrit(player.HeldItem);
-        this.Projectile.knockBack = player.GetWeaponKnockback(player.HeldItem, player.HeldItem.knockBack);
-      }
-      else if ((double) ++this.Projectile.localAI[0] > 5.0)
-      {
-        this.Projectile.Kill();
-        return;
-      }
-      if ((double) this.Projectile.localAI[0] == 0.0 && !Main.dedServ)
-      {
-        SoundStyle soundStyle;
-        // ISSUE: explicit constructor call
-        ((SoundStyle) ref soundStyle).\u002Ector("FargowiltasSouls/Assets/Sounds/DeviBigDeathray", (SoundType) 0);
-        ((SoundStyle) ref soundStyle).Volume = 1.5f;
-        SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        // ISSUE: explicit constructor call
-        ((SoundStyle) ref soundStyle).\u002Ector("FargowiltasSouls/Assets/Sounds/FinalSpark", (SoundType) 0);
-        ((SoundStyle) ref soundStyle).Volume = 1.5f;
-        SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      }
-      float num1 = 10f;
-      if ((double) this.Projectile.localAI[0] == (double) this.maxTime / 2.0)
-      {
-        if (this.Projectile.owner == Main.myPlayer && (!player.controlUseTile || player.altFunctionUse != 2 || player.HeldItem.type != ModContent.ItemType<FargowiltasSouls.Content.Items.Weapons.FinalUpgrades.HentaiSpear>()))
-          ++this.Projectile.localAI[0];
-        else
-          --this.Projectile.localAI[0];
-      }
-      else
-        ++this.Projectile.localAI[0];
-      if ((double) this.Projectile.localAI[0] >= (double) this.maxTime)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        this.Projectile.scale = (float) Math.Sin((double) this.Projectile.localAI[0] * 3.1415927410125732 / (double) this.maxTime) * 1.5f * num1;
-        if ((double) this.Projectile.scale > (double) num1)
-          this.Projectile.scale = num1;
-        this.Projectile.scale *= projectile1.scale / 1.3f;
-        Projectile projectile3 = this.Projectile;
-        ((Entity) projectile3).position = Vector2.op_Addition(((Entity) projectile3).position, this.TipOffset);
-        float length = 3f;
-        int width = ((Entity) this.Projectile).width;
-        Vector2 center = ((Entity) this.Projectile).Center;
-        if (nullable.HasValue)
+        public override void SetStaticDefaults()
         {
-          Vector2 vector2_1 = nullable.Value;
+            base.SetStaticDefaults();
+
+            // DisplayName.SetDefault("Phantasmal Deathray");
         }
-        float[] numArray = new float[(int) length];
-        for (int index = 0; index < numArray.Length; ++index)
-          numArray[index] = 3000f;
-        float num2 = 0.0f;
-        for (int index = 0; index < numArray.Length; ++index)
-          num2 += numArray[index];
-        this.Projectile.localAI[1] = MathHelper.Lerp(this.Projectile.localAI[1], num2 / length, 0.5f);
-        Projectile projectile4 = this.Projectile;
-        ((Entity) projectile4).position = Vector2.op_Subtraction(((Entity) projectile4).position, ((Entity) this.Projectile).velocity);
-        this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) - 1.57079637f;
-        if ((double) ++this.Projectile.ai[0] <= 60.0)
-          return;
-        this.Projectile.ai[0] = 0.0f;
-        SoundEngine.PlaySound(ref SoundID.Item84, new Vector2?(((Entity) player).Center), (SoundUpdateCallback) null);
-        if (this.Projectile.owner != Main.myPlayer)
-          return;
-        for (int index = 0; index < 10; ++index)
+
+        public override void SetDefaults()
         {
-          Vector2 vector2_2 = Vector2.op_Multiply(12f, Utils.RotatedBy(((Entity) this.Projectile).velocity, Math.PI / 5.0 * (double) index, new Vector2()));
-          Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) player).Center, vector2_2, ModContent.ProjectileType<HentaiSphereRing>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.5f, 12f, 0.0f);
-          Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) player).Center, vector2_2, ModContent.ProjectileType<HentaiSphereRing>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, -0.5f, 12f, 0.0f);
+            base.SetDefaults();
+            CooldownSlot = -1;
+            Projectile.hostile = false;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Ranged;
+
+            Projectile.FargoSouls().CanSplit = false;
+            Projectile.FargoSouls().TimeFreezeImmune = true;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+
+            Projectile.hide = true;
+            Projectile.penetrate = -1;
         }
-      }
+
+        public override void DrawBehind(int index, List<int> behindNPCsAndTiles, List<int> behindNPCs, List<int> behindProjectiles, List<int> overPlayers, List<int> overWiresUI)
+        {
+            behindProjectiles.Add(index);
+        }
+
+        public Vector2 TipOffset => 9f * Projectile.velocity * Projectile.scale; //offset to look like is at tip proper
+
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
+        {
+            if (Projectile.Distance(FargoSoulsUtil.ClosestPointInHitbox(targetHitbox, Projectile.Center)) < TipOffset.Length() * 2)
+                return true;
+
+            return base.Colliding(projHitbox, targetHitbox);
+        }
+
+        public override void AI()
+        {
+            base.AI();
+
+            Player player = Main.player[Projectile.owner];
+
+            if (!Main.dedServ && Main.LocalPlayer.active)
+                FargoSoulsUtil.ScreenshakeRumble(6);
+
+            Vector2? vector78 = null;
+            if (Projectile.velocity.HasNaNs() || Projectile.velocity == Vector2.Zero)
+            {
+                Projectile.velocity = -Vector2.UnitY;
+            }
+
+            Projectile spear = FargoSoulsUtil.ProjectileExists(FargoSoulsUtil.GetProjectileByIdentity(Projectile.owner, (int)Projectile.ai[1], ModContent.ProjectileType<HentaiSpearWand>()));
+            if (spear != null)
+            {
+                Projectile.timeLeft = 2;
+                float itemrotate = player.direction < 0 ? MathHelper.Pi : 0;
+                if (Math.Abs(player.itemRotation) > Math.PI / 2)
+                    itemrotate = itemrotate == 0 ? MathHelper.Pi : 0;
+                Projectile.velocity = (player.itemRotation + itemrotate).ToRotationVector2();
+                Projectile.Center = spear.Center + Main.rand.NextVector2Circular(5, 5);
+
+                Projectile.position += Projectile.velocity * 164 * spear.scale * 0.45f; //offset by part of spear's length (wand)
+
+                Projectile.damage = player.GetWeaponDamage(player.HeldItem);
+                Projectile.CritChance = player.GetWeaponCrit(player.HeldItem);
+                Projectile.knockBack = player.GetWeaponKnockback(player.HeldItem, player.HeldItem.knockBack);
+            }
+            else if (++Projectile.localAI[0] > 5) //leeway for mp lag
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            if (Projectile.localAI[0] == 0f)
+            {
+                if (!Main.dedServ)
+                {
+                    SoundEngine.PlaySound(new SoundStyle("FargowiltasSouls/Assets/Sounds/Siblings/Deviantt/DeviBigDeathray") with { Volume = 1.5f }, Projectile.Center);
+                    SoundEngine.PlaySound(new SoundStyle("FargowiltasSouls/Assets/Sounds/Siblings/Mutant/FinalSpark") with { Volume = 1.5f }, Projectile.Center);
+                }
+            }
+            float num801 = 10f;
+
+            if (Projectile.localAI[0] == maxTime / 2)
+            {
+                if (Projectile.owner == Main.myPlayer && !(player.controlUseTile && player.altFunctionUse == 2 && player.HeldItem.type == ModContent.ItemType<Items.Weapons.FinalUpgrades.HentaiSpear>()))
+                    Projectile.localAI[0] += 1f; //if stop firing, proceed to die
+                else
+                    Projectile.localAI[0] -= 1f; //otherwise, stay (also for multiplayer!)
+            }
+            else
+            {
+                Projectile.localAI[0] += 1f;
+            }
+
+            if (Projectile.localAI[0] >= maxTime)
+            {
+                Projectile.Kill();
+                return;
+            }
+            //Projectile.scale = num801;
+            Projectile.scale = (float)Math.Sin(Projectile.localAI[0] * 3.14159274f / maxTime) * 1.5f * num801;
+            if (Projectile.scale > num801)
+            {
+                Projectile.scale = num801;
+            }
+
+            Projectile.scale *= spear.scale / 1.3f;
+            Projectile.position += TipOffset;
+
+            //float num804 = Projectile.velocity.ToRotation();
+            //num804 += Projectile.ai[0];
+            //Projectile.rotation = num804 - 1.57079637f;
+            //float num804 = Main.npc[(int)Projectile.ai[1]].ai[3] - 1.57079637f;
+            //if (Projectile.ai[0] != 0f) num804 -= (float)Math.PI;
+            //Projectile.rotation = num804;
+            //num804 += 1.57079637f;
+            //Projectile.velocity = num804.ToRotationVector2();
+            float num805 = 3f;
+            float num806 = Projectile.width;
+            Vector2 samplingPoint = Projectile.Center;
+            if (vector78.HasValue)
+            {
+                samplingPoint = vector78.Value;
+            }
+            float[] array3 = new float[(int)num805];
+            //Collision.LaserScan(samplingPoint, Projectile.velocity, num806 * Projectile.scale, 3000f, array3);
+            for (int i = 0; i < array3.Length; i++)
+                array3[i] = 3000f;
+            float num807 = 0f;
+            int num3;
+            for (int num808 = 0; num808 < array3.Length; num808 = num3 + 1)
+            {
+                num807 += array3[num808];
+                num3 = num808;
+            }
+            num807 /= num805;
+            float amount = 0.5f;
+            Projectile.localAI[1] = MathHelper.Lerp(Projectile.localAI[1], num807, amount);
+            /*Vector2 vector79 = Projectile.Center + Projectile.velocity * (Projectile.localAI[1] - 14f);
+            for (int num809 = 0; num809 < 2; num809 = num3 + 1)
+            {
+                float num810 = Projectile.velocity.ToRotation() + ((Main.rand.Next(2) == 1) ? -1f : 1f) * 1.57079637f;
+                float num811 = (float)Main.rand.NextDouble() * 2f + 2f;
+                Vector2 vector80 = new Vector2((float)Math.Cos((double)num810) * num811, (float)Math.Sin((double)num810) * num811);
+                int num812 = Dust.NewDust(vector79, 0, 0, 244, vector80.X, vector80.Y, 0, default(Color), 1f);
+                Main.dust[num812].noGravity = true;
+                Main.dust[num812].scale = 1.7f;
+                num3 = num809;
+            }
+            if (Main.rand.NextBool(5))
+            {
+                Vector2 value29 = Projectile.velocity.RotatedBy(1.5707963705062866, default(Vector2)) * ((float)Main.rand.NextDouble() - 0.5f) * (float)Projectile.width;
+                int num813 = Dust.NewDust(vector79 + value29 - Vector2.One * 4f, 8, 8, 244, 0f, 0f, 100, default(Color), 1.5f);
+                Dust dust = Main.dust[num813];
+                dust.velocity *= 0.5f;
+                Main.dust[num813].velocity.Y = -Math.Abs(Main.dust[num813].velocity.Y);
+            }*/
+            //DelegateMethods.v3_1 = new Vector3(0.3f, 0.65f, 0.7f);
+            //Utils.PlotTileLine(Projectile.Center, Projectile.Center + Projectile.velocity * Projectile.localAI[1], (float)Projectile.width * Projectile.scale, new Utils.PerLinePoint(DelegateMethods.CastLight));
+
+            Projectile.position -= Projectile.velocity;
+            //float oldRot = Projectile.rotation;
+            Projectile.rotation = Projectile.velocity.ToRotation() - 1.57079637f;
+
+            if (++Projectile.ai[0] > 60)
+            {
+                Projectile.ai[0] = 0;
+
+                SoundEngine.PlaySound(SoundID.Item84, player.Center);
+
+                if (Projectile.owner == Main.myPlayer)
+                {
+                    const int ringMax = 10;
+                    const float speed = 12f;
+                    const float rotation = 0.5f;
+                    for (int i = 0; i < ringMax; i++)
+                    {
+                        Vector2 vel = speed * Projectile.velocity.RotatedBy(2 * Math.PI / ringMax * i);
+                        Projectile.NewProjectile(Projectile.GetSource_FromThis(), player.Center, vel, ModContent.ProjectileType<HentaiSphereRing>(),
+                            Projectile.damage, Projectile.knockBack, Projectile.owner, rotation, speed);
+                        Projectile.NewProjectile(Projectile.GetSource_FromThis(), player.Center, vel, ModContent.ProjectileType<HentaiSphereRing>(),
+                            Projectile.damage, Projectile.knockBack, Projectile.owner, -rotation, speed);
+                    }
+                }
+            }
+
+            //if (--dustTimer < -1)
+            //{
+            //    dustTimer = 50;
+
+            //    float diff = MathHelper.WrapAngle(Projectile.rotation - oldRot);
+            //    //if (npc.HasPlayerTarget && Math.Abs(MathHelper.WrapAngle(npc.SafeDirectionTo(Main.player[npc.target].Center).ToRotation() - Projectile.velocity.ToRotation())) < Math.Abs(diff)) diff = 0;
+            //    diff *= 15f;
+
+            //    const int ring = 220; //LAUGH
+            //    for (int i = 0; i < ring; ++i)
+            //    {
+            //        Vector2 speed = Projectile.velocity.RotatedBy(diff) * 24f;
+
+            //        Vector2 vector2 = (-Vector2.UnitY.RotatedBy(i * 3.14159274101257 * 2 / ring) * new Vector2(8f, 16f)).RotatedBy(Projectile.velocity.ToRotation() + diff);
+            //        int index2 = Dust.NewDust(Main.player[Projectile.owner].Center, 0, 0, 111, 0.0f, 0.0f, 0, new Color(), 1f);
+            //        Main.dust[index2].scale = 2.5f;
+            //        Main.dust[index2].noGravity = true;
+            //        Main.dust[index2].position = Main.player[Projectile.owner].Center;
+            //        Main.dust[index2].velocity = vector2 * 2.5f + speed;
+
+            //        index2 = Dust.NewDust(Main.player[Projectile.owner].Center, 0, 0, 111, 0.0f, 0.0f, 0, new Color(), 1f);
+            //        Main.dust[index2].scale = 2.5f;
+            //        Main.dust[index2].noGravity = true;
+            //        Main.dust[index2].position = Main.player[Projectile.owner].Center;
+            //        Main.dust[index2].velocity = vector2 * 1.75f + speed * 2;
+            //    }
+            //}
+        }
+
+        public override void PostAI()
+        {
+            base.PostAI();
+
+            Projectile.hide = true;
+
+            if (!Main.dedServ)
+            {
+                ManagedScreenFilter filter = ShaderManager.GetFilter("FargowiltasSouls.FinalSpark");
+                filter.Activate();
+                if (SoulConfig.Instance.ForcedFilters && Main.WaveQuality == 0)
+                    Main.WaveQuality = 1;
+            }
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            base.OnKill(timeLeft);
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.immune[Projectile.owner] = 1; //balanceing
+            target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600);
+        }
+
+        public bool BeBrighter => Projectile.ai[0] > 0f;
+
+
+        public float WidthFunction(float trailInterpolant)
+        {
+            // Grow rapidly from the start to full length. Any more than this notably distorts the texture.
+            float baseWidth = Projectile.scale * Projectile.width;
+            //if (trailInterpolant < 0.05f)
+            return baseWidth;
+
+            // Grow to 2x width by the end. Any more than this distorts the texture too much.
+            //return MathHelper.Lerp(baseWidth, baseWidth * 2, trailInterpolant);
+        }
+
+        public static Color ColorFunction(float trailInterpolant) =>
+            Color.Lerp(
+                new(31, 187, 192, 100),
+                new(51, 255, 191, 100),
+                trailInterpolant);
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            // This should never happen, but just in case.
+            if (Projectile.velocity == Vector2.Zero)
+                return false;
+
+            ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.MutantDeathray");
+
+            // Get the laser end position.
+            Vector2 laserEnd = Projectile.Center + Projectile.velocity.SafeNormalize(Vector2.UnitY) * drawDistance;
+
+            // Create 8 points that span across the draw distance from the projectile center.
+
+            // This allows the drawing to be pushed back, which is needed due to the shader fading in at the start to avoid
+            // sharp lines.
+            Vector2 initialDrawPoint = Projectile.Center - Projectile.velocity * 400f;
+            Vector2[] baseDrawPoints = new Vector2[8];
+            for (int i = 0; i < baseDrawPoints.Length; i++)
+                baseDrawPoints[i] = Vector2.Lerp(initialDrawPoint, laserEnd, i / (float)(baseDrawPoints.Length - 1f));
+
+            // Set shader parameters. This one takes a fademap and a color.
+
+            // The laser should fade to white in the middle.
+            Color brightColor = new(194, 255, 242, 100);
+            shader.TrySetParameter("mainColor", brightColor);
+            FargoSoulsUtil.SetTexture1(FargosTextureRegistry.MutantStreak.Value);
+            // Draw a big glow above the start of the laser, to help mask the intial fade in due to the immense width.
+
+            Texture2D glowTexture = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/GlowRing").Value;
+
+            Vector2 glowDrawPosition = Projectile.Center - Projectile.velocity * (BeBrighter ? 90f : 180f);
+
+            Main.EntitySpriteDraw(glowTexture, glowDrawPosition - Main.screenPosition, null, brightColor, Projectile.rotation, glowTexture.Size() * 0.5f, Projectile.scale * 0.4f, SpriteEffects.None, 0);
+            PrimitiveRenderer.RenderTrail(baseDrawPoints, new(WidthFunction, ColorFunction, Shader: shader), 60);
+            return false;
+        }
     }
-
-    public override void PostAI()
-    {
-      base.PostAI();
-      this.Projectile.hide = true;
-      if (Main.dedServ)
-        return;
-      ShaderManager.GetFilter("FargowiltasSouls.FinalSpark").Activate();
-      if (!SoulConfig.Instance.ForcedFilters || Main.WaveQuality != 0)
-        return;
-      Main.WaveQuality = 1;
-    }
-
-    public virtual void OnKill(int timeLeft) => base.OnKill(timeLeft);
-
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.immune[this.Projectile.owner] = 1;
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 600, false);
-    }
-
-    public bool BeBrighter => (double) this.Projectile.ai[0] > 0.0;
-
-    public float WidthFunction(float trailInterpolant)
-    {
-      return this.Projectile.scale * (float) ((Entity) this.Projectile).width;
-    }
-
-    public static Color ColorFunction(float trailInterpolant)
-    {
-      return Color.Lerp(new Color(31, 187, 192, 100), new Color(51, (int) byte.MaxValue, 191, 100), trailInterpolant);
-    }
-
-    public override bool PreDraw(ref Color lightColor)
-    {
-      if (Vector2.op_Equality(((Entity) this.Projectile).velocity, Vector2.Zero))
-        return false;
-      ManagedShader shader = ShaderManager.GetShader("FargowiltasSouls.MutantDeathray");
-      Vector2 vector2_1 = Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Utils.SafeNormalize(((Entity) this.Projectile).velocity, Vector2.UnitY), (float) this.drawDistance));
-      Vector2 vector2_2 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, 400f));
-      Vector2[] vector2Array = new Vector2[8];
-      for (int index = 0; index < vector2Array.Length; ++index)
-        vector2Array[index] = Vector2.Lerp(vector2_2, vector2_1, (float) index / ((float) vector2Array.Length - 1f));
-      Color color;
-      // ISSUE: explicit constructor call
-      ((Color) ref color).\u002Ector(194, (int) byte.MaxValue, 242, 100);
-      shader.TrySetParameter("mainColor", (object) color);
-      FargosTextureRegistry.MutantStreak.Value.SetTexture1();
-      Texture2D texture2D = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/GlowRing", (AssetRequestMode) 2).Value;
-      Vector2 vector2_3 = Vector2.op_Subtraction(((Entity) this.Projectile).Center, Vector2.op_Multiply(((Entity) this.Projectile).velocity, this.BeBrighter ? 90f : 180f));
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Subtraction(vector2_3, Main.screenPosition), new Rectangle?(), color, this.Projectile.rotation, Vector2.op_Multiply(Utils.Size(texture2D), 0.5f), this.Projectile.scale * 0.4f, (SpriteEffects) 0, 0.0f);
-      // ISSUE: method pointer
-      // ISSUE: reference to a compiler-generated field
-      // ISSUE: reference to a compiler-generated field
-      // ISSUE: method pointer
-      PrimitiveRenderer.RenderTrail((IEnumerable<Vector2>) vector2Array, new PrimitiveSettings(new PrimitiveSettings.VertexWidthFunction((object) this, __methodptr(WidthFunction)), HentaiSpearBigDeathray.\u003C\u003EO.\u003C0\u003E__ColorFunction ?? (HentaiSpearBigDeathray.\u003C\u003EO.\u003C0\u003E__ColorFunction = new PrimitiveSettings.VertexColorFunction((object) null, __methodptr(ColorFunction))), (PrimitiveSettings.VertexOffsetFunction) null, true, false, shader, new int?(), new int?(), false, new (Vector2, Vector2)?()), new int?(60));
-      return false;
-    }
-  }
 }

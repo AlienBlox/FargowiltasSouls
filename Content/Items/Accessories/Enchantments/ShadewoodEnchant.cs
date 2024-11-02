@@ -1,37 +1,126 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.ShadewoodEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+﻿using FargowiltasSouls.Content.Buffs.Souls;
+using FargowiltasSouls.Content.Items.Accessories.Forces;
+using FargowiltasSouls.Content.Projectiles;
+using FargowiltasSouls.Content.Projectiles.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
+using System;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
+using static FargowiltasSouls.Content.Items.Accessories.Forces.TimberForce;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class ShadewoodEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(88, 104, 118);
-
-    public override void SetDefaults()
+    public class ShadewoodEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 1;
-      this.Item.value = 10000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<ShadewoodEffect>(this.Item);
-    }
+        public override Color nameColor => new(88, 104, 118);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(924, 1).AddIngredient(925, 1).AddIngredient(926, 1).AddIngredient(2887, 1).AddIngredient(4285, 1).AddIngredient(1492, 1).AddTile(26).Register();
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Blue;
+            Item.value = 10000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<ShadewoodEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddIngredient(ItemID.ShadewoodHelmet)
+                .AddIngredient(ItemID.ShadewoodBreastplate)
+                .AddIngredient(ItemID.ShadewoodGreaves)
+                .AddIngredient(ItemID.ViciousMushroom)
+                .AddIngredient(ItemID.BloodOrange)
+                .AddIngredient(ItemID.DeadlandComesAlive)
+
+            .AddTile(TileID.DemonAltar)
+            .Register();
+        }
     }
-  }
+    public class ShadewoodEffect : AccessoryEffect
+    {
+
+        public override Header ToggleHeader => Header.GetHeader<TimberHeader>();
+        public override int ToggleItemType => ModContent.ItemType<ShadewoodEnchant>();
+        public static int Range(Player player, bool forceEffect) => (int)((forceEffect ? 400f : 200f) * (1f + player.FargoSouls().AuraSizeBonus));
+        public override void PostUpdateEquips(Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (player.whoAmI != Main.myPlayer)
+                return;
+            bool forceEffect = modPlayer.ForceEffect<ShadewoodEnchant>();
+            int dist = Range(player, forceEffect);
+
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                NPC npc = Main.npc[i];
+                if (npc.active && !npc.friendly && npc.lifeMax > 5 && !npc.dontTakeDamage)
+                {
+                    Vector2 npcComparePoint = FargoSoulsUtil.ClosestPointInHitbox(npc, player.Center);
+                    if (player.Distance(npcComparePoint) < dist && (forceEffect || Collision.CanHitLine(player.Center, 0, 0, npcComparePoint, 0, 0)))
+                    {
+                        //if (!player.HasEffect<TimberEffect>())
+                        npc.AddBuff(ModContent.BuffType<SuperBleedBuff>(), 120);
+                    }
+                        
+                }
+            }
+            if (!MoltenAuraProj.CombinedAura(player))
+            {
+                int visualProj = ModContent.ProjectileType<ShadewoodAuraProj>();
+                if (player.ownedProjectileCounts[visualProj] <= 0)
+                {
+                    Projectile.NewProjectile(GetSource_EffectItem(player), player.Center, Vector2.Zero, visualProj, 0, 0, Main.myPlayer);
+                }
+            }
+
+            if (modPlayer.ShadewoodCD > 0)
+            {
+                modPlayer.ShadewoodCD--;
+            }
+        }
+        public override void OnHitNPCEither(Player player, NPC target, NPC.HitInfo hitInfo, DamageClass damageClass, int baseDamage, Projectile projectile, Item item)
+        {
+            ShadewoodProc(player, target, projectile);
+        }
+        public static void ShadewoodProc(Player player, NPC target, Projectile projectile)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            bool forceEffect = modPlayer.ForceEffect<ShadewoodEnchant>();
+            int dmg = 12;
+
+            if (forceEffect)
+                dmg *= 3;
+            if (player.HasEffect<NatureEffect>())
+                dmg *= 4;
+
+            if (target.HasBuff(ModContent.BuffType<SuperBleedBuff>()) && modPlayer.ShadewoodCD == 0 && (projectile == null || projectile.type != ModContent.ProjectileType<SuperBlood>()) && player.whoAmI == Main.myPlayer)
+            {
+                modPlayer.ShadewoodCD = 120;
+                for (int i = 0; i < Main.rand.Next(3, 6); i++)
+                {
+                    Projectile.NewProjectile(player.GetSource_Misc(""), target.Center.X, target.Center.Y - 20, 0f + Main.rand.NextFloat(-5, 5), Main.rand.NextFloat(-5, 5), ModContent.ProjectileType<SuperBlood>(), FargoSoulsUtil.HighestDamageTypeScaling(player, dmg), 0f, Main.myPlayer);
+                }
+
+                if (forceEffect)
+                {
+                    target.AddBuff(BuffID.Ichor, 30);
+                }
+            }
+        }
+    }
 }

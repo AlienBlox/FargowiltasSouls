@@ -1,48 +1,97 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.MinerEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.AccessoryEffectSystem;
+﻿using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class MinerEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(95, 117, 151);
-
-    public override void SetDefaults()
+    public class MinerEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 1;
-      this.Item.value = 20000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      float pickSpeed = player.FargoSouls().ForceEffect<MinerEnchant>() ? 0.75f : 0.5f;
-      MinerEnchant.AddEffects(player, pickSpeed, this.Item);
-    }
+        public override Color nameColor => new(95, 117, 151);
 
-    public static void AddEffects(Player player, float pickSpeed, Item item)
-    {
-      player.pickSpeed -= pickSpeed;
-      player.nightVision = true;
-      player.AddEffect<MiningSpelunk>(item);
-      player.AddEffect<MiningHunt>(item);
-      player.AddEffect<MiningDanger>(item);
-      player.AddEffect<MiningShine>(item);
-    }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(4008, 1).AddIngredient(410, 1).AddIngredient(411, 1).AddIngredient(4056, 1).AddIngredient(3509, 1).AddIngredient(4711, 1).AddTile(26).Register();
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Blue;
+            Item.value = 20000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            float speed = modPlayer.ForceEffect<MinerEnchant>() ? .75f : .5f;
+            AddEffects(player, speed, Item);
+        }
+
+        public static void AddEffects(Player player, float pickSpeed, Item item)
+        {
+            player.pickSpeed -= pickSpeed;
+            player.nightVision = true;
+
+            player.AddEffect<MiningSpelunk>(item);
+            player.AddEffect<MiningHunt>(item);
+            player.AddEffect<MiningDanger>(item);
+            player.AddEffect<MiningShine>(item);
+
+            player.FargoSouls().MiningImmunity = true;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+                .AddIngredient(ItemID.UltrabrightHelmet)
+                .AddIngredient(ItemID.MiningShirt)
+                .AddIngredient(ItemID.MiningPants)
+                .AddIngredient(ItemID.AncientChisel)
+                .AddIngredient(ItemID.CopperPickaxe)
+                .AddIngredient(ItemID.GravediggerShovel)
+                .AddTile(TileID.DemonAltar)
+                .Register();
+        }
     }
-  }
+    public class MiningSpelunk : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<WorldShaperHeader>();
+        public override int ToggleItemType => ModContent.ItemType<MinerEnchant>();
+        public override void PostUpdateEquips(Player player)
+        {
+            player.findTreasure = true;
+        }
+    }
+    public class MiningHunt : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<WorldShaperHeader>();
+        public override int ToggleItemType => ModContent.ItemType<MinerEnchant>();
+        public override void PostUpdateEquips(Player player)
+        {
+            player.detectCreature = true;
+        }
+    }
+    public class MiningDanger : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<WorldShaperHeader>();
+        public override int ToggleItemType => ModContent.ItemType<MinerEnchant>();
+        public override void PostUpdateEquips(Player player)
+        {
+            player.dangerSense = true;
+        }
+    }
+    public class MiningShine : AccessoryEffect
+    {
+        public override Header ToggleHeader => Header.GetHeader<WorldShaperHeader>();
+        public override int ToggleItemType => ModContent.ItemType<MinerEnchant>();
+        public override void PostUpdateEquips(Player player)
+        {
+            Lighting.AddLight(player.Center, 0.8f, 0.8f, 0);
+        }
+    }
 }

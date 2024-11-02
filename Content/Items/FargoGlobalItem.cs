@@ -1,400 +1,679 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.FargoGlobalItem
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs.Souls;
 using FargowiltasSouls.Content.Items.Accessories.Enchantments;
 using FargowiltasSouls.Content.Items.Placables;
+using FargowiltasSouls.Content.Items.Weapons.BossDrops;
 using FargowiltasSouls.Content.Items.Weapons.Challengers;
 using FargowiltasSouls.Content.Projectiles.Souls;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
+using FargowiltasSouls.Core.Systems;
+
+//using FargowiltasSouls.Content.Buffs.Souls;
+//using FargowiltasSouls.Content.Projectiles.Critters;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Linq;
 using Terraria;
 using Terraria.Audio;
-using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.Localization;
+using Terraria.Map;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items
 {
-  public class FargoGlobalItem : GlobalItem
-  {
-    public static List<int> TungstenAlwaysAffects;
-    private static int infiniteLoopHackFix;
-
-    public virtual void SetDefaults(Item item)
+    public class FargoGlobalItem : GlobalItem
     {
-      if (item.type != 27 && item.type != 154)
-        return;
-      item.ammo = item.type;
-    }
-
-    public virtual void UpdateAccessory(Item item, Player player, bool hideVisual)
-    {
-      if ((double) player.manaCost > 0.0)
-        return;
-      player.manaCost = 0.0f;
-    }
-
-    public virtual void ModifyManaCost(Item item, Player player, ref float reduce, ref float mult)
-    {
-    }
-
-    public virtual void GrabRange(Item item, Player player, ref int grabRange)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (((Entity) player).whoAmI != Main.myPlayer || !player.HasEffect<IronEffect>() || item.type == 71 || item.type == 72 || item.type == 73 || item.type == 74 || item.type == 1734 || item.type == 1735 || item.type == 184 || item.type == 1867 || item.type == 1868 || item.type == 58)
-        return;
-      int num = 160;
-      if (fargoSoulsPlayer.ForceEffect<IronEnchant>())
-        num = 320;
-      if (fargoSoulsPlayer.TerrariaSoul)
-        num = 640;
-      grabRange += num;
-    }
-
-    public virtual bool OnPickup(Item item, Player player)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (((Entity) player).whoAmI == Main.myPlayer && player.HasEffect<GoldToPiggy>())
-        fargoSoulsPlayer.GoldEnchMoveCoins = true;
-      return base.OnPickup(item, player);
-    }
-
-    public virtual void PickAmmo(
-      Item weapon,
-      Item ammo,
-      Player player,
-      ref int type,
-      ref float speed,
-      ref StatModifier damage,
-      ref float knockback)
-    {
-      if (weapon.CountsAsClass(DamageClass.Ranged) && player.FargoSouls().Jammed)
-        type = 178;
-      if (weapon.type != 905)
-        return;
-      if (ammo.type == 71 || ammo.type == ModContent.Find<ModItem>("Fargowiltas", "CopperCoinBag").Type)
-        type = 158;
-      if (ammo.type == 72 || ammo.type == ModContent.Find<ModItem>("Fargowiltas", "SilverCoinBag").Type)
-        type = 159;
-      if (ammo.type == 73 || ammo.type == ModContent.Find<ModItem>("Fargowiltas", "GoldCoinBag").Type)
-        type = 160;
-      if (ammo.type != 74 && ammo.type != ModContent.Find<ModItem>("Fargowiltas", "PlatinumCoinBag").Type)
-        return;
-      type = 161;
-    }
-
-    public virtual void OnConsumeItem(Item item, Player player)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (item.healLife <= 0)
-        return;
-      if (player.HasEffect<HallowEffect>())
-      {
-        fargoSoulsPlayer.HallowHealTime = 6 * fargoSoulsPlayer.GetHealMultiplier(item.healLife);
-        HallowEffect.HealRepel(player);
-      }
-      fargoSoulsPlayer.StatLifePrevious += fargoSoulsPlayer.GetHealMultiplier(item.healLife);
-    }
-
-    public virtual bool ConsumeItem(Item item, Player player)
-    {
-      return (!player.FargoSouls().BuilderMode || item.createTile <= 0 && item.createWall <= 0) && base.ConsumeItem(item, player);
-    }
-
-    public virtual void ModifyItemScale(Item item, Player player, ref float scale)
-    {
-      FargoSoulsPlayer modPlayer = player.FargoSouls();
-      if (!player.HasEffect<TungstenEffect>() || item.IsAir || (!item.IsWeapon() || item.noMelee) && !FargoGlobalItem.TungstenAlwaysAffects.Contains(item.type))
-        return;
-      scale *= TungstenEffect.TungstenIncreaseWeaponSize(modPlayer);
-    }
-
-    public virtual void ModifyWeaponKnockback(Item item, Player player, ref StatModifier knockback)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (!fargoSoulsPlayer.UniverseSoul && !fargoSoulsPlayer.Eternity)
-        return;
-      knockback = StatModifier.op_Multiply(knockback, 2f);
-    }
-
-    public virtual bool? CanAutoReuseItem(Item item, Player player)
-    {
-      if (item.ModItem != null && item.ModItem.CanAutoReuseItem(player).HasValue)
-        return item.ModItem.CanAutoReuseItem(player);
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (fargoSoulsPlayer.Berserked)
-        return new bool?(true);
-      return fargoSoulsPlayer.BoxofGizmos && item.DamageType == DamageClass.Default && item.damage <= 0 ? new bool?(true) : base.CanAutoReuseItem(item, player);
-    }
-
-    public virtual bool CanUseItem(Item item, Player player)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (fargoSoulsPlayer.NoUsingItems > 0)
-        return false;
-      if (player.HasBuff(ModContent.BuffType<GoldenStasisBuff>()))
-      {
-        if (item.type != 1326)
-          return false;
-        player.ClearBuff(ModContent.BuffType<GoldenStasisBuff>());
-      }
-      if (item.CountsAsClass(DamageClass.Magic) && player.FargoSouls().ReverseManaFlow)
-      {
-        int num = (int) ((double) item.mana / (1.0 - (double) player.endurance) + (double) Player.DefenseStat.op_Implicit(player.statDefense));
-        player.Hurt(PlayerDeathReason.ByCustomReason(Language.GetTextValue("Mods.FargowiltasSouls.DeathMessage.ReverseManaFlow", (object) player.name)), num, 0, false, false, -1, true, 0.0f, 0.0f, 4.5f);
-        player.immune = false;
-        player.immuneTime = 0;
-      }
-      if (fargoSoulsPlayer.BuilderMode && (item.createTile != -1 || item.createWall != -1) && item.type != 74 && item.type != 73)
-      {
-        item.useTime = 1;
-        item.useAnimation = 1;
-      }
-      if (item.IsWeapon() && player.HasAmmo(item) && (item.mana <= 0 || player.statMana >= item.mana) && item.type != 1338 && item.type != 929 && item.useTime > 0 && item.createTile == -1 && item.createWall == -1 && item.ammo == AmmoID.None)
-      {
-        fargoSoulsPlayer.TryAdditionalAttacks(item.damage, item.DamageType);
-        player.AccessoryEffects().TryAdditionalAttacks(item.damage, item.DamageType);
-      }
-      if (item.type == 1326 && player.chaosState)
-        player.FargoSouls().WasHurtBySomething = true;
-      if (item.IsWeaponWithDamageClass())
-        player.FargoSouls().WeaponUseTimer = 2 + (int) Math.Round((double) (Math.Max(item.useTime, item.useAnimation) + item.reuseDelay) / (double) player.FargoSouls().AttackSpeed);
-      return true;
-    }
-
-    public virtual bool? UseItem(Item item, Player player)
-    {
-      if (item.type == 1326)
-      {
-        player.ClearBuff(ModContent.BuffType<GoldenStasisBuff>());
-        if (player.FargoSouls().CrystalEnchantActive)
-          player.AddBuff(ModContent.BuffType<FirstStrikeBuff>(), 60, true, false);
-      }
-      return base.UseItem(item, player);
-    }
-
-    public virtual void HoldItem(Item item, Player player)
-    {
-      if (item.type == 1299 && NPC.AnyNPCs(637))
-      {
-        for (int index1 = 0; index1 < Main.maxNPCs; ++index1)
+        public override void SetDefaults(Item item)
         {
-          if (((Entity) Main.npc[index1]).active && Main.npc[index1].type == 637)
-          {
-            NPC npc = Main.npc[index1];
-            for (int index2 = 0; index2 < Main.maxItems; ++index2)
+            if (item.type is ItemID.Acorn or ItemID.GemTreeAmberSeed or ItemID.GemTreeAmethystSeed or ItemID.GemTreeDiamondSeed or ItemID.GemTreeEmeraldSeed or ItemID.GemTreeRubySeed or ItemID.GemTreeSapphireSeed or ItemID.GemTreeTopazSeed)
             {
-              if (((Entity) Main.item[index2]).active && Main.item[index2].type == 3124)
-              {
-                double num1 = (double) ((Entity) npc).Distance(((Entity) Main.item[index2]).Center);
-                Vector2 size = ((Entity) npc).Size;
-                double num2 = (double) ((Vector2) ref size).Length();
-                if (num1 < num2)
-                {
-                  double num3 = (double) Utils.Distance(Main.MouseWorld, ((Entity) npc).Center);
-                  size = ((Entity) npc).Size;
-                  double num4 = (double) ((Vector2) ref size).Length();
-                  if (num3 < num4)
-                  {
-                    Item.NewItem(player.GetSource_ItemUse(item, (string) null), ((Entity) npc).Center, ModContent.ItemType<WiresPainting>(), 1, false, 0, false, false);
-                    ((Entity) Main.item[index2]).active = false;
-                    ((Entity) npc).active = false;
-                    return;
-                  }
-                }
-              }
+                item.ammo = ItemID.Acorn;
+                item.notAmmo = true;
             }
-          }
+
+            if (item.type == ItemID.Bone)
+            {
+                item.ammo = ItemID.Bone;
+                item.notAmmo = true;
+            }
         }
-      }
-      base.HoldItem(item, player);
-    }
-
-    public virtual void ModifyShootStats(
-      Item item,
-      Player player,
-      ref Vector2 position,
-      ref Vector2 velocity,
-      ref int type,
-      ref int damage,
-      ref float knockback)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (fargoSoulsPlayer.Eternity)
-      {
-        velocity = Vector2.op_Multiply(velocity, 2f);
-      }
-      else
-      {
-        if (!fargoSoulsPlayer.UniverseSoul)
-          return;
-        velocity = Vector2.op_Multiply(velocity, 1.5f);
-      }
-    }
-
-    public virtual bool WingUpdate(int wings, Player player, bool inUse)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (player.HasEffect<JungleJump>() & inUse)
-      {
-        fargoSoulsPlayer.CanJungleJump = false;
-        if (fargoSoulsPlayer.JungleCD == 0)
+        public override void UpdateAccessory(Item item, Player player, bool hideVisual)
         {
-          int num = 1;
-          if (fargoSoulsPlayer.ChlorophyteEnchantActive)
-            ++num;
-          if (fargoSoulsPlayer.ForceEffect<JungleEnchant>())
-            ++num;
-          fargoSoulsPlayer.JungleCD = 18 - num * num;
-          int dmg = 12 * num * num - 5;
-          SoundStyle soundStyle = SoundID.Item62;
-          ((SoundStyle) ref soundStyle).Volume = 0.5f;
-          SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) player).Center), (SoundUpdateCallback) null);
-          foreach (Projectile projectile in FargoSoulsUtil.XWay(10, player.GetSource_EffectItem<JungleJump>(), new Vector2(((Entity) player).Center.X, ((Entity) player).Center.Y + (float) (((Entity) player).height / 2)), 228, 3f, FargoSoulsUtil.HighestDamageTypeScaling(player, dmg), 0.0f))
-            ++projectile.extraUpdates;
-          fargoSoulsPlayer.JungleCD = 24;
+            if (player.manaCost <= 0f) player.manaCost = 0f;
         }
-      }
-      if (player.HasEffect<BeeEffect>() & inUse)
-      {
-        if (fargoSoulsPlayer.BeeCD == 0)
+
+        public override void ModifyManaCost(Item item, Player player, ref float reduce, ref float mult)
         {
-          int num = player.ForceEffect<BeeEffect>() ? 88 : 22;
-          Projectile.NewProjectile(player.GetSource_Accessory(player.EffectItem<BeeEffect>(), (string) null), ((Entity) player).Center, Vector2.Zero, ModContent.ProjectileType<BeeFlower>(), num, 0.5f, ((Entity) player).whoAmI, 0.0f, 0.0f, 0.0f);
-          fargoSoulsPlayer.BeeCD = 50;
         }
-        if (fargoSoulsPlayer.BeeCD > 0)
-          --fargoSoulsPlayer.BeeCD;
-      }
-      return base.WingUpdate(wings, player, inUse);
-    }
 
-    public virtual void VerticalWingSpeeds(
-      Item item,
-      Player player,
-      ref float ascentWhenFalling,
-      ref float ascentWhenRising,
-      ref float maxCanAscendMultiplier,
-      ref float maxAscentMultiplier,
-      ref float constantAscend)
-    {
-      base.VerticalWingSpeeds(item, player, ref ascentWhenFalling, ref ascentWhenRising, ref maxCanAscendMultiplier, ref maxAscentMultiplier, ref constantAscend);
-    }
-
-    public virtual void HorizontalWingSpeeds(
-      Item item,
-      Player player,
-      ref float speed,
-      ref float acceleration)
-    {
-      base.HorizontalWingSpeeds(item, player, ref speed, ref acceleration);
-    }
-
-    public virtual void ModifyTooltips(Item item, List<TooltipLine> tooltips)
-    {
-      if (item.type != 4923)
-        return;
-      tooltips.Add(new TooltipLine(((ModType) this).Mod, "StarlightTungsten", Language.GetTextValue("Mods.FargowiltasSouls.Items.Extra.StarlightTungsten")));
-    }
-
-    public virtual bool AllowPrefix(Item item, int pre)
-    {
-      if (!Main.gameMenu && ((Entity) Main.LocalPlayer).active && Main.LocalPlayer.FargoSouls().SecurityWallet)
-      {
-        switch (pre)
+        public override void GrabRange(Item item, Player player, ref int grabRange)
         {
-          case 1:
-          case 3:
-          case 7:
-          case 8:
-          case 9:
-          case 10:
-          case 11:
-          case 12:
-          case 13:
-          case 14:
-          case 16:
-          case 18:
-          case 19:
-          case 22:
-          case 23:
-          case 24:
-          case 27:
-          case 29:
-          case 30:
-          case 31:
-          case 32:
-          case 33:
-          case 35:
-          case 36:
-          case 38:
-          case 39:
-          case 40:
-          case 41:
-          case 42:
-          case 45:
-          case 47:
-          case 48:
-          case 49:
-          case 50:
-          case 51:
-          case 52:
-          case 54:
-          case 55:
-          case 56:
-          case 58:
-          case 61:
-          case 62:
-          case 63:
-          case 69:
-          case 70:
-          case 73:
-          case 74:
-          case 77:
-          case 78:
-          case 79:
-            if (++FargoGlobalItem.infiniteLoopHackFix < 30)
-              return false;
-            break;
-        }
-      }
-      FargoGlobalItem.infiniteLoopHackFix = 0;
-      return base.AllowPrefix(item, pre);
-    }
+            FargoSoulsPlayer p = player.FargoSouls();
+            //ignore money, hearts, mana stars
+            if (player.whoAmI == Main.myPlayer && player.HasEffect<IronEffect>() && item.type != ItemID.CopperCoin && item.type != ItemID.SilverCoin && item.type != ItemID.GoldCoin && item.type != ItemID.PlatinumCoin && item.type != ItemID.CandyApple && item.type != ItemID.SoulCake &&
+                item.type != ItemID.Star && item.type != ItemID.CandyCane && item.type != ItemID.SugarPlum && item.type != ItemID.Heart)
+            {
+                int rangeBonus = 160;
+                if (p.ForceEffect<IronEnchant>())
+                    rangeBonus = 320;
+                if (p.TerrariaSoul)
+                    rangeBonus = 640;
 
-    static FargoGlobalItem()
-    {
-      List<int> intList = new List<int>();
-      CollectionsMarshal.SetCount<int>(intList, 8);
-      Span<int> span = CollectionsMarshal.AsSpan<int>(intList);
-      int num1 = 0;
-      span[num1] = 757;
-      int num2 = num1 + 1;
-      span[num2] = 273;
-      int num3 = num2 + 1;
-      span[num3] = 675;
-      int num4 = num3 + 1;
-      span[num4] = 368;
-      int num5 = num4 + 1;
-      span[num5] = 674;
-      int num6 = num5 + 1;
-      span[num6] = 1826;
-      int num7 = num6 + 1;
-      span[num7] = ModContent.ItemType<TheBaronsTusk>();
-      int num8 = num7 + 1;
-      span[num8] = 5095;
-      int num9 = num8 + 1;
-      FargoGlobalItem.TungstenAlwaysAffects = intList;
+                grabRange += rangeBonus;
+            }
+        }
+
+        public override bool OnPickup(Item item, Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (player.whoAmI == Main.myPlayer && player.HasEffect<GoldToPiggy>())
+                modPlayer.GoldEnchMoveCoins = true;
+            
+            if (ItemID.Sets.IsAPickup[item.type])
+            {
+                OnRetrievePickup(player);
+            }
+
+            return base.OnPickup(item, player);
+        }
+        public static void OnRetrievePickup(Player player)
+        {
+            PearlwoodEffect.OnPickup(player);
+        }
+
+        public override void PickAmmo(Item weapon, Item ammo, Player player, ref int type, ref float speed, ref StatModifier damage, ref float knockback)
+        {
+            //if (weapon.CountsAsClass(DamageClass.Ranged) && player.FargoSouls().Jammed)
+                //type = ProjectileID.ConfettiGun;
+
+            switch (ammo.type)
+            {
+                case ItemID.GemTreeAmethystSeed:
+                    damage.Flat += 1;
+                    break;
+                case ItemID.GemTreeTopazSeed:
+                    damage.Flat += 2; 
+                    break;
+                case ItemID.GemTreeSapphireSeed:
+                    damage.Flat += 3;
+                    break;
+                case ItemID.GemTreeEmeraldSeed:
+                    damage.Flat += 4;
+                    break;
+                case ItemID.GemTreeRubySeed:
+                    damage.Flat += 5;
+                    break;
+                case ItemID.GemTreeAmberSeed:
+                    damage.Flat += 6;
+                    break;
+                case ItemID.GemTreeDiamondSeed:
+                    damage.Flat += 7;
+                    break;
+            }
+
+            //coin gun is broken as fucking shit codingwise so i'm fixing it
+            if (weapon.type == ItemID.CoinGun)
+            {
+                if (ammo.type == ItemID.CopperCoin || ammo.type == ModContent.Find<ModItem>("Fargowiltas", "CopperCoinBag").Type)
+                {
+                    type = ProjectileID.CopperCoin;
+                }
+                if (ammo.type == ItemID.SilverCoin || ammo.type == ModContent.Find<ModItem>("Fargowiltas", "SilverCoinBag").Type)
+                {
+                    type = ProjectileID.SilverCoin;
+                }
+                if (ammo.type == ItemID.GoldCoin || ammo.type == ModContent.Find<ModItem>("Fargowiltas", "GoldCoinBag").Type)
+                {
+                    type = ProjectileID.GoldCoin;
+                }
+                if (ammo.type == ItemID.PlatinumCoin || ammo.type == ModContent.Find<ModItem>("Fargowiltas", "PlatinumCoinBag").Type)
+                {
+                    type = ProjectileID.PlatinumCoin;
+                }
+            }
+        }
+
+        public override void OnConsumeItem(Item item, Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (item.healLife > 0)
+            {
+                if (player.HasEffect<ShroomiteHealEffect>())
+                {
+                    if (item.type == ItemID.Mushroom)
+                    {
+                        player.AddBuff(ModContent.BuffType<MushroomPowerBuff>(), LumUtils.SecondsToFrames(20f));
+                    }
+                }
+                if (player.HasEffect<HallowEffect>())
+                {
+                    int hallowIndex = ModContent.GetInstance<HallowEffect>().Index;
+                    // Hallow needs to disabled so it doesn't set GetHealLife to 0
+                    player.AccessoryEffects().ActiveEffects[hallowIndex] = false;
+                    modPlayer.HallowHealTime = 6 * player.GetHealLife(item);
+                    player.AccessoryEffects().ActiveEffects[hallowIndex] = true;
+                    HallowEffect.HealRepel(player);
+                }
+                modPlayer.StatLifePrevious += modPlayer.GetHealMultiplier(item.healLife);
+            }
+        }
+
+        public override bool ConsumeItem(Item item, Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            //if (item.makeNPC > 0 && (p.WoodForce || p.WizardEnchant) && Main.rand.NextBool())
+            //{
+            //    return false;
+            //}
+
+            if (modPlayer.BuilderMode && (item.createTile > TileID.Dirt || item.createWall > 0))
+                return false;
+
+            return base.ConsumeItem(item, player);
+        }
+
+        public static List<int> TungstenAlwaysAffects =
+        [
+            ItemID.TerraBlade,
+            ItemID.NightsEdge,
+            ItemID.TrueNightsEdge,
+            ItemID.Excalibur,
+            ItemID.TrueExcalibur,
+            //ItemID.PiercingStarlight,
+            ItemID.TheHorsemansBlade,
+            ModContent.ItemType<TheBaronsTusk>(),
+            ItemID.LucyTheAxe,
+            ModContent.ItemType<SlimeKingsSlasher>(),
+            ItemID.TheAxe
+        ];
+        public override void ModifyItemScale(Item item, Player player, ref float scale)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (!item.IsAir && ((item.IsWeapon() && !item.noMelee) || TungstenAlwaysAffects.Contains(item.type)))
+            {
+                if (player.HasEffect<TungstenEffect>())
+                {
+                    scale *= TungstenEffect.TungstenIncreaseWeaponSize(modPlayer);
+                    if (item.type == ItemID.TheAxe && player.name.ToLower().Contains("gonk"))
+                        scale *= 2.5f;
+                }
+                if (modPlayer.Atrophied)
+                    scale *= 0.5f;
+            }
+        }
+
+        public override void ModifyWeaponKnockback(Item item, Player player, ref StatModifier knockback)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (modPlayer.UniverseSoul || modPlayer.Eternity)
+                knockback *= 2;
+        }
+
+        public override bool? CanAutoReuseItem(Item item, Player player)
+        {
+            if (item.ModItem != null)
+            {
+                if (item.ModItem.CanAutoReuseItem(player) != null)
+                    return item.ModItem.CanAutoReuseItem(player);
+            }
+
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (modPlayer.Berserked)
+            {
+                return true;
+            }
+            if (modPlayer.BoxofGizmos)
+            {
+                if (item.DamageType == DamageClass.Default && item.damage <= 0)
+                {
+                    return true;
+                }
+            }
+            return base.CanAutoReuseItem(item, player);
+        }
+        public override void ModifyWeaponDamage(Item item, Player player, ref StatModifier damage)
+        {
+            if (player.HasEffect<TikiEffect>())
+            {
+                if (item.shoot > ProjectileID.None && ProjectileID.Sets.IsAWhip[item.shoot] && item.DamageType.CountsAsClass(DamageClass.SummonMeleeSpeed))
+                {
+                    damage /= player.ActualClassDamage(DamageClass.SummonMeleeSpeed);
+                    List<float> types =
+                        [
+                            player.ActualClassDamage(DamageClass.Melee),
+                            player.ActualClassDamage(DamageClass.Ranged),
+                            player.ActualClassDamage(DamageClass.Magic),
+                            player.ActualClassDamage(DamageClass.Summon)
+                        ];
+                    damage *= types.Max();
+                }
+            }
+        }
+        public override void ModifyWeaponCrit(Item item, Player player, ref float crit)
+        {
+            if (player.HasEffect<TikiEffect>())
+            {
+                if (item.shoot > ProjectileID.None && ProjectileID.Sets.IsAWhip[item.shoot] && item.DamageType.CountsAsClass(DamageClass.SummonMeleeSpeed))
+                {
+                    crit /= player.ActualClassCrit(DamageClass.SummonMeleeSpeed);
+                    crit *= FargoSoulsUtil.HighestCritChance(player);
+                }
+            }
+        }
+        public override bool CanUseItem(Item item, Player player)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (modPlayer.NoUsingItems > 0)
+                return false;
+
+            if (PyramidGenSystem.ArenaItemPrevention(item, player))
+                return false;
+            //if (modPlayer.AdamantiteEnchantActive && modPlayer.AdamantiteCD == 0)
+            //{
+            //// ??? tm
+            //}
+
+            //dont use hotkeys in stasis
+            if (player.HasBuff(ModContent.BuffType<GoldenStasisBuff>()))
+            {
+                if (item.type == ItemID.RodofDiscord)
+                    player.ClearBuff(ModContent.BuffType<GoldenStasisBuff>());
+                else
+                    return false;
+            }
+
+            if (modPlayer.BuilderMode && (item.createTile != -1 || item.createWall != -1) && item.type != ItemID.PlatinumCoin && item.type != ItemID.GoldCoin)
+            {
+                item.useTime = 1;
+                item.useAnimation = 1;
+            }
+
+            if (item.IsWeapon() && player.HasAmmo(item) && !(item.mana > 0 && player.statMana < item.mana) //non weapons and weapons with no ammo begone
+                && item.type != ItemID.ExplosiveBunny && item.type != ItemID.Cannonball
+                && item.useTime > 0 && item.createTile == -1 && item.createWall == -1 && item.ammo == AmmoID.None)
+            {
+                modPlayer.TryAdditionalAttacks(item.damage, item.DamageType);
+                player.AccessoryEffects().TryAdditionalAttacks(item.damage, item.DamageType);
+            }
+
+            //            //critter attack timer
+            //            if (modPlayer.WoodEnchant && player.altFunctionUse == ItemAlternativeFunctionID.ActivatedAndUsed && item.makeNPC > 0)
+            //            {
+            //                if (modPlayer.CritterAttackTimer == 0)
+            //                {
+            //                    Vector2 vel = Vector2.Normalize(Main.MouseWorld - player.Center);
+            //                    float damageMultiplier = player.GetDamage(DamageClass.Summon);
+
+            //                    int type = -1;
+            //                    int damage = 0;
+            //                    int attackCooldown = 0;
+
+            //                    switch (item.type)
+            //                    {
+            //                        //case ItemID.Bunny:
+            //                        //    type = ProjectileID.ExplosiveBunny;
+            //                        //    damage = 10;
+            //                        //    attackCooldown = 10;
+            //                        //    break;
+
+            //                        case ItemID.Bird:
+            //                            type = ModContent.ProjectileType<BirdProj>();
+            //                            damage = 15;
+            //                            attackCooldown = 15;
+            //                            break;
+
+            //                        case ItemID.BlueJay:
+            //                            type = ModContent.ProjectileType<BlueJayProj>();
+            //                            damage = 10;
+            //                            attackCooldown = 10;
+            //                            break;
+
+            //                        case ItemID.Cardinal:
+            //                            type = ModContent.ProjectileType<CardinalProj>();
+            //                            damage = 20;
+            //                            attackCooldown = 20;
+            //                            break;
+            //                    }
+
+            //                    if (type != -1)
+            //                    {
+            //                        Projectile.NewProjectile(player.Center, vel * 2f, type, damage, 2, player.whoAmI);
+            //                        modPlayer.CritterAttackTimer = attackCooldown;
+            //                    }
+
+
+            //                }
+
+
+
+
+
+            //                return false;
+            //            }
+
+            if (item.type == ItemID.RodofDiscord && player.chaosState)
+            {
+                player.FargoSouls().WasHurtBySomething = true; //with abom rebirth, die to chaos state
+            }
+            /*
+            if (item.type == ItemID.PotionOfReturn && LumUtils.AnyBosses() && WorldSavingSystem.EternityMode)
+            {
+                return false;
+            }
+            */
+            if (item.IsWeaponWithDamageClass())
+            {
+                player.FargoSouls().WeaponUseTimer = 2 + (int)Math.Round((Math.Max(item.useTime, item.useAnimation) + item.reuseDelay) / player.FargoSouls().AttackSpeed);
+            }
+            return true;
+        }
+        public override bool? UseItem(Item item, Player player)
+        {
+            if (item.type == ItemID.RodofDiscord)
+            {
+                player.ClearBuff(ModContent.BuffType<GoldenStasisBuff>());
+
+                if (player.FargoSouls().CrystalEnchantActive)
+                    player.AddBuff(ModContent.BuffType<FirstStrikeBuff>(), 60);
+            }
+            return base.UseItem(item, player);
+        }
+
+        //        public override bool AltFunctionUse(Item item, Player player)
+        //        {
+        //            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+        //            if (modPlayer.WoodEnchant)
+        //            {
+        //                switch (item.type)
+        //                {
+        //                    case ItemID.Bunny:
+        //                    case ItemID.Bird:
+        //                    case ItemID.BlueJay:
+        //                    case ItemID.Cardinal:
+        //                        return true;
+
+        //                }
+        //            }
+
+
+
+        //            return base.AltFunctionUse(item, player);
+        //        }
+
+        //        public override bool NewPreReforge(Item item)
+        //        {
+        //            /*if (Main.player[item.owner].FargoSouls().SecurityWallet)
+        //            {
+        //                switch(item.prefix)
+        //                {
+        //                    case PrefixID.Warding:  if (SoulConfig.Instance.walletToggles.Warding)  return false; break;
+        //                    case PrefixID.Violent:  if (SoulConfig.Instance.walletToggles.Violent)  return false; break;
+        //                    case PrefixID.Quick:    if (SoulConfig.Instance.walletToggles.Quick)    return false; break;
+        //                    case PrefixID.Lucky:    if (SoulConfig.Instance.walletToggles.Lucky)    return false; break;
+        //                    case PrefixID.Menacing: if (SoulConfig.Instance.walletToggles.Menacing) return false; break;
+        //                    case PrefixID.Legendary:if (SoulConfig.Instance.walletToggles.Legendary)return false; break;
+        //                    case PrefixID.Unreal:   if (SoulConfig.Instance.walletToggles.Unreal)   return false; break;
+        //                    case PrefixID.Mythical: if (SoulConfig.Instance.walletToggles.Mythical) return false; break;
+        //                    case PrefixID.Godly:    if (SoulConfig.Instance.walletToggles.Godly)    return false; break;
+        //                    case PrefixID.Demonic:  if (SoulConfig.Instance.walletToggles.Demonic)  return false; break;
+        //                    case PrefixID.Ruthless: if (SoulConfig.Instance.walletToggles.Ruthless) return false; break;
+        //                    case PrefixID.Light:    if (SoulConfig.Instance.walletToggles.Light)    return false; break;
+        //                    case PrefixID.Deadly:   if (SoulConfig.Instance.walletToggles.Deadly)   return false; break;
+        //                    case PrefixID.Rapid:    if (SoulConfig.Instance.walletToggles.Rapid)    return false; break;
+        //                    default: break;
+        //                }
+        //            }*/
+        //            return true;
+        //        }
+
+        public override void ModifyShootStats(Item item, Player player, ref Vector2 position, ref Vector2 velocity, ref int type, ref int damage, ref float knockback)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            if (modPlayer.Eternity)
+                velocity *= 2;
+            else if (modPlayer.UniverseSoul)
+                velocity *= 1.5f;
+
+        }
+
+        //        public override bool ReforgePrice(Item item, ref int reforgePrice, ref bool canApplyDiscount)
+        //        {
+        //            if (Main.LocalPlayer.FargoSouls().SecurityWallet)
+        //                reforgePrice /= 2;
+        //            return true;
+        //        }
+
+        //        //summon variants
+        //        private static readonly int[] Summon = { ItemID.NimbusRod, ItemID.CrimsonRod, ItemID.BeeGun, ItemID.WaspGun, ItemID.PiranhaGun, ItemID.BatScepter };
+
+        //        public override bool CanRightClick(Item item)
+        //        {
+        //            if (Array.IndexOf(Summon, item.type) > -1)
+        //            {
+        //                return true;
+        //            }
+
+        //            return base.CanRightClick(item);
+        //        }
+
+        //        public override void RightClick(Item item, Player player)
+        //        {
+        //            int newType = -1;
+
+        //            if (Array.IndexOf(Summon, item.type) > -1)
+        //            {
+        //                newType = mod.ItemType(ItemID.GetUniqueKey(item.type).Replace("Terraria ", string.Empty) + "Summon");
+        //            }
+
+        //            if (newType != -1)
+        //            {
+        //                int num = Item.NewItem(player.getRect(), newType, prefixGiven: item.prefix);
+
+        //                if (Main.netMode == NetmodeID.MultiplayerClient)
+        //                {
+        //                    NetMessage.SendData(MessageID.SyncItem, number: num, number2: 1f);
+        //                }
+        //            }
+        //        }
+
+        public override bool WingUpdate(int wings, Player player, bool inUse)
+        {
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+            if (player.HasEffect<JungleJump>() && inUse)
+            {
+                modPlayer.CanJungleJump = false;
+
+                //spwn cloud
+                if (modPlayer.JungleCD == 0)
+                {
+
+                    int tier = 1;
+                    if (modPlayer.ChlorophyteEnchantActive)
+                        tier++;
+                    bool jungleForceEffect = modPlayer.ForceEffect<JungleEnchant>();
+                    if (jungleForceEffect)
+                        tier++;
+
+                    modPlayer.JungleCD = 18 - tier * tier;
+                    int dmg = 12 * tier * tier - 5;
+
+                    SoundEngine.PlaySound(SoundID.Item62 with { Volume = 0.5f }, player.Center);
+                    foreach (Projectile p in FargoSoulsUtil.XWay(10, player.GetSource_EffectItem<JungleJump>(), new Vector2(player.Center.X, player.Center.Y + player.height / 2), ProjectileID.SporeCloud, 3f, FargoSoulsUtil.HighestDamageTypeScaling(player, dmg), 0))
+                    {
+                        p.extraUpdates += 1;
+                    }
+
+                    modPlayer.JungleCD = 24;
+                }
+            }
+
+            if (player.HasEffect<BeeEffect>() && inUse)
+            {
+                bool lifeForce = modPlayer.LifeForceActive;
+                if (modPlayer.BeeCD == 0)
+                {
+                    int force = lifeForce ? 1 : 0;
+                    int damage = player.ForceEffect<BeeEffect>() ? 88 : 22; //22
+                    if (lifeForce)
+                        damage = 222;
+                    Projectile.NewProjectile(player.GetSource_Accessory(player.EffectItem<BeeEffect>()), player.Center, Vector2.Zero, ModContent.ProjectileType<BeeFlower>(), damage, 0.5f, player.whoAmI, ai2: force);
+                    int cd = 50;
+                    if ((lifeForce))
+                        cd = 150;
+                    modPlayer.BeeCD = cd;
+                }
+                if (modPlayer.BeeCD > 0)
+                    modPlayer.BeeCD--;
+            }
+
+            return base.WingUpdate(wings, player, inUse);
+        }
+
+        public override void VerticalWingSpeeds(Item item, Player player, ref float ascentWhenFalling, ref float ascentWhenRising, ref float maxCanAscendMultiplier, ref float maxAscentMultiplier, ref float constantAscend)
+        {
+            base.VerticalWingSpeeds(item, player, ref ascentWhenFalling, ref ascentWhenRising, ref maxCanAscendMultiplier, ref maxAscentMultiplier, ref constantAscend);
+
+            //Main.NewText($"vertical: {ascentWhenFalling} {ascentWhenRising} {maxCanAscendMultiplier} {maxAscentMultiplier} {constantAscend}");
+        }
+
+        public override void HorizontalWingSpeeds(Item item, Player player, ref float speed, ref float acceleration)
+        {
+            base.HorizontalWingSpeeds(item, player, ref speed, ref acceleration);
+
+            //Main.NewText($"horiz: {speed} {acceleration}");
+        }
+
+        public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
+        {
+            if (item.type == ItemID.PiercingStarlight)
+                tooltips.Add(new TooltipLine(Mod, "StarlightTungsten", Language.GetTextValue("Mods.FargowiltasSouls.Items.Extra.StarlightTungsten")));
+
+            if (item.potion || item.healLife > 0)
+            {
+                bool hallow = Main.LocalPlayer.HasEffect<HallowEffect>();
+                bool shroomite = Main.LocalPlayer.HasEffect<ShroomiteHealEffect>() && item.type == ItemID.Mushroom;
+                if (hallow || (shroomite))
+                {
+                    foreach (var tooltip in tooltips)
+                    {
+                        if (tooltip.Name == "HealLife")
+                        {
+                            if (hallow)
+                            {
+                                tooltip.Text = "[i:FargowiltasSouls/HallowEnchant] " + tooltip.Text;
+                                tooltip.Text += $" {Language.GetTextValue("Mods.FargowiltasSouls.Items.HallowEnchant.OverTime")}";
+                            }
+                            if (shroomite)
+                            {
+                                tooltip.Text = "[i:FargowiltasSouls/ShroomiteEnchant] " + tooltip.Text;
+                                tooltip.Text += $" {Language.GetTextValue("Mods.FargowiltasSouls.Items.ShroomiteEnchant.AndMushroomPower")}";
+                            }
+                        }
+                    }
+                }
+            }
+            /*if (Array.IndexOf(Summon, item.type) > -1)
+            {
+                TooltipLine helperLine = new TooltipLine(mod, "help", "Right click to convert");
+                tooltips.Add(helperLine);
+            }*/
+        }
+
+        static int infiniteLoopHackFix;
+
+        public override bool AllowPrefix(Item item, int pre)
+        {
+            if (!Main.gameMenu && Main.LocalPlayer.active && Main.LocalPlayer.FargoSouls().SecurityWallet)
+            {
+                switch (pre)
+                {
+                    #region actually bad
+
+                    case PrefixID.Hard:
+                    case PrefixID.Guarding:
+                    case PrefixID.Jagged:
+                    case PrefixID.Spiked:
+                    case PrefixID.Brisk:
+                    case PrefixID.Fleeting:
+                    case PrefixID.Wild:
+                    case PrefixID.Rash:
+
+                    case PrefixID.Broken:
+                    case PrefixID.Damaged:
+                    case PrefixID.Shoddy:
+                    case PrefixID.Weak:
+
+                    case PrefixID.Slow:
+                    case PrefixID.Sluggish:
+                    case PrefixID.Lazy:
+                    case PrefixID.Annoying:
+
+                    case PrefixID.Tiny:
+                    case PrefixID.Small:
+                    case PrefixID.Dull:
+                    case PrefixID.Shameful:
+                    case PrefixID.Terrible:
+                    case PrefixID.Unhappy:
+
+                    case PrefixID.Awful:
+                    case PrefixID.Lethargic:
+                    case PrefixID.Awkward:
+
+                    case PrefixID.Inept:
+                    case PrefixID.Ignorant:
+                    case PrefixID.Deranged:
+
+                    #endregion actually bad
+
+                    #region mediocre
+
+                    case PrefixID.Hasty:
+                    case PrefixID.Intense:
+                    case PrefixID.Frenzying:
+                    case PrefixID.Dangerous:
+                    case PrefixID.Bulky:
+                    case PrefixID.Heavy:
+                    case PrefixID.Sighted:
+                    case PrefixID.Adept:
+                    case PrefixID.Taboo:
+                    case PrefixID.Furious:
+                    case PrefixID.Keen:
+                    case PrefixID.Forceful:
+                    case PrefixID.Quick:
+                    case PrefixID.Nimble:
+                    case PrefixID.Nasty:
+                    case PrefixID.Manic:
+                    case PrefixID.Strong:
+                    case PrefixID.Zealous:
+                    case PrefixID.Large:
+                    case PrefixID.Intimidating:
+                    case PrefixID.Unpleasant:
+
+                        #endregion mediocre
+
+                        if (++infiniteLoopHackFix < 30)
+                            return false;
+                        else
+                            break;
+
+                    default:
+                        break;
+                }
+            }
+
+            infiniteLoopHackFix = 0;
+
+            return base.AllowPrefix(item, pre);
+        }
     }
-  }
 }

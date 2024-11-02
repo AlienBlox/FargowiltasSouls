@@ -1,130 +1,152 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.BrainIllusionProj
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class BrainIllusionProj : ModProjectile
-  {
-    private const int attackDelay = 120;
-
-    public virtual string Texture => "Terraria/Images/NPC_266";
-
-    public virtual void SetStaticDefaults()
+    public class BrainIllusionProj : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = Main.npcFrameCount[266];
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public override string Texture => "Terraria/Images/NPC_266";
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 120;
-      ((Entity) this.Projectile).height = 80;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.timeLeft = 240;
-      this.Projectile.penetrate = -1;
-      this.Projectile.scale += 0.25f;
-    }
-
-    public virtual bool? CanDamage() => new bool?((double) this.Projectile.ai[1] == 2.0);
-
-    public virtual void AI()
-    {
-      NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0], 266);
-      if (npc == null)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if (++this.Projectile.frameCounter > 6)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.frameCounter = 0;
-          ++this.Projectile.frame;
+            // DisplayName.SetDefault("Brain of Cthulhu");
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "克苏鲁之脑");
+            Main.projFrames[Projectile.type] = Main.npcFrameCount[NPCID.BrainofCthulhu];
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-        if (this.Projectile.frame < 4 || this.Projectile.frame > 7)
-          this.Projectile.frame = 4;
-        if ((double) this.Projectile.ai[1] == 0.0)
-          this.Projectile.alpha = (int) ((double) byte.MaxValue * (double) npc.life / (double) npc.lifeMax);
-        else if ((double) this.Projectile.ai[1] == 1.0)
-        {
-          this.Projectile.alpha = (int) MathHelper.Lerp((float) this.Projectile.alpha, 0.0f, 0.02f);
-          Projectile projectile = this.Projectile;
-          ((Entity) projectile).position = Vector2.op_Addition(((Entity) projectile).position, Vector2.op_Multiply(Vector2.op_Multiply(0.5f, Vector2.op_Subtraction(((Entity) Main.player[npc.target]).position, ((Entity) Main.player[npc.target]).oldPosition)), (float) (1.0 - (double) this.Projectile.localAI[0] / 120.0)));
-          ((Entity) this.Projectile).velocity = Vector2.Zero;
-          this.Projectile.timeLeft = 180;
-          if ((double) ++this.Projectile.localAI[0] <= 120.0)
-            return;
-          this.Projectile.ai[1] = 2f;
-          ((Entity) this.Projectile).velocity = Vector2.op_Multiply(18f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) Main.player[npc.target]).Center));
-          this.Projectile.netUpdate = true;
-          this.Projectile.localAI[0] = ((Entity) Main.player[npc.target]).Center.X;
-          this.Projectile.localAI[1] = ((Entity) Main.player[npc.target]).Center.Y;
-        }
-        else
-        {
-          this.Projectile.alpha = 0;
-          Projectile projectile = this.Projectile;
-          ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 1.015f);
-          if ((double) ((Entity) this.Projectile).Distance(new Vector2(this.Projectile.localAI[0], this.Projectile.localAI[1])) >= (double) ((Vector2) ref ((Entity) this.Projectile).velocity).Length() + 1.0)
-            return;
-          this.Projectile.Kill();
-        }
-      }
-    }
 
-    public virtual void OnKill(int timeLeft)
-    {
-    }
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      if (!TextureAssets.Npc[266].IsLoaded)
-        return false;
-      Texture2D texture2D = TextureAssets.Npc[266].Value;
-      int num1 = texture2D.Height / Main.npcFrameCount[266];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      bool? nullable = base.CanDamage();
-      bool flag = true;
-      if (nullable.GetValueOrDefault() == flag & nullable.HasValue)
-      {
-        for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
+        public override void SetDefaults()
         {
-          Color color = Color.op_Multiply(Color.op_Multiply(alpha, 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-          Vector2 oldPo = this.Projectile.oldPos[index];
-          float num3 = this.Projectile.oldRot[index];
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2_1, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
+            Projectile.width = 120;
+            Projectile.height = 80;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.timeLeft = 240;
+            Projectile.penetrate = -1;
+
+            Projectile.scale += 0.25f;
         }
-      }
-      Vector2 vector2_2;
-      if ((double) this.Projectile.ai[1] == 1.0)
-      {
-        float num4 = (float) (16.0 * (double) this.Projectile.localAI[0] / 120.0);
-        vector2_2 = Utils.NextVector2Circular(Main.rand, num4, num4);
-      }
-      else
-        vector2_2 = Vector2.Zero;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_2), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2_1, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+
+        public override bool? CanDamage()
+        {
+            return Projectile.ai[1] == 2f;
+        }
+
+        private const int attackDelay = 120;
+
+        public override void AI()
+        {
+            NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[0], NPCID.BrainofCthulhu);
+            if (npc == null)
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            if (++Projectile.frameCounter > 6)
+            {
+                Projectile.frameCounter = 0;
+                Projectile.frame++;
+            }
+
+            if (Projectile.frame < 4 || Projectile.frame > 7)
+                Projectile.frame = 4;
+
+            if (Projectile.ai[1] == 0f)
+            {
+                Projectile.alpha = (int)(255f * npc.life / npc.lifeMax);
+                if (Projectile.Opacity > 0.5f)
+                    Projectile.Opacity = 0.5f;
+            }
+            else if (Projectile.ai[1] == 1f)
+            {
+                Projectile.alpha = (int)MathHelper.Lerp(Projectile.alpha, 0, 0.02f);
+
+                Projectile.position += 0.5f * (Main.player[npc.target].position - Main.player[npc.target].oldPosition) * (1f - Projectile.localAI[0] / attackDelay);
+                Projectile.velocity = Vector2.Zero;
+                Projectile.timeLeft = 180;
+
+                if (++Projectile.localAI[0] > attackDelay)
+                {
+                    Projectile.ai[1] = 2f;
+                    Projectile.velocity = 18f * Projectile.SafeDirectionTo(Main.player[npc.target].Center);
+                    Projectile.netUpdate = true;
+
+                    Projectile.localAI[0] = Main.player[npc.target].Center.X;
+                    Projectile.localAI[1] = Main.player[npc.target].Center.Y;
+                }
+            }
+            else
+            {
+                Projectile.alpha = 0;
+                Projectile.velocity *= 1.015f;
+
+                if (Projectile.Distance(new Vector2(Projectile.localAI[0], Projectile.localAI[1])) < Projectile.velocity.Length() + 1f)
+                {
+                    Projectile.Kill();
+                }
+            }
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            /*if (Projectile.ai[1] == 2f)
+            {
+                SoundEngine.PlaySound(SoundID.NPCDeath1);
+
+                for (int i = 0; i < 25; i++)
+                {
+                    int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 5);
+                    Main.dust[d].velocity *= 3f;
+                    Main.dust[d].scale += 2f;
+                }
+            }*/
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            if (!Terraria.GameContent.TextureAssets.Npc[NPCID.BrainofCthulhu].IsLoaded)
+                return false;
+
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Npc[NPCID.BrainofCthulhu].Value; //Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = texture2D13.Height / Main.npcFrameCount[NPCID.BrainofCthulhu]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color = Projectile.GetAlpha(lightColor);
+
+            if (CanDamage() == true)
+            {
+                for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+                {
+                    Color color27 = color * 0.5f;
+                    color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                    Vector2 value4 = Projectile.oldPos[i];
+                    float num165 = Projectile.oldRot[i];
+                    Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, SpriteEffects.None, 0);
+                }
+            }
+
+            Vector2 warningShake;
+            if (Projectile.ai[1] == 1f)
+            {
+                float radius = 16f * Projectile.localAI[0] / attackDelay;
+                warningShake = Main.rand.NextVector2Circular(radius, radius);
+            }
+            else
+            {
+                warningShake = Vector2.Zero;
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center + warningShake - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color, Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

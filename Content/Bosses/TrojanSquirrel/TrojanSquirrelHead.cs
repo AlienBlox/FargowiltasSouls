@@ -1,9 +1,3 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.TrojanSquirrel.TrojanSquirrelHead
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using System;
@@ -12,173 +6,213 @@ using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.TrojanSquirrel
 {
-  public class TrojanSquirrelHead : TrojanSquirrelLimb
-  {
-    public override void SetDefaults()
+    public class TrojanSquirrelHead : TrojanSquirrelLimb
     {
-      base.SetDefaults();
-      this.NPC.lifeMax = 600;
-      ((Entity) this.NPC).width = this.baseWidth = 80;
-      ((Entity) this.NPC).height = this.baseHeight = 76;
-    }
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
 
-    public virtual void AI()
-    {
-      base.AI();
-      if (this.body == null)
-        return;
-      ((Entity) this.NPC).velocity = Vector2.Zero;
-      this.NPC.target = this.body.target;
-      ((Entity) this.NPC).direction = this.NPC.spriteDirection = ((Entity) this.body).direction;
-      ((Entity) this.NPC).Center = Vector2.op_Addition(((Entity) this.body).Bottom, Vector2.op_Multiply(new Vector2(42f * (float) ((Entity) this.NPC).direction, -153f), this.body.scale));
-      switch ((int) this.NPC.ai[0])
-      {
-        case 0:
-          if ((double) this.body.ai[0] != 0.0 || (double) this.body.localAI[0] > 0.0)
-            break;
-          this.NPC.ai[1] += WorldSavingSystem.EternityMode ? 1.5f : 1f;
-          if (this.body.dontTakeDamage)
-            ++this.NPC.ai[1];
-          int num1 = 240;
-          int num2 = num1 - 30;
-          if ((double) this.NPC.ai[1] > (double) num2)
-          {
-            FargowiltasSouls.Content.Bosses.TrojanSquirrel.TrojanSquirrel trojanSquirrel = Luminance.Common.Utilities.Utilities.As<FargowiltasSouls.Content.Bosses.TrojanSquirrel.TrojanSquirrel>(this.body);
-            if (trojanSquirrel.arms != null && (double) trojanSquirrel.arms.ai[0] != 0.0)
-              this.NPC.ai[1] = (float) num2;
-          }
-          if ((double) this.NPC.ai[1] <= (double) num1 || (double) Math.Abs(((Entity) this.body).velocity.Y) >= 0.05000000074505806)
-            break;
-          this.NPC.ai[0] = 1f + this.NPC.ai[2];
-          this.NPC.ai[1] = 0.0f;
-          if (Main.expertMode)
-            this.NPC.ai[2] = (float) ((double) this.NPC.ai[2] == 0.0 ? 1 : 0);
-          this.NPC.netUpdate = true;
-          break;
-        case 1:
-          if ((double) this.NPC.ai[1] == 0.0 && !WorldSavingSystem.MasochistModeReal)
-          {
-            SoundEngine.PlaySound(ref SoundID.Item11, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-            Vector2 center = ((Entity) this.NPC).Center;
-            center.X += (float) (22 * ((Entity) this.NPC).direction);
-            center.Y += 22f;
-            for (int index1 = 0; index1 < 20; ++index1)
-            {
-              int index2 = Dust.NewDust(center, 0, 0, 3, 0.0f, 0.0f, 0, new Color(), 3f);
-              Main.dust[index2].noGravity = true;
-              Dust dust = Main.dust[index2];
-              dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
-              Main.dust[index2].velocity.X += (float) ((Entity) this.NPC).direction * Utils.NextFloat(Main.rand, 6f, 18f);
-            }
-          }
-          if ((double) ++this.NPC.ai[1] % (this.body.dontTakeDamage || WorldSavingSystem.MasochistModeReal ? 30.0 : 45.0) == 0.0)
-          {
-            bool flag = true;
-            if (!WorldSavingSystem.MasochistModeReal && (double) this.NPC.localAI[1] == 0.0)
-            {
-              this.NPC.localAI[1] = 1f;
-              flag = false;
-            }
-            if (flag)
-            {
-              Vector2 center = ((Entity) this.NPC).Center;
-              center.X += (float) (22 * ((Entity) this.NPC).direction);
-              center.Y += 22f;
-              float num3 = 80f;
-              if (this.body.dontTakeDamage)
-                num3 = 60f;
-              if (WorldSavingSystem.MasochistModeReal)
-                num3 = 45f;
-              Vector2 vector2 = Vector2.op_Subtraction(((Entity) Main.player[this.NPC.target]).Center, center);
-              vector2.X /= num3;
-              vector2.Y = (float) ((double) vector2.Y / (double) num3 - 0.10000000149011612 * (double) num3);
-              for (int index = 0; index < 10; ++index)
-              {
-                if (FargoSoulsUtil.HostCheck)
-                  Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), center, Vector2.op_Addition(vector2, Utils.NextVector2Square(Main.rand, -0.5f, 0.5f)), ModContent.ProjectileType<TrojanAcorn>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-              }
-            }
-          }
-          if ((double) this.NPC.ai[1] <= 210.0)
-            break;
-          this.NPC.ai[0] = 0.0f;
-          this.NPC.ai[1] = 0.0f;
-          this.NPC.netUpdate = true;
-          break;
-        case 2:
-          if (WorldSavingSystem.MasochistModeReal && (double) this.NPC.ai[1] == 90.0)
-          {
-            NPC arms = (this.body.ModNPC as FargowiltasSouls.Content.Bosses.TrojanSquirrel.TrojanSquirrel).arms;
-            if (arms != null && (double) arms.ai[0] != 2.0)
-            {
-              arms.ai[0] = 2f;
-              arms.ai[1] = 0.0f;
-              arms.netUpdate = true;
-            }
-          }
-          ++this.NPC.ai[1];
-          int num4 = 90;
-          int num5 = 270;
-          if (WorldSavingSystem.MasochistModeReal)
-          {
-            num4 = num4;
-            num5 -= 60;
-          }
-          ((Entity) this.body).velocity.X *= 0.99f;
-          if ((double) this.NPC.ai[1] % 4.0 == 0.0)
-          {
-            this.ShootSquirrelAt(Vector2.op_Addition(((Entity) this.body).Center, Utils.NextVector2Circular(Main.rand, 200f, 200f)));
-            if ((double) this.NPC.ai[1] > (double) num4)
-            {
-              float num6 = (this.NPC.ai[1] - (float) num4) / (float) (num5 - num4);
-              Vector2 target;
-              // ISSUE: explicit constructor call
-              ((Vector2) ref target).\u002Ector(((Entity) this.NPC).Center.X, ((Entity) Main.player[this.NPC.target]).Center.Y);
-              target.X += (float) Math.Sign(((Entity) this.NPC).direction) * (float) (550.0 + (WorldSavingSystem.EternityMode ? 1800.0 : 1200.0) * (1.0 - (double) num6));
-              this.ShootSquirrelAt(target);
-            }
-          }
-          if ((double) this.NPC.ai[1] <= (double) num5)
-            break;
-          this.NPC.ai[0] = 0.0f;
-          this.NPC.ai[1] = 0.0f;
-          this.NPC.netUpdate = true;
-          break;
-      }
-    }
+            NPC.lifeMax = 600;
 
-    private void ShootSquirrelAt(Vector2 target)
-    {
-      float num1 = 0.6f;
-      float num2 = 75f;
-      if (this.body.dontTakeDamage)
-        num2 -= 15f;
-      if (WorldSavingSystem.MasochistModeReal)
-        num2 -= 15f;
-      float num3 = num1 * (75f / num2);
-      Vector2 vector2 = Vector2.op_Subtraction(target, ((Entity) this.NPC).Center);
-      vector2.X += Utils.NextFloat(Main.rand, (float) sbyte.MinValue, 128f);
-      vector2.X /= num2;
-      vector2.Y = (float) ((double) vector2.Y / (double) num2 - 0.5 * (double) num3 * (double) num2);
-      vector2.X += Math.Min(4f, Math.Abs(((Entity) this.NPC).velocity.X)) * (float) Math.Sign(((Entity) this.NPC).velocity.X);
-      SoundEngine.PlaySound(ref SoundID.Item1, new Vector2?(((Entity) this.NPC).Center), (SoundUpdateCallback) null);
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      float num4 = (float) ((double) num2 + (double) Main.rand.Next(-10, 11) - 1.0);
-      Projectile.NewProjectile(((Entity) this.NPC).GetSource_FromThis((string) null), ((Entity) this.NPC).Center, vector2, ModContent.ProjectileType<TrojanSquirrelProj>(), FargoSoulsUtil.ScaledProjectileDamage(this.NPC.defDamage), 0.0f, Main.myPlayer, num3, num4, 0.0f);
-    }
+            NPC.width = baseWidth = 80;
+            NPC.height = baseHeight = 76;
+        }
 
-    public virtual void HitEffect(NPC.HitInfo hit)
-    {
-      if (this.NPC.life > 0)
-        return;
-      Vector2 center = ((Entity) this.NPC).Center;
-      if (Main.dedServ)
-        return;
-      Gore.NewGore(((Entity) this.NPC).GetSource_FromThis((string) null), center, ((Entity) this.NPC).velocity, ModContent.Find<ModGore>(((ModType) this).Mod.Name, "TrojanSquirrelGore1").Type, this.NPC.scale);
+        public override void AI()
+        {
+            base.AI();
+
+            if (body == null)
+                return;
+
+            NPC.velocity = Vector2.Zero;
+            NPC.target = body.target;
+            NPC.direction = NPC.spriteDirection = body.direction;
+            NPC.Center = body.Bottom + new Vector2(42f * NPC.direction, -153f) * body.scale;
+
+            switch ((int)NPC.ai[0])
+            {
+                case 0:
+                    if (body.ai[0] == 0 && body.localAI[0] <= 0)
+                    {
+                        NPC.ai[1] += WorldSavingSystem.EternityMode ? 1.5f : 1f;
+
+                        if (body.dontTakeDamage)
+                            NPC.ai[1] += 1f;
+
+                        int threshold = 240;
+
+                        //structured like this so body gets priority first
+                        int stallPoint = threshold - 30;
+                        if (NPC.ai[1] > stallPoint)
+                        {
+                            TrojanSquirrel squirrel = body.As<TrojanSquirrel>();
+                            if (squirrel.arms != null && squirrel.arms.ai[0] != 0f) //wait if other part is attacking
+                                NPC.ai[1] = stallPoint;
+                        }
+
+                        if (NPC.ai[1] > threshold && Math.Abs(body.velocity.Y) < 0.05f)
+                        {
+                            NPC.ai[0] = 1 + NPC.ai[2];
+                            NPC.ai[1] = 0;
+                            if (Main.expertMode)
+                                NPC.ai[2] = NPC.ai[2] == 0 ? 1 : 0;
+                            NPC.netUpdate = true;
+                        }
+                    }
+                    break;
+
+                case 1: //acorn spray
+                    if (NPC.ai[1] == 0 && !WorldSavingSystem.MasochistModeReal)
+                    {
+                        //telegraph
+                        SoundEngine.PlaySound(SoundID.Item11, NPC.Center);
+
+                        Vector2 pos = NPC.Center;
+                        pos.X += 22 * NPC.direction; //FUCKING LAUGH
+                        pos.Y += 22;
+
+                        for (int j = 0; j < 20; j++)
+                        {
+                            int d = Dust.NewDust(pos, 0, 0, DustID.GrassBlades, Scale: 3f);
+                            Main.dust[d].noGravity = true;
+                            Main.dust[d].velocity *= 4f;
+                            Main.dust[d].velocity.X += NPC.direction * Main.rand.NextFloat(6f, 18f);
+                        }
+                    }
+
+                    if (++NPC.ai[1] % (body.dontTakeDamage || WorldSavingSystem.MasochistModeReal ? 30 : 45) == 0)
+                    {
+                        bool doAttack = true;
+                        if (!WorldSavingSystem.MasochistModeReal && NPC.localAI[1] == 0)
+                        {
+                            NPC.localAI[1] = 1;
+                            doAttack = false; //skip the first normally
+                        }
+
+                        if (doAttack)
+                        {
+                            Vector2 pos = NPC.Center;
+                            pos.X += 22 * NPC.direction; //FUCKING LAUGH
+                            pos.Y += 22;
+
+                            const float gravity = 0.2f;
+                            float time = 80f;
+                            if (body.dontTakeDamage)
+                                time = 60f;
+                            if (WorldSavingSystem.MasochistModeReal)
+                                time = 45f;
+                            Vector2 distance = Main.player[NPC.target].Center - pos;// + player.velocity * 30f;
+                            distance.X /= time;
+                            distance.Y = distance.Y / time - 0.5f * gravity * time;
+                            for (int i = 0; i < 10; i++)
+                            {
+                                if (FargoSoulsUtil.HostCheck)
+                                {
+                                    Projectile.NewProjectile(NPC.GetSource_FromThis(), pos, distance + Main.rand.NextVector2Square(-0.5f, 0.5f),
+                                        ModContent.ProjectileType<TrojanAcorn>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer);
+                                }
+                            }
+                        }
+                    }
+
+                    if (NPC.ai[1] > 210)
+                    {
+                        NPC.ai[0] = 0;
+                        NPC.ai[1] = 0;
+                        NPC.netUpdate = true;
+                    }
+                    break;
+
+                case 2: //squirrel barrage
+                    {
+                        if (WorldSavingSystem.MasochistModeReal && NPC.ai[1] == 90)
+                        {
+                            NPC arms = (body.ModNPC as TrojanSquirrel).arms;
+                            if (arms != null && arms.ai[0] != 2)
+                            {
+                                arms.ai[0] = 2;
+                                arms.ai[1] = 0;
+                                arms.netUpdate = true;
+                            }
+                        }
+
+                        NPC.ai[1]++;
+
+                        int start = 60 + 30;
+                        int end = 240 + 30;
+                        if (WorldSavingSystem.MasochistModeReal)
+                        {
+                            start -= 30 - 30;
+                            end -= 90 - 30;
+                        }
+
+                        body.velocity.X *= 0.99f;
+
+                        if (NPC.ai[1] % 4 == 0)
+                        {
+                            ShootSquirrelAt(body.Center + Main.rand.NextVector2Circular(200, 200));
+
+                            if (NPC.ai[1] > start)
+                            {
+                                float ratio = (NPC.ai[1] - start) / (end - start);
+                                Vector2 target = new(NPC.Center.X, Main.player[NPC.target].Center.Y);
+                                target.X += Math.Sign(NPC.direction) * (550f + (WorldSavingSystem.EternityMode ? 1800f : 1200f) * (1f - ratio));
+
+                                ShootSquirrelAt(target);
+                            }
+                        }
+
+                        if (NPC.ai[1] > end)
+                        {
+                            NPC.ai[0] = 0;
+                            NPC.ai[1] = 0;
+                            NPC.netUpdate = true;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        private void ShootSquirrelAt(Vector2 target)
+        {
+            float gravity = 0.6f;
+            const float origTime = 75;
+            float time = origTime;
+            if (body.dontTakeDamage)
+                time -= 15;
+            if (WorldSavingSystem.MasochistModeReal)
+                time -= 15;
+
+            gravity *= origTime / time;
+
+            Vector2 distance = target - NPC.Center;// + player.velocity * 30f;
+            distance.X += Main.rand.NextFloat(-128, 128);
+            distance.X /= time;
+            distance.Y = distance.Y / time - 0.5f * gravity * time;
+
+            distance.X += Math.Min(4f, Math.Abs(NPC.velocity.X)) * Math.Sign(NPC.velocity.X);
+
+            SoundEngine.PlaySound(SoundID.Item1, NPC.Center);
+
+            if (FargoSoulsUtil.HostCheck)
+            {
+                float ai1 = time + Main.rand.Next(-10, 11) - 1;
+                Projectile.NewProjectile(NPC.GetSource_FromThis(), NPC.Center, distance,
+                    ModContent.ProjectileType<TrojanSquirrelProj>(), FargoSoulsUtil.ScaledProjectileDamage(NPC.defDamage), 0f, Main.myPlayer, gravity, ai1);
+            }
+        }
+
+        public override void HitEffect(NPC.HitInfo hit)
+        {
+            if (NPC.life <= 0)
+            {
+                Vector2 pos = NPC.Center;
+                if (!Main.dedServ)
+                    Gore.NewGore(NPC.GetSource_FromThis(), pos, NPC.velocity, ModContent.Find<ModGore>(Mod.Name, $"TrojanSquirrelGore1").Type, NPC.scale);
+            }
+        }
     }
-  }
 }

@@ -1,198 +1,233 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.ChallengerItems.TheLightningRodProj
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.ChallengerItems
 {
-  public class TheLightningRodProj : ModProjectile
-  {
-    public int damage;
-    private const int maxTime = 80;
-
-    public virtual void SetStaticDefaults()
+    public class TheLightningRodProj : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 6;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public int damage;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 132;
-      ((Entity) this.Projectile).height = 132;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.scale = 1.5f;
-      this.Projectile.hide = true;
-      this.Projectile.DamageType = DamageClass.Melee;
-      this.Projectile.alpha = 0;
-      this.Projectile.timeLeft = 45;
-      this.Projectile.FargoSouls().CanSplit = false;
-    }
-
-    public virtual void SendExtraAI(BinaryWriter writer)
-    {
-      writer.Write(this.Projectile.localAI[0]);
-      writer.Write(this.Projectile.localAI[1]);
-    }
-
-    public virtual void ReceiveExtraAI(BinaryReader reader)
-    {
-      this.Projectile.localAI[0] = reader.ReadSingle();
-      this.Projectile.localAI[1] = reader.ReadSingle();
-    }
-
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      if (this.Projectile.owner == Main.myPlayer && !player.controlUseItem && (double) this.Projectile.ai[0] == 0.0)
-        this.Projectile.Kill();
-      else if (player.dead || !((Entity) player).active || player.ghost)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if ((double) this.Projectile.localAI[0] % 20.0 == 0.0)
-          SoundEngine.PlaySound(ref SoundID.Item1, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        Vector2 vector2_1 = player.RotatedRelativePoint(player.MountedCenter, false, true);
-        if ((double) this.Projectile.ai[0] == 0.0 && (double) ((Entity) player).velocity.X != 0.0)
-          player.ChangeDir(Math.Sign(((Entity) player).velocity.X));
-        ((Entity) this.Projectile).direction = ((Entity) player).direction;
-        player.heldProj = ((Entity) this.Projectile).whoAmI;
-        player.itemTime = 2;
-        player.itemAnimation = 2;
-        float num1 = (float) (0.30575111508369446 * ((double) this.Projectile.ai[0] == 0.0 ? (double) Math.Min(1f, this.Projectile.localAI[0] / 80f) : 1.0));
-        if ((double) this.Projectile.ai[0] == 0.0)
+        public override void SetStaticDefaults()
         {
-          this.Projectile.localAI[0] += (float) ((double) player.GetAttackSpeed(DamageClass.Melee) + (double) player.FargoSouls().AttackSpeed - 1.0);
-          this.Projectile.timeLeft = 82;
-          this.damage = this.Projectile.damage;
-          this.Projectile.numHits = 0;
-          this.Projectile.rotation = (float) Math.Atan2((double) ((Entity) this.Projectile).velocity.Y, (double) ((Entity) this.Projectile).velocity.X);
-          this.Projectile.rotation += num1 * (float) ((Entity) player).direction;
-          ((Entity) this.Projectile).velocity = Utils.ToRotationVector2(this.Projectile.rotation);
-          Projectile projectile = this.Projectile;
-          ((Entity) projectile).position = Vector2.op_Subtraction(((Entity) projectile).position, ((Entity) this.Projectile).velocity);
-          player.itemRotation = MathHelper.WrapAngle(this.Projectile.rotation);
-          if ((double) this.Projectile.localAI[0] > 40.0)
-            this.Projectile.ai[1] = 1f;
-          if ((double) this.Projectile.localAI[0] > 120.0 && this.Projectile.owner == Main.myPlayer)
-          {
-            this.Projectile.ai[0] = 1f;
-            this.Projectile.localAI[0] = 0.0f;
-            this.Projectile.localAI[1] = ((Entity) this.Projectile).Distance(Main.MouseWorld);
-            if ((double) this.Projectile.localAI[1] < 200.0)
-              this.Projectile.localAI[1] = 200f;
-            ((Entity) this.Projectile).velocity = Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, Main.MouseWorld);
-            this.Projectile.netUpdate = true;
-          }
+            // DisplayName.SetDefault("The Lightning Rod");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 6;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-        else
+
+        public override void SetDefaults()
         {
-          ++this.Projectile.localAI[0];
-          this.Projectile.damage = (int) ((double) this.damage * Math.Pow(0.933, (double) this.Projectile.numHits));
-          if (this.Projectile.damage < this.damage / 2)
-            this.Projectile.damage = this.damage / 2;
-          if ((double) this.Projectile.localAI[0] > 80.0)
-          {
-            if (this.Projectile.owner != Main.myPlayer)
-              return;
-            this.Projectile.Kill();
-            return;
-          }
-          ((Entity) this.Projectile).direction = Math.Sign(((Entity) this.Projectile).Center.X - ((Entity) player).Center.X);
-          player.ChangeDir(((Entity) this.Projectile).direction);
-          player.itemRotation = (float) Math.Atan2((double) ((Entity) this.Projectile).velocity.Y * (double) ((Entity) this.Projectile).direction, (double) ((Entity) this.Projectile).velocity.X * (double) ((Entity) this.Projectile).direction);
-          if ((double) this.Projectile.localAI[0] < 40.0)
-          {
-            if ((double) this.Projectile.localAI[0] % 6.0 == 0.0 && this.Projectile.owner == Main.myPlayer)
+            Projectile.width = 132;
+            Projectile.height = 132;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.penetrate = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.scale = 1.5f;
+            Projectile.hide = true;
+            Projectile.DamageType = DamageClass.Melee;
+            Projectile.alpha = 0;
+            Projectile.timeLeft = 45;
+            Projectile.FargoSouls().CanSplit = false;
+        }
+
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(Projectile.localAI[0]);
+            writer.Write(Projectile.localAI[1]);
+        }
+
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            Projectile.localAI[0] = reader.ReadSingle();
+            Projectile.localAI[1] = reader.ReadSingle();
+        }
+
+        private const int maxTime = 80;
+
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
+            if (Projectile.owner == Main.myPlayer && !player.controlUseItem && Projectile.ai[0] == 0f)
             {
-              Vector2 vector2_2 = Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, Utils.NextVector2Circular(Main.rand, (float) (((Entity) this.Projectile).width / 4), (float) (((Entity) this.Projectile).height / 2))), Vector2.op_Multiply(Utils.NextFloat(Main.rand, 900f, 1800f), Vector2.UnitY));
-              float num2 = ((Entity) this.Projectile).Center.Y + Utils.NextFloat(Main.rand, (float) (-((Entity) this.Projectile).height / 4), (float) (((Entity) this.Projectile).height / 4));
-              Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), vector2_2, Vector2.op_Multiply(12f, Vector2.UnitY), ModContent.ProjectileType<TheLightning>(), this.Projectile.damage, this.Projectile.knockBack / 2f, this.Projectile.owner, Utils.ToRotation(Vector2.UnitY), num2, 0.0f);
+                Projectile.Kill();
+                return;
             }
-            if (Collision.SolidTiles(((Entity) this.Projectile).Center, 2, 2, false) && this.Projectile.owner == Main.myPlayer)
+
+            if (player.dead || !player.active || player.ghost)
             {
-              SoundEngine.PlaySound(ref SoundID.Dig, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-              this.Projectile.localAI[0] = 80f - this.Projectile.localAI[0];
-              this.Projectile.netUpdate = true;
+                Projectile.Kill();
+                return;
             }
-          }
-          this.Projectile.rotation += (float) ((double) num1 * (double) ((Entity) player).direction * 1.25);
-          float num3 = (float) Math.Sin(Math.PI / 80.0 * (double) this.Projectile.localAI[0]);
-          ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Vector2.op_Multiply(Vector2.Normalize(((Entity) this.Projectile).velocity), num3), this.Projectile.localAI[1]);
+
+            if (Projectile.localAI[0] % 20 == 0)
+                SoundEngine.PlaySound(SoundID.Item1, Projectile.Center);
+
+            Vector2 ownerMountedCenter = player.RotatedRelativePoint(player.MountedCenter);
+            if (Projectile.ai[0] == 0 && player.velocity.X != 0)
+                player.ChangeDir(Math.Sign(player.velocity.X));
+            Projectile.direction = player.direction;
+            player.heldProj = Projectile.whoAmI;
+            player.itemTime = 2; //15;
+            player.itemAnimation = 2; //15;
+                                      //player.itemAnimationMax = 15;
+
+            const float maxRotation = MathHelper.Pi / 6.85f / 1.5f; //spin up to full speed
+            float modifier = maxRotation * (Projectile.ai[0] == 0 ? Math.Min(1f, Projectile.localAI[0] / 80f) : 1f);
+
+            if (Projectile.ai[0] == 0f) //while held
+            {
+                Projectile.localAI[0] += player.GetAttackSpeed(DamageClass.Melee) + player.FargoSouls().AttackSpeed - 1f;
+
+                Projectile.timeLeft = maxTime + 2;
+
+                damage = Projectile.damage;
+                Projectile.numHits = 0;
+
+                Projectile.rotation = (float)Math.Atan2(Projectile.velocity.Y, Projectile.velocity.X);
+                Projectile.rotation += modifier * player.direction;
+                Projectile.velocity = Projectile.rotation.ToRotationVector2();
+                Projectile.position -= Projectile.velocity;
+                player.itemRotation = MathHelper.WrapAngle(Projectile.rotation);
+
+                if (Projectile.localAI[0] > 40)
+                {
+                    Projectile.ai[1] = 1f;
+                }
+
+                if (Projectile.localAI[0] > 120) //time to throw
+                {
+                    if (Projectile.owner == Main.myPlayer)
+                    {
+                        Projectile.ai[0] = 1f;
+                        Projectile.localAI[0] = 0f;
+                        Projectile.localAI[1] = Projectile.Distance(Main.MouseWorld);
+                        if (Projectile.localAI[1] < 200) //minimum throwing distance
+                            Projectile.localAI[1] = 200;
+                        Projectile.velocity = Projectile.SafeDirectionTo(Main.MouseWorld);
+                        Projectile.netUpdate = true;
+                    }
+                }
+            }
+            else //while thrown
+            {
+                Projectile.localAI[0] += 1;
+
+                Projectile.damage = (int)(damage * Math.Pow(0.933, Projectile.numHits));
+                if (Projectile.damage < damage / 2)
+                    Projectile.damage = damage / 2;
+
+                if (Projectile.localAI[0] > maxTime)
+                {
+                    if (Projectile.owner == Main.myPlayer)
+                        Projectile.Kill();
+                    return;
+                }
+                else //player faces where this was thrown
+                {
+                    Projectile.direction = Math.Sign(Projectile.Center.X - player.Center.X);
+                    player.ChangeDir(Projectile.direction);
+                    player.itemRotation = (float)Math.Atan2(Projectile.velocity.Y * Projectile.direction, Projectile.velocity.X * Projectile.direction);
+                }
+
+                //while going out
+                if (Projectile.localAI[0] < maxTime / 2)
+                {
+                    //rain lightning
+                    if (Projectile.localAI[0] % 6 == 0 && Projectile.owner == Main.myPlayer)
+                    {
+                        Vector2 spawnPos = Projectile.Center + Main.rand.NextVector2Circular(Projectile.width / 4, Projectile.height / 2);
+                        spawnPos -= Main.rand.NextFloat(900f, 1800f) * Vector2.UnitY;
+                        float ai1 = Projectile.Center.Y + Main.rand.NextFloat(-Projectile.height / 4, Projectile.height / 4);
+                        Projectile.NewProjectile(Projectile.GetSource_FromThis(), spawnPos, 12f * Vector2.UnitY, ModContent.ProjectileType<TheLightning>(),
+                            Projectile.damage, Projectile.knockBack / 2, Projectile.owner, Vector2.UnitY.ToRotation(), ai1);
+                    }
+
+                    //if hits a solid surface, immediately rebound
+                    if (Collision.SolidTiles(Projectile.Center, 2, 2, false) && Projectile.owner == Main.myPlayer)
+                    {
+                        SoundEngine.PlaySound(SoundID.Dig, Projectile.Center);
+                        Projectile.localAI[0] = maxTime - Projectile.localAI[0];
+                        Projectile.netUpdate = true;
+                    }
+                }
+
+                Projectile.rotation += modifier * player.direction * 1.25f; //spin faster when thrown
+
+                float distanceModifier = (float)Math.Sin(Math.PI / maxTime * Projectile.localAI[0]); //fly out and back
+                Projectile.velocity = Vector2.Normalize(Projectile.velocity) * distanceModifier * Projectile.localAI[1];
+            }
+
+            if (Projectile.ai[1] != 0f)
+            {
+                //dust!
+                int dustId = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.UltraBrightTorch, 0f, 0f, 100, default, 1f);
+                Main.dust[dustId].noGravity = true;
+                int dustId3 = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.UltraBrightTorch, 0f, 0f, 100, default, 1f);
+                Main.dust[dustId3].noGravity = true;
+            }
+
+            Projectile.Center = ownerMountedCenter;
         }
-        if ((double) this.Projectile.ai[1] != 0.0)
+
+        public override void ModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers)
         {
-          int index1 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 156, 0.0f, 0.0f, 100, new Color(), 1f);
-          Main.dust[index1].noGravity = true;
-          int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 156, 0.0f, 0.0f, 100, new Color(), 1f);
-          Main.dust[index2].noGravity = true;
+            if (Projectile.ai[0] == 0f) //less damage when held
+                modifiers.FinalDamage /= 2;
+
+            modifiers.HitDirectionOverride = Math.Sign(target.Center.X - Main.player[Projectile.owner].Center.X);
         }
-        ((Entity) this.Projectile).Center = vector2_1;
-      }
-    }
 
-    public virtual void ModifyHitNPC(NPC target, ref NPC.HitModifiers modifiers)
-    {
-      if ((double) this.Projectile.ai[0] == 0.0)
-      {
-        ref StatModifier local = ref modifiers.FinalDamage;
-        local = StatModifier.op_Division(local, 2f);
-      }
-      ((NPC.HitModifiers) ref modifiers).HitDirectionOverride = new int?(Math.Sign(((Entity) target).Center.X - ((Entity) Main.player[this.Projectile.owner]).Center.X));
-    }
-
-    public virtual bool? CanDamage() => new bool?((double) this.Projectile.ai[1] != 0.0);
-
-    public virtual bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      return new bool?((double) ((Entity) this.Projectile).Distance(FargoSoulsUtil.ClosestPointInHitbox(targetHitbox, ((Entity) this.Projectile).Center)) <= (double) (((Entity) this.Projectile).width / 2));
-    }
-
-    public virtual bool? CanHitNPC(NPC target)
-    {
-      return !target.noTileCollide && !Collision.CanHitLine(((Entity) this.Projectile).Center, 0, 0, ((Entity) target).Center, 0, 0) ? new bool?(false) : base.CanHitNPC(target);
-    }
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      if ((double) this.Projectile.ai[1] != 0.0)
-      {
-        Color alpha = this.Projectile.GetAlpha(lightColor);
-        for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
+        public override bool? CanDamage()
         {
-          Color color = Color.op_Multiply(Color.op_Multiply(alpha, 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-          Vector2 oldPo = this.Projectile.oldPos[index];
-          float num3 = this.Projectile.oldRot[index];
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
+            return Projectile.ai[1] != 0f;
         }
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
+        {
+            return Projectile.Distance(FargoSoulsUtil.ClosestPointInHitbox(targetHitbox, Projectile.Center)) <= Projectile.width / 2;
+        }
+
+        public override bool? CanHitNPC(NPC target)
+        {
+            if (!target.noTileCollide && !Collision.CanHitLine(Projectile.Center, 0, 0, target.Center, 0, 0))
+                return false;
+
+            return base.CanHitNPC(target);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            if (Projectile.ai[1] != 0f)
+            {
+                Color color26 = lightColor;
+                color26 = Projectile.GetAlpha(color26);
+
+                for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+                {
+                    Color color27 = color26 * 0.5f;
+                    color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                    Vector2 value4 = Projectile.oldPos[i];
+                    float num165 = Projectile.oldRot[i];
+                    Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, SpriteEffects.None, 0);
+                }
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle),
+                Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

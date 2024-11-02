@@ -1,95 +1,103 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Shooters
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Core.Globals;
-using Microsoft.Xna.Framework;
 using System.IO;
 using Terraria;
-using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies
 {
-  public abstract class Shooters : EModeNPCBehaviour
-  {
-    protected readonly int AttackThreshold;
-    protected readonly int ProjectileType;
-    protected readonly int DustType;
-    protected readonly float Distance;
-    protected readonly float Speed;
-    protected readonly float DamageMultiplier;
-    protected readonly int Telegraph;
-    protected readonly bool NeedLineOfSight;
-    public int AttackTimer;
-
-    protected Shooters(
-      int attackThreshold,
-      int projectileType,
-      float speed,
-      float damageMultiplier = 1f,
-      int dustType = 159,
-      float distance = 1000f,
-      int telegraph = 30,
-      bool needLineOfSight = false)
+    public abstract class Shooters : EModeNPCBehaviour
     {
-      this.AttackThreshold = attackThreshold;
-      this.ProjectileType = projectileType;
-      this.DustType = dustType;
-      this.Distance = distance;
-      this.Speed = speed;
-      this.DamageMultiplier = damageMultiplier;
-      this.Telegraph = telegraph;
-      this.NeedLineOfSight = needLineOfSight;
-    }
+        protected readonly int AttackThreshold;
+        protected readonly int ProjectileType;
+        protected readonly int DustType;
+        protected readonly float Distance;
+        protected readonly float Speed;
+        protected readonly float DamageMultiplier;
+        protected readonly int Telegraph;
+        protected readonly bool NeedLineOfSight;
 
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
-    {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.AttackTimer);
-    }
+        protected Shooters(int attackThreshold, int projectileType, float speed, float damageMultiplier = 1f, int dustType = 159, float distance = 1000, int telegraph = 30, bool needLineOfSight = false)
+        {
+            AttackThreshold = attackThreshold;
+            ProjectileType = projectileType;
+            DustType = dustType;
+            Distance = distance;
+            Speed = speed;
+            DamageMultiplier = damageMultiplier;
+            Telegraph = telegraph;
+            NeedLineOfSight = needLineOfSight;
+        }
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.AttackTimer = binaryReader.Read7BitEncodedInt();
-    }
+        public int AttackTimer;
 
-    public virtual void SetDefaults(NPC npc)
-    {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(npc);
-      this.AttackTimer = -Main.rand.Next(60);
-    }
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+        {
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      ++this.AttackTimer;
-      if (this.AttackTimer == this.AttackThreshold - this.Telegraph)
-      {
-        if (!npc.HasPlayerTarget || (double) ((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center) > (double) this.Distance || this.NeedLineOfSight && !Collision.CanHitLine(((Entity) npc).Center, 0, 0, ((Entity) Main.player[npc.target]).Center, 0, 0))
-          this.AttackTimer = 0;
-        else if (this.DustType != -1)
-          FargoSoulsUtil.DustRing(((Entity) npc).Center, 32, this.DustType, 5f, new Color(), 2f);
-        npc.netUpdate = true;
-        EModeNPCBehaviour.NetSync(npc);
-      }
-      if (this.AttackTimer > this.AttackThreshold - this.Telegraph)
-      {
-        NPC npc1 = npc;
-        ((Entity) npc1).position = Vector2.op_Subtraction(((Entity) npc1).position, ((Entity) npc).velocity);
-      }
-      if (this.AttackTimer <= this.AttackThreshold)
-        return;
-      this.AttackTimer = 0;
-      npc.netUpdate = true;
-      EModeNPCBehaviour.NetSync(npc);
-      if (!npc.HasPlayerTarget || (double) ((Entity) npc).Distance(((Entity) Main.player[npc.target]).Center) >= (double) this.Distance || this.NeedLineOfSight && (!this.NeedLineOfSight || !Collision.CanHitLine(((Entity) npc).Center, 0, 0, ((Entity) Main.player[npc.target]).Center, 0, 0)) || !FargoSoulsUtil.HostCheck)
-        return;
-      Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), ((Entity) npc).Center, Vector2.op_Multiply(this.Speed, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, ((Entity) Main.player[npc.target]).Center)), this.ProjectileType, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, this.DamageMultiplier), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
+            binaryWriter.Write7BitEncodedInt(AttackTimer);
+        }
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
+        {
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            AttackTimer = binaryReader.Read7BitEncodedInt();
+        }
+
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
+
+            AttackTimer = -Main.rand.Next(60);
+        }
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            AttackTimer++;
+
+            if (AttackTimer == AttackThreshold - Telegraph)
+            {
+                if (!npc.HasPlayerTarget || npc.Distance(Main.player[npc.target].Center) > Distance
+                    || (NeedLineOfSight && !Collision.CanHitLine(npc.Center, 0, 0, Main.player[npc.target].Center, 0, 0)))
+                {
+                    AttackTimer = 0;
+                }
+                else if (DustType != -1)
+                {
+                    FargoSoulsUtil.DustRing(npc.Center, 32, DustType, 5f, default, 2f);
+                }
+
+                npc.netUpdate = true;
+                NetSync(npc);
+            }
+
+            if (AttackTimer > AttackThreshold - Telegraph)
+            {
+                npc.position -= npc.velocity;
+            }
+
+            if (AttackTimer > AttackThreshold)
+            {
+                AttackTimer = 0;
+
+                npc.netUpdate = true;
+                NetSync(npc);
+
+                if (npc.HasPlayerTarget && npc.Distance(Main.player[npc.target].Center) < Distance
+                    && (!NeedLineOfSight || NeedLineOfSight && Collision.CanHitLine(npc.Center, 0, 0, Main.player[npc.target].Center, 0, 0))
+                    && FargoSoulsUtil.HostCheck)
+                {
+                    int p = Projectile.NewProjectile(npc.GetSource_FromThis(), npc.Center, Speed * npc.SafeDirectionTo(Main.player[npc.target].Center), ProjectileType, FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage, DamageMultiplier), 0, Main.myPlayer);
+                    if (p.IsWithinBounds(Main.maxProjectiles))
+                    {
+                        Main.projectile[p].friendly = false;
+                        Main.projectile[p].hostile = true;
+                        Main.projectile[p].netUpdate = true;
+                    }
+                }
+            }
+        }
     }
-  }
 }

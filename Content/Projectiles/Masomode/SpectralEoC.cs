@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.SpectralEoC
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core;
+﻿using FargowiltasSouls.Core;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -15,253 +9,363 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class SpectralEoC : ModProjectile
-  {
-    private const string EoCName = "NPC_4";
-    private int alphaCounter;
-    private bool FinalPhaseBerserkDashesComplete;
-    private int FinalPhaseDashCD;
-    private bool FinalPhaseDashHorizSpeedSet;
-    private int FinalPhaseDashStageDuration;
-    private int FinalPhaseAttackCounter;
-    private Vector2 targetCenter = Vector2.Zero;
-
-    public virtual string Texture => "FargowiltasSouls/Assets/ExtraTextures/Resprites/NPC_4";
-
-    public virtual void SetStaticDefaults()
+    public class SpectralEoC : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = Main.npcFrameCount[4];
-      ProjectileID.Sets.TrailCacheLength[this.Type] = 15;
-      ProjectileID.Sets.TrailingMode[this.Type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 20;
-      ((Entity) this.Projectile).height = 20;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.alpha = 100;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.timeLeft = 3600;
-      this.Projectile.hostile = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.extraUpdates = 1;
-    }
-
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public ref float Timer => ref this.Projectile.ai[0];
-
-    public virtual void AI()
-    {
-      if (this.Projectile.frame < 2)
-        this.Projectile.frame = 3;
-      if (++this.Projectile.frameCounter > 4 && ++this.Projectile.frame >= Main.projFrames[this.Projectile.type])
-        this.Projectile.frame = 3;
-      int index1 = (int) this.Projectile.ai[1];
-      if (!index1.IsWithinBounds((int) byte.MaxValue))
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        Player player = Main.player[index1];
-        if (player == null || !((Entity) player).active || player.dead)
+        const string EoCName = "NPC_4";
+        public override string Texture => $"FargowiltasSouls/Assets/ExtraTextures/Resprites/{EoCName}";
+        public override void SetStaticDefaults()
         {
-          this.Projectile.Kill();
+            // DisplayName.SetDefault("Sky Dragon's Fury");
+            Main.projFrames[Projectile.type] = Main.npcFrameCount[NPCID.EyeofCthulhu];
+
+            ProjectileID.Sets.TrailCacheLength[Type] = 15;
+            ProjectileID.Sets.TrailingMode[Type] = 2;
         }
-        else
+        public override void SetDefaults()
         {
-          if (Vector2.op_Equality(this.targetCenter, Vector2.Zero))
-            this.targetCenter = ((Entity) player).Center;
-          if (!Main.dayTime || Main.zenithWorld || Main.remixWorld)
-          {
-            if (this.Projectile.timeLeft < 300)
-              this.Projectile.timeLeft = 300;
-          }
-          else
-            this.Projectile.Kill();
-          ++this.Timer;
-          if ((double) this.Timer < 90.0)
-          {
-            this.Projectile.alpha -= WorldSavingSystem.MasochistModeReal ? 5 : 4;
-            if (this.Projectile.alpha < 0)
+            Projectile.width = 20;
+            Projectile.height = 20;
+            Projectile.aiStyle = -1;
+            Projectile.alpha = 100;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.timeLeft = 60 * 60;
+            Projectile.hostile = true;
+            Projectile.penetrate = -1;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+
+            Projectile.extraUpdates = 1;
+        }
+
+        public override bool? CanDamage() => false;
+        public ref float Timer => ref Projectile.ai[0];
+
+        int alphaCounter = 0;
+        bool FinalPhaseBerserkDashesComplete;
+        int FinalPhaseDashCD;
+        bool FinalPhaseDashHorizSpeedSet;
+        int FinalPhaseDashStageDuration;
+        int FinalPhaseAttackCounter;
+
+        Vector2 targetCenter = Vector2.Zero;
+        public override void AI()
+        {
+            if (Projectile.frame < 2)
+                Projectile.frame = 3;
+            if (++Projectile.frameCounter > 4)
             {
-              this.Projectile.alpha = 0;
-              if (WorldSavingSystem.MasochistModeReal && (double) this.Timer < 90.0)
-                this.Timer = 90f;
+                if (++Projectile.frame >= Main.projFrames[Projectile.type])
+                    Projectile.frame = 3;
             }
-            if ((double) this.Projectile.rotation > 3.1415927410125732)
-              this.Projectile.rotation -= 6.28318548f;
-            if ((double) this.Projectile.rotation < -3.1415927410125732)
-              this.Projectile.rotation += 6.28318548f;
-            float num = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, this.targetCenter)) - 1.57079637f;
-            if ((double) num > 3.1415927410125732)
-              num -= 6.28318548f;
-            if ((double) num < -3.1415927410125732)
-              num += 6.28318548f;
-            this.Projectile.rotation = MathHelper.Lerp(this.Projectile.rotation, num, 0.07f);
-            for (int index2 = 0; index2 < 3; ++index2)
+
+
+
+            const float speedModifier = 0.3f;
+            int npcTarget = (int)Projectile.ai[1];
+            if (!npcTarget.IsWithinBounds(Main.maxPlayers))
             {
-              int index3 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 229, 0.0f, 0.0f, 0, new Color(), 1.5f);
-              Main.dust[index3].noGravity = true;
-              Main.dust[index3].noLight = true;
-              Dust dust = Main.dust[index3];
-              dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
+                Projectile.Kill();
+                return;
             }
-            Vector2 targetCenter = this.targetCenter;
-            targetCenter.X += (double) ((Entity) this.Projectile).Center.X < (double) targetCenter.X ? -600f : 600f;
-            targetCenter.Y += (double) ((Entity) this.Projectile).Center.Y < (double) targetCenter.Y ? -400f : 400f;
-            ((Entity) this.Projectile).velocity = Vector2.Zero;
-          }
-          else if (!this.FinalPhaseBerserkDashesComplete)
-          {
-            this.Timer = 90f;
-            if (++this.FinalPhaseDashCD == 1)
+            Player player = Main.player[npcTarget];
+            if (player == null || !player.active || player.dead)
             {
-              if (!this.FinalPhaseDashHorizSpeedSet)
-              {
-                this.FinalPhaseDashHorizSpeedSet = true;
-                ((Entity) this.Projectile).velocity.X = (double) ((Entity) this.Projectile).Center.X < (double) this.targetCenter.X ? 18f : -18f;
-              }
-              ((Entity) this.Projectile).velocity.Y = (double) ((Entity) this.Projectile).Center.Y < (double) this.targetCenter.Y ? 40f : -40f;
-              this.Projectile.netUpdate = true;
+                Projectile.Kill();
+                return;
             }
-            else if (this.FinalPhaseDashCD > 20)
-              this.FinalPhaseDashCD = 0;
-            if (this.FinalPhaseDashStageDuration == 1)
+            if (targetCenter == Vector2.Zero)
+                targetCenter = player.Center;
+
+            if ((!Main.dayTime || Main.zenithWorld || Main.remixWorld))
             {
-              SoundStyle forceRoarPitched = SoundID.ForceRoarPitched;
-              ((SoundStyle) ref forceRoarPitched).Volume = 0.2f;
-              ((SoundStyle) ref forceRoarPitched).Pitch = 0.5f;
-              SoundEngine.PlaySound(ref forceRoarPitched, new Vector2?(this.targetCenter), (SoundUpdateCallback) null);
+                if (Projectile.timeLeft < 300)
+                    Projectile.timeLeft = 300;
             }
-            if ((double) ++this.FinalPhaseDashStageDuration > 105.0)
+            else //despawn and retarget
             {
-              this.FinalPhaseDashStageDuration = 0;
-              this.FinalPhaseBerserkDashesComplete = true;
-              if (!WorldSavingSystem.MasochistModeReal)
-                ++this.FinalPhaseAttackCounter;
-              Projectile projectile = this.Projectile;
-              ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 0.75f);
-              this.Projectile.netUpdate = true;
+                Projectile.Kill();
             }
-            this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) - 1.57079637f;
-            if ((double) this.Projectile.rotation > 3.1415927410125732)
-              this.Projectile.rotation -= 6.28318548f;
-            if ((double) this.Projectile.rotation >= -3.1415927410125732)
-              return;
-            this.Projectile.rotation += 6.28318548f;
-          }
-          else
-          {
-            bool flag1 = this.FinalPhaseAttackCounter >= 3;
-            int num = 180;
-            if (flag1)
-              num += 240;
-            if (flag1 && (double) this.Timer < 330.0)
+
+            Timer++;
+            if (false)//++Timer == 1) //teleport to random position
             {
-              if ((double) this.Timer == 91.0)
-                ((Entity) this.Projectile).velocity = Vector2.op_Multiply(Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) player).Center), ((Vector2) ref ((Entity) this.Projectile).velocity).Length()), 0.75f);
-              ((Entity) this.Projectile).velocity.X *= 0.98f;
-              if ((double) Math.Abs(((Entity) this.Projectile).Center.X - ((Entity) player).Center.X) < 300.0)
-                ((Entity) this.Projectile).velocity.X *= 0.9f;
-              bool flag2 = Collision.SolidCollision(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height);
-              if (!flag2 && (double) ((Entity) this.Projectile).Bottom.X > 0.0 && (double) ((Entity) this.Projectile).Bottom.X < (double) (Main.maxTilesX * 16) && (double) ((Entity) this.Projectile).Bottom.Y > 0.0 && (double) ((Entity) this.Projectile).Bottom.Y < (double) (Main.maxTilesY * 16))
-              {
-                Tile tileSafely = Framing.GetTileSafely(((Entity) this.Projectile).Bottom);
-                if (Tile.op_Inequality(tileSafely, (ArgumentException) null) && ((Tile) ref tileSafely).HasUnactuatedTile)
-                  flag2 = Main.tileSolid[(int) ((Tile) ref tileSafely).TileType];
-              }
-              if (flag2)
-              {
-                ((Entity) this.Projectile).velocity.X *= 0.95f;
-                ((Entity) this.Projectile).velocity.Y -= 0.3f;
-                if ((double) ((Entity) this.Projectile).velocity.Y > 0.0)
-                  ((Entity) this.Projectile).velocity.Y = 0.0f;
-                if ((double) Math.Abs(((Entity) this.Projectile).velocity.Y) > 24.0)
-                  ((Entity) this.Projectile).velocity.Y = (float) (24 * Math.Sign(((Entity) this.Projectile).velocity.Y));
-              }
-              else
-              {
-                ((Entity) this.Projectile).velocity.Y += 0.3f;
-                if ((double) ((Entity) this.Projectile).velocity.Y < 0.0)
-                  ((Entity) this.Projectile).velocity.Y += 0.6f;
-                if ((double) ((Entity) this.Projectile).velocity.Y > 15.0)
-                  ((Entity) this.Projectile).velocity.Y = 15f;
-              }
+                /*
+                if (FargoSoulsUtil.HostCheck)
+                {
+                    Projectile.Center = Main.player[Projectile.target].Center;
+                    Projectile.position.X += Main.rand.NextBool() ? -600 : 600;
+                    Projectile.position.Y += Main.rand.NextBool() ? -400 : 400;
+                    Projectile.TargetClosest(false);
+                    Projectile.netUpdate = true;
+                    NetSync(npc);
+
+                    Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, Vector2.Zero, ModContent.ProjectileType<SpectralEoC>(), 0, 0, Main.myPlayer, Timer);
+                }
+                */
+            }
+            else if (Timer < 90) //fade in, moving into position
+            {
+                Projectile.alpha -= WorldSavingSystem.MasochistModeReal ? 5 : 4;
+                if (Projectile.alpha < 0)
+                {
+                    Projectile.alpha = 0;
+                }
+
+                const float PI = (float)Math.PI;
+                if (Projectile.rotation > PI)
+                    Projectile.rotation -= 2 * PI;
+                if (Projectile.rotation < -PI)
+                    Projectile.rotation += 2 * PI;
+
+                float targetRotation = Projectile.SafeDirectionTo(targetCenter).ToRotation() - PI / 2;
+                if (targetRotation > PI)
+                    targetRotation -= 2 * PI;
+                if (targetRotation < -PI)
+                    targetRotation += 2 * PI;
+                Projectile.rotation = MathHelper.Lerp(Projectile.rotation, targetRotation, 0.07f);
+
+                for (int i = 0; i < 3; i++)
+                {
+                    int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Vortex, 0f, 0f, 0, default, 1.5f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].noLight = true;
+                    Main.dust[d].velocity *= 4f;
+                }
+
+                Vector2 target = targetCenter;
+                target.X += Projectile.Center.X < target.X ? -600 : 600;
+                target.Y += Projectile.Center.Y < target.Y ? -400 : 400;
+
+                /*
+                if (Projectile.Center.X < target.X)
+                {
+                    Projectile.velocity.X += speedModifier;
+                    if (Projectile.velocity.X < 0)
+                        Projectile.velocity.X += speedModifier * 2;
+                }
+                else
+                {
+                    Projectile.velocity.X -= speedModifier;
+                    if (Projectile.velocity.X > 0)
+                        Projectile.velocity.X -= speedModifier * 2;
+                }
+                if (Projectile.Center.Y < target.Y)
+                {
+                    Projectile.velocity.Y += speedModifier;
+                    if (Projectile.velocity.Y < 0)
+                        Projectile.velocity.Y += speedModifier * 2;
+                }
+                else
+                {
+                    Projectile.velocity.Y -= speedModifier;
+                    if (Projectile.velocity.Y > 0)
+                        Projectile.velocity.Y -= speedModifier * 2;
+                }
+                if (Math.Abs(Projectile.velocity.X) > 24)
+                    Projectile.velocity.X = 24 * Math.Sign(Projectile.velocity.X);
+                if (Math.Abs(Projectile.velocity.Y) > 24)
+                    Projectile.velocity.Y = 24 * Math.Sign(Projectile.velocity.Y);
+                */
+                Projectile.velocity = Vector2.Zero;
+            }
+            else if (!FinalPhaseBerserkDashesComplete) //berserk dashing phase
+            {
+                Timer = 90;
+
+                const float xSpeed = 18f;
+                const float ySpeed = 40f;
+
+                if (++FinalPhaseDashCD == 1)
+                {
+
+
+                    if (!FinalPhaseDashHorizSpeedSet) //only set this on the first dash of each set
+                    {
+                        FinalPhaseDashHorizSpeedSet = true;
+                        Projectile.velocity.X = Projectile.Center.X < targetCenter.X ? xSpeed : -xSpeed;
+                    }
+
+                    Projectile.velocity.Y = Projectile.Center.Y < targetCenter.Y ? ySpeed : -ySpeed; //alternate this every dash
+
+                    //ScytheSpawnTimer = 30;
+                    //if (WorldSavingSystem.MasochistModeReal)
+                    //    SpawnServants();
+                    //if (FargoSoulsUtil.HostCheck)
+                    //FargoSoulsUtil.XWay(8, Projectile.GetSource_FromThis(), Projectile.Center, ModContent.ProjectileType<BloodScythe>(), 1f, FargoSoulsUtil.ScaledProjectileDamage(Projectile.damage), 0);
+
+                    Projectile.netUpdate = true;
+                }
+                else if (FinalPhaseDashCD > 20)
+                {
+                    FinalPhaseDashCD = 0;
+                }
+
+                if (FinalPhaseDashStageDuration == 1)
+                {
+                    SoundEngine.PlaySound(SoundID.ForceRoarPitched with { Volume = 0.2f, Pitch = 0.5f }, targetCenter);
+                }
+
+                if (++FinalPhaseDashStageDuration > 600 * 3 / xSpeed + 5) //proceed
+                {
+                    //ScytheSpawnTimer = 0;
+                    FinalPhaseDashStageDuration = 0;
+                    FinalPhaseBerserkDashesComplete = true;
+                    if (!WorldSavingSystem.MasochistModeReal)
+                        FinalPhaseAttackCounter++;
+                    Projectile.velocity *= 0.75f;
+                    Projectile.netUpdate = true;
+                }
+
+                const float PI = (float)Math.PI;
+                Projectile.rotation = Projectile.velocity.ToRotation() - PI / 2;
+                if (Projectile.rotation > PI)
+                    Projectile.rotation -= 2 * PI;
+                if (Projectile.rotation < -PI)
+                    Projectile.rotation += 2 * PI;
             }
             else
             {
-              this.alphaCounter += WorldSavingSystem.MasochistModeReal ? 16 : 4;
-              if (this.alphaCounter > (int) byte.MaxValue)
-              {
-                this.alphaCounter = (int) byte.MaxValue;
-                if (WorldSavingSystem.MasochistModeReal && (double) this.Timer < (double) num)
-                  this.Timer = (float) num;
-              }
-              if (flag1)
-              {
-                ((Entity) this.Projectile).velocity.Y -= 0.15f;
-                if ((double) ((Entity) this.Projectile).velocity.Y > 0.0)
-                  ((Entity) this.Projectile).velocity.Y = 0.0f;
-                if ((double) Math.Abs(((Entity) this.Projectile).velocity.Y) > 24.0)
-                  ((Entity) this.Projectile).velocity.Y = (float) (24 * Math.Sign(((Entity) this.Projectile).velocity.Y));
-              }
-              else
-              {
-                Projectile projectile = this.Projectile;
-                ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 0.98f);
-              }
-            }
-            this.Projectile.rotation = MathHelper.WrapAngle(MathHelper.Lerp(this.Projectile.rotation, MathHelper.WrapAngle(Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) player).Center)) - 1.57079637f), 0.07f));
-            if (this.alphaCounter > 0)
-            {
-              for (int index4 = 0; index4 < 3; ++index4)
-              {
-                int index5 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 229, 0.0f, 0.0f, 0, new Color(), 1.5f);
-                Main.dust[index5].noGravity = true;
-                Main.dust[index5].noLight = true;
-                Dust dust = Main.dust[index5];
-                dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
-              }
-            }
-            if ((double) this.Timer <= (double) num)
-              return;
-            this.Projectile.Kill();
-          }
-        }
-      }
-    }
+                bool mustRest = FinalPhaseAttackCounter >= 3;
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      int num1 = !SoulConfig.Instance.BossRecolors ? 0 : (WorldSavingSystem.EternityMode ? 1 : 0);
-      Texture2D texture2D = TextureAssets.Npc[4].Value;
-      int num2 = texture2D.Height / Main.projFrames[this.Type];
-      int num3 = this.Projectile.frame * num2;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num3, texture2D.Width, num2);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Color color1 = num1 != 0 ? Color.Cyan : Color.Red;
-      ((Color) ref color1).A = (byte) 0;
-      Color color2 = Color.op_Multiply(color1, 0.13f);
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color3 = Color.op_Multiply(Color.op_Multiply(color2, 0.75f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num4 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color3, num4, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(color2), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+                const int restingTime = 240;
+
+                int threshold = 180;
+                if (mustRest)
+                    threshold += restingTime;
+
+                if (mustRest && Timer < restingTime + 90)
+                {
+                    if (Timer == 91)
+                        Projectile.velocity = Projectile.SafeDirectionTo(player.Center) * Projectile.velocity.Length() * 0.75f;
+
+                    Projectile.velocity.X *= 0.98f;
+                    if (Math.Abs(Projectile.Center.X - player.Center.X) < 300)
+                        Projectile.velocity.X *= 0.9f;
+
+                    bool floatUp = Collision.SolidCollision(Projectile.position, Projectile.width, Projectile.height);
+                    if (!floatUp && Projectile.Bottom.X > 0 && Projectile.Bottom.X < Main.maxTilesX * 16 && Projectile.Bottom.Y > 0 && Projectile.Bottom.Y < Main.maxTilesY * 16)
+                    {
+                        Tile tile = Framing.GetTileSafely(Projectile.Bottom);
+                        if (tile != null && tile.HasUnactuatedTile)
+                            floatUp = Main.tileSolid[tile.TileType];
+                    }
+
+                    if (floatUp)
+                    {
+                        Projectile.velocity.X *= 0.95f;
+
+                        Projectile.velocity.Y -= speedModifier;
+                        if (Projectile.velocity.Y > 0)
+                            Projectile.velocity.Y = 0;
+                        if (Math.Abs(Projectile.velocity.Y) > 24)
+                            Projectile.velocity.Y = 24 * Math.Sign(Projectile.velocity.Y);
+                    }
+                    else
+                    {
+                        Projectile.velocity.Y += speedModifier;
+                        if (Projectile.velocity.Y < 0)
+                            Projectile.velocity.Y += speedModifier * 2;
+                        if (Projectile.velocity.Y > 15)
+                            Projectile.velocity.Y = 15;
+                    }
+                }
+                else
+                {
+                    alphaCounter += WorldSavingSystem.MasochistModeReal ? 16 : 4;
+                    if (alphaCounter > 255)
+                    {
+                        alphaCounter = 255;
+                        if (WorldSavingSystem.MasochistModeReal && Timer < threshold)
+                            Timer = threshold;
+                    }
+
+                    if (mustRest)
+                    {
+                        Projectile.velocity.Y -= speedModifier * 0.5f;
+                        if (Projectile.velocity.Y > 0)
+                            Projectile.velocity.Y = 0;
+                        if (Math.Abs(Projectile.velocity.Y) > 24)
+                            Projectile.velocity.Y = 24 * Math.Sign(Projectile.velocity.Y);
+                    }
+                    else
+                    {
+                        Projectile.velocity *= 0.98f;
+                    }
+                }
+
+                const float PI = (float)Math.PI;
+                float targetRotation = MathHelper.WrapAngle(Projectile.SafeDirectionTo(player.Center).ToRotation() - PI / 2);
+                Projectile.rotation = MathHelper.WrapAngle(MathHelper.Lerp(Projectile.rotation, targetRotation, 0.07f));
+
+                if (alphaCounter > 0)
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Vortex, 0f, 0f, 0, default, 1.5f);
+                        Main.dust[d].noGravity = true;
+                        Main.dust[d].noLight = true;
+                        Main.dust[d].velocity *= 4f;
+                    }
+                }
+
+                if (Timer > threshold) //reset
+                {
+                    Projectile.Kill();
+                    /*
+                    Timer = 0;
+                    FinalPhaseDashCD = 0;
+                    FinalPhaseBerserkDashesComplete = false;
+                    FinalPhaseDashHorizSpeedSet = false;
+                    if (mustRest)
+                        FinalPhaseAttackCounter = 0;
+                    Projectile.velocity = Vector2.Zero;
+                    Projectile.netUpdate = true;
+                    */
+                }
+            }
+            /*
+            if (Projectile.netUpdate)
+            {
+                if (Main.netMode == NetmodeID.Server)
+                {
+                    NetMessage.SendData(MessageID.SyncNPC, -1, -1, null, Projectile.whoAmI);
+                    NetSync(npc);
+                }
+                Projectile.netUpdate = false;
+            }
+            */
+
+            //Projectile.position += player.velocity.Y * Vector2.UnitY;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            bool recolor = SoulConfig.Instance.BossRecolors && WorldSavingSystem.EternityMode;
+            Texture2D tex = TextureAssets.Npc[NPCID.EyeofCthulhu].Value;
+            int sizeY = tex.Height / Main.projFrames[Type]; //ypos of lower right corner of sprite to draw
+            int frameY = Projectile.frame * sizeY;
+            Rectangle rectangle = new(0, frameY, tex.Width, sizeY);
+            Vector2 origin = rectangle.Size() / 2f;
+            SpriteEffects spriteEffects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Color baseColor = recolor ? Color.Cyan : Color.Red;
+            Color color = baseColor with { A = 0 } * 0.13f;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color * 0.75f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(tex, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27,
+                    num165, origin, Projectile.scale, spriteEffects, 0);
+            }
+
+            Main.EntitySpriteDraw(tex, Projectile.Center - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(color),
+                    Projectile.rotation, origin, Projectile.scale, spriteEffects, 0);
+            return false;
+        }
     }
-  }
 }

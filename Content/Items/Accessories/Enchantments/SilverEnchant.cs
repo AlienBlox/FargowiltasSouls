@@ -1,39 +1,55 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.SilverEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  [AutoloadEquip]
-  public class SilverEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(180, 180, 204);
-
-    public override void SetDefaults()
+    [AutoloadEquip(EquipType.Shield)]
+    public class SilverEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 1;
-      this.Item.value = 30000;
-    }
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      player.AddEffect<SilverEffect>(this.Item);
-    }
+        public override Color nameColor => new(180, 180, 204);
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(91, 1).AddIngredient(82, 1).AddIngredient(78, 1).AddIngredient(205, 1).AddIngredient(3514, 1).AddIngredient(4672, 1).AddTile(26).Register();
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Blue;
+            Item.value = 30000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<SilverEffect>(Item);
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ItemID.SilverHelmet)
+            .AddIngredient(ItemID.SilverChainmail)
+            .AddIngredient(ItemID.SilverGreaves)
+            .AddIngredient(ItemID.EmptyBucket)
+            .AddIngredient(ItemID.SilverBroadsword)
+            .AddIngredient(ItemID.BlandWhip)
+
+            .AddTile(TileID.DemonAltar)
+            .Register();
+        }
     }
-  }
+    public class SilverEffect : AccessoryEffect
+    {
+
+        public override Header ToggleHeader => Header.GetHeader<TerraHeader>();
+        public override int ToggleItemType => ModContent.ItemType<SilverEnchant>();
+    }
 }

@@ -1,102 +1,108 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Timber.TimberTree
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Timber
 {
-  public class TimberTree : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class TimberTree : ModProjectile
     {
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Tree");
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.width = 96;
+            Projectile.height = 304;
+            Projectile.aiStyle = -1;
+            Projectile.hostile = true;
+            Projectile.timeLeft = 60;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = true;
+            Projectile.alpha = 255;
+        }
+
+        public override bool? CanDamage() => false;
+
+        public override void AI()
+        {
+            Projectile.velocity.Y += 1f;
+
+            if (Projectile.alpha > 0)
+            {
+                Projectile.alpha -= 10;
+                if (Projectile.alpha < 0)
+                    Projectile.alpha = 0;
+
+                for (int i = 0; i < 5; i++)
+                {
+                    Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.Grass);
+                }
+            }
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            if (WorldSavingSystem.EternityMode)
+                FargoSoulsUtil.NewNPCEasy(Terraria.Entity.InheritSource(Projectile), Projectile.Top - 20 * Vector2.UnitY, ModContent.NPCType<LesserSquirrel>(), velocity: new Vector2(Main.rand.NextFloat(-10, 10), Main.rand.NextFloat(-20, -10)));
+
+            if (FargoSoulsUtil.HostCheck)
+            {
+                Player player = FargoSoulsUtil.PlayerExists(Projectile.ai[0]);
+                if (player != null)
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        Vector2 spawnPos = Projectile.position;
+                        spawnPos.X += Projectile.width / 2f + Main.rand.NextFloat(-40, 40);
+                        spawnPos.Y += 40 + Main.rand.NextFloat(-40, 40);
+
+                        const float gravity = 0.2f;
+                        float time = 30f;
+                        Vector2 distance = player.Center - spawnPos;
+                        distance.X = Main.rand.NextFloat(-1.5f, 1.5f);
+                        distance.Y = distance.Y / time - 0.5f * gravity * time;
+                        float minimumY = Main.rand.NextFloat(-12f, -9f);
+                        if (distance.Y > minimumY)
+                            distance.Y = minimumY;
+                        distance += Main.rand.NextVector2Square(-0.5f, 0.5f);
+
+                        Projectile.NewProjectile(Terraria.Entity.InheritSource(Projectile), spawnPos, distance, ModContent.ProjectileType<TimberAcorn>(), Projectile.damage, Projectile.knockBack, Projectile.owner);
+                    }
+                }
+            }
+        }
+
+        public override bool TileCollideStyle(ref int width, ref int height, ref bool fallThrough, ref Vector2 hitboxCenterFrac)
+        {
+            fallThrough = false;
+            return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            return false;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection < 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 96;
-      ((Entity) this.Projectile).height = 304;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.hostile = true;
-      this.Projectile.timeLeft = 60;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = true;
-      this.Projectile.alpha = (int) byte.MaxValue;
-    }
-
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public virtual void AI()
-    {
-      ++((Entity) this.Projectile).velocity.Y;
-      if (this.Projectile.alpha <= 0)
-        return;
-      this.Projectile.alpha -= 10;
-      if (this.Projectile.alpha < 0)
-        this.Projectile.alpha = 0;
-      for (int index = 0; index < 5; ++index)
-        Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 2, 0.0f, 0.0f, 0, new Color(), 1f);
-    }
-
-    public virtual void OnKill(int timeLeft)
-    {
-      if (WorldSavingSystem.EternityMode)
-        FargoSoulsUtil.NewNPCEasy(Entity.InheritSource((Entity) this.Projectile), Vector2.op_Subtraction(((Entity) this.Projectile).Top, Vector2.op_Multiply(20f, Vector2.UnitY)), ModContent.NPCType<LesserSquirrel>(), velocity: new Vector2(Utils.NextFloat(Main.rand, -10f, 10f), Utils.NextFloat(Main.rand, -20f, -10f)));
-      if (!FargoSoulsUtil.HostCheck)
-        return;
-      Player player = FargoSoulsUtil.PlayerExists(this.Projectile.ai[0]);
-      if (player == null)
-        return;
-      for (int index = 0; index < 10; ++index)
-      {
-        Vector2 position = ((Entity) this.Projectile).position;
-        position.X += (float) ((Entity) this.Projectile).width / 2f + Utils.NextFloat(Main.rand, -40f, 40f);
-        position.Y += 40f + Utils.NextFloat(Main.rand, -40f, 40f);
-        float num1 = 30f;
-        Vector2 vector2 = Vector2.op_Subtraction(((Entity) player).Center, position);
-        vector2.X = Utils.NextFloat(Main.rand, -1.5f, 1.5f);
-        vector2.Y = (float) ((double) vector2.Y / (double) num1 - 0.10000000149011612 * (double) num1);
-        float num2 = Utils.NextFloat(Main.rand, -12f, -9f);
-        if ((double) vector2.Y > (double) num2)
-          vector2.Y = num2;
-        vector2 = Vector2.op_Addition(vector2, Utils.NextVector2Square(Main.rand, -0.5f, 0.5f));
-        Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), position, vector2, ModContent.ProjectileType<TimberAcorn>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-      }
-    }
-
-    public virtual bool TileCollideStyle(
-      ref int width,
-      ref int height,
-      ref bool fallThrough,
-      ref Vector2 hitboxCenterFrac)
-    {
-      fallThrough = false;
-      return base.TileCollideStyle(ref width, ref height, ref fallThrough, ref hitboxCenterFrac);
-    }
-
-    public virtual bool OnTileCollide(Vector2 oldVelocity) => false;
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection < 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
-    }
-  }
 }

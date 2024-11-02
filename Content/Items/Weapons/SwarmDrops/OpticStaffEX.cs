@@ -1,66 +1,66 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Weapons.SwarmDrops.OpticStaffEX
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Minions;
+﻿using FargowiltasSouls.Content.Buffs.Minions;
 using FargowiltasSouls.Content.Projectiles.Minions;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
-using Terraria.Audio;
 using Terraria.DataStructures;
-using Terraria.GameContent.Creative;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Weapons.SwarmDrops
 {
-  public class OpticStaffEX : SoulsItem
-  {
-    public virtual void SetStaticDefaults()
+    public class OpticStaffEX : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-      ItemID.Sets.StaffMinionSlotsRequired[this.Item.type] = 4f;
-    }
 
-    public virtual void SetDefaults()
-    {
-      this.Item.damage = 312;
-      this.Item.mana = 10;
-      this.Item.DamageType = DamageClass.Summon;
-      ((Entity) this.Item).width = 24;
-      ((Entity) this.Item).height = 24;
-      this.Item.useAnimation = 37;
-      this.Item.useTime = 37;
-      this.Item.useStyle = 1;
-      this.Item.noMelee = true;
-      this.Item.knockBack = 3f;
-      this.Item.UseSound = new SoundStyle?(SoundID.Item82);
-      this.Item.value = Item.sellPrice(0, 25, 0, 0);
-      this.Item.rare = 11;
-      this.Item.buffType = ModContent.BuffType<TwinsEXBuff>();
-      this.Item.shoot = ModContent.ProjectileType<OpticRetinazer>();
-      this.Item.shootSpeed = 10f;
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+            ItemID.Sets.StaffMinionSlotsRequired[Item.type] = 3;
+        }
 
-    public virtual bool Shoot(
-      Player player,
-      EntitySource_ItemUse_WithAmmo source,
-      Vector2 position,
-      Vector2 velocity,
-      int type,
-      int damage,
-      float knockback)
-    {
-      player.AddBuff(this.Item.buffType, 2, true, false);
-      Vector2 mouseWorld = Main.MouseWorld;
-      velocity = Utils.RotatedBy(velocity, Math.PI / 2.0, new Vector2());
-      player.SpawnMinionOnCursor((IEntitySource) source, ((Entity) player).whoAmI, ModContent.ProjectileType<OpticRetinazer>(), this.Item.damage, knockback, new Vector2(), velocity);
-      player.SpawnMinionOnCursor((IEntitySource) source, ((Entity) player).whoAmI, ModContent.ProjectileType<OpticSpazmatism>(), this.Item.damage, knockback, new Vector2(), Vector2.op_UnaryNegation(velocity));
-      return false;
+        public override void SetDefaults()
+        {
+            Item.damage = 1200;
+            Item.mana = 10;
+            Item.DamageType = DamageClass.Summon;
+            Item.width = 24;
+            Item.height = 24;
+            Item.useAnimation = 37;
+            Item.useTime = 37;
+            Item.useStyle = ItemUseStyleID.Swing;
+            Item.noMelee = true;
+            Item.knockBack = 3f;
+            Item.UseSound = SoundID.Item82;
+            Item.value = Item.sellPrice(0, 25);
+            Item.rare = ItemRarityID.Purple;
+            Item.buffType = ModContent.BuffType<TwinsEXBuff>();
+            Item.shoot = ModContent.ProjectileType<OpticRetinazer>();
+            Item.shootSpeed = 10f;
+        }
+
+        public override bool Shoot(Player player, EntitySource_ItemUse_WithAmmo source, Vector2 position, Vector2 velocity, int type, int damage, float knockback)
+        {
+            player.AddBuff(Item.buffType, 2);
+            Vector2 spawnPos = Main.MouseWorld;
+            velocity = velocity.RotatedBy(Math.PI / 2);
+
+            player.SpawnMinionOnCursor(source, player.whoAmI, ModContent.ProjectileType<OpticRetinazer>(), Item.damage, knockback, default, velocity);
+            player.SpawnMinionOnCursor(source, player.whoAmI, ModContent.ProjectileType<OpticSpazmatism>(), Item.damage, knockback, default, -velocity);
+            return false;
+        }
+
+        /*
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddIngredient(ItemID.OpticStaff)
+            .AddIngredient(null, "TwinRangs")
+            .AddIngredient(null, "AbomEnergy", 10)
+            .AddIngredient(ModContent.Find<ModItem>("Fargowiltas", "EnergizerTwins"))
+            .AddTile(ModContent.Find<ModTile>("Fargowiltas", "CrucibleCosmosSheet"))
+
+            .Register();
+        }
+        */
     }
-  }
 }

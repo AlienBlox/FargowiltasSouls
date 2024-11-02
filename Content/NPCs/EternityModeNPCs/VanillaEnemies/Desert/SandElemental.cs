@@ -1,9 +1,3 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Desert.SandElemental
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Bosses.Champions.Spirit;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
@@ -15,60 +9,106 @@ using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Desert
 {
-  public class SandElemental : EModeNPCBehaviour
-  {
-    public int WormTimer;
-    public int AttackTimer;
-    public Vector2 AttackTarget;
-
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(541);
-
-    public virtual void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
+    public class SandElemental : EModeNPCBehaviour
     {
-      base.SendExtraAI(npc, bitWriter, binaryWriter);
-      binaryWriter.Write7BitEncodedInt(this.AttackTimer);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.SandElemental);
 
-    public virtual void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
-    {
-      base.ReceiveExtraAI(npc, bitReader, binaryReader);
-      this.AttackTimer = binaryReader.Read7BitEncodedInt();
-    }
+        public int WormTimer;
+        public int AttackTimer;
+        public Vector2 AttackTarget;
 
-    public virtual void AI(NPC npc)
-    {
-      base.AI(npc);
-      if (++this.AttackTimer == 270)
-      {
-        if (!npc.HasValidTarget)
+        public override void SendExtraAI(NPC npc, BitWriter bitWriter, BinaryWriter binaryWriter)
         {
-          this.AttackTimer = 0;
+            base.SendExtraAI(npc, bitWriter, binaryWriter);
+
+            binaryWriter.Write7BitEncodedInt(AttackTimer);
         }
-        else
+
+        public override void ReceiveExtraAI(NPC npc, BitReader bitReader, BinaryReader binaryReader)
         {
-          SoundEngine.PlaySound(ref SoundID.Roar, new Vector2?(((Entity) npc).Center), (SoundUpdateCallback) null);
-          this.AttackTarget = ((Entity) Main.player[npc.target]).Center;
-          this.AttackTarget.Y -= 650f;
-          int num = (int) ((Entity) npc).Distance(this.AttackTarget) / 10;
-          Vector2 vector2 = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) npc, this.AttackTarget), 10f);
-          for (int index1 = 0; index1 < num; ++index1)
-          {
-            int index2 = Dust.NewDust(Vector2.op_Addition(((Entity) npc).Center, Vector2.op_Multiply(vector2, (float) index1)), 0, 0, 269, 0.0f, 0.0f, 0, new Color(), 1f);
-            Main.dust[index2].noLight = true;
-            Main.dust[index2].scale = 1.5f;
-          }
+            base.ReceiveExtraAI(npc, bitReader, binaryReader);
+
+            AttackTimer = binaryReader.Read7BitEncodedInt();
         }
-        EModeNPCBehaviour.NetSync(npc);
-      }
-      if (this.AttackTimer > 300 && this.AttackTimer % 3 == 0 && FargoSoulsUtil.HostCheck)
-        Projectile.NewProjectile(((Entity) npc).GetSource_FromThis((string) null), Vector2.op_Addition(this.AttackTarget, Utils.NextVector2Circular(Main.rand, 80f, 80f)), new Vector2(Utils.NextFloat(Main.rand, -0.5f, 0.5f), Utils.NextFloat(Main.rand, 3f)), ModContent.ProjectileType<SpiritCrossBone>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      if (this.AttackTimer <= 390)
-        return;
-      this.AttackTimer = 0;
-      EModeNPCBehaviour.NetSync(npc);
+
+        public override void AI(NPC npc)
+        {
+            base.AI(npc);
+
+            //if (++WormTimer % 60 == 0)
+            //{
+            //    if (NPC.AnyNPCs(NPCID.DuneSplicerHead)) //effectively, timer starts counting up when splicers are dead
+            //    {
+            //        WormTimer = 0;
+            //    }
+            //    else if (WormTimer >= 360 && FargoSoulsUtil.HostCheck)
+            //    {
+            //        FargoSoulsUtil.NewNPCEasy(npc.GetSource_FromAI(), npc.Center, NPCID.DuneSplicerHead);
+            //    }
+            //}
+
+            if (++AttackTimer == 270)
+            {
+                if (!npc.HasValidTarget)
+                {
+                    AttackTimer = 0;
+                }
+                else
+                {
+                    SoundEngine.PlaySound(SoundID.Roar, npc.Center);
+
+                    AttackTarget = Main.player[npc.target].Center;
+                    AttackTarget.Y -= 650;
+
+                    int length = (int)npc.Distance(AttackTarget) / 10;
+                    Vector2 offset = npc.SafeDirectionTo(AttackTarget) * 10f;
+                    for (int i = 0; i < length; i++) //dust warning line
+                    {
+                        int d = Dust.NewDust(npc.Center + offset * i, 0, 0, DustID.Sandnado, 0f, 0f, 0, new Color());
+                        Main.dust[d].noLight = true;
+                        Main.dust[d].scale = 1.5f;
+                    }
+                }
+
+                NetSync(npc);
+            }
+
+            if (AttackTimer > 300 && AttackTimer % 3 == 0 && FargoSoulsUtil.HostCheck)
+            {
+                Projectile.NewProjectile(npc.GetSource_FromThis(),
+                    AttackTarget + Main.rand.NextVector2Circular(80, 80),
+                    new Vector2(Main.rand.NextFloat(-.5f, .5f), Main.rand.NextFloat(3f)),
+                    ModContent.ProjectileType<SpiritCrossBone>(), FargoSoulsUtil.ScaledProjectileDamage(npc.defDamage), 0f, Main.myPlayer);
+            }
+
+            if (AttackTimer > 390)
+            {
+                AttackTimer = 0;
+                NetSync(npc);
+            }
+
+            //if (++AttackTimer > 360)
+            //{
+            //    AttackTimer = 0;
+
+            //    if (npc.HasValidTarget && FargoSoulsUtil.HostCheck)
+            //    {
+            //        Vector2 target = Main.player[npc.target].Center;
+            //        target.Y -= 150;
+            //        Projectile.NewProjectile(target, Vector2.Zero, ProjectileID.SandnadoHostileMark, 0, 0f, Main.myPlayer);
+
+            //        int length = (int)npc.Distance(target) / 10;
+            //        Vector2 offset = npc.SafeDirectionTo(target) * 10f;
+            //        for (int i = 0; i < length; i++) //dust warning line for sandnado
+            //        {
+            //            int d = Dust.NewDust(npc.Center + offset * i, 0, 0, 269, 0f, 0f, 0, new Color());
+            //            Main.dust[d].noLight = true;
+            //            Main.dust[d].scale = 1.25f;
+            //        }
+            //    }
+            //}
+        }
     }
-  }
 }

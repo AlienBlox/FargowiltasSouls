@@ -1,81 +1,84 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Life.ChampionBee
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Life
 {
-  public class ChampionBee : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_566";
-
-    public virtual void SetStaticDefaults() => Main.projFrames[this.Projectile.type] = 4;
-
-    public virtual void SetDefaults()
+    public class ChampionBee : ModProjectile
     {
-      ((Entity) this.Projectile).width = 4;
-      ((Entity) this.Projectile).height = 4;
-      this.Projectile.hostile = true;
-      this.Projectile.timeLeft = 360;
-      this.Projectile.aiStyle = -1;
-      this.CooldownSlot = 1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.scale = 1.5f;
-    }
+        public override string Texture => "Terraria/Images/Projectile_566";
 
-    public virtual void AI()
-    {
-      this.Projectile.spriteDirection = Math.Sign(((Entity) this.Projectile).velocity.X);
-      this.Projectile.rotation = ((Entity) this.Projectile).velocity.X * 0.1f;
-      if (++this.Projectile.frameCounter >= 3)
-      {
-        this.Projectile.frameCounter = 0;
-        if (++this.Projectile.frame >= 3)
-          this.Projectile.frame = 0;
-      }
-      if (this.Projectile.timeLeft < 120)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 1.05f);
-      }
-      if (!((Entity) this.Projectile).wet && !((Entity) this.Projectile).lavaWet || ((Entity) this.Projectile).honeyWet)
-        return;
-      this.Projectile.Kill();
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Bee");
+            Main.projFrames[Projectile.type] = 4;
+        }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      target.AddBuff(36, 300, true, false);
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(ModContent.BuffType<InfestedBuff>(), 300, true, false);
-      target.AddBuff(ModContent.BuffType<SwarmingBuff>(), 300, true, false);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 4;
+            Projectile.height = 4;
+            Projectile.hostile = true;
+            Projectile.timeLeft = 360;
+            Projectile.aiStyle = -1;
+            CooldownSlot = 1;
+            Projectile.tileCollide = false;
+            Projectile.scale = 1.5f;
+        }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public override void AI()
+        {
+            Projectile.spriteDirection = Math.Sign(Projectile.velocity.X);
+            Projectile.rotation = Projectile.velocity.X * .1f;
+
+            if (++Projectile.frameCounter >= 3)
+            {
+                Projectile.frameCounter = 0;
+                if (++Projectile.frame >= 3)
+                    Projectile.frame = 0;
+            }
+
+            if (Projectile.timeLeft < 120) //speed away
+            {
+                Projectile.velocity *= 1.05f;
+            }
+
+            if ((Projectile.wet || Projectile.lavaWet) && !Projectile.honeyWet) //die in liquids
+            {
+                Projectile.Kill();
+            }
+        }
+
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
+        {
+            target.AddBuff(BuffID.BrokenArmor, 300);
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.AddBuff(ModContent.BuffType<InfestedBuff>(), 300);
+                target.AddBuff(ModContent.BuffType<SwarmingBuff>(), 300);
+            }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

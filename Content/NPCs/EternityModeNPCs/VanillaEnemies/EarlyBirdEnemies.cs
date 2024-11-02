@@ -1,35 +1,52 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.EarlyBirdEnemies
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.Globals;
+﻿using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using System;
 using Terraria;
-using Terraria.ModLoader;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies
 {
-  public class EarlyBirdEnemies : EModeNPCBehaviour
-  {
-    public override NPCMatcher CreateMatcher()
+    public class EarlyBirdEnemies : EModeNPCBehaviour
     {
-      return new NPCMatcher().MatchTypeRange(87, 89, 90, 91, 88, 92, 85, 629, 480, 170, 180, 171, 268, 98, 250, 156, 258, 257, 254, (int) byte.MaxValue, 243, 541);
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchTypeRange(
+            NPCID.WyvernHead,
+            NPCID.WyvernBody,
+            NPCID.WyvernBody2,
+            NPCID.WyvernBody3,
+            NPCID.WyvernLegs,
+            NPCID.WyvernTail,
+            NPCID.Mimic,
+            NPCID.IceMimic,
+            NPCID.Medusa,
+            NPCID.PigronCorruption,
+            NPCID.PigronCrimson,
+            NPCID.PigronHallow,
+            NPCID.IchorSticker,
+            NPCID.SeekerHead,
+            NPCID.AngryNimbus,
+            NPCID.RedDevil,
+            NPCID.MushiLadybug,
+            NPCID.AnomuraFungus,
+            NPCID.ZombieMushroom,
+            NPCID.ZombieMushroomHat,
+            NPCID.IceGolem,
+            NPCID.SandElemental
+        );
 
-    public virtual void SetDefaults(NPC npc)
-    {
-      ((GlobalType<NPC, GlobalNPC>) this).SetDefaults(npc);
-      if (Main.hardMode)
-        return;
-      npc.defense /= 2;
-      if (npc.type != 243 && npc.type != 541)
-        return;
-      npc.lifeMax = (int) Math.Round((double) npc.lifeMax * 0.4);
-      npc.defense /= 2;
+        public override void SetDefaults(NPC npc)
+        {
+            base.SetDefaults(npc);
+
+            if (!Main.hardMode)
+            {
+                npc.defense /= 2;
+
+                if (npc.type == NPCID.IceGolem || npc.type == NPCID.SandElemental)
+                {
+                    npc.lifeMax = (int)Math.Round(npc.lifeMax * 0.4);
+                    npc.defense /= 2;
+                }
+            }
+        }
     }
-  }
 }

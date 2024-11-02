@@ -1,33 +1,76 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Night.Werewolf
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Core.Globals;
 using FargowiltasSouls.Core.NPCMatching;
 using Microsoft.Xna.Framework;
 using Terraria;
-using Terraria.ModLoader;
+using Terraria.Audio;
+using Terraria.ID;
 
-#nullable disable
 namespace FargowiltasSouls.Content.NPCs.EternityModeNPCs.VanillaEnemies.Night
 {
-  public class Werewolf : EModeNPCBehaviour
-  {
-    public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(104);
-
-    public virtual void AI(NPC npc)
+    public class Werewolf : EModeNPCBehaviour
     {
-      base.AI(npc);
-      EModeGlobalNPC.Aura(npc, 200f, ModContent.BuffType<BerserkedBuff>(), dustid: 60, color: new Color());
-    }
+        public override NPCMatcher CreateMatcher() => new NPCMatcher().MatchType(NPCID.Werewolf);
 
-    public virtual void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
-    {
-      base.OnHitPlayer(npc, target, hurtInfo);
-      target.AddBuff(148, 1800, true, false);
+        public override void SetDefaults(NPC npc)
+        {
+            npc.lifeMax *= 3;
+            npc.knockBackResist = 0f;
+        }
+
+        public int JumpTimer = 140;
+        public override bool SafePreAI(NPC npc)
+        {
+            npc.knockBackResist = 0f;
+            //EModeGlobalNPC.Aura(npc, 200, ModContent.BuffType<BerserkedBuff>(), false, 60);
+            JumpTimer--;
+            if (JumpTimer <= 0)
+            {
+                if (JumpTimer == 0)
+                {
+                    FargoSoulsUtil.DustRing(npc.Center, 32, DustID.Blood, 5f, default, 2f);
+                    SoundEngine.PlaySound(new SoundStyle("FargowiltasSouls/Assets/Sounds/NPC_Hit_6") with { Pitch = -0.5f }, npc.Center);
+                }
+                npc.velocity *= 0;
+                if (JumpTimer <= -60)
+                {
+                    JumpTimer = 60 * 9;
+                    if (npc.HasPlayerTarget && Collision.CanHitLine(npc.Center, 1, 1, Main.player[npc.target].Center, 1, 1))
+                    {
+                        Vector2 targetPoint = Main.player[npc.target].Center - Vector2.UnitY * 200;
+                        float distanceScale = MathHelper.Clamp(npc.Distance(targetPoint) / 1000f, 0f, 1f);
+                        float vel = 5f + 20f * distanceScale;
+                        npc.velocity = npc.DirectionTo(targetPoint) * vel;
+                        SoundEngine.PlaySound(FargosSoundRegistry.ThrowShort with { Pitch = 0.5f }, npc.Center);
+                    }
+                        
+                }
+            }
+            else
+            {
+                if (JumpTimer < 10 && !(npc.HasPlayerTarget && Collision.CanHitLine(npc.Center, 1, 1, Main.player[npc.target].Center, 1, 1)))
+                    JumpTimer++;
+            }
+            
+            return base.SafePreAI(npc);
+        }
+
+        public override void OnHitNPC(NPC npc, NPC target, NPC.HitInfo hit)
+        {
+            base.OnHitNPC(npc, target, hit);
+
+            if (target.townNPC && (hit.InstantKill || target.life < hit.Damage))
+            {
+                target.Transform(npc.type);
+                //SoundEngine.PlaySound(SoundID.);
+            }
+        }
+
+        public override void OnHitPlayer(NPC npc, Player target, Player.HurtInfo hurtInfo)
+        {
+            base.OnHitPlayer(npc, target, hurtInfo);
+
+            target.AddBuff(BuffID.Rabies, 1800);
+        }
     }
-  }
 }

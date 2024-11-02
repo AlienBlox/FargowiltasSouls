@@ -1,147 +1,198 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.HellSkull2
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs;
+﻿using FargowiltasSouls.Content.Buffs;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class HellSkull2 : ModProjectile
-  {
-    public float targetRotation;
-
-    public virtual string Texture => "Terraria/Images/Projectile_585";
-
-    public virtual void SetStaticDefaults()
+    public class HellSkull2 : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 20;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-      Main.projFrames[this.Projectile.type] = Main.projFrames[585];
-    }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 26;
-      ((Entity) this.Projectile).height = 26;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.timeLeft = 120;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Ranged;
-      this.Projectile.penetrate = -1;
-      this.Projectile.scale = 2f;
-    }
+        public float targetRotation;
+        /*public int targetID = -1;
+        public int searchTimer = 30;*/
 
-    public virtual void AI()
-    {
-      if ((double) this.Projectile.localAI[0] == 0.0)
-      {
-        this.Projectile.localAI[0] = 1f;
-        this.Projectile.localAI[1] = 50f;
-        this.targetRotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-        SoundEngine.PlaySound(ref SoundID.Item8, new Vector2?(((Entity) this.Projectile).position), (SoundUpdateCallback) null);
-        for (int index1 = 0; index1 < 3; ++index1)
+        public override void SetStaticDefaults()
         {
-          int index2 = Dust.NewDust(((Entity) this.Projectile).position, (int) ((double) ((Entity) this.Projectile).width * (double) this.Projectile.scale), (int) ((double) ((Entity) this.Projectile).height * (double) this.Projectile.scale), 27, ((Entity) this.Projectile).velocity.X, ((Entity) this.Projectile).velocity.Y, 0, new Color(), 2f);
-          Main.dust[index2].noGravity = true;
-          Main.dust[index2].velocity = Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, Main.dust[index2].position);
-          Dust dust1 = Main.dust[index2];
-          dust1.velocity = Vector2.op_Multiply(dust1.velocity, -5f);
-          Dust dust2 = Main.dust[index2];
-          dust2.velocity = Vector2.op_Addition(dust2.velocity, Vector2.op_Division(((Entity) this.Projectile).velocity, 2f));
-          Main.dust[index2].noLight = true;
+            // DisplayName.SetDefault("Hell Skull");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 20;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+            Main.projFrames[Projectile.type] = 3;
         }
-      }
-      float num1 = ((Vector2) ref ((Entity) this.Projectile).velocity).Length();
-      float num2 = this.targetRotation + (float) (0.78539818525314331 * Math.Sin(6.2831854820251465 * (double) this.Projectile.localAI[1] / 60.0)) * this.Projectile.ai[1];
-      if ((double) ++this.Projectile.localAI[1] > 60.0)
-        this.Projectile.localAI[1] = 0.0f;
-      ((Entity) this.Projectile).velocity = Vector2.op_Multiply(num1, Utils.ToRotationVector2(num2));
-      if (this.Projectile.alpha > 0)
-        this.Projectile.alpha -= 50;
-      if (this.Projectile.alpha < 0)
-        this.Projectile.alpha = 0;
-      if (++this.Projectile.frameCounter >= 12)
-        this.Projectile.frameCounter = 0;
-      this.Projectile.frame = this.Projectile.frameCounter / 2;
-      if (this.Projectile.frame > 3)
-        this.Projectile.frame = 6 - this.Projectile.frame;
-      Lighting.AddLight(((Entity) this.Projectile).Center, ((Color) ref NPCID.Sets.MagicAuraColor[54]).ToVector3());
-      this.Projectile.spriteDirection = ((Entity) this.Projectile).direction = (double) ((Entity) this.Projectile).velocity.X < 0.0 ? -1 : 1;
-      this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity);
-      if (((Entity) this.Projectile).direction >= 0)
-        return;
-      this.Projectile.rotation += 3.14159274f;
-    }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.immune[this.Projectile.owner] = 8;
-      target.AddBuff(ModContent.BuffType<HellFireBuff>(), 30, false);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 26;
+            Projectile.height = 26;
+            Projectile.aiStyle = -1;
+            Projectile.alpha = 255;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.timeLeft = 120; //600;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Ranged;
+            Projectile.penetrate = -1;
+            Projectile.scale = 2f;
+        }
 
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundStyle npcDeath52 = SoundID.NPCDeath52;
-      ((SoundStyle) ref npcDeath52).Volume = 0.5f;
-      ((SoundStyle) ref npcDeath52).Pitch = 0.2f;
-      SoundEngine.PlaySound(ref npcDeath52, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      for (int index1 = 0; index1 < 15; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 31, 0.0f, 0.0f, 100, new Color(), 3f);
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 1.4f);
-      }
-      for (int index3 = 0; index3 < 10; ++index3)
-      {
-        int index4 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 27, 0.0f, 0.0f, 100, new Color(), 3f);
-        Main.dust[index4].noGravity = true;
-        Dust dust1 = Main.dust[index4];
-        dust1.velocity = Vector2.op_Multiply(dust1.velocity, 7f);
-        int index5 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 27, 0.0f, 0.0f, 100, new Color(), 1f);
-        Dust dust2 = Main.dust[index5];
-        dust2.velocity = Vector2.op_Multiply(dust2.velocity, 3f);
-      }
-    }
+        public override void AI()
+        {
+            const int period = 60;
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
+            if (Projectile.localAI[0] == 0.0)
+            {
+                Projectile.localAI[0] = 1f;
+                Projectile.localAI[1] = 50;
+                targetRotation = Projectile.velocity.ToRotation();
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(new Color(212, 148, (int) byte.MaxValue), this.Projectile.Opacity), 0.75f), 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        float num3 = this.Projectile.scale * ((float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num4 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num4, vector2, num3, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), base.GetAlpha(Color.White).Value, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+                SoundEngine.PlaySound(SoundID.Item8, Projectile.position);
+                for (int i = 0; i < 3; ++i)
+                {
+                    int index2 = Dust.NewDust(Projectile.position, (int)(Projectile.width * Projectile.scale), (int)(Projectile.height * Projectile.scale),
+                        DustID.Shadowflame, Projectile.velocity.X, Projectile.velocity.Y, 0, default, 2f);
+                    Main.dust[index2].noGravity = true;
+                    Main.dust[index2].velocity = Projectile.SafeDirectionTo(Main.dust[index2].position);
+                    Main.dust[index2].velocity *= -5f;
+                    Main.dust[index2].velocity += Projectile.velocity / 2f;
+                    Main.dust[index2].noLight = true;
+                }
+            }
+
+            float speed = Projectile.velocity.Length();
+            float rotation = targetRotation + (float)Math.PI / 4 * (float)Math.Sin(2 * (float)Math.PI * Projectile.localAI[1] / period) * Projectile.ai[1];
+            if (++Projectile.localAI[1] > period)
+                Projectile.localAI[1] = 0;
+            Projectile.velocity = speed * rotation.ToRotationVector2();
+
+            if (Projectile.alpha > 0)
+                Projectile.alpha -= 50;
+            if (Projectile.alpha < 0)
+                Projectile.alpha = 0;
+
+            if (++Projectile.frameCounter > 4)
+                if (++Projectile.frame >= Main.projFrames[Type])
+                    Projectile.frame = 0;
+
+            Lighting.AddLight(Projectile.Center, NPCID.Sets.MagicAuraColor[54].ToVector3());
+
+            Projectile.spriteDirection = Projectile.direction = Projectile.velocity.X < 0 ? -1 : 1;
+            Projectile.rotation = Projectile.velocity.ToRotation();
+            if (Projectile.direction < 0)
+                Projectile.rotation += (float)Math.PI;
+
+            /*if (targetID == -1) //no target atm
+            {
+                if (searchTimer <= 0)
+                {
+                    searchTimer = 30;
+
+                    int possibleTarget = -1;
+                    float closestDistance = 1000f;
+
+                    for (int i = 0; i < Main.maxNPCs; i++)
+                    {
+                        NPC npc = Main.npc[i];
+
+                        if (npc.CanBeChasedBy())
+                        {
+                            float distance = Vector2.Distance(Projectile.Center, npc.Center);
+
+                            if (closestDistance > distance)
+                            {
+                                closestDistance = distance;
+                                possibleTarget = i;
+                            }
+                        }
+                    }
+
+                    if (possibleTarget != -1)
+                    {
+                        targetID = possibleTarget;
+                        Projectile.netUpdate = true;
+                    }
+                }
+                searchTimer--;
+            }
+            else //currently have target
+            {
+                NPC npc = Main.npc[targetID];
+
+                if (npc.CanBeChasedBy()) //target is still valid
+                {
+                    if (Projectile.Distance(npc.Center) > npc.width + npc.height)
+                        targetRotation = (npc.Center - Projectile.Center).ToRotation();
+                }
+                else //target lost, reset
+                {
+                    targetID = -1;
+                    searchTimer = 0;
+                    Projectile.netUpdate = true;
+                }
+            }*/
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.immune[Projectile.owner] = 8;
+            target.AddBuff(ModContent.BuffType<HellFireBuff>(), 30);
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.NPCDeath52 with { Volume = 0.5f, Pitch = 0.2f }, Projectile.Center);
+
+            for (int i = 0; i < 15; i++)
+            {
+                int dust = Dust.NewDust(Projectile.position, Projectile.width,
+                    Projectile.height, DustID.Smoke, 0f, 0f, 100, default, 3f);
+                Main.dust[dust].velocity *= 1.4f;
+            }
+
+            for (int i = 0; i < 10; i++)
+            {
+                int dust = Dust.NewDust(Projectile.position, Projectile.width,
+                    Projectile.height, DustID.Shadowflame, 0f, 0f, 100, default, 3f);
+                Main.dust[dust].noGravity = true;
+                Main.dust[dust].velocity *= 7f;
+                dust = Dust.NewDust(Projectile.position, Projectile.width,
+                    Projectile.height, DustID.Shadowflame, 0f, 0f, 100, default, 1f);
+                Main.dust[dust].velocity *= 3f;
+            }
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = new Color(212, 148, 255) * Projectile.Opacity * 0.75f * 0.5f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                float scale = Projectile.scale;
+                scale *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle),
+                    color27, num165, origin2, scale, effects, 0);
+            }
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), (Color)GetAlpha(Color.White), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            return false;
+        }
     }
-  }
 }

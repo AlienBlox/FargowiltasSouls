@@ -1,110 +1,134 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Bosses.Champions.Spirit.SpiritSpirit
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
+﻿using FargowiltasSouls.Content.Buffs.Masomode;
 using FargowiltasSouls.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using Terraria;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Bosses.Champions.Spirit
 {
-  public class SpiritSpirit : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class SpiritSpirit : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 15;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 12;
-      ((Entity) this.Projectile).height = 12;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.timeLeft = 600;
-      this.Projectile.hostile = true;
-      this.Projectile.scale = 0.8f;
-    }
-
-    public virtual void AI()
-    {
-      if ((double) --this.Projectile.ai[1] < 0.0 && (double) this.Projectile.ai[1] > -300.0)
-      {
-        NPC npc = FargoSoulsUtil.NPCExists(this.Projectile.ai[0], ModContent.NPCType<SpiritChampion>());
-        if (npc != null)
+        public override void SetStaticDefaults()
         {
-          Player player = Main.player[npc.target];
-          if ((double) ((Entity) this.Projectile).Distance(((Entity) player).Center) > 200.0 && (double) npc.ai[0] == 3.0)
-          {
-            for (int index = 0; index < 3; ++index)
+            // DisplayName.SetDefault("Spirit");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 15;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+        }
+
+        public override void SetDefaults()
+        {
+            Projectile.width = 12;
+            Projectile.height = 12;
+            Projectile.aiStyle = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.timeLeft = 600;
+            Projectile.hostile = true;
+            Projectile.scale = 0.8f;
+        }
+
+        public override void AI()
+        {
+            if (--Projectile.ai[1] < 0 && Projectile.ai[1] > -300)
             {
-              Vector2 vector2 = Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) player).Center), 2.2f);
-              ((Entity) this.Projectile).velocity = Vector2.op_Division(Vector2.op_Addition(Vector2.op_Multiply(((Entity) this.Projectile).velocity, 29f), vector2), 30f);
+                NPC npc = FargoSoulsUtil.NPCExists(Projectile.ai[0], ModContent.NPCType<SpiritChampion>());
+                if (npc != null)
+                {
+                    Player p = Main.player[npc.target];
+                    if (Projectile.Distance(p.Center) > 200 && npc.ai[0] == 3)
+                    {
+                        for (int i = 0; i < 3; i++) //make up for real spectre bolt having 3 extraUpdates
+                        {
+                            Vector2 change = Projectile.SafeDirectionTo(p.Center) * 2.2f;
+                            Projectile.velocity = (Projectile.velocity * 29f + change) / 30f;
+                        }
+                    }
+                    else //stop homing when in certain range of player, or npc leaves this mode
+                    {
+                        Projectile.ai[1] = -300;
+                    }
+                }
+                else
+                {
+                    Projectile.ai[0] = Player.FindClosest(Projectile.Center, 0, 0);
+                }
             }
-          }
-          else
-            this.Projectile.ai[1] = -300f;
+            else if (Projectile.ai[1] < -300 && Projectile.velocity.Length() < 2.2f)
+            {
+                Projectile.velocity *= 1.022f;
+            }
+
+            for (int i = 0; i < 3; i++) //make up for real spectre bolt having 3 extraUpdates
+            {
+                Projectile.position += Projectile.velocity;
+
+                /*for (int j = 0; j < 5; ++j)
+                {
+                    Vector2 vel = Projectile.velocity * 0.2f * j;
+                    int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, 175, 0f, 0f, 100, default, 1.3f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity = Vector2.Zero;
+                    Main.dust[d].position -= vel;
+                }*/
+            }
         }
-        else
-          this.Projectile.ai[0] = (float) Player.FindClosest(((Entity) this.Projectile).Center, 0, 0);
-      }
-      else if ((double) this.Projectile.ai[1] < -300.0 && (double) ((Vector2) ref ((Entity) this.Projectile).velocity).Length() < 2.2000000476837158)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 1.022f);
-      }
-      for (int index = 0; index < 3; ++index)
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).position = Vector2.op_Addition(((Entity) projectile).position, ((Entity) this.Projectile).velocity);
-      }
-    }
 
-    public virtual void OnHitPlayer(Player target, Player.HurtInfo info)
-    {
-      if (!WorldSavingSystem.EternityMode)
-        return;
-      target.AddBuff(ModContent.BuffType<InfestedBuff>(), 360, true, false);
-      target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 180, true, false);
-    }
-
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(Color.White, this.Projectile.Opacity));
-    }
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D1 = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      Vector2.op_Division(Utils.Size(new Rectangle(0, num1 * this.Projectile.frame, texture2D1.Width, num1)), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      for (float index1 = 0.0f; (double) index1 < (double) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; index1 += 0.2f)
-      {
-        Player player = Main.player[this.Projectile.owner];
-        Texture2D texture2D2 = texture2D1;
-        Color color = Color.op_Multiply(alpha, ((float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index1) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        float num2 = this.Projectile.scale * (((float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index1) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        int index2 = (int) index1 - 1;
-        if (index2 >= 0)
+        public override void OnHitPlayer(Player target, Player.HurtInfo info)
         {
-          Vector2 vector2_1 = Vector2.Lerp(this.Projectile.oldPos[(int) index1], this.Projectile.oldPos[index2], (float) (1.0 - (double) index1 % 1.0));
-          double num3 = (double) index1 % 1.0 * 3.1415927410125732 / 6.8499999046325684;
-          Vector2 vector2_2 = Vector2.op_Addition(vector2_1, Vector2.op_Division(((Entity) this.Projectile).Size, 2f));
-          Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(Vector2.op_Subtraction(vector2_2, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(), color, this.Projectile.rotation, Vector2.op_Division(Utils.Size(texture2D2), 2f), num2, (SpriteEffects) 0, 0.0f);
+            if (WorldSavingSystem.EternityMode)
+            {
+                target.AddBuff(ModContent.BuffType<InfestedBuff>(), 360);
+                target.AddBuff(ModContent.BuffType<ClippedWingsBuff>(), 180);
+            }
         }
-      }
-      return false;
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return Color.White * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            for (float i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i += 0.2f)
+            {
+                Player player = Main.player[Projectile.owner];
+                Texture2D glow = texture2D13; //ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/BossWeapons/HentaiSpearSpinGlow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+                Color color27 = color26; //Color.Lerp(new Color(255, 255, 0, 210), Color.Transparent, 0.4f);
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                float scale = Projectile.scale;
+                scale *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                int max0 = (int)i - 1;//Math.Max((int)i - 1, 0);
+                if (max0 < 0)
+                    continue;
+                Vector2 center = Vector2.Lerp(Projectile.oldPos[(int)i], Projectile.oldPos[max0], 1 - i % 1);
+                float smoothtrail = i % 1 * (float)Math.PI / 6.85f;
+
+                center += Projectile.Size / 2;
+
+                Main.EntitySpriteDraw(
+                    glow,
+                    center - Main.screenPosition + new Vector2(0, Projectile.gfxOffY),
+                    null,
+                    color27,
+                    Projectile.rotation,
+                    glow.Size() / 2,
+                    scale,
+                    SpriteEffects.None,
+                    0);
+            }
+            return false;
+        }
     }
-  }
 }

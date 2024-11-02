@@ -1,161 +1,216 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.ChallengerItems.DecrepitAirstrikeNuke
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Assets.Sounds;
 using FargowiltasSouls.Content.Bosses.TrojanSquirrel;
 using FargowiltasSouls.Content.Projectiles.Minions;
 using Luminance.Core.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.ChallengerItems
 {
-  public class DecrepitAirstrikeNuke : TrojanAcorn
-  {
-    public static readonly int ExplosionDiameter = 450;
-    private SoundStyle Beep = new SoundStyle("FargowiltasSouls/Assets/Sounds/NukeBeep", (SoundType) 0);
-    private Vector2 origPos = Vector2.Zero;
-    private bool firstTick = true;
-    private int HitCount;
-
-    public override string Texture => "FargowiltasSouls/Content/Bosses/BanishedBaron/BaronNuke";
-
-    public override void SetStaticDefaults() => Main.projFrames[this.Type] = 4;
-
-    public override void SetDefaults()
+    public class DecrepitAirstrikeNuke : TrojanAcorn
     {
-      ((Entity) this.Projectile).width = 32;
-      ((Entity) this.Projectile).height = 32;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.penetrate = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.sentry = false;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.timeLeft = 3600;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 60;
-    }
+        public static readonly int ExplosionDiameter = 450;
+        public override string Texture => "FargowiltasSouls/Content/Bosses/BanishedBaron/BaronNuke";
 
-    public ref float TargetX => ref this.Projectile.ai[0];
-
-    public ref float TargetY => ref this.Projectile.ai[1];
-
-    public ref float TimeLeft => ref this.Projectile.ai[2];
-
-    public virtual bool? CanHitNPC(NPC target) => new bool?(this.HitCount <= 4);
-
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone) => ++this.HitCount;
-
-    public virtual bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
-    {
-      int num1 = ((Rectangle) ref projHitbox).Center.X - ((Rectangle) ref targetHitbox).Center.X;
-      int num2 = ((Rectangle) ref projHitbox).Center.Y - ((Rectangle) ref targetHitbox).Center.Y;
-      if (Math.Abs(num1) > targetHitbox.Width / 2)
-        num1 = targetHitbox.Width / 2 * Math.Sign(num1);
-      if (Math.Abs(num2) > targetHitbox.Height / 2)
-        num2 = targetHitbox.Height / 2 * Math.Sign(num2);
-      int num3 = ((Rectangle) ref projHitbox).Center.X - ((Rectangle) ref targetHitbox).Center.X - num1;
-      int num4 = ((Rectangle) ref projHitbox).Center.Y - ((Rectangle) ref targetHitbox).Center.Y - num2;
-      return new bool?(Math.Sqrt((double) (num3 * num3 + num4 * num4)) <= (double) (((Entity) this.Projectile).width / 2));
-    }
-
-    public override void AI()
-    {
-      if (this.firstTick)
-      {
-        if ((double) this.Projectile.timeLeft > (double) this.TimeLeft)
-          this.Projectile.timeLeft = (int) this.TimeLeft + 3;
-        this.origPos = ((Entity) this.Projectile).Center;
-        this.firstTick = false;
-        this.Projectile.netUpdate = true;
-      }
-      Vector2 vector2 = Vector2.op_Addition(Vector2.op_Multiply(this.TargetX, Vector2.UnitX), Vector2.op_Multiply(this.TargetY, Vector2.UnitY));
-      this.Projectile.rotation = Utils.ToRotation(Vector2.op_UnaryNegation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, vector2)));
-      if (this.Projectile.timeLeft <= 3)
-      {
-        ((Entity) this.Projectile).width = DecrepitAirstrikeNuke.ExplosionDiameter;
-        ((Entity) this.Projectile).height = DecrepitAirstrikeNuke.ExplosionDiameter;
-        ((Entity) this.Projectile).Center = vector2;
-        ((Entity) this.Projectile).velocity = Vector2.Zero;
-      }
-      else
-        ((Entity) this.Projectile).Center = Vector2.Lerp(this.origPos, vector2, (this.TimeLeft - (float) (this.Projectile.timeLeft - 3)) / this.TimeLeft);
-      if (this.Projectile.timeLeft % 5 != 0)
-        return;
-      SoundEngine.PlaySound(ref this.Beep, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-    }
-
-    public override void OnKill(int timeLeft)
-    {
-      ScreenShakeSystem.StartShake(10f, 6.28318548f, new Vector2?(), 0.333333343f);
-      int maxMinions = Main.player[this.Projectile.owner].maxMinions;
-      foreach (Projectile p in ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (p => p.type == ModContent.ProjectileType<KamikazeSquirrel>() && ((Entity) p).active && !p.hostile && p.owner == Main.myPlayer && p.minion && FargoSoulsUtil.IsSummonDamage(p, false, false) && this.Projectile.Colliding(((Entity) this.Projectile).Hitbox, ((Entity) p).Hitbox))))
-        EchsplodeMinion(p, ref maxMinions);
-      foreach (Projectile p in ((IEnumerable<Projectile>) Main.projectile).Where<Projectile>((Func<Projectile, bool>) (p => p.type != ModContent.ProjectileType<KamikazeSquirrel>() && ((Entity) p).active && !p.hostile && p.owner == Main.myPlayer && p.minion && FargoSoulsUtil.IsSummonDamage(p, false, false) && this.Projectile.Colliding(((Entity) this.Projectile).Hitbox, ((Entity) p).Hitbox))))
-        EchsplodeMinion(p, ref maxMinions);
-      for (int index1 = 0; index1 < 100; ++index1)
-      {
-        int index2 = Dust.NewDust(Vector2.op_Addition(((Entity) this.Projectile).Center, Utils.RotatedBy(new Vector2(0.0f, Utils.NextFloat(Main.rand, (float) DecrepitAirstrikeNuke.ExplosionDiameter * 0.8f)), (double) Utils.NextFloat(Main.rand, 6.28318548f), new Vector2())), 0, 0, 219, 0.0f, 0.0f, 0, new Color(), 1.5f);
-        Main.dust[index2].noGravity = true;
-      }
-      float num = 2f;
-      for (int index = 0; index < 20; ++index)
-        Gore.NewGore(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Utils.RotatedByRandom(Vector2.op_Multiply(Vector2.UnitX, 5f), 6.2831854820251465), Main.rand.Next(61, 64), num);
-      SoundStyle soundStyle = SoundID.Item62;
-      ((SoundStyle) ref soundStyle).Pitch = -0.2f;
-      SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-
-      void EchsplodeMinion(Projectile p, ref int hitsLeft)
-      {
-        if (hitsLeft <= 0)
-          return;
-        --hitsLeft;
-        for (int index = 0; index < 5; ++index)
+        public override void SetStaticDefaults()
         {
-          Vector2 vector2 = Vector2.op_Multiply(Utils.RotatedByRandom(Vector2.UnitX, 6.2831854820251465), 15f);
-          Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) p).Center, Vector2.op_Addition(((Entity) p).velocity, vector2), ModContent.ProjectileType<DecrepitAirstrikeNukeSplinter>(), this.Projectile.damage / 6, this.Projectile.knockBack / 10f, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
+            Main.projFrames[Type] = 4;
         }
-        p.Kill();
-        SoundEngine.PlaySound(ref SoundID.Item67, new Vector2?(((Entity) p).Center), (SoundUpdateCallback) null);
-      }
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 32;
+            Projectile.height = 32;
+            Projectile.aiStyle = -1;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.penetrate = -1;
+            Projectile.friendly = true;
+            Projectile.sentry = false;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.timeLeft = 60 * 60;
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 60; //only hits once
+        }
 
-    public override bool PreDraw(ref Color lightColor)
-    {
-      if (this.Projectile.timeLeft <= 2)
-        return false;
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = texture2D.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2_1 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Vector2 vector2_2 = Vector2.op_Division(Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), (float) (texture2D.Width - ((Entity) this.Projectile).width)), 2f);
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection > 0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        Color color = Color.op_Multiply(Color.op_Multiply(alpha, 0.75f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-        Vector2 oldPo = this.Projectile.oldPos[index];
-        float num3 = this.Projectile.oldRot[index];
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(Vector2.op_Addition(oldPo, vector2_2), Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num3, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(((Entity) this.Projectile).Center, vector2_2), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2_1, this.Projectile.scale, spriteEffects, 0.0f);
-      return false;
+        public ref float TargetX => ref Projectile.ai[0];
+        public ref float TargetY => ref Projectile.ai[1];
+        public ref float TimeLeft => ref Projectile.ai[2];
+
+
+        private Vector2 origPos = Vector2.Zero;
+        private bool firstTick = true;
+
+        private int HitCount = 0;
+        public override bool? CanHitNPC(NPC target)
+        {
+            return HitCount <= 4;
+        }
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            HitCount++;
+        }
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox) //circular hitbox
+        {
+            int clampedX = projHitbox.Center.X - targetHitbox.Center.X;
+            int clampedY = projHitbox.Center.Y - targetHitbox.Center.Y;
+
+            if (Math.Abs(clampedX) > targetHitbox.Width / 2)
+                clampedX = targetHitbox.Width / 2 * Math.Sign(clampedX);
+            if (Math.Abs(clampedY) > targetHitbox.Height / 2)
+                clampedY = targetHitbox.Height / 2 * Math.Sign(clampedY);
+
+            int dX = projHitbox.Center.X - targetHitbox.Center.X - clampedX;
+            int dY = projHitbox.Center.Y - targetHitbox.Center.Y - clampedY;
+
+            return Math.Sqrt(dX * dX + dY * dY) <= Projectile.width / 2;
+        }
+        public override void AI()
+        {
+            if (firstTick)
+            {
+                if (Projectile.timeLeft > TimeLeft)
+                {
+                    Projectile.timeLeft = (int)TimeLeft + 3;
+                }
+                origPos = Projectile.Center;
+                firstTick = false;
+                Projectile.netUpdate = true;
+            }
+            Vector2 target = TargetX * Vector2.UnitX + TargetY * Vector2.UnitY;
+            Projectile.rotation = (-Projectile.SafeDirectionTo(target)).ToRotation();
+            
+            if (Projectile.timeLeft <= 3)
+            {
+                Projectile.width = ExplosionDiameter;
+                Projectile.height = ExplosionDiameter;
+                Projectile.Center = target;
+                Projectile.velocity = Vector2.Zero;
+            }
+            else
+            {
+                Projectile.Center = Vector2.Lerp(origPos, target, (TimeLeft - (Projectile.timeLeft - 3)) / TimeLeft);
+            }
+            if (Projectile.timeLeft % 5 == 0)
+            {
+                SoundEngine.PlaySound(FargosSoundRegistry.NukeBeep, Projectile.Center);
+            }
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            ScreenShakeSystem.StartShake(10, shakeStrengthDissipationIncrement: 10f / 30);
+            void EchsplodeMinion(Projectile p, ref int hitsLeft)
+            {
+                if (hitsLeft <= 0)
+                {
+                    return;
+                }
+                hitsLeft--;
+                for (int i = 0; i < 5; i++)
+                {
+                    Vector2 vel = Vector2.UnitX.RotatedByRandom(MathHelper.TwoPi) * 15f;
+                    Projectile.NewProjectile(Projectile.GetSource_FromThis(), p.Center, p.velocity + vel, ModContent.ProjectileType<DecrepitAirstrikeNukeSplinter>(), Projectile.damage / 6, Projectile.knockBack / 10, Projectile.owner);
+                }
+                p.Kill();
+
+                SoundEngine.PlaySound(SoundID.Item67, p.Center);
+            }
+
+            int hitsLeft = Main.player[Projectile.owner].maxMinions;
+
+            //prioritize squirrels first because funny
+            foreach (Projectile p in Main.projectile.Where(p =>
+            p.type == ModContent.ProjectileType<KamikazeSquirrel>() &&
+            p.active &&
+            !p.hostile &&
+            p.owner == Main.myPlayer &&
+            p.minion && FargoSoulsUtil.IsSummonDamage(p, false, false) &&
+            Projectile.Colliding(Projectile.Hitbox, p.Hitbox)))
+            {
+                EchsplodeMinion(p, ref hitsLeft);
+            }
+            //rest of minions
+            foreach (Projectile p in Main.projectile.Where(p =>
+            p.type != ModContent.ProjectileType<KamikazeSquirrel>() &&
+            p.active &&
+            !p.hostile &&
+            p.owner == Main.myPlayer &&
+            p.minion &&
+            FargoSoulsUtil.IsSummonDamage(p, false, false) &&
+            Projectile.Colliding(Projectile.Hitbox, p.Hitbox)))
+            {
+                EchsplodeMinion(p, ref hitsLeft);
+            }
+
+
+            for (int i = 0; i < 100; i++)
+            {
+                Vector2 pos = Projectile.Center + new Vector2(0, Main.rand.NextFloat(ExplosionDiameter * 0.8f)).RotatedBy(Main.rand.NextFloat(MathHelper.TwoPi)); //circle with highest density in middle
+                int d = Dust.NewDust(pos, 0, 0, DustID.Fireworks, 0f, 0f, 0, default, 1.5f);
+                Main.dust[d].noGravity = true;
+            }
+
+            float scaleFactor9 = 2;
+            for (int j = 0; j < 20; j++)
+            {
+                int gore = Gore.NewGore(Projectile.GetSource_FromThis(), Projectile.Center, (Vector2.UnitX * 5).RotatedByRandom(MathHelper.TwoPi), Main.rand.Next(61, 64), scaleFactor9);
+            }
+            SoundEngine.PlaySound(SoundID.Item62 with { Pitch = -0.2f }, Projectile.Center);
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            if (Projectile.timeLeft <= 2) //if exploding
+            {
+                return false;
+            }
+            /*
+            //draw glow ring
+            float modifier = Projectile.localAI[0] / Projectile.ai[0];
+            Color RingColor = Color.Lerp(Color.Orange, Color.Red, modifier);
+            Texture2D ringTexture = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Projectiles/GlowRing", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            int ringy = ringTexture.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            float RingScale = Projectile.scale * ExplosionDiameter / ringTexture.Height;
+            int ringy3 = ringy * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle ringrect = new(0, ringy3, ringTexture.Width, ringy);
+            Vector2 ringorigin = ringrect.Size() / 2f;
+            RingColor *= modifier;
+            Main.EntitySpriteDraw(ringTexture, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Rectangle?(ringrect), RingColor, Projectile.rotation, ringorigin, RingScale, SpriteEffects.None, 0);
+            */
+
+            //draw projectile
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = texture2D13.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Vector2 drawOffset = Projectile.rotation.ToRotationVector2() * (texture2D13.Width - Projectile.width) / 2;
+
+            Color color26 = lightColor;
+            color26 = Projectile.GetAlpha(color26);
+
+            SpriteEffects effects = Projectile.spriteDirection > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                Color color27 = color26 * 0.75f;
+                color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(texture2D13, value4 + drawOffset + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Rectangle?(rectangle), color27, num165, origin2, Projectile.scale, effects, 0);
+            }
+
+
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center + drawOffset - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, effects, 0);
+
+
+            return false;
+        }
     }
-  }
 }

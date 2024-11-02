@@ -1,61 +1,72 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Masomode.PureHeart
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
-using FargowiltasSouls.Content.Items.Materials;
+﻿using FargowiltasSouls.Content.Items.Materials;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
-using FargowiltasSouls.Core.ModPlayers;
 using Terraria;
-using Terraria.GameContent.Creative;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Masomode
 {
-  public class PureHeart : SoulsItem
-  {
-    public override bool Eternity => true;
-
-    public virtual void SetStaticDefaults()
+    public class PureHeart : SoulsItem
     {
-      CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[this.Type] = 1;
-    }
+        public override bool Eternity => true;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Item).width = 20;
-      ((Entity) this.Item).height = 20;
-      this.Item.accessory = true;
-      this.Item.rare = 6;
-      this.Item.value = Item.sellPrice(0, 4, 0, 0);
-    }
+        public override void SetStaticDefaults()
+        {
+            Terraria.GameContent.Creative.CreativeItemSacrificesCatalog.Instance.SacrificeCountNeededByItemId[Type] = 1;
+        }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      fargoSoulsPlayer.PureHeart = true;
-      player.buffImmune[ModContent.BuffType<RottingBuff>()] = true;
-      player.moveSpeed += 0.1f;
-      fargoSoulsPlayer.DarkenedHeartItem = this.Item;
-      player.AddEffect<DarkenedHeartEaters>(this.Item);
-      if (fargoSoulsPlayer.DarkenedHeartCD > 0)
-        --fargoSoulsPlayer.DarkenedHeartCD;
-      player.buffImmune[ModContent.BuffType<BloodthirstyBuff>()] = true;
-      player.statLifeMax2 += player.statLifeMax / 10;
-      player.AddEffect<GuttedHeartEffect>(this.Item);
-      player.AddEffect<GuttedHeartMinions>(this.Item);
-      player.FargoSouls().GelicWingsItem = this.Item;
-      player.AddEffect<GelicWingJump>(this.Item);
-      player.AddEffect<GelicWingSpikes>(this.Item);
-      player.FargoSouls().WingTimeModifier += 0.3f;
-    }
+        public override void SetDefaults()
+        {
+            Item.width = 20;
+            Item.height = 20;
+            Item.accessory = true;
+            Item.rare = ItemRarityID.LightPurple;
+            Item.value = Item.sellPrice(0, 4);
+        }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddIngredient(ModContent.ItemType<DarkenedHeart>(), 1).AddIngredient(ModContent.ItemType<GuttedHeart>(), 1).AddIngredient(ModContent.ItemType<GelicWings>(), 1).AddIngredient(66, 30).AddIngredient(780, 50).AddIngredient(1006, 5).AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 10).AddTile(134).Register();
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            FargoSoulsPlayer fargoPlayer = player.FargoSouls();
+            fargoPlayer.PureHeart = true;
+
+            //darkened effect
+            player.buffImmune[ModContent.BuffType<Buffs.Masomode.RottingBuff>()] = true;
+            player.moveSpeed += 0.1f;
+            fargoPlayer.DarkenedHeartItem = Item;
+            player.AddEffect<DarkenedHeartEaters>(Item);
+            if (fargoPlayer.DarkenedHeartCD > 0)
+                fargoPlayer.DarkenedHeartCD--;
+
+            //gutted effect
+            player.buffImmune[ModContent.BuffType<Buffs.Masomode.BloodthirstyBuff>()] = true;
+            player.statLifeMax2 += player.statLifeMax / 10;
+            player.AddEffect<GuttedHeartEffect>(Item);
+            player.AddEffect<GuttedHeartMinions>(Item);
+
+            //gelic effect
+            player.FargoSouls().GelicWingsItem = Item;
+
+            player.AddEffect<GelicWingJump>(Item);
+            player.AddEffect<GelicWingSpikes>(Item);
+
+            player.FargoSouls().WingTimeModifier += .3f;
+        }
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+
+            .AddIngredient(ModContent.ItemType<DarkenedHeart>())
+            .AddIngredient(ModContent.ItemType<GuttedHeart>())
+            .AddIngredient(ModContent.ItemType<GelicWings>())
+            .AddIngredient(ItemID.PurificationPowder, 30)
+            .AddIngredient(ItemID.GreenSolution, 50)
+            .AddIngredient(ItemID.ChlorophyteBar, 5)
+            .AddIngredient(ModContent.ItemType<DeviatingEnergy>(), 10)
+
+            .AddTile(TileID.MythrilAnvil)
+
+            .Register();
+        }
     }
-  }
 }

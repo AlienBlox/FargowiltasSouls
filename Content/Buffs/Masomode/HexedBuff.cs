@@ -1,28 +1,28 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.HexedBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class HexedBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class HexedBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Hexed");
+            // Description.SetDefault("Your attacks heal enemies");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "着魔");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "你的攻击会治愈敌人");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      player.FargoSouls().Hexed = true;
-    }
+        public override void Update(Player player, ref int buffIndex)
+        {
+            player.FargoSouls().Hexed = true;
+        }
 
-    public virtual bool ReApply(Player player, int time, int buffIndex) => time > 3;
-  }
+        public override bool ReApply(Player player, int time, int buffIndex)
+        {
+            return time > 3;
+        }
+    }
 }

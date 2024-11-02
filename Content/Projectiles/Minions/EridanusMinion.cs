@@ -1,323 +1,341 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Minions.EridanusMinion
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Masomode;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using ReLogic.Content;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Minions
 {
-  public class EridanusMinion : ModProjectile
-  {
-    public int drawTrailOffset;
-
-    public virtual string Texture
+    public class EridanusMinion : ModProjectile
     {
-      get => "FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosChampion";
-    }
+        public override string Texture => "FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosChampion";
 
-    public virtual void SetStaticDefaults()
-    {
-      Main.projFrames[this.Projectile.type] = 9;
-      ProjectileID.Sets.CultistIsResistantTo[this.Projectile.type] = true;
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 7;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-    }
+        public int drawTrailOffset;
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 75;
-      ((Entity) this.Projectile).height = 100;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.friendly = true;
-      this.Projectile.minion = true;
-      this.Projectile.DamageType = DamageClass.Summon;
-      this.Projectile.alpha = 0;
-      this.Projectile.minionSlots = 0.0f;
-      this.Projectile.penetrate = -1;
-      this.Projectile.netImportant = true;
-      this.Projectile.usesLocalNPCImmunity = true;
-      this.Projectile.localNPCHitCooldown = 10;
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-    }
-
-    public virtual void AI()
-    {
-      if (((Entity) Main.player[this.Projectile.owner]).active && !Main.player[this.Projectile.owner].dead && Main.player[this.Projectile.owner].FargoSouls().EridanusSet && (this.Projectile.owner != Main.myPlayer || Main.player[this.Projectile.owner].FargoSouls().EridanusEmpower))
-      {
-        this.Projectile.timeLeft = 2;
-        Player player = Main.player[this.Projectile.owner];
-        NPC minionAttackTargetNpc = this.Projectile.OwnerMinionAttackTargetNPC;
-        if (minionAttackTargetNpc != null && (double) this.Projectile.ai[0] != (double) ((Entity) minionAttackTargetNpc).whoAmI && minionAttackTargetNpc.CanBeChasedBy((object) null, false))
+        public override void SetStaticDefaults()
         {
-          this.Projectile.ai[0] = (float) ((Entity) minionAttackTargetNpc).whoAmI;
-          this.Projectile.netUpdate = true;
+            // DisplayName.SetDefault("Eridanus");
+            Main.projFrames[Projectile.type] = 9;
+            ProjectileID.Sets.CultistIsResistantTo[Projectile.type] = true;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 7;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
         }
-        if (++this.Projectile.frameCounter > 6)
+
+        public override void SetDefaults()
         {
-          this.Projectile.frameCounter = 0;
-          ++this.Projectile.frame;
+            Projectile.width = 75;
+            Projectile.height = 100;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.friendly = true;
+            Projectile.minion = true;
+            Projectile.DamageType = DamageClass.Summon;
+            Projectile.alpha = 0;
+            Projectile.minionSlots = 0f;
+            Projectile.penetrate = -1;
+            Projectile.netImportant = true;
+
+            Projectile.usesLocalNPCImmunity = true;
+            Projectile.localNPCHitCooldown = 10;
+
+            Projectile.FargoSouls().TimeFreezeImmune = true;
         }
-        if (this.Projectile.frame > 4)
-          this.Projectile.frame = 0;
-        this.Projectile.rotation = 0.0f;
-        if ((double) this.Projectile.ai[0] >= 0.0 && (double) this.Projectile.ai[0] < (double) Main.maxNPCs)
+
+        public override void AI()
         {
-          NPC npc = Main.npc[(int) this.Projectile.ai[0]];
-          if (npc.CanBeChasedBy((object) null, false) && (double) ((Entity) player).Distance(((Entity) this.Projectile).Center) < 2500.0 && (double) ((Entity) this.Projectile).Distance(((Entity) npc).Center) < 2500.0)
-          {
-            ((Entity) this.Projectile).direction = this.Projectile.spriteDirection = (double) ((Entity) this.Projectile).Center.X < (double) ((Entity) npc).Center.X ? 1 : -1;
-            switch (player.FargoSouls().EridanusTimer / 600)
+            if (Main.player[Projectile.owner].active && !Main.player[Projectile.owner].dead && Main.player[Projectile.owner].FargoSouls().EridanusSet
+                && (Projectile.owner != Main.myPlayer || Main.player[Projectile.owner].FargoSouls().EridanusEmpower))
             {
-              case 0:
-                float num1 = ((Entity) player).Distance(((Entity) npc).Center) - 300f;
-                if ((double) num1 > 300.0)
-                  num1 = 300f;
-                ((Entity) this.Projectile).Center = Vector2.Lerp(((Entity) this.Projectile).Center, Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) player, ((Entity) npc).Center), num1)), 0.15f);
-                Projectile projectile1 = this.Projectile;
-                ((Entity) projectile1).velocity = Vector2.op_Multiply(((Entity) projectile1).velocity, 0.8f);
-                if ((double) ++this.Projectile.localAI[0] > 5.0)
-                {
-                  this.Projectile.localAI[0] = 0.0f;
-                  if (Main.myPlayer == this.Projectile.owner && player.HeldItem.CountsAsClass(DamageClass.Melee))
-                  {
-                    int index = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center), 40f)), Vector2.op_Multiply(16f, Utils.RotatedByRandom(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center), (double) MathHelper.ToRadians(15f))), ModContent.ProjectileType<EridanusFist>(), (int) ((double) this.Projectile.originalDamage * (double) ((StatModifier) ref Main.player[this.Projectile.owner].GetDamage(DamageClass.Melee)).Additive / 3.0), this.Projectile.knockBack / 2f, Main.myPlayer, 700f, 0.0f, 0.0f);
-                    if (index != Main.maxProjectiles)
-                      Main.projectile[index].CritChance = (int) player.ActualClassCrit(DamageClass.Melee);
-                  }
-                }
-                this.Projectile.frame = player.HeldItem.CountsAsClass(DamageClass.Melee) ? 6 : 5;
-                this.Projectile.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center));
-                if (this.Projectile.spriteDirection < 0)
-                {
-                  this.Projectile.rotation += 3.14159274f;
-                  break;
-                }
-                break;
-              case 1:
-                Vector2 center1 = ((Entity) player).Center;
-                center1.X -= (float) (50 * ((Entity) player).direction);
-                center1.Y -= 40f;
-                ((Entity) this.Projectile).Center = Vector2.Lerp(((Entity) this.Projectile).Center, center1, 0.15f);
-                Projectile projectile2 = this.Projectile;
-                ((Entity) projectile2).velocity = Vector2.op_Multiply(((Entity) projectile2).velocity, 0.8f);
-                if ((double) ++this.Projectile.localAI[0] > 65.0)
-                {
-                  this.Projectile.localAI[0] = 0.0f;
-                  if (Main.myPlayer == this.Projectile.owner && player.HeldItem.CountsAsClass(DamageClass.Ranged))
-                  {
-                    int index = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Vector2.op_Multiply(12f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center)), ModContent.ProjectileType<EridanusBullet>(), (int) ((double) this.Projectile.originalDamage * (double) ((StatModifier) ref Main.player[this.Projectile.owner].GetDamage(DamageClass.Ranged)).Additive * 1.5), this.Projectile.knockBack * 2f, Main.myPlayer, (float) ((Entity) npc).whoAmI, 0.0f, 0.0f);
-                    if (index != Main.maxProjectiles)
-                      Main.projectile[index].CritChance = (int) player.ActualClassCrit(DamageClass.Ranged);
-                  }
-                }
-                if (player.HeldItem.CountsAsClass(DamageClass.Ranged))
-                {
-                  if ((double) this.Projectile.localAI[0] < 15.0)
-                  {
-                    this.Projectile.frame = 8;
-                    break;
-                  }
-                  if ((double) this.Projectile.localAI[0] > 50.0)
-                  {
-                    this.Projectile.frame = 7;
-                    break;
-                  }
-                  break;
-                }
-                break;
-              case 2:
-                ((Entity) this.Projectile).Center = Vector2.Lerp(((Entity) this.Projectile).Center, Vector2.op_Addition(((Entity) player).Center, Vector2.op_Division(Vector2.op_Subtraction(((Entity) npc).Center, ((Entity) player).Center), 3f)), 0.15f);
-                Projectile projectile3 = this.Projectile;
-                ((Entity) projectile3).velocity = Vector2.op_Multiply(((Entity) projectile3).velocity, 0.8f);
-                if (player.HeldItem.CountsAsClass(DamageClass.Magic) && (double) this.Projectile.localAI[0] > 45.0)
-                  this.Projectile.frame = 7;
-                if ((double) ++this.Projectile.localAI[0] > 60.0)
-                {
-                  if ((double) this.Projectile.localAI[0] > 90.0)
-                    this.Projectile.localAI[0] = 0.0f;
-                  if (player.HeldItem.CountsAsClass(DamageClass.Magic))
-                    this.Projectile.frame = 8;
-                  if ((double) this.Projectile.localAI[0] % 5.0 == 0.0 && player.HeldItem.CountsAsClass(DamageClass.Magic))
-                  {
-                    SoundEngine.PlaySound(ref SoundID.Item88, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-                    if (Main.myPlayer == this.Projectile.owner)
-                    {
-                      Vector2 center2 = ((Entity) this.Projectile).Center;
-                      center2.X += Utils.NextFloat(Main.rand, -250f, 250f);
-                      center2.Y -= 600f;
-                      Vector2 vector2_1 = Vector2.op_Multiply(10f, ((Entity) npc).DirectionFrom(center2));
-                      Vector2 vector2_2 = Vector2.op_Addition(center2, Vector2.op_Multiply(((Entity) npc).velocity, Utils.NextFloat(Main.rand, 10f)));
-                      int index = Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), vector2_2, vector2_1, 645, (int) ((double) this.Projectile.originalDamage * (double) ((StatModifier) ref player.GetDamage(DamageClass.Magic)).Additive / 2.0), this.Projectile.knockBack / 2f, Main.myPlayer, 0.0f, ((Entity) npc).Center.Y, 0.0f);
-                      if (index != Main.maxProjectiles)
-                      {
-                        Main.projectile[index].CritChance = (int) player.ActualClassCrit(DamageClass.Magic);
-                        break;
-                      }
-                      break;
-                    }
-                    break;
-                  }
-                  break;
-                }
-                break;
-              default:
-                Vector2 center3 = ((Entity) npc).Center;
-                center3.X += (float) (350 * Math.Sign(((Entity) player).Center.X - ((Entity) npc).Center.X));
-                if ((double) ((Entity) this.Projectile).Distance(center3) > 50.0)
-                  this.Movement(center3, 0.8f, 32f);
-                this.Projectile.frame = 5;
-                bool flag = player.controlUseItem && (player.HeldItem.CountsAsClass(DamageClass.Melee) || player.HeldItem.CountsAsClass(DamageClass.Ranged) || player.HeldItem.CountsAsClass(DamageClass.Magic) || player.HeldItem.CountsAsClass(DamageClass.Throwing)) && player.HeldItem.pick == 0 && player.HeldItem.axe == 0 && player.HeldItem.hammer == 0;
-                if ((double) ++this.Projectile.localAI[0] > 15.0)
-                {
-                  this.Projectile.localAI[0] = 0.0f;
-                  if (Main.myPlayer == this.Projectile.owner && !flag)
-                  {
-                    int num2 = Math.Sign(((Entity) this.Projectile).Center.Y - ((Entity) npc).Center.Y);
-                    Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), Vector2.op_Addition(((Entity) this.Projectile).Center, Vector2.op_Multiply(Vector2.op_Multiply(3000f, ((Entity) this.Projectile).DirectionFrom(((Entity) npc).Center)), (float) num2)), Vector2.op_Multiply(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center), (float) num2), ModContent.ProjectileType<EridanusDeathray>(), this.Projectile.damage, this.Projectile.knockBack / 4f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-                  }
-                }
-                if (!flag && (double) this.Projectile.localAI[0] < 7.0)
-                  this.Projectile.frame = 6;
-                this.Projectile.rotation = Utils.ToRotation(Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, ((Entity) npc).Center));
-                if (this.Projectile.spriteDirection < 0)
-                {
-                  this.Projectile.rotation += 3.14159274f;
-                  break;
-                }
-                break;
+                Projectile.timeLeft = 2;
             }
-          }
-          else
-          {
-            this.Projectile.ai[0] = -1f;
-            this.Projectile.localAI[0] = 0.0f;
-            this.Projectile.netUpdate = true;
-          }
+            else
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            Player player = Main.player[Projectile.owner];
+
+            NPC minionAttackTargetNpc = Projectile.OwnerMinionAttackTargetNPC;
+            if (minionAttackTargetNpc != null && Projectile.ai[0] != minionAttackTargetNpc.whoAmI && minionAttackTargetNpc.CanBeChasedBy())
+            {
+                Projectile.ai[0] = minionAttackTargetNpc.whoAmI;
+                Projectile.netUpdate = true;
+            }
+
+            if (++Projectile.frameCounter > 6)
+            {
+                Projectile.frameCounter = 0;
+                Projectile.frame++;
+            }
+            if (Projectile.frame > 4)
+            {
+                Projectile.frame = 0;
+            }
+
+            Projectile.rotation = 0;
+
+            if (Projectile.ai[0] >= 0 && Projectile.ai[0] < Main.maxNPCs) //has target
+            {
+                NPC npc = Main.npc[(int)Projectile.ai[0]];
+
+                if (npc.CanBeChasedBy() && player.Distance(Projectile.Center) < 2500 && Projectile.Distance(npc.Center) < 2500)
+                {
+                    Projectile.direction = Projectile.spriteDirection = Projectile.Center.X < npc.Center.X ? 1 : -1;
+
+                    switch (player.FargoSouls().EridanusTimer / (60 * 10)) //attack according to current class
+                    {
+                        case 0: //melee
+                            {
+                                float length = player.Distance(npc.Center) - 300;
+                                if (length > 300)
+                                    length = 300;
+                                Vector2 home = player.Center + player.SafeDirectionTo(npc.Center) * length;
+                                Projectile.Center = Vector2.Lerp(Projectile.Center, home, 0.15f);
+                                Projectile.velocity *= 0.8f;
+
+                                if (++Projectile.localAI[0] > 5) //spam close range fists
+                                {
+                                    Projectile.localAI[0] = 0;
+                                    if (Main.myPlayer == Projectile.owner && player.HeldItem.CountsAsClass(DamageClass.Melee))
+                                    {
+                                        const float maxRange = 700;
+                                        int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center + Projectile.SafeDirectionTo(npc.Center) * 40, 16f * Projectile.SafeDirectionTo(npc.Center).RotatedByRandom(MathHelper.ToRadians(15)),
+                                            ModContent.ProjectileType<EridanusFist>(), (int)(Projectile.originalDamage * Main.player[Projectile.owner].GetDamage(DamageClass.Melee).Additive / 3), Projectile.knockBack / 2, Main.myPlayer, maxRange);
+                                        if (p != Main.maxProjectiles)
+                                            Main.projectile[p].CritChance = (int)player.ActualClassCrit(DamageClass.Melee);
+                                    }
+                                }
+
+                                Projectile.frame = player.HeldItem.CountsAsClass(DamageClass.Melee) ? 6 : 5;
+                                Projectile.rotation = Projectile.SafeDirectionTo(npc.Center).ToRotation();
+                                if (Projectile.spriteDirection < 0)
+                                    Projectile.rotation += (float)Math.PI;
+                            }
+                            break;
+
+                        case 1: //ranged
+                            {
+                                Vector2 home = player.Center;
+                                home.X -= 50 * player.direction;
+                                home.Y -= 40;
+                                Projectile.Center = Vector2.Lerp(Projectile.Center, home, 0.15f);
+                                Projectile.velocity *= 0.8f;
+
+                                if (++Projectile.localAI[0] > 65) //shoot giant homing bullet
+                                {
+                                    Projectile.localAI[0] = 0;
+                                    if (Main.myPlayer == Projectile.owner && player.HeldItem.CountsAsClass(DamageClass.Ranged))
+                                    {
+                                        int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, 12f * Projectile.SafeDirectionTo(npc.Center), ModContent.ProjectileType<EridanusBullet>(),
+                                            (int)(Projectile.originalDamage * Main.player[Projectile.owner].GetDamage(DamageClass.Ranged).Additive * 1.5f), Projectile.knockBack * 2, Main.myPlayer, npc.whoAmI);
+                                        if (p != Main.maxProjectiles)
+                                            Main.projectile[p].CritChance = (int)player.ActualClassCrit(DamageClass.Ranged);
+                                    }
+                                }
+
+                                if (player.HeldItem.CountsAsClass(DamageClass.Ranged))
+                                {
+                                    if (Projectile.localAI[0] < 15)
+                                        Projectile.frame = 8;
+                                    else if (Projectile.localAI[0] > 50)
+                                        Projectile.frame = 7;
+                                }
+                            }
+                            break;
+
+                        case 2: //magic
+                            {
+                                Vector2 home = player.Center + (npc.Center - player.Center) / 3;
+                                Projectile.Center = Vector2.Lerp(Projectile.Center, home, 0.15f);
+                                Projectile.velocity *= 0.8f;
+
+                                if (player.HeldItem.CountsAsClass(DamageClass.Magic) && Projectile.localAI[0] > 45)
+                                    Projectile.frame = 7;
+
+                                if (++Projectile.localAI[0] > 60)
+                                {
+                                    if (Projectile.localAI[0] > 90)
+                                        Projectile.localAI[0] = 0;
+
+                                    if (player.HeldItem.CountsAsClass(DamageClass.Magic))
+                                        Projectile.frame = 8;
+
+                                    if (Projectile.localAI[0] % 5 == 0 && player.HeldItem.CountsAsClass(DamageClass.Magic)) //rain lunar flares
+                                    {
+                                        SoundEngine.PlaySound(SoundID.Item88, Projectile.Center);
+
+                                        if (Main.myPlayer == Projectile.owner)
+                                        {
+                                            Vector2 spawnPos = Projectile.Center;
+                                            spawnPos.X += Main.rand.NextFloat(-250, 250);
+                                            spawnPos.Y -= 600f;
+
+                                            Vector2 vel = 10f * npc.DirectionFrom(spawnPos);
+
+                                            spawnPos += npc.velocity * Main.rand.NextFloat(10f);
+
+                                            int p = Projectile.NewProjectile(Projectile.GetSource_FromThis(), spawnPos, vel, ProjectileID.LunarFlare,
+                                                (int)(Projectile.originalDamage * player.GetDamage(DamageClass.Magic).Additive / 2), Projectile.knockBack / 2, Main.myPlayer, 0, npc.Center.Y);
+                                            if (p != Main.maxProjectiles)
+                                                Main.projectile[p].CritChance = (int)player.ActualClassCrit(DamageClass.Magic);
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+
+                        default: //minion
+                            {
+                                Vector2 home = npc.Center;
+                                home.X += 350 * Math.Sign(player.Center.X - npc.Center.X);
+                                if (Projectile.Distance(home) > 50)
+                                    Movement(home, 0.8f, 32f);
+
+                                Projectile.frame = 5;
+
+                                bool playerIsAttacking = player.controlUseItem
+                                    && (player.HeldItem.CountsAsClass(DamageClass.Melee)
+                                    || player.HeldItem.CountsAsClass(DamageClass.Ranged)
+                                    || player.HeldItem.CountsAsClass(DamageClass.Magic)
+                                    || player.HeldItem.CountsAsClass(DamageClass.Throwing))
+                                    && player.HeldItem.pick == 0 && player.HeldItem.axe == 0 && player.HeldItem.hammer == 0;
+
+                                if (++Projectile.localAI[0] > 15)
+                                {
+                                    Projectile.localAI[0] = 0;
+                                    if (Main.myPlayer == Projectile.owner && !playerIsAttacking)
+                                    {
+                                        int modifier = Math.Sign(Projectile.Center.Y - npc.Center.Y);
+                                        Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center + 3000 * Projectile.DirectionFrom(npc.Center) * modifier,
+                                            Projectile.SafeDirectionTo(npc.Center) * modifier, ModContent.ProjectileType<EridanusDeathray>(),
+                                            Projectile.damage, Projectile.knockBack / 4, Main.myPlayer);
+                                    }
+                                }
+
+                                if (!playerIsAttacking && Projectile.localAI[0] < 7)
+                                    Projectile.frame = 6;
+
+                                Projectile.rotation = Projectile.SafeDirectionTo(npc.Center).ToRotation();
+                                if (Projectile.spriteDirection < 0)
+                                    Projectile.rotation += (float)Math.PI;
+                            }
+                            break;
+                    }
+                }
+                else //forget target
+                {
+                    Projectile.ai[0] = -1f;
+                    Projectile.localAI[0] = 0f;
+                    Projectile.netUpdate = true;
+                }
+            }
+            else //no target
+            {
+                Projectile.localAI[0] = 0f;
+
+                Vector2 home = player.Center;
+                home.X -= 50 * player.direction;
+                home.Y -= 40;
+
+                Projectile.direction = Projectile.spriteDirection = player.direction;
+
+                if (Projectile.Distance(home) > 2000f)
+                {
+                    Projectile.Center = player.Center;
+                    Projectile.velocity = Vector2.Zero;
+                }
+                else
+                {
+                    Projectile.Center = Vector2.Lerp(Projectile.Center, home, 0.25f);
+                    Projectile.velocity *= 0.8f;
+                }
+
+                if (++Projectile.localAI[1] > 6f)
+                {
+                    Projectile.localAI[1] = 0f;
+                    Projectile.ai[0] = FargoSoulsUtil.FindClosestHostileNPC(Projectile.Center, 1500);
+                    Projectile.netUpdate = true;
+                }
+            }
+
+            if (++drawTrailOffset > 2)
+                drawTrailOffset = 0;
         }
-        else
+
+        private void Movement(Vector2 targetPos, float speedModifier, float cap = 12f, bool fastY = false)
         {
-          this.Projectile.localAI[0] = 0.0f;
-          Vector2 center = ((Entity) player).Center;
-          center.X -= (float) (50 * ((Entity) player).direction);
-          center.Y -= 40f;
-          ((Entity) this.Projectile).direction = this.Projectile.spriteDirection = ((Entity) player).direction;
-          if ((double) ((Entity) this.Projectile).Distance(center) > 2000.0)
-          {
-            ((Entity) this.Projectile).Center = ((Entity) player).Center;
-            ((Entity) this.Projectile).velocity = Vector2.Zero;
-          }
-          else
-          {
-            ((Entity) this.Projectile).Center = Vector2.Lerp(((Entity) this.Projectile).Center, center, 0.25f);
-            Projectile projectile = this.Projectile;
-            ((Entity) projectile).velocity = Vector2.op_Multiply(((Entity) projectile).velocity, 0.8f);
-          }
-          if ((double) ++this.Projectile.localAI[1] > 6.0)
-          {
-            this.Projectile.localAI[1] = 0.0f;
-            this.Projectile.ai[0] = (float) FargoSoulsUtil.FindClosestHostileNPC(((Entity) this.Projectile).Center, 1500f);
-            this.Projectile.netUpdate = true;
-          }
+            if (Projectile.Center.X < targetPos.X)
+            {
+                Projectile.velocity.X += speedModifier;
+                if (Projectile.velocity.X < 0)
+                    Projectile.velocity.X += speedModifier * 2;
+            }
+            else
+            {
+                Projectile.velocity.X -= speedModifier;
+                if (Projectile.velocity.X > 0)
+                    Projectile.velocity.X -= speedModifier * 2;
+            }
+            if (Projectile.Center.Y < targetPos.Y)
+            {
+                Projectile.velocity.Y += fastY ? speedModifier * 2 : speedModifier;
+                if (Projectile.velocity.Y < 0)
+                    Projectile.velocity.Y += speedModifier * 2;
+            }
+            else
+            {
+                Projectile.velocity.Y -= fastY ? speedModifier * 2 : speedModifier;
+                if (Projectile.velocity.Y > 0)
+                    Projectile.velocity.Y -= speedModifier * 2;
+            }
+            if (Math.Abs(Projectile.velocity.X) > cap)
+                Projectile.velocity.X = cap * Math.Sign(Projectile.velocity.X);
+            if (Math.Abs(Projectile.velocity.Y) > cap)
+                Projectile.velocity.Y = cap * Math.Sign(Projectile.velocity.Y);
         }
-        if (++this.drawTrailOffset <= 2)
-          return;
-        this.drawTrailOffset = 0;
-      }
-      else
-        this.Projectile.Kill();
-    }
 
-    private void Movement(Vector2 targetPos, float speedModifier, float cap = 12f, bool fastY = false)
-    {
-      if ((double) ((Entity) this.Projectile).Center.X < (double) targetPos.X)
-      {
-        ((Entity) this.Projectile).velocity.X += speedModifier;
-        if ((double) ((Entity) this.Projectile).velocity.X < 0.0)
-          ((Entity) this.Projectile).velocity.X += speedModifier * 2f;
-      }
-      else
-      {
-        ((Entity) this.Projectile).velocity.X -= speedModifier;
-        if ((double) ((Entity) this.Projectile).velocity.X > 0.0)
-          ((Entity) this.Projectile).velocity.X -= speedModifier * 2f;
-      }
-      if ((double) ((Entity) this.Projectile).Center.Y < (double) targetPos.Y)
-      {
-        ((Entity) this.Projectile).velocity.Y += fastY ? speedModifier * 2f : speedModifier;
-        if ((double) ((Entity) this.Projectile).velocity.Y < 0.0)
-          ((Entity) this.Projectile).velocity.Y += speedModifier * 2f;
-      }
-      else
-      {
-        ((Entity) this.Projectile).velocity.Y -= fastY ? speedModifier * 2f : speedModifier;
-        if ((double) ((Entity) this.Projectile).velocity.Y > 0.0)
-          ((Entity) this.Projectile).velocity.Y -= speedModifier * 2f;
-      }
-      if ((double) Math.Abs(((Entity) this.Projectile).velocity.X) > (double) cap)
-        ((Entity) this.Projectile).velocity.X = cap * (float) Math.Sign(((Entity) this.Projectile).velocity.X);
-      if ((double) Math.Abs(((Entity) this.Projectile).velocity.Y) <= (double) cap)
-        return;
-      ((Entity) this.Projectile).velocity.Y = cap * (float) Math.Sign(((Entity) this.Projectile).velocity.Y);
-    }
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone) => target.AddBuff(ModContent.BuffType<Buffs.Masomode.CurseoftheMoonBuff>(), 360);
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.AddBuff(ModContent.BuffType<CurseoftheMoonBuff>(), 360, false);
-    }
+        public override bool? CanCutTiles() => false;
 
-    public virtual bool? CanCutTiles() => new bool?(false);
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D1 = TextureAssets.Projectile[this.Projectile.type].Value;
-      Texture2D texture2D2 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosChampion_Glow", (AssetRequestMode) 1).Value;
-      Texture2D texture2D3 = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosChampion_Glow2", (AssetRequestMode) 1).Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D1.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      SpriteEffects spriteEffects = this.Projectile.spriteDirection < 0 ? (SpriteEffects) 1 : (SpriteEffects) 0;
-      Color alpha = this.Projectile.GetAlpha(lightColor);
-      int num3 = 150;
-      Color color;
-      // ISSUE: explicit constructor call
-      ((Color) ref color).\u002Ector(num3 + Main.DiscoR / 3, num3 + Main.DiscoG / 3, num3 + Main.DiscoB / 3);
-      Main.spriteBatch.End();
-      Main.spriteBatch.Begin((SpriteSortMode) 0, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
-      {
-        if (index % 2 != (this.drawTrailOffset > 1 ? 1 : 0))
+        public override bool PreDraw(ref Color lightColor)
         {
-          Vector2 oldPo = this.Projectile.oldPos[index];
-          float num4 = this.Projectile.oldRot[index];
-          Main.EntitySpriteDraw(texture2D2, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.op_Multiply(color, 0.5f), num4, vector2, this.Projectile.scale, spriteEffects, 0.0f);
+            Texture2D projTex = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            Texture2D glowTex = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosChampion_Glow", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            Texture2D glowerTex = ModContent.Request<Texture2D>("FargowiltasSouls/Content/Bosses/Champions/Cosmos/CosmosChampion_Glow2", ReLogic.Content.AssetRequestMode.ImmediateLoad).Value;
+            int size = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = size * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, projTex.Width, size);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            SpriteEffects flipper = Projectile.spriteDirection < 0 ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+            Color projColor = Projectile.GetAlpha(lightColor);
+            int add = 150;
+            Color glowColor = new(add + Main.DiscoR / 3, add + Main.DiscoG / 3, add + Main.DiscoB / 3);
+
+            Main.spriteBatch.UseBlendState(BlendState.Additive);
+
+            for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+            {
+                if (i % 2 == (drawTrailOffset > 1 ? 1 : 0))
+                    continue;
+
+                Vector2 value4 = Projectile.oldPos[i];
+                float num165 = Projectile.oldRot[i];
+                Main.EntitySpriteDraw(glowTex, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), glowColor * 0.5f, num165, origin2, Projectile.scale, flipper, 0);
+            }
+
+            Main.spriteBatch.UseBlendState(BlendState.NonPremultiplied);
+            Main.EntitySpriteDraw(projTex, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), projColor, Projectile.rotation, origin2, Projectile.scale, flipper, 0);
+            Main.EntitySpriteDraw(glowerTex, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), glowColor, Projectile.rotation, origin2, Projectile.scale, flipper, 0);
+
+            Main.spriteBatch.UseBlendState(BlendState.Additive);
+            Main.EntitySpriteDraw(glowerTex, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), glowColor, Projectile.rotation, origin2, Projectile.scale, flipper, 0);
+
+            Main.spriteBatch.ResetToDefault();
+            return false;
         }
-      }
-      Main.spriteBatch.End();
-      Main.spriteBatch.Begin((SpriteSortMode) 0, BlendState.NonPremultiplied, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      Main.EntitySpriteDraw(texture2D1, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      Main.EntitySpriteDraw(texture2D3, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      Main.spriteBatch.End();
-      Main.spriteBatch.Begin((SpriteSortMode) 0, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      Main.EntitySpriteDraw(texture2D3, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      Main.spriteBatch.End();
-      Main.spriteBatch.Begin((SpriteSortMode) 0, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, (Effect) null, Main.GameViewMatrix.ZoomMatrix);
-      return false;
     }
-  }
 }

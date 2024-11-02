@@ -1,37 +1,105 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Items.Accessories.Enchantments.MythrilEnchant
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
+using FargowiltasSouls.Content.Items.Accessories.Forces;
+using FargowiltasSouls.Content.Items.Weapons.BossDrops;
+using FargowiltasSouls.Content.UI.Elements;
 using FargowiltasSouls.Core.AccessoryEffectSystem;
+using FargowiltasSouls.Core.Toggler.Content;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
 using Terraria;
+using Terraria.Audio;
+using Terraria.ID;
+using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Items.Accessories.Enchantments
 {
-  public class MythrilEnchant : BaseEnchant
-  {
-    public override void SetStaticDefaults() => base.SetStaticDefaults();
-
-    public override Color nameColor => new Color(157, 210, 144);
-
-    public override void SetDefaults()
+    public class MythrilEnchant : BaseEnchant
     {
-      base.SetDefaults();
-      this.Item.rare = 5;
-      this.Item.value = 100000;
+        public override void SetStaticDefaults()
+        {
+            base.SetStaticDefaults();
+        }
+        public static readonly Color NameColor = new(157, 210, 144);
+        public override Color nameColor => NameColor;
+
+
+        public override void SetDefaults()
+        {
+            base.SetDefaults();
+
+            Item.rare = ItemRarityID.Pink;
+            Item.value = 100000;
+        }
+
+        public override void UpdateAccessory(Player player, bool hideVisual)
+        {
+            player.AddEffect<MythrilEffect>(Item);
+        }
+
+
+        public override void AddRecipes()
+        {
+            CreateRecipe()
+            .AddRecipeGroup("FargowiltasSouls:AnyMythrilHead")
+            .AddIngredient(ItemID.MythrilChainmail)
+            .AddIngredient(ItemID.MythrilGreaves)
+            .AddIngredient(ItemID.ClockworkAssaultRifle)
+            .AddIngredient(ItemID.Gatligator)
+            .AddIngredient(ItemID.OnyxBlaster)
+
+            .AddTile(TileID.CrystalBall)
+            .Register();
+        }
     }
 
-    public virtual void UpdateAccessory(Player player, bool hideVisual)
+    public class MythrilEffect : AccessoryEffect
     {
-      player.AddEffect<MythrilEffect>(this.Item);
+        public override Header ToggleHeader => Header.GetHeader<EarthHeader>();
+        public override int ToggleItemType => ModContent.ItemType<MythrilEnchant>();
+
+        public static void CalcMythrilAttackSpeed(FargoSoulsPlayer modPlayer, Item item)
+        {
+            if (modPlayer.Player.HasEffect<EarthForceEffect>())
+                return;
+
+            if (item.DamageType != DamageClass.Default && item.pick == 0 && item.axe == 0 && item.hammer == 0 && item.type != ModContent.ItemType<PrismaRegalia>())
+            {
+                float ratio = Math.Max((float)modPlayer.MythrilTimer / modPlayer.MythrilMaxTime, 0);
+                modPlayer.AttackSpeed += modPlayer.MythrilMaxSpeedBonus * ratio;
+            }
+        }
+
+        public override void PostUpdateEquips(Player player)
+        {
+            if (player.HasEffect<EarthForceEffect>())
+                return;
+
+            FargoSoulsPlayer modPlayer = player.FargoSouls();
+
+            const int cooldown = 60 * 5;
+            int mythrilEndTime = modPlayer.MythrilMaxTime - cooldown;
+
+            if (modPlayer.WeaponUseTimer > 0)
+                modPlayer.MythrilTimer--;
+            else
+            {
+                modPlayer.MythrilTimer++;
+                if (modPlayer.MythrilTimer == modPlayer.MythrilMaxTime - 1 && player.whoAmI == Main.myPlayer && modPlayer.MythrilSoundCooldown <= 0)
+                {
+                    SoundEngine.PlaySound(new SoundStyle($"{nameof(FargowiltasSouls)}/Assets/Sounds/Accessories/MythrilCharged"), player.Center);
+                    modPlayer.MythrilSoundCooldown = 90;
+                    //Projectile.NewProjectile(GetSource_EffectItem(player), player.Top, Vector2.Zero, ModContent.ProjectileType<EffectVisual>(), 0, 0, player.whoAmI, (float)EffectVisual.Effects.MythrilEnchant);
+                }
+            }
+
+            if (modPlayer.MythrilTimer > modPlayer.MythrilMaxTime)
+                modPlayer.MythrilTimer = modPlayer.MythrilMaxTime;
+            if (modPlayer.MythrilTimer < mythrilEndTime)
+                modPlayer.MythrilTimer = mythrilEndTime;
+
+            CooldownBarManager.Activate("MythrilEnchantCharge", ModContent.Request<Texture2D>("FargowiltasSouls/Content/Items/Accessories/Enchantments/MythrilEnchant").Value, MythrilEnchant.NameColor, 
+                () => (float)Main.LocalPlayer.FargoSouls().MythrilTimer / Main.LocalPlayer.FargoSouls().MythrilMaxTime, true, 60 * 10, activeFunction: () => player.HasEffect<MythrilEffect>() && !player.HasEffect<EarthForceEffect>());
+        }
     }
 
-    public virtual void AddRecipes()
-    {
-      this.CreateRecipe(1).AddRecipeGroup("FargowiltasSouls:AnyMythrilHead", 1).AddIngredient(379, 1).AddIngredient(380, 1).AddIngredient(434, 1).AddIngredient(2270, 1).AddIngredient(3788, 1).AddTile(125).Register();
-    }
-  }
 }

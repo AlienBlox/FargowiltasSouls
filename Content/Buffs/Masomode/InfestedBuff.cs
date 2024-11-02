@@ -1,35 +1,42 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Buffs.Masomode.InfestedBuff
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Core.ModPlayers;
-using Terraria;
+﻿using Terraria;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Buffs.Masomode
 {
-  public class InfestedBuff : ModBuff
-  {
-    public virtual void SetStaticDefaults()
+    public class InfestedBuff : ModBuff
     {
-      Main.debuff[this.Type] = true;
-      Main.pvpBuff[this.Type] = true;
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Infested");
+            // Description.SetDefault("This can only get worse");
+            Main.debuff[Type] = true;
+            Main.pvpBuff[Type] = true;
+            //DisplayName.AddTranslation((int)GameCulture.CultureName.Chinese, "感染");
+            //Description.AddTranslation((int)GameCulture.CultureName.Chinese, "这只会变得更糟");
+        }
 
-    public virtual void Update(Player player, ref int buffIndex)
-    {
-      FargoSoulsPlayer fargoSoulsPlayer = player.FargoSouls();
-      if (fargoSoulsPlayer.FirstInfection)
-      {
-        fargoSoulsPlayer.MaxInfestTime = player.buffTime[buffIndex];
-        fargoSoulsPlayer.FirstInfection = false;
-      }
-      fargoSoulsPlayer.Infested = true;
-    }
+        public override void Update(Player player, ref int buffIndex)
+        {
+            FargoSoulsPlayer p = player.FargoSouls();
 
-    public virtual void Update(NPC npc, ref int buffIndex) => npc.FargoSouls().Infested = true;
-  }
+            //weak DOT that grows exponentially stronger
+            if (p.FirstInfection)
+            {
+                p.MaxInfestTime = player.buffTime[buffIndex];
+                p.FirstInfection = false;
+            }
+
+            p.Infested = true;
+        }
+
+        /*public override bool ReApply(Player player, int time, int buffIndex)
+        {
+            return true;
+        }*/
+
+        public override void Update(NPC npc, ref int buffIndex)
+        {
+            npc.FargoSouls().Infested = true;
+        }
+    }
 }

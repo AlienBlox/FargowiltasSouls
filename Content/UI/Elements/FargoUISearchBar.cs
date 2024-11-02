@@ -1,10 +1,4 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.UI.Elements.FargoUISearchBar
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.GameContent.UI.Elements;
@@ -12,86 +6,97 @@ using Terraria.GameInput;
 using Terraria.Localization;
 using Terraria.UI;
 
-#nullable disable
 namespace FargowiltasSouls.Content.UI.Elements
 {
-  public class FargoUISearchBar : UIElement
-  {
-    public const int CharacterLimit = 16;
-    public UIPanel BackPanel;
-    public string Input;
-    public bool Focused;
-    public int CursorBlinkTimer;
-    public bool ShowCursorBlink;
-
-    public string HintText => Language.GetTextValue("Mods.FargowiltasSouls.UI.SearchText");
-
-    public bool IsEmpty => string.IsNullOrEmpty(this.Input);
-
-    public event FargoUISearchBar.TextChangeDelegate OnTextChange;
-
-    public FargoUISearchBar(int width, int height)
+    public class FargoUISearchBar : UIElement
     {
-      ((StyleDimension) ref this.Width).Set((float) width, 0.0f);
-      ((StyleDimension) ref this.Height).Set((float) height, 0.0f);
-      this.BackPanel = new UIPanel();
-      ((StyleDimension) ref ((UIElement) this.BackPanel).Width).Set((float) width, 0.0f);
-      ((StyleDimension) ref ((UIElement) this.BackPanel).Height).Set((float) height, 0.0f);
-      this.BackPanel.BackgroundColor = new Color(22, 25, 55);
-      ((UIElement) this.BackPanel).PaddingLeft = ((UIElement) this.BackPanel).PaddingRight = ((UIElement) this.BackPanel).PaddingTop = ((UIElement) this.BackPanel).PaddingBottom = 0.0f;
-      this.Append((UIElement) this.BackPanel);
-    }
+        public const int CharacterLimit = 16;
+        public string HintText => Language.GetTextValue("Mods.FargowiltasSouls.UI.SearchText");
 
-    public virtual void Update(GameTime gameTime)
-    {
-      base.Update(gameTime);
-      if (PlayerInput.Triggers.Current.MouseLeft)
-      {
-        if (this.ContainsPoint(Main.MouseScreen))
+        public bool IsEmpty => string.IsNullOrEmpty(Input);
+
+        public UIPanel BackPanel;
+        public string Input;
+        public bool Focused;
+        public int CursorBlinkTimer;
+        public bool ShowCursorBlink;
+
+        public delegate void TextChangeDelegate(string oldText, string currentText);
+        public event TextChangeDelegate OnTextChange;
+
+        public FargoUISearchBar(int width, int height)
         {
-          Main.clrInput();
-          this.Focused = true;
-        }
-        else
-          this.Focused = false;
-      }
-      if (!PlayerInput.Triggers.Current.Inventory)
-        return;
-      this.Focused = false;
-    }
+            Width.Set(width, 0);
+            Height.Set(height, 0);
 
-    protected virtual void DrawChildren(SpriteBatch spriteBatch)
-    {
-      base.DrawChildren(spriteBatch);
-      PlayerInput.WritingText = this.Focused;
-      Main.LocalPlayer.mouseInterface = this.Focused;
-      if (this.Focused)
-      {
-        Main.instance.HandleIME();
-        string inputText = Main.GetInputText(this.Input, false);
-        if (inputText != this.Input)
+            BackPanel = new UIPanel();
+            BackPanel.Width.Set(width, 0);
+            BackPanel.Height.Set(height, 0);
+            BackPanel.BackgroundColor = new Color(22, 25, 55);
+            BackPanel.PaddingLeft = BackPanel.PaddingRight = BackPanel.PaddingTop = BackPanel.PaddingBottom = 0;
+            Append(BackPanel);
+        }
+
+        public override void Update(GameTime gameTime)
         {
-          FargoUISearchBar.TextChangeDelegate onTextChange = this.OnTextChange;
-          if (onTextChange != null)
-            onTextChange(this.Input, inputText);
-          this.Input = inputText;
-        }
-      }
-      CalculatedStyle dimensions = this.GetDimensions();
-      Vector2 vector2 = Vector2.op_Addition(((CalculatedStyle) ref dimensions).Position(), new Vector2(6f, 4f));
-      string str = this.Input ?? "";
-      if (string.IsNullOrEmpty(str) && !this.Focused)
-        Utils.DrawBorderString(spriteBatch, this.HintText, vector2, Color.DarkGray, 1f, 0.0f, 0.0f, -1);
-      if (this.Focused && ++this.CursorBlinkTimer >= 20)
-      {
-        this.ShowCursorBlink = !this.ShowCursorBlink;
-        this.CursorBlinkTimer = 0;
-      }
-      if (this.Focused && this.ShowCursorBlink)
-        str += "|";
-      Utils.DrawBorderString(spriteBatch, str, vector2, Color.White, 1f, 0.0f, 0.0f, -1);
-    }
+            base.Update(gameTime);
+            if (PlayerInput.Triggers.Current.MouseLeft)
+            {
+                if (ContainsPoint(Main.MouseScreen))
+                {
+                    Main.clrInput();
+                    Focused = true;
+                }
+                else
+                {
+                    Focused = false;
+                }
+            }
 
-    public delegate void TextChangeDelegate(string oldText, string currentText);
-  }
+            if (PlayerInput.Triggers.Current.Inventory)
+            {
+                Focused = false;
+            }
+        }
+
+        protected override void DrawChildren(SpriteBatch spriteBatch)
+        {
+            base.DrawChildren(spriteBatch);
+
+            PlayerInput.WritingText = Focused;
+            Main.LocalPlayer.mouseInterface = Focused;
+            if (Focused)
+            {
+                Main.instance.HandleIME();
+
+                string newInput = Main.GetInputText(Input);
+                if (newInput != Input)
+                {
+                    OnTextChange?.Invoke(Input, newInput);
+                    Input = newInput;
+                }
+            }
+
+            Vector2 position = GetDimensions().Position() + new Vector2(6, 4);
+            string displayText = Input ?? "";
+
+            if (string.IsNullOrEmpty(displayText) && !Focused)
+            {
+                Utils.DrawBorderString(spriteBatch, HintText, position, Color.DarkGray);
+            }
+
+            if (Focused && ++CursorBlinkTimer >= 20)
+            {
+                ShowCursorBlink = !ShowCursorBlink;
+                CursorBlinkTimer = 0;
+            }
+
+            if (Focused && ShowCursorBlink)
+            {
+                displayText += "|";
+            }
+
+            Utils.DrawBorderString(spriteBatch, displayText, position, Color.White);
+        }
+    }
 }

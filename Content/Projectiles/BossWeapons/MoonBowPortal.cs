@@ -1,101 +1,114 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BossWeapons.MoonBowPortal
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
 using FargowiltasSouls.Content.Buffs;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.BossWeapons
 {
-  public class MoonBowPortal : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_578";
-
-    public virtual void SetDefaults()
+    public class MoonBowPortal : ModProjectile
     {
-      ((Entity) this.Projectile).width = 32;
-      ((Entity) this.Projectile).height = 32;
-      this.Projectile.friendly = true;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.tileCollide = false;
-      this.Projectile.alpha = (int) byte.MaxValue;
-      this.Projectile.penetrate = -1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.FargoSouls().CanSplit = false;
-      this.Projectile.DamageType = DamageClass.Ranged;
-      this.Projectile.timeLeft = 60;
-      this.Projectile.hide = true;
-    }
+        public override string Texture => "Terraria/Images/Projectile_578";
 
-    public virtual void DrawBehind(
-      int index,
-      List<int> behindNPCsAndTiles,
-      List<int> behindNPCs,
-      List<int> behindProjectiles,
-      List<int> overPlayers,
-      List<int> overWiresUI)
-    {
-      behindProjectiles.Add(index);
-    }
+        public override void SetDefaults()
+        {
+            Projectile.width = 32;
+            Projectile.height = 32;
+            Projectile.friendly = true;
+            Projectile.ignoreWater = true;
+            Projectile.tileCollide = false;
+            Projectile.alpha = 255;
+            Projectile.penetrate = -1;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+            Projectile.FargoSouls().CanSplit = false;
+            Projectile.DamageType = DamageClass.Ranged;
+            Projectile.timeLeft = 60;
+            Projectile.hide = true;
+        }
 
-    public virtual bool? CanDamage() => new bool?(false);
+        public override void DrawBehind(int index, List<int> behindNPCsAndTiles, List<int> behindNPCs, List<int> behindProjectiles, List<int> overPlayers, List<int> overWiresUI)
+        {
+            behindProjectiles.Add(index);
+        }
 
-    public virtual void AI()
-    {
-      Player player = Main.player[this.Projectile.owner];
-      if (!((Entity) player).active)
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        Projectile projectile = this.Projectile;
-        ((Entity) projectile).position = Vector2.op_Addition(((Entity) projectile).position, Vector2.op_Subtraction(((Entity) player).position, ((Entity) player).oldPosition));
-        float num = 0.4f;
-        ++this.Projectile.ai[0];
-        this.Projectile.scale = Math.Min(1f, this.Projectile.ai[0] / 20f) * num;
-        this.Projectile.alpha = (int) byte.MaxValue - (int) ((double) byte.MaxValue * (double) this.Projectile.scale / (double) num);
-        this.Projectile.rotation -= 0.1570796f;
-      }
-    }
+        public override bool? CanDamage() => false;
 
-    public virtual void OnKill(int timeLeft)
-    {
-      if (this.Projectile.owner != Main.myPlayer || !((Entity) Main.player[this.Projectile.owner]).active)
-        return;
-      Vector2 mouseWorld = Main.MouseWorld;
-      if (Main.player[this.Projectile.owner].HasBuff<MoonBowBuff>())
-        mouseWorld.Y += 16f;
-      Vector2 vector2 = Vector2.op_Multiply(32f, Luminance.Common.Utilities.Utilities.SafeDirectionTo((Entity) this.Projectile, mouseWorld));
-      Projectile.NewProjectile(Entity.InheritSource((Entity) this.Projectile), ((Entity) this.Projectile).Center, vector2, 640, this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-    }
+        public override void AI()
+        {
+            Player player = Main.player[Projectile.owner];
 
-    public virtual Color? GetAlpha(Color lightColor)
-    {
-      return new Color?(Color.op_Multiply(new Color((int) byte.MaxValue, (int) byte.MaxValue, (int) byte.MaxValue, 100), this.Projectile.Opacity));
-    }
+            if (!player.active)
+            {
+                Projectile.Kill();
+                return;
+            }
 
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-      int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-      int num2 = num1 * this.Projectile.frame;
-      Rectangle rectangle;
-      // ISSUE: explicit constructor call
-      ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-      Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), Color.op_Multiply(Color.Black, this.Projectile.Opacity), -this.Projectile.rotation, vector2, this.Projectile.scale * 1.25f, (SpriteEffects) 1, 0.0f);
-      Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), this.Projectile.GetAlpha(lightColor), this.Projectile.rotation, vector2, this.Projectile.scale, (SpriteEffects) 0, 0.0f);
-      return false;
+            Projectile.position += (player.position - player.oldPosition);
+
+            float maxScale = 0.4f;
+
+            Projectile.ai[0]++;
+            Projectile.scale = Math.Min(1f, Projectile.ai[0] / 20) * maxScale;
+            Projectile.alpha = 255 - (int)(255 * Projectile.scale / maxScale);
+            Projectile.rotation = Projectile.rotation - 0.1570796f;
+
+            /*if (Main.rand.NextBool())
+            {
+                Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Vortex, 0.0f, 0.0f, 0, new Color(), 1f)];
+                dust.noGravity = true;
+                dust.position = Projectile.Center - spinningpoint * Main.rand.Next(10, 21);
+                dust.velocity = spinningpoint.RotatedBy((float)Math.PI / 2, new Vector2()) * 6f;
+                dust.scale = Main.rand.NextFloat();
+                dust.fadeIn = 0.5f;
+                dust.customData = Projectile.Center;
+                dust.velocity += player.velocity;
+            }
+
+            if (Main.rand.NextBool())
+            {
+                Vector2 spinningpoint = Vector2.UnitY.RotatedByRandom(6.28318548202515) * Projectile.scale;
+                Dust dust = Main.dust[Dust.NewDust(Projectile.Center - spinningpoint * 30f, 0, 0, DustID.Granite, 0.0f, 0.0f, 0, new Color(), 1f)];
+                dust.noGravity = true;
+                dust.position = Projectile.Center - spinningpoint * 30f;
+                dust.velocity = spinningpoint.RotatedBy(-(float)Math.PI / 2, new Vector2()) * 3f;
+                dust.scale = Main.rand.NextFloat();
+                dust.fadeIn = 0.5f;
+                dust.customData = Projectile.Center;
+                dust.velocity += player.velocity;
+            }*/
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            if (Projectile.owner == Main.myPlayer && Main.player[Projectile.owner].active)
+            {
+                Vector2 target = Main.MouseWorld;
+                if (Main.player[Projectile.owner].HasBuff<MoonBowBuff>())
+                    target.Y += 16f; //aim correction for no grav
+                Vector2 vel = 32f * Projectile.SafeDirectionTo(target);
+                Projectile.NewProjectile(Projectile.InheritSource(Projectile), Projectile.Center, vel, ProjectileID.MoonlordArrowTrail, Projectile.damage, Projectile.knockBack, Projectile.owner);
+            }
+        }
+
+        public override Color? GetAlpha(Color lightColor)
+        {
+            return new Color(255, 255, 255, 100) * Projectile.Opacity;
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+            int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+            int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+            Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+            Vector2 origin2 = rectangle.Size() / 2f;
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Color.Black * Projectile.Opacity, -Projectile.rotation, origin2, Projectile.scale * 1.25f, SpriteEffects.FlipHorizontally, 0);
+            Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), Projectile.GetAlpha(lightColor), Projectile.rotation, origin2, Projectile.scale, SpriteEffects.None, 0);
+            return false;
+        }
     }
-  }
 }

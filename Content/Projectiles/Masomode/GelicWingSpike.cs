@@ -1,49 +1,39 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.Masomode.GelicWingSpike
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Terraria;
+﻿using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles.Masomode
 {
-  public class GelicWingSpike : ModProjectile
-  {
-    public virtual string Texture => "Terraria/Images/Projectile_920";
-
-    public virtual void SetStaticDefaults()
+    public class GelicWingSpike : ModProjectile
     {
-      Main.projFrames[this.Projectile.type] = Main.projFrames[920];
-    }
+        public override string Texture => "Terraria/Images/Projectile_920";
 
-    public virtual void SetDefaults()
-    {
-      this.Projectile.CloneDefaults(920);
-      this.AIType = 920;
-      this.Projectile.tileCollide = true;
-      this.Projectile.hostile = false;
-      this.Projectile.friendly = true;
-      this.Projectile.timeLeft = 300;
-      this.Projectile.penetrate = 2;
-      this.Projectile.usesIDStaticNPCImmunity = true;
-      this.Projectile.idStaticNPCHitCooldown = 10;
-      this.Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
-      Mod mod;
-      if (!Terraria.ModLoader.ModLoader.TryGetMod("Fargowiltas", ref mod))
-        return;
-      mod.Call(new object[2]
-      {
-        (object) "LowRenderProj",
-        (object) this.Projectile
-      });
-    }
+        public override void SetStaticDefaults()
+        {
+            // DisplayName.SetDefault("Crystal Spike");
+            Main.projFrames[Projectile.type] = Main.projFrames[ProjectileID.QueenSlimeMinionBlueSpike];
+        }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      this.Projectile.timeLeft = 0;
+        public override void SetDefaults()
+        {
+            Projectile.CloneDefaults(ProjectileID.QueenSlimeMinionBlueSpike);
+            AIType = ProjectileID.QueenSlimeMinionBlueSpike;
+            Projectile.tileCollide = true;
+            Projectile.hostile = false;
+            Projectile.friendly = true;
+            Projectile.timeLeft = 300;
+
+            Projectile.penetrate = 2;
+            Projectile.usesIDStaticNPCImmunity = true;
+            Projectile.idStaticNPCHitCooldown = 10;
+            Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
+
+            FargowiltasSouls.MutantMod.Call("LowRenderProj", Projectile);
+        }
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            Projectile.timeLeft = 0;
+        }
     }
-  }
 }

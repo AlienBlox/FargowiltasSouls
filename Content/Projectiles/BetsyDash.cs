@@ -1,156 +1,174 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Projectiles.BetsyDash
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using FargowiltasSouls.Content.Buffs.Souls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Projectiles
 {
-  public class BetsyDash : ModProjectile
-  {
-    public virtual void SetStaticDefaults()
+    public class BetsyDash : ModProjectile
     {
-      ProjectileID.Sets.TrailCacheLength[this.Projectile.type] = 10;
-      ProjectileID.Sets.TrailingMode[this.Projectile.type] = 2;
-      Main.projFrames[this.Type] = 6;
-    }
 
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 42;
-      ((Entity) this.Projectile).height = 42;
-      this.Projectile.aiStyle = -1;
-      this.Projectile.friendly = true;
-      this.Projectile.DamageType = DamageClass.Melee;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.alpha = 60;
-      this.Projectile.timeLeft = 15;
-      this.Projectile.penetrate = -1;
-      this.Projectile.FargoSouls().CanSplit = false;
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.usesIDStaticNPCImmunity = true;
-      this.Projectile.idStaticNPCHitCooldown = 30;
-      this.Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
-    }
-
-    public virtual void AI()
-    {
-      Player player1 = Main.player[this.Projectile.owner];
-      if (!((Entity) player1).active || player1.dead)
-        this.Projectile.Kill();
-      else if (player1.HasBuff(ModContent.BuffType<TimeFrozenBuff>()))
-      {
-        this.Projectile.Kill();
-      }
-      else
-      {
-        if (++this.Projectile.frameCounter > 4 && ++this.Projectile.frame >= Main.projFrames[this.Type])
-          this.Projectile.frame = 0;
-        player1.FargoSouls().BetsyDashing = true;
-        player1.dashDelay = 5;
-        player1.FargoSouls().IsDashingTimer = 0;
-        ((Entity) player1).Center = ((Entity) this.Projectile).Center;
-        if (this.Projectile.timeLeft > 1)
+        public override void SetStaticDefaults()
         {
-          Player player2 = player1;
-          ((Entity) player2).position = Vector2.op_Addition(((Entity) player2).position, ((Entity) this.Projectile).velocity);
+            // DisplayName.SetDefault("Dash");
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 10;
+            ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
+
+            Main.projFrames[Type] = 6;
         }
-        ((Entity) player1).velocity = Vector2.op_Multiply(((Entity) this.Projectile).velocity, 0.5f);
-        ((Entity) player1).direction = (double) ((Entity) this.Projectile).velocity.X > 0.0 ? 1 : -1;
-        player1.controlUseItem = false;
-        player1.controlUseTile = false;
-        player1.controlHook = false;
-        player1.controlMount = false;
-        if (player1.mount.Active)
-          player1.mount.Dismount(player1);
-        player1.immune = true;
-        player1.immuneTime = Math.Max(player1.immuneTime, 2);
-        player1.hurtCooldowns[0] = Math.Max(player1.hurtCooldowns[0], 2);
-        player1.hurtCooldowns[1] = Math.Max(player1.hurtCooldowns[1], 2);
-        if (Vector2.op_Inequality(((Entity) this.Projectile).velocity, Vector2.Zero))
-          this.Projectile.rotation = Utils.ToRotation(((Entity) this.Projectile).velocity) + 1.57079637f;
-        if ((double) this.Projectile.localAI[0] != 0.0)
-          return;
-        this.Projectile.localAI[0] = 1f;
-        SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-        for (int index1 = 0; index1 < 30; ++index1)
+
+        public override void SetDefaults()
         {
-          int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 87, 0.0f, 0.0f, 0, new Color(), 2.5f);
-          Main.dust[index2].noGravity = true;
-          Dust dust = Main.dust[index2];
-          dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
+            Projectile.width = Player.defaultHeight;
+            Projectile.height = Player.defaultHeight;
+            Projectile.aiStyle = -1;
+            Projectile.friendly = true;
+            Projectile.DamageType = DamageClass.Melee;
+            Projectile.ignoreWater = true;
+            Projectile.alpha = 60;
+            Projectile.timeLeft = 15;
+            Projectile.penetrate = -1;
+            Projectile.FargoSouls().CanSplit = false;
+            Projectile.FargoSouls().TimeFreezeImmune = true;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+
+            Projectile.usesIDStaticNPCImmunity = true;
+            Projectile.idStaticNPCHitCooldown = 30;
+            Projectile.FargoSouls().noInteractionWithNPCImmunityFrames = true;
         }
-      }
-    }
 
-    public virtual void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
-    {
-      target.AddBuff(203, Luminance.Common.Utilities.Utilities.SecondsToFrames(20f), false);
-      if (this.Projectile.owner != Main.myPlayer)
-        return;
-      Projectile.NewProjectile(((Entity) this.Projectile).GetSource_FromThis((string) null), ((Entity) this.Projectile).Center, Vector2.Zero, 612, 0, 0.0f, Main.myPlayer, 0.0f, 0.0f, 0.0f);
-      int frames = Luminance.Common.Utilities.Utilities.SecondsToFrames(2.5f);
-      if (Main.player[this.Projectile.owner].FargoSouls().SpecialDashCD <= frames)
-        return;
-      Main.player[this.Projectile.owner].FargoSouls().SpecialDashCD = frames;
-    }
-
-    public virtual void OnKill(int timeLeft)
-    {
-      SoundEngine.PlaySound(ref SoundID.Item14, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-      for (int index1 = 0; index1 < 30; ++index1)
-      {
-        int index2 = Dust.NewDust(((Entity) this.Projectile).position, ((Entity) this.Projectile).width, ((Entity) this.Projectile).height, 87, 0.0f, 0.0f, 0, new Color(), 2.5f);
-        Main.dust[index2].noGravity = true;
-        Dust dust = Main.dust[index2];
-        dust.velocity = Vector2.op_Multiply(dust.velocity, 4f);
-      }
-    }
-
-    public virtual bool OnTileCollide(Vector2 oldVelocity) => false;
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      if ((double) this.Projectile.localAI[0] != 0.0)
-      {
-        Texture2D texture2D = TextureAssets.Projectile[this.Projectile.type].Value;
-        int num1 = TextureAssets.Projectile[this.Projectile.type].Value.Height / Main.projFrames[this.Projectile.type];
-        int num2 = num1 * this.Projectile.frame;
-        Rectangle rectangle;
-        // ISSUE: explicit constructor call
-        ((Rectangle) ref rectangle).\u002Ector(0, num2, texture2D.Width, num1);
-        Vector2 vector2 = Vector2.op_Division(Utils.Size(rectangle), 2f);
-        Color alpha = this.Projectile.GetAlpha(Color.White);
-        ((Color) ref alpha).A = (byte) this.Projectile.alpha;
-        SpriteEffects spriteEffects = (double) ((Entity) this.Projectile).velocity.X > 0.0 ? (SpriteEffects) 0 : (SpriteEffects) 1;
-        for (int index = 0; index < ProjectileID.Sets.TrailCacheLength[this.Projectile.type]; ++index)
+        public override void AI()
         {
-          float num3 = 0.0f;
-          if (index > 3 && index < 5)
-            num3 = 0.6f;
-          if (index >= 5)
-            num3 = 0.8f;
-          Color color = Color.op_Multiply(Color.op_Multiply(Color.op_Multiply(Color.Lerp(Color.White, Color.Purple, num3), 0.75f), 0.5f), (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type]);
-          float num4 = this.Projectile.scale * (float) (ProjectileID.Sets.TrailCacheLength[this.Projectile.type] - index) / (float) ProjectileID.Sets.TrailCacheLength[this.Projectile.type];
-          Vector2 oldPo = this.Projectile.oldPos[index];
-          float num5 = this.Projectile.oldRot[index];
-          Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(Vector2.op_Addition(oldPo, Vector2.op_Division(((Entity) this.Projectile).Size, 2f)), Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), color, num5, vector2, num4, spriteEffects, 0.0f);
+            Player player = Main.player[Projectile.owner];
+            if (!player.active || player.dead)
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            if (player.HasBuff(ModContent.BuffType<Buffs.Souls.TimeFrozenBuff>()))
+            {
+                Projectile.Kill();
+                return;
+            }
+
+            if (++Projectile.frameCounter > 4)
+                if (++Projectile.frame >= Main.projFrames[Type])
+                    Projectile.frame = 0;
+
+            player.FargoSouls().BetsyDashing = true;
+
+            player.dashDelay = 5;
+            player.FargoSouls().IsDashingTimer = 0;
+
+            player.Center = Projectile.Center;
+            if (Projectile.timeLeft > 1) //trying to avoid wallclipping
+                player.position += Projectile.velocity;
+            player.velocity = Projectile.velocity * .5f;
+            player.direction = Projectile.velocity.X > 0 ? 1 : -1;
+
+            /*player.controlLeft = false;
+            player.controlRight = false;
+            player.controlJump = false;
+            player.controlDown = false;*/
+            player.controlUseItem = false;
+            player.controlUseTile = false;
+            player.controlHook = false;
+            player.controlMount = false;
+
+            if (player.mount.Active)
+                player.mount.Dismount(player);
+
+            player.immune = true;
+            player.immuneTime = Math.Max(player.immuneTime, 2);
+            player.hurtCooldowns[0] = Math.Max(player.hurtCooldowns[0], 2);
+            player.hurtCooldowns[1] = Math.Max(player.hurtCooldowns[1], 2);
+
+            if (Projectile.velocity != Vector2.Zero)
+                Projectile.rotation = Projectile.velocity.ToRotation() + (float)Math.PI / 2;
+
+            if (Projectile.localAI[0] == 0)
+            {
+                Projectile.localAI[0] = 1;
+                SoundEngine.PlaySound(SoundID.Item14, Projectile.Center);
+                for (int i = 0; i < 30; i++)
+                {
+                    int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.GemTopaz, 0, 0, 0, default, 2.5f);
+                    Main.dust[d].noGravity = true;
+                    Main.dust[d].velocity *= 4f;
+                }
+            }
         }
-        Main.EntitySpriteDraw(texture2D, Vector2.op_Addition(Vector2.op_Subtraction(((Entity) this.Projectile).Center, Main.screenPosition), new Vector2(0.0f, this.Projectile.gfxOffY)), new Rectangle?(rectangle), alpha, this.Projectile.rotation, vector2, this.Projectile.scale, spriteEffects, 0.0f);
-      }
-      return false;
+
+        public override void OnHitNPC(NPC target, NPC.HitInfo hit, int damageDone)
+        {
+            target.AddBuff(BuffID.BetsysCurse, LumUtils.SecondsToFrames(20));
+
+            if (Projectile.owner == Main.myPlayer)
+            {
+                Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, Vector2.Zero, ProjectileID.SolarWhipSwordExplosion, 0, 0f, Main.myPlayer);
+
+                int reducedCooldown = LumUtils.SecondsToFrames(2.5f);
+                if (Main.player[Projectile.owner].FargoSouls().SpecialDashCD > reducedCooldown)
+                    Main.player[Projectile.owner].FargoSouls().SpecialDashCD = reducedCooldown;
+
+            }
+        }
+
+        public override void OnKill(int timeLeft)
+        {
+            SoundEngine.PlaySound(SoundID.Item14, Projectile.Center);
+            for (int i = 0; i < 30; i++)
+            {
+                int d = Dust.NewDust(Projectile.position, Projectile.width, Projectile.height, DustID.GemTopaz, 0, 0, 0, default, 2.5f);
+                Main.dust[d].noGravity = true;
+                Main.dust[d].velocity *= 4f;
+            }
+        }
+
+        public override bool OnTileCollide(Vector2 oldVelocity)
+        {
+            return false; //dont kill proj when hits tiles
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            if (Projectile.localAI[0] != 0)
+            {
+                Texture2D texture2D13 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value;
+                int num156 = Terraria.GameContent.TextureAssets.Projectile[Projectile.type].Value.Height / Main.projFrames[Projectile.type]; //ypos of lower right corner of sprite to draw
+                int y3 = num156 * Projectile.frame; //ypos of upper left corner of sprite to draw
+                Rectangle rectangle = new(0, y3, texture2D13.Width, num156);
+                Vector2 origin2 = rectangle.Size() / 2f;
+
+                Color color26 = Color.White;
+                color26 = Projectile.GetAlpha(color26);
+                color26.A = (byte)Projectile.alpha;
+
+                SpriteEffects effects = Projectile.velocity.X > 0 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+
+                for (int i = 0; i < ProjectileID.Sets.TrailCacheLength[Projectile.type]; i++)
+                {
+                    float lerpamount = 0;
+                    if (i > 3 && i < 5)
+                        lerpamount = 0.6f;
+                    if (i >= 5)
+                        lerpamount = 0.8f;
+
+                    Color color27 = Color.Lerp(Color.White, Color.Purple, lerpamount) * 0.75f * 0.5f;
+                    color27 *= (float)(ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                    float scale = Projectile.scale * (ProjectileID.Sets.TrailCacheLength[Projectile.type] - i) / ProjectileID.Sets.TrailCacheLength[Projectile.type];
+                    Vector2 value4 = Projectile.oldPos[i];
+                    float num165 = Projectile.oldRot[i];
+                    Main.EntitySpriteDraw(texture2D13, value4 + Projectile.Size / 2f - Main.screenPosition + new Vector2(0, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color27, num165, origin2, scale, effects, 0);
+                }
+
+                Main.EntitySpriteDraw(texture2D13, Projectile.Center - Main.screenPosition + new Vector2(0f, Projectile.gfxOffY), new Microsoft.Xna.Framework.Rectangle?(rectangle), color26, Projectile.rotation, origin2, Projectile.scale, effects, 0);
+            }
+            return false;
+        }
     }
-  }
 }

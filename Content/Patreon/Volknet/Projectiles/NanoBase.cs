@@ -1,249 +1,295 @@
-﻿// Decompiled with JetBrains decompiler
-// Type: FargowiltasSouls.Content.Patreon.Volknet.Projectiles.NanoBase
-// Assembly: FargowiltasSouls, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-// MVID: 1A7A46DC-AE03-47A6-B5D0-CF3B5722B0BF
-// Assembly location: C:\Users\Alien\OneDrive\文档\My Games\Terraria\tModLoader\ModSources\AlienBloxMod\Libraries\FargowiltasSouls.dll
-
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-#nullable disable
 namespace FargowiltasSouls.Content.Patreon.Volknet.Projectiles
 {
-  public class NanoBase : ModProjectile
-  {
-    public int AtkTimer;
-
-    public virtual void SetStaticDefaults()
+    public class NanoBase : ModProjectile
     {
-    }
-
-    public virtual void SetDefaults()
-    {
-      ((Entity) this.Projectile).width = 4;
-      ((Entity) this.Projectile).height = 4;
-      this.Projectile.hide = true;
-      this.Projectile.friendly = false;
-      this.Projectile.hostile = false;
-      this.Projectile.timeLeft = 2;
-      this.Projectile.tileCollide = false;
-      this.Projectile.ignoreWater = true;
-      this.Projectile.damage = 1;
-      this.Projectile.FargoSouls().DeletionImmuneRank = 2;
-      this.Projectile.FargoSouls().TimeFreezeImmune = true;
-      this.Projectile.FargoSouls().CanSplit = false;
-    }
-
-    public virtual void DrawBehind(
-      int index,
-      List<int> behindNPCsAndTiles,
-      List<int> behindNPCs,
-      List<int> behindProjectiles,
-      List<int> overPlayers,
-      List<int> overWiresUI)
-    {
-      behindProjectiles.Add(index);
-    }
-
-    public virtual bool PreDraw(ref Color lightColor)
-    {
-      Player player = Main.player[this.Projectile.owner];
-      if (player.channel && player.GetModPlayer<NanoPlayer>().NanoCoreMode == 1 && NPCUtils.AnyProj(ModContent.ProjectileType<NanoProbe>(), ((Entity) player).whoAmI))
-      {
-        bool flag = true;
-        foreach (Projectile projectile in Main.projectile)
+        public int AtkTimer = 0;
+        //public float MeleeDamageModifier = 1;                   //may helpful with modifying damage
+        //public float RangedDamageModifier = 1;
+        //public float MagicDamageModifier = 1;
+        //public float SummonDamageModifier = 1;
+        public override void SetStaticDefaults()
         {
-          if (((Entity) projectile).active && projectile.type == ModContent.ProjectileType<NanoProbe>() && projectile.owner == ((Entity) player).whoAmI && (double) projectile.ai[1] == 0.0)
-            flag = false;
+            // DisplayName.SetDefault("Nano Core");
+            //DisplayName.AddTranslation(GameCulture.Chinese, "纳米基核");
         }
-        if (flag)
+        public override void SetDefaults()
         {
-          Vector2 rotationVector2 = Utils.ToRotationVector2(this.Projectile.rotation);
-          Vector2 vector2_1 = Vector2.op_Addition(Vector2.op_Addition(Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(rotationVector2, 40f)), Vector2.op_Multiply(Utils.ToRotationVector2(Utils.ToRotation(rotationVector2) + 1.57079637f), 30f)), Vector2.op_Multiply(Utils.ToRotationVector2(Utils.ToRotation(rotationVector2) + 2.3561945f), 60f));
-          Vector2 vector2_2 = Vector2.op_Addition(Vector2.op_Addition(Vector2.op_Addition(((Entity) player).Center, Vector2.op_Multiply(rotationVector2, 40f)), Vector2.op_Multiply(Utils.ToRotationVector2(Utils.ToRotation(rotationVector2) - 1.57079637f), 30f)), Vector2.op_Multiply(Utils.ToRotationVector2(Utils.ToRotation(rotationVector2) - 2.3561945f), 60f));
-          Utils.DrawLine(Main.spriteBatch, vector2_1, vector2_2, Color.LightGreen, Color.DarkGreen, 3f);
+            Projectile.width = 4;
+            Projectile.height = 4;
+            Projectile.hide = true;
+            Projectile.friendly = false;
+            Projectile.hostile = false;
+            Projectile.timeLeft = 2;
+            Projectile.tileCollide = false;
+            Projectile.ignoreWater = true;
+            Projectile.damage = 1;
+            Projectile.FargoSouls().DeletionImmuneRank = 2;
+            Projectile.FargoSouls().TimeFreezeImmune = true;
+            Projectile.FargoSouls().CanSplit = false;
         }
-      }
-      return false;
-    }
 
-    public virtual bool? CanDamage() => new bool?(false);
-
-    public virtual void AI()
-    {
-      if (((Entity) Main.player[this.Projectile.owner]).active)
-      {
-        Player owner = Main.player[this.Projectile.owner];
-        if (!owner.dead && owner.HeldItem.type == ModContent.ItemType<NanoCore>())
+        public override void DrawBehind(int index, List<int> behindNPCsAndTiles, List<int> behindNPCs, List<int> behindProjectiles, List<int> overPlayers, List<int> overWiresUI)
         {
-          this.Projectile.damage = owner.GetWeaponDamage(owner.HeldItem, false);
-          this.Projectile.CritChance = owner.GetWeaponCrit(owner.HeldItem);
-          this.Projectile.timeLeft = 2;
-          ((Entity) this.Projectile).Center = ((Entity) owner).Center;
-          this.Projectile.rotation = Utils.ToRotation(Vector2.op_Subtraction(Main.MouseWorld, ((Entity) owner).Center));
-          if (owner.channel)
-          {
-            owner.itemTime = 2;
-            owner.itemAnimation = 2;
-          }
-          if (owner.ownedProjectileCounts[ModContent.ProjectileType<NanoProbe>()] < 7)
-          {
-            int num = 7 - owner.ownedProjectileCounts[ModContent.ProjectileType<NanoProbe>()];
-            for (int index = 0; index < num; ++index)
-              Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem, (string) null), ((Entity) this.Projectile).Center, Vector2.op_Multiply(Utils.ToRotationVector2((float) ((double) this.Projectile.rotation + (double) Utils.NextFloat(Main.rand) * 3.1415927410125732 / 3.0 * 2.0 - 1.0471975803375244)), 14f), ModContent.ProjectileType<NanoProbe>(), this.Projectile.damage, this.Projectile.knockBack, this.Projectile.owner, 0.0f, 0.0f, 0.0f);
-          }
-          int num1 = 0;
-          foreach (Projectile projectile in Main.projectile)
-          {
-            if (((Entity) projectile).active && projectile.type == ModContent.ProjectileType<NanoProbe>() && projectile.owner == this.Projectile.owner)
+            behindProjectiles.Add(index);
+        }
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Player owner = Main.player[Projectile.owner];
+
+            if (owner.channel && owner.GetModPlayer<NanoPlayer>().NanoCoreMode == 1 && NPCUtils.AnyProj(ModContent.ProjectileType<NanoProbe>(), owner.whoAmI))
             {
-              projectile.ai[0] = (float) num1;
-              ++num1;
-            }
-          }
-          if (owner.GetModPlayer<NanoPlayer>().NanoCoreMode == 0 && NanoBase.AllSet(owner) && !NPCUtils.AnyProj(ModContent.ProjectileType<NanoBlade>(), ((Entity) owner).whoAmI))
-            Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem, (string) null), ((Entity) owner).Center, Vector2.Zero, ModContent.ProjectileType<NanoBlade>(), 0, this.Projectile.knockBack, ((Entity) owner).whoAmI, 0.0f, 1.5f, 0.0f);
-          if (owner.GetModPlayer<NanoPlayer>().NanoCoreMode == 1)
-          {
-            if (this.AtkTimer > 0)
-              --this.AtkTimer;
-            if (NanoBase.AllSet(owner) && this.AtkTimer == 0)
-            {
-              this.AtkTimer = 6;
-              SoundEngine.PlaySound(ref SoundID.Item75, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-              bool flag1 = Utils.NextBool(Main.rand, 4);
-              bool flag2 = true;
-              int num2;
-              float num3;
-              int num4;
-              float num5;
-              int num6;
-              if (owner.PickAmmo(owner.HeldItem, ref num2, ref num3, ref num4, ref num5, ref num6, !flag1))
-              {
-                float num7 = num3 * 4f + 64f;
-                if (Utils.NextBool(Main.rand, 4))
+                bool Allset = true;
+                foreach (Projectile proj in Main.projectile)
                 {
-                  num2 = ModContent.ProjectileType<PlasmaArrow>();
-                  num4 = (int) ((double) num4 * 2.0);
-                  num7 = 3f;
-                }
-                int num8 = (int) ((double) num4 / 1.75);
-                if (flag2)
-                {
-                  Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem, (string) null), Vector2.op_Addition(Vector2.op_Addition(Vector2.op_Addition(((Entity) owner).Center, Utils.NextVector2Circular(Main.rand, 8f, 8f)), Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation + 1.57079637f), 15f)), Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), 35f)), Vector2.op_Multiply(Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), num7), 0.8f), num2, num8, num5, ((Entity) owner).whoAmI, 0.0f, 0.0f, 0.0f);
-                  Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem, (string) null), Vector2.op_Addition(Vector2.op_Addition(Vector2.op_Addition(((Entity) owner).Center, Utils.NextVector2Circular(Main.rand, 8f, 8f)), Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation - 1.57079637f), 15f)), Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), 35f)), Vector2.op_Multiply(Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), num7), 0.8f), num2, num8, num5, ((Entity) owner).whoAmI, 0.0f, 0.0f, 0.0f);
-                  Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem, (string) null), Vector2.op_Addition(Vector2.op_Addition(((Entity) owner).Center, Utils.NextVector2Circular(Main.rand, 8f, 8f)), Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), 35f)), Vector2.op_Multiply(Utils.ToRotationVector2(this.Projectile.rotation), num7), num2, num8, num5, ((Entity) owner).whoAmI, 0.0f, 0.0f, 0.0f);
-                }
-              }
-            }
-          }
-          if (owner.GetModPlayer<NanoPlayer>().NanoCoreMode == 2)
-          {
-            if (owner.channel)
-            {
-              if (NanoBase.AllSet(owner))
-              {
-                if (!owner.CheckMana(2, true, false))
-                {
-                  owner.channel = false;
-                  this.AtkTimer = 180;
-                  return;
-                }
-                owner.manaRegenDelay = 10f;
-                if (!NPCUtils.AnyProj(ModContent.ProjectileType<PlasmaDeathRay>(), ((Entity) owner).whoAmI))
-                {
-                  Vector2 vector2 = Vector2.op_Addition(((Entity) owner).Center, Vector2.op_Multiply(Vector2.Normalize(Vector2.op_Subtraction(Main.MouseWorld, ((Entity) owner).Center)), 130f));
-                  float num9 = 0.33f;
-                  for (int index = 0; index < 9; ++index)
-                  {
-                    if ((double) Utils.NextFloat(Main.rand) >= (double) num9)
+                    if (proj.active && proj.type == ModContent.ProjectileType<NanoProbe>() && proj.owner == owner.whoAmI && proj.ai[1] == 0)
                     {
-                      float num10 = Utils.NextFloat(Main.rand) * 6.28318548f;
-                      float num11 = Utils.NextFloat(Main.rand);
-                      Dust dust = Dust.NewDustPerfect(Vector2.op_Addition(vector2, Vector2.op_Multiply(Utils.ToRotationVector2(num10), (float) (110.0 + 200.0 * (double) num11))), 157, new Vector2?(Vector2.op_Multiply(Utils.ToRotationVector2(num10 - 3.14159274f), (float) (14.0 + 8.0 * (double) num11))), 0, new Color(), 1f);
-                      dust.scale = 0.9f;
-                      dust.fadeIn = (float) (1.1499999761581421 + (double) num11 * 0.30000001192092896);
-                      dust.noGravity = true;
-                      dust.customData = (object) owner;
+                        Allset = false;
                     }
-                  }
                 }
-                if (this.AtkTimer > 0)
-                  --this.AtkTimer;
-                if (this.AtkTimer == 0)
+                if (Allset)
                 {
-                  this.AtkTimer = 180;
-                  if (!Main.dedServ)
-                  {
-                    SoundStyle soundStyle = new SoundStyle("FargowiltasSouls/Assets/Sounds/Zombie_104", (SoundType) 0);
-                    SoundEngine.PlaySound(ref soundStyle, new Vector2?(((Entity) this.Projectile).Center), (SoundUpdateCallback) null);
-                  }
-                  Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem, (string) null), ((Entity) owner).Center, Vector2.Zero, ModContent.ProjectileType<PlasmaDeathRay>(), (int) ((double) this.Projectile.damage * 2.5), this.Projectile.knockBack, ((Entity) owner).whoAmI, 0.0f, 0.0f, 0.0f);
+                    Vector2 TM = Projectile.rotation.ToRotationVector2();
+                    Vector2 begin = owner.Center + TM * 40 + (TM.ToRotation() + MathHelper.Pi / 2).ToRotationVector2() * 30 + (TM.ToRotation() + MathHelper.Pi / 4 * 3).ToRotationVector2() * 60;
+                    Vector2 end = owner.Center + TM * 40 + (TM.ToRotation() - MathHelper.Pi / 2).ToRotationVector2() * 30 + (TM.ToRotation() - MathHelper.Pi / 4 * 3).ToRotationVector2() * 60;
+                    Utils.DrawLine(Main.spriteBatch, begin, end, Color.LightGreen, Color.DarkGreen, 3);
                 }
-              }
-              foreach (Dust dust1 in Main.dust)
-              {
-                if (dust1.active && dust1.type == 157 && dust1.customData != null && dust1.customData is Player customData)
-                {
-                  Dust dust2 = dust1;
-                  dust2.position = Vector2.op_Addition(dust2.position, Vector2.op_Subtraction(((Entity) customData).position, ((Entity) customData).oldPosition));
-                }
-              }
             }
-            else
-              this.AtkTimer = 120;
-          }
-          if (owner.GetModPlayer<NanoPlayer>().NanoCoreMode != 3)
-            return;
-          if (owner.channel)
-          {
-            if (!owner.CheckMana(2, true, false))
-            {
-              owner.channel = false;
-              this.AtkTimer = 0;
-            }
-            else
-            {
-              owner.manaRegenDelay = 10f;
-              this.AtkTimer = (this.AtkTimer + 1) % 30;
-              if (this.AtkTimer % 5 != 3)
-                return;
-              foreach (Projectile projectile in Main.projectile)
-              {
-                if (((Entity) projectile).active && projectile.type == ModContent.ProjectileType<NanoProbe>() && projectile.owner == ((Entity) owner).whoAmI && (double) projectile.ai[1] != 0.0 && ((double) projectile.ai[0] == (double) (this.AtkTimer / 5) || (double) projectile.ai[0] == (double) (this.AtkTimer / 5 + 1) || (double) projectile.ai[0] == 6.0))
-                {
-                  SoundEngine.PlaySound(ref SoundID.Item91, new Vector2?(((Entity) projectile).Center), (SoundUpdateCallback) null);
-                  int num12 = (int) ((double) this.Projectile.damage * 1.05 / 2.0);
-                  Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem, (string) null), ((Entity) projectile).Center, Vector2.op_Multiply(Utils.RotatedByRandom(Utils.ToRotationVector2(projectile.rotation), (double) MathHelper.ToRadians(2f)), 36f), ModContent.ProjectileType<PlasmaProj>(), num12, projectile.knockBack, ((Entity) owner).whoAmI, 0.0f, 0.0f, 0.0f);
-                }
-              }
-            }
-          }
-          else
-            this.AtkTimer = 0;
+            return false;
         }
-        else
-          this.Projectile.Kill();
-      }
-      else
-        this.Projectile.Kill();
-    }
 
-    public static bool AllSet(Player owner)
-    {
-      bool channel = owner.channel;
-      bool flag1 = NPCUtils.AnyProj(ModContent.ProjectileType<NanoProbe>(), ((Entity) owner).whoAmI);
-      bool flag2 = true;
-      foreach (Projectile projectile in Main.projectile)
-      {
-        if (((Entity) projectile).active && projectile.type == ModContent.ProjectileType<NanoProbe>() && projectile.owner == ((Entity) owner).whoAmI && (double) projectile.ai[1] == 0.0)
-          flag2 = false;
-      }
-      return channel & flag1 & flag2;
+        public override bool? CanDamage() => false;
+
+        public override void AI()
+        {
+            if (Main.player[Projectile.owner].active)
+            {
+                Player owner = Main.player[Projectile.owner];
+                if (!owner.dead && owner.HeldItem.type == ModContent.ItemType<NanoCore>())
+                {
+                    //MeleeDamageModifier = owner.ActualClassDamage(DamageClass.Melee);
+                    //RangedDamageModifier = owner.ActualClassDamage(DamageClass.Ranged);
+                    //MagicDamageModifier = owner.ActualClassDamage(DamageClass.Magic);
+                    //SummonDamageModifier = owner.ActualClassDamage(DamageClass.Summon);
+
+                    Projectile.damage = owner.GetWeaponDamage(owner.HeldItem);
+                    Projectile.CritChance = owner.GetWeaponCrit(owner.HeldItem);
+
+                    Projectile.timeLeft = 2;
+                    Projectile.Center = owner.Center;
+                    Projectile.rotation = (Main.MouseWorld - owner.Center).ToRotation();
+                    if (owner.channel)
+                    {
+                        owner.itemTime = 2;
+                        owner.itemAnimation = 2;
+                    }
+
+                    if (owner.ownedProjectileCounts[ModContent.ProjectileType<NanoProbe>()] < 7)
+                    {
+                        int count = 7 - owner.ownedProjectileCounts[ModContent.ProjectileType<NanoProbe>()];
+                        for (int i = 0; i < count; i++)
+                        {
+                            Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem), Projectile.Center, (Projectile.rotation + Main.rand.NextFloat() * MathHelper.Pi / 3 * 2 - MathHelper.Pi / 3).ToRotationVector2() * 14, ModContent.ProjectileType<NanoProbe>(), Projectile.damage, Projectile.knockBack, Projectile.owner);
+                        }
+                    }
+
+                    int t = 0;
+                    foreach (Projectile proj in Main.projectile)
+                    {
+                        if (proj.active && proj.type == ModContent.ProjectileType<NanoProbe>() && proj.owner == Projectile.owner)
+                        {
+                            proj.ai[0] = t;
+                            t++;
+                        }
+                    }
+
+
+
+                    if (owner.GetModPlayer<NanoPlayer>().NanoCoreMode == 0)              //blade
+                    {
+                        if (AllSet(owner))
+                        {
+                            if (!NPCUtils.AnyProj(ModContent.ProjectileType<NanoBlade>(), owner.whoAmI))
+                            {
+                                const float damageMultiplier = 1.5f;
+                                Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem), owner.Center, Vector2.Zero, ModContent.ProjectileType<NanoBlade>(), 0, Projectile.knockBack, owner.whoAmI, 0f, damageMultiplier);
+                            }
+                        }
+                    }
+
+                    if (owner.GetModPlayer<NanoPlayer>().NanoCoreMode == 1)            //bow
+                    {
+                        if (AtkTimer > 0) AtkTimer--;
+                        if (AllSet(owner))
+                        {
+
+                            if (AtkTimer == 0)
+                            {
+                                AtkTimer = 6;
+
+                                SoundEngine.PlaySound(SoundID.Item75, Projectile.Center);
+                                bool Consume = Main.rand.NextBool(4);
+                                bool cs = true;
+                                if (owner.PickAmmo(owner.HeldItem, out int type, out float speed, out int damage, out float kb, out int usedAmmoItemId, !Consume))
+                                {
+                                    speed *= 4;
+                                    speed += 64;
+                                    if (Main.rand.NextBool(4))
+                                    {
+                                        type = ModContent.ProjectileType<PlasmaArrow>();
+                                        damage = (int)(damage * 2f);
+                                        speed = 3;
+                                    }
+                                    damage = (int)(damage / 1.75);
+                                    //damage = (int)(damage * RangedDamageModifier);
+                                    if (cs)
+                                    {
+                                        Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem), owner.Center + Main.rand.NextVector2Circular(8, 8) + (Projectile.rotation + MathHelper.Pi / 2).ToRotationVector2() * 15 + Projectile.rotation.ToRotationVector2() * 35, Projectile.rotation.ToRotationVector2() * speed * 0.8f, type, damage, kb, owner.whoAmI);
+                                        Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem), owner.Center + Main.rand.NextVector2Circular(8, 8) + (Projectile.rotation - MathHelper.Pi / 2).ToRotationVector2() * 15 + Projectile.rotation.ToRotationVector2() * 35, Projectile.rotation.ToRotationVector2() * speed * 0.8f, type, damage, kb, owner.whoAmI);
+                                        Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem), owner.Center + Main.rand.NextVector2Circular(8, 8) + Projectile.rotation.ToRotationVector2() * 35, Projectile.rotation.ToRotationVector2() * speed, type, damage, kb, owner.whoAmI);
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+
+
+                    if (owner.GetModPlayer<NanoPlayer>().NanoCoreMode == 2)            //laser cannon
+                    {
+                        if (owner.channel)
+                        {
+                            if (AllSet(owner))
+                            {
+
+                                if (!owner.CheckMana(2, true))
+                                {
+                                    owner.channel = false;
+                                    AtkTimer = 180;
+                                    return;
+                                }
+                                owner.manaRegenDelay = 10;
+                                if (!NPCUtils.AnyProj(ModContent.ProjectileType<PlasmaDeathRay>(), owner.whoAmI))
+                                {
+                                    Vector2 FirePos = owner.Center + Vector2.Normalize(Main.MouseWorld - owner.Center) * 130;
+                                    float num1 = 0.33f;
+                                    for (int i = 0; i < 9; i++)
+                                    {
+                                        if (Main.rand.NextFloat() >= num1)
+                                        {
+                                            float f = Main.rand.NextFloat() * MathHelper.TwoPi;
+                                            float num2 = Main.rand.NextFloat();
+                                            Dust dust = Dust.NewDustPerfect(FirePos + f.ToRotationVector2() * (110 + 200 * num2), 157, (f - MathHelper.Pi).ToRotationVector2() * (14 + 8 * num2), 0, default, 1f);  //GreenFx
+                                            dust.scale = 0.9f;
+                                            dust.fadeIn = 1.15f + num2 * 0.3f;
+                                            dust.noGravity = true;
+                                            dust.customData = owner;
+                                        }
+                                    }
+
+                                }
+
+                                if (AtkTimer > 0) AtkTimer--;
+                                if (AtkTimer == 0)
+                                {
+                                    AtkTimer = 180;
+
+                                    if (!Main.dedServ)
+                                    {
+                                        SoundEngine.PlaySound(new SoundStyle("FargowiltasSouls/Assets/Sounds/Zombie_104"), Projectile.Center);
+                                    }
+
+                                    Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem), owner.Center, Vector2.Zero, ModContent.ProjectileType<PlasmaDeathRay>(), (int)(Projectile.damage * 2.5), Projectile.knockBack, owner.whoAmI);
+                                }
+                            }
+
+                            foreach (Dust dust1 in Main.dust)
+                            {
+                                if (dust1.active && dust1.type == 157)
+                                {
+                                    if (dust1.customData != null && dust1.customData is Player player)
+                                    {
+                                        dust1.position += player.position - player.oldPosition;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            AtkTimer = 120;
+                        }
+                    }
+
+
+                    if (owner.GetModPlayer<NanoPlayer>().NanoCoreMode == 3)               //bombing
+                    {
+                        if (owner.channel)
+                        {
+                            if (!owner.CheckMana(2, true))
+                            {
+                                owner.channel = false;
+                                AtkTimer = 0;
+                                return;
+                            }
+                            owner.manaRegenDelay = 10;
+
+                            AtkTimer = (AtkTimer + 1) % 30;
+                            if (AtkTimer % 5 == 3)
+                            {
+                                foreach (Projectile proj in Main.projectile)
+                                {
+                                    if (proj.active && proj.type == ModContent.ProjectileType<NanoProbe>() && proj.owner == owner.whoAmI
+                                        && proj.ai[1] != 0)
+                                    {
+                                        if (proj.ai[0] == AtkTimer / 5 || proj.ai[0] == AtkTimer / 5 + 1 || proj.ai[0] == 6)
+                                        {
+                                            SoundEngine.PlaySound(SoundID.Item91, proj.Center);
+                                            int dmg = (int)(Projectile.damage * 1.05 / 2.0 * 1.2);
+                                            Projectile.NewProjectile(owner.GetSource_ItemUse(owner.HeldItem), proj.Center, proj.rotation.ToRotationVector2().RotatedByRandom(MathHelper.ToRadians(2)) * 36, ModContent.ProjectileType<PlasmaProj>(), dmg, proj.knockBack, owner.whoAmI);
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            AtkTimer = 0;
+                        }
+                    }
+
+                }
+                else
+                {
+                    Projectile.Kill();
+                }
+            }
+            else
+            {
+                Projectile.Kill();
+            }
+        }
+
+
+        public static bool AllSet(Player owner)
+        {
+            bool channel = owner.channel;
+            bool anyp = NPCUtils.AnyProj(ModContent.ProjectileType<NanoProbe>(), owner.whoAmI);
+            bool Allset = true;
+            foreach (Projectile proj in Main.projectile)
+            {
+                if (proj.active && proj.type == ModContent.ProjectileType<NanoProbe>() && proj.owner == owner.whoAmI && proj.ai[1] == 0)
+                {
+                    Allset = false;
+                }
+            }
+            return channel && anyp && Allset;
+        }
     }
-  }
 }
